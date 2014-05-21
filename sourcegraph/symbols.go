@@ -184,6 +184,8 @@ type SymbolListOptions struct {
 	UnitType      string `url:",omitempty"`
 	Unit          string `url:",omitempty"`
 
+	Path string `url:",omitempty"`
+
 	// If specified, will filter on descendants of ParentPath (up to ChildDepth)
 	ParentPath string `url:",omitempty"`
 	ChildDepth int    `url:",omitempty"`
@@ -271,6 +273,7 @@ type SymbolTreeOptions struct {
 	CommitID    string   `url:",omitempty"`
 	UnitType    string   `url:",omitempty"`
 	Unit        string   `url:",omitempty"`
+	Path        string   `url:",omitempty"`
 	ParentPath  string   `url:",omitempty"`
 	ChildDepth  int      `url:",omitempty"`
 	Exported    bool     `url:",omitempty"`
