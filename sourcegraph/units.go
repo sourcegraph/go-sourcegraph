@@ -1,4 +1,4 @@
-package client
+package sourcegraph
 
 import (
 	"sourcegraph.com/sourcegraph/api_router"

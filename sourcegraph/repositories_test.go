@@ -1,4 +1,4 @@
-package client
+package sourcegraph
 
 import (
 	"net/http"
