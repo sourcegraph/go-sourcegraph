@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/sourcegraph/go-sourcegraph/router"
-	"sourcegraph.com/sourcegraph/srcgraph/graph"
+	"github.com/sourcegraph/srclib/graph"
 )
 
 func TestDocPagesService_Get(t *testing.T) {

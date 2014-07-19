@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/sourcegraph/go-sourcegraph/router"
-	"sourcegraph.com/sourcegraph/srcgraph/person"
+	"github.com/sourcegraph/srclib/person"
 )
 
 func TestPersonSpec(t *testing.T) {

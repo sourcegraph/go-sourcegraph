@@ -2,7 +2,7 @@ package sourcegraph
 
 import (
 	"github.com/sourcegraph/go-sourcegraph/router"
-	"sourcegraph.com/sourcegraph/srcgraph/graph"
+	"github.com/sourcegraph/srclib/graph"
 )
 
 type DocPagesService interface {

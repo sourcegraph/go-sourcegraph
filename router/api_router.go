@@ -4,7 +4,7 @@ import (
 	"net/url"
 
 	"github.com/sqs/mux"
-	"sourcegraph.com/sourcegraph/srcgraph/graph"
+	"github.com/sourcegraph/srclib/graph"
 )
 
 const (

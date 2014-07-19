@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/sourcegraph/go-sourcegraph/router"
-	"sourcegraph.com/sourcegraph/srcgraph/graph"
-	"sourcegraph.com/sourcegraph/srcgraph/person"
-	"sourcegraph.com/sourcegraph/srcgraph/repo"
+	"github.com/sourcegraph/srclib/graph"
+	"github.com/sourcegraph/srclib/person"
+	"github.com/sourcegraph/srclib/repo"
 )
 
 func TestSymbolsService_Get(t *testing.T) {

@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/sourcegraph/go-sourcegraph/router"
-	"sourcegraph.com/sourcegraph/srcgraph/buildstore"
+	"github.com/sourcegraph/srclib/buildstore"
 )
 
 func TestBuildDataService_Get(t *testing.T) {

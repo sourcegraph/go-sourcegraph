@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/sourcegraph/go-sourcegraph/router"
-	"sourcegraph.com/sourcegraph/srcgraph/buildstore"
+	"github.com/sourcegraph/srclib/buildstore"
 )
 
 // BuildDataService communicates with the build data-related endpoints in the

@@ -12,8 +12,8 @@ import (
 
 	"github.com/kr/pretty"
 	"github.com/sourcegraph/go-sourcegraph/router"
-	"sourcegraph.com/sourcegraph/srcgraph/person"
-	"sourcegraph.com/sourcegraph/srcgraph/repo"
+	"github.com/sourcegraph/srclib/person"
+	"github.com/sourcegraph/srclib/repo"
 )
 
 func TestRepositoriesService_Get(t *testing.T) {

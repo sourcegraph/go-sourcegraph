@@ -6,10 +6,10 @@ import (
 	"net/url"
 
 	"github.com/sourcegraph/go-sourcegraph/router"
-	"sourcegraph.com/sourcegraph/srcgraph/authorship"
-	"sourcegraph.com/sourcegraph/srcgraph/graph"
-	"sourcegraph.com/sourcegraph/srcgraph/person"
-	"sourcegraph.com/sourcegraph/srcgraph/repo"
+	"github.com/sourcegraph/srclib/authorship"
+	"github.com/sourcegraph/srclib/graph"
+	"github.com/sourcegraph/srclib/person"
+	"github.com/sourcegraph/srclib/repo"
 )
 
 // SymbolsService communicates with the symbol- and graph-related endpoints in
