@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"sourcegraph.com/sourcegraph/api_router"
+	"github.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srcgraph/person"
 )
 
@@ -41,7 +41,7 @@ func TestPeopleService_Get(t *testing.T) {
 	want := &Person{User: &person.User{UID: 1}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.Person, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.Person, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -69,7 +69,7 @@ func TestPeopleService_GetOrCreateFromGitHub(t *testing.T) {
 	want := &Person{User: &person.User{UID: 1, Login: "a"}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.PersonFromGitHub, map[string]string{"GitHubUserSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.PersonFromGitHub, map[string]string{"GitHubUserSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -95,7 +95,7 @@ func TestPeopleService_RefreshProfile(t *testing.T) {
 	defer teardown()
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.PersonRefreshProfile, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.PersonRefreshProfile, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 	})
@@ -115,7 +115,7 @@ func TestPeopleService_ComputeStats(t *testing.T) {
 	defer teardown()
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.PersonComputeStats, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.PersonComputeStats, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 	})
@@ -137,7 +137,7 @@ func TestPeopleService_List(t *testing.T) {
 	want := []*person.User{{UID: 1}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.People, nil), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.People, nil), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 		testFormValues(t, r, values{
@@ -177,7 +177,7 @@ func TestPeopleService_ListAuthors(t *testing.T) {
 	want := []*AugmentedPersonUsageByClient{{Author: &person.User{UID: 1}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.PersonAuthors, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.PersonAuthors, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -205,7 +205,7 @@ func TestPeopleService_ListClients(t *testing.T) {
 	want := []*AugmentedPersonUsageOfAuthor{{Client: &person.User{UID: 1}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.PersonClients, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.PersonClients, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 

@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"sourcegraph.com/sourcegraph/api_router"
+	"github.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srcgraph/graph"
 )
 
@@ -16,7 +16,7 @@ func TestDocPagesService_Get(t *testing.T) {
 	want := &graph.DocPage{Title: "hello"}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.RepositoryDocPage, map[string]string{"RepoURI": "r.com/x", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryDocPage, map[string]string{"RepoURI": "r.com/x", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 

@@ -1,7 +1,7 @@
 package sourcegraph
 
 import (
-	"sourcegraph.com/sourcegraph/api_router"
+	"github.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srcgraph/person"
 )
 
@@ -40,7 +40,7 @@ type SearchOptions struct {
 }
 
 func (s *searchService) Search(opt *SearchOptions) (*SearchResults, Response, error) {
-	url, err := s.client.url(api_router.Search, nil, opt)
+	url, err := s.client.url(router.Search, nil, opt)
 	if err != nil {
 		return nil, nil, err
 	}

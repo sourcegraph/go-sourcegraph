@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"sourcegraph.com/sourcegraph/api_router"
+	"github.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srcgraph/graph"
 	"sourcegraph.com/sourcegraph/srcgraph/person"
 	"sourcegraph.com/sourcegraph/srcgraph/repo"
@@ -18,7 +18,7 @@ func TestSymbolsService_Get(t *testing.T) {
 	want := &Symbol{Symbol: graph.Symbol{SID: 1}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.Symbol, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.Symbol, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 		testFormValues(t, r, values{"Doc": "true"})
@@ -47,7 +47,7 @@ func TestSymbolsService_List(t *testing.T) {
 	want := []*Symbol{{Symbol: graph.Symbol{SID: 1}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.Symbols, nil), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.Symbols, nil), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 		testFormValues(t, r, values{
@@ -95,7 +95,7 @@ func TestSymbolsService_ListExamples(t *testing.T) {
 	want := []*Example{{Ref: graph.Ref{File: "f"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.SymbolExamples, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.SymbolExamples, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -123,7 +123,7 @@ func TestSymbolsService_ListAuthors(t *testing.T) {
 	want := []*AugmentedSymbolAuthor{{User: &person.User{Login: "b"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.SymbolAuthors, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.SymbolAuthors, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -151,7 +151,7 @@ func TestSymbolsService_ListClients(t *testing.T) {
 	want := []*AugmentedSymbolClient{{User: &person.User{Login: "b"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.SymbolClients, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.SymbolClients, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -179,7 +179,7 @@ func TestSymbolsService_ListDependents(t *testing.T) {
 	want := []*AugmentedSymbolDependent{{Repo: &repo.Repository{URI: "r2"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.SymbolDependents, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.SymbolDependents, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -207,7 +207,7 @@ func TestSymbolsService_ListImplementations(t *testing.T) {
 	want := []*Symbol{{Symbol: graph.Symbol{SID: 1}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.SymbolImplementations, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.SymbolImplementations, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -235,7 +235,7 @@ func TestSymbolsService_ListInterfaces(t *testing.T) {
 	want := []*Symbol{{Symbol: graph.Symbol{SID: 1}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.SymbolInterfaces, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.SymbolInterfaces, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 

@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"net/url"
 
-	"sourcegraph.com/sourcegraph/api_router"
+	"github.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srcgraph/authorship"
 	"sourcegraph.com/sourcegraph/srcgraph/graph"
 	"sourcegraph.com/sourcegraph/srcgraph/person"
@@ -143,9 +143,9 @@ func (s *symbolsService) Get(symbol SymbolSpec, opt *SymbolGetOptions) (*Symbol,
 	var url *url.URL
 	var err error
 	if symbol.SID != 0 {
-		url, err = s.client.url(api_router.SymbolBySID, map[string]string{"SID": fmt.Sprintf("%d", symbol.SID)}, opt)
+		url, err = s.client.url(router.SymbolBySID, map[string]string{"SID": fmt.Sprintf("%d", symbol.SID)}, opt)
 	} else {
-		url, err = s.client.url(api_router.Symbol, symbol.RouteVars(), opt)
+		url, err = s.client.url(router.Symbol, symbol.RouteVars(), opt)
 	}
 	if err != nil {
 		return nil, nil, err
@@ -211,7 +211,7 @@ type SymbolListOptions struct {
 }
 
 func (s *symbolsService) List(opt *SymbolListOptions) ([]*Symbol, Response, error) {
-	url, err := s.client.url(api_router.Symbols, nil, opt)
+	url, err := s.client.url(router.Symbols, nil, opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -266,7 +266,7 @@ type SymbolListExamplesOptions struct {
 }
 
 func (s *symbolsService) ListExamples(symbol SymbolSpec, opt *SymbolListExamplesOptions) ([]*Example, Response, error) {
-	url, err := s.client.url(api_router.SymbolExamples, symbol.RouteVars(), opt)
+	url, err := s.client.url(router.SymbolExamples, symbol.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -296,7 +296,7 @@ type SymbolListAuthorsOptions struct {
 }
 
 func (s *symbolsService) ListAuthors(symbol SymbolSpec, opt *SymbolListAuthorsOptions) ([]*AugmentedSymbolAuthor, Response, error) {
-	url, err := s.client.url(api_router.SymbolAuthors, symbol.RouteVars(), opt)
+	url, err := s.client.url(router.SymbolAuthors, symbol.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -326,7 +326,7 @@ type SymbolListClientsOptions struct {
 }
 
 func (s *symbolsService) ListClients(symbol SymbolSpec, opt *SymbolListClientsOptions) ([]*AugmentedSymbolClient, Response, error) {
-	url, err := s.client.url(api_router.SymbolClients, symbol.RouteVars(), opt)
+	url, err := s.client.url(router.SymbolClients, symbol.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -361,7 +361,7 @@ type SymbolListDependentsOptions struct {
 }
 
 func (s *symbolsService) ListDependents(symbol SymbolSpec, opt *SymbolListDependentsOptions) ([]*AugmentedSymbolDependent, Response, error) {
-	url, err := s.client.url(api_router.SymbolDependents, symbol.RouteVars(), opt)
+	url, err := s.client.url(router.SymbolDependents, symbol.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -387,7 +387,7 @@ type SymbolListImplementationsOptions struct {
 }
 
 func (s *symbolsService) ListImplementations(symbol SymbolSpec, opt *SymbolListImplementationsOptions) ([]*Symbol, Response, error) {
-	url, err := s.client.url(api_router.SymbolImplementations, symbol.RouteVars(), opt)
+	url, err := s.client.url(router.SymbolImplementations, symbol.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -413,7 +413,7 @@ type SymbolListInterfacesOptions struct {
 }
 
 func (s *symbolsService) ListInterfaces(symbol SymbolSpec, opt *SymbolListInterfacesOptions) ([]*Symbol, Response, error) {
-	url, err := s.client.url(api_router.SymbolInterfaces, symbol.RouteVars(), opt)
+	url, err := s.client.url(router.SymbolInterfaces, symbol.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}

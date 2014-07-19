@@ -1,7 +1,7 @@
 package sourcegraph
 
 import (
-	"sourcegraph.com/sourcegraph/api_router"
+	"github.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srcgraph/unit"
 )
 
@@ -69,7 +69,7 @@ type UnitListOptions struct {
 }
 
 func (s *unitsService) Get(spec *UnitSpec) (*unit.RepoSourceUnit, Response, error) {
-	url, err := s.client.url(api_router.Unit, spec.RouteVars(), nil)
+	url, err := s.client.url(router.Unit, spec.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -89,7 +89,7 @@ func (s *unitsService) Get(spec *UnitSpec) (*unit.RepoSourceUnit, Response, erro
 }
 
 func (s *unitsService) List(opt *UnitListOptions) ([]*unit.RepoSourceUnit, Response, error) {
-	url, err := s.client.url(api_router.Units, nil, opt)
+	url, err := s.client.url(router.Units, nil, opt)
 	if err != nil {
 		return nil, nil, err
 	}

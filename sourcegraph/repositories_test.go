@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/kr/pretty"
-	"sourcegraph.com/sourcegraph/api_router"
+	"github.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srcgraph/person"
 	"sourcegraph.com/sourcegraph/srcgraph/repo"
 )
@@ -23,7 +23,7 @@ func TestRepositoriesService_Get(t *testing.T) {
 	want := &Repository{Repository: &repo.Repository{RID: 1}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.Repository, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.Repository, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -51,7 +51,7 @@ func TestRepositoriesService_GetOrCreate(t *testing.T) {
 	want := &Repository{Repository: &repo.Repository{RID: 1}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.RepositoriesGetOrCreate, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoriesGetOrCreate, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 
@@ -77,7 +77,7 @@ func TestRepositoriesService_RefreshProfile(t *testing.T) {
 	defer teardown()
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.RepositoryRefreshProfile, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryRefreshProfile, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 	})
@@ -97,7 +97,7 @@ func TestRepositoriesService_RefreshVCSData(t *testing.T) {
 	defer teardown()
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.RepositoryRefreshVCSData, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryRefreshVCSData, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 	})
@@ -117,7 +117,7 @@ func TestRepositoriesService_ComputeStats(t *testing.T) {
 	defer teardown()
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.RepositoryComputeStats, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryComputeStats, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 	})
@@ -140,7 +140,7 @@ func TestRepositoriesService_Create(t *testing.T) {
 	want := &repo.Repository{RID: 1}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.RepositoriesCreate, nil), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoriesCreate, nil), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "POST")
 		testBody(t, r, `{"Type":"git","CloneURL":"http://r.com/x"}`+"\n")
@@ -170,7 +170,7 @@ func TestRepositoriesService_GetReadme(t *testing.T) {
 	want.ModTime = want.ModTime.In(time.UTC)
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.RepositoryReadme, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryReadme, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -198,7 +198,7 @@ func TestRepositoriesService_List(t *testing.T) {
 	want := []*Repository{&Repository{Repository: &repo.Repository{RID: 1}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.Repositories, nil), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.Repositories, nil), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 		testFormValues(t, r, values{
@@ -242,7 +242,7 @@ func TestRepositoriesService_ListBadges(t *testing.T) {
 	want := []*Badge{{Name: "b"}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.RepositoryBadges, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryBadges, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -270,7 +270,7 @@ func TestRepositoriesService_ListCounters(t *testing.T) {
 	want := []*Counter{{Name: "b"}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.RepositoryCounters, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryCounters, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -298,7 +298,7 @@ func TestRepositoriesService_ListAuthors(t *testing.T) {
 	want := []*AugmentedRepoAuthor{{User: &person.User{Login: "b"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.RepositoryAuthors, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryAuthors, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -326,7 +326,7 @@ func TestRepositoriesService_ListClients(t *testing.T) {
 	want := []*AugmentedRepoClient{{User: &person.User{Login: "b"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.RepositoryClients, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryClients, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -354,7 +354,7 @@ func TestRepositoriesService_ListDependents(t *testing.T) {
 	want := []*AugmentedRepoDependent{{Repo: &repo.Repository{URI: "r2"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.RepositoryDependents, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryDependents, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -382,7 +382,7 @@ func TestRepositoriesService_ListDependencies(t *testing.T) {
 	want := []*AugmentedRepoDependency{{Repo: &repo.Repository{URI: "r2"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.RepositoryDependencies, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryDependencies, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -410,7 +410,7 @@ func TestRepositoriesService_ListByOwner(t *testing.T) {
 	want := []*repo.Repository{{URI: "r.com/x"}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.PersonOwnedRepositories, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.PersonOwnedRepositories, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -438,7 +438,7 @@ func TestRepositoriesService_ListByContributor(t *testing.T) {
 	want := []*AugmentedRepoContribution{{Repo: &repo.Repository{URI: "r.com/x"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.PersonRepositoryContributions, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.PersonRepositoryContributions, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 		testFormValues(t, r, values{"NoFork": "true"})
@@ -467,7 +467,7 @@ func TestRepositoriesService_ListByClient(t *testing.T) {
 	want := []*AugmentedRepoUsageByClient{{SymbolRepo: &repo.Repository{URI: "r.com/x"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.PersonRepositoryDependencies, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.PersonRepositoryDependencies, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -495,7 +495,7 @@ func TestRepositoriesService_ListByRefdAuthor(t *testing.T) {
 	want := []*AugmentedRepoUsageOfAuthor{{Repo: &repo.Repository{URI: "r.com/x"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.PersonRepositoryDependents, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.PersonRepositoryDependents, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 

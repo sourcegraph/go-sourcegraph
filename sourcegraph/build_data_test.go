@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"sourcegraph.com/sourcegraph/api_router"
+	"github.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srcgraph/buildstore"
 )
 
@@ -18,7 +18,7 @@ func TestBuildDataService_Get(t *testing.T) {
 	want := []byte("hello")
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.RepositoryBuildDataEntry, map[string]string{"RepoURI": "r.com/x", "Rev": "c", "Path": "a/b"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryBuildDataEntry, map[string]string{"RepoURI": "r.com/x", "Rev": "c", "Path": "a/b"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -46,7 +46,7 @@ func TestBuildDataService_List(t *testing.T) {
 	want := []*buildstore.BuildDataFileInfo{{Path: "a/b", CommitID: "c"}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.RepositoryBuildDataEntry, map[string]string{"RepoURI": "r.com/x", "Rev": "c", "Path": "."}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryBuildDataEntry, map[string]string{"RepoURI": "r.com/x", "Rev": "c", "Path": "."}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -76,7 +76,7 @@ func TestBuildDataService_Upload(t *testing.T) {
 	want := []byte("hello")
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.RepositoryBuildDataEntry, map[string]string{"RepoURI": "r.com/x", "Rev": "c", "Path": "a/b"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryBuildDataEntry, map[string]string{"RepoURI": "r.com/x", "Rev": "c", "Path": "a/b"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 	})

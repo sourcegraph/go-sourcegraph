@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/sourcegraph/vcsstore/vcsclient"
-	"sourcegraph.com/sourcegraph/api_router"
+	"github.com/sourcegraph/go-sourcegraph/router"
 )
 
 func TestRepositoryTreeService_Get(t *testing.T) {
@@ -25,7 +25,7 @@ func TestRepositoryTreeService_Get(t *testing.T) {
 	want.ModTime = want.ModTime.In(time.UTC)
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.RepositoryTreeEntry, map[string]string{"RepoURI": "r.com/x", "Rev": "v", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryTreeEntry, map[string]string{"RepoURI": "r.com/x", "Rev": "v", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 		testFormValues(t, r, values{"Formatted": "true"})

@@ -5,7 +5,7 @@ import (
 
 	"github.com/sourcegraph/vcsstore/vcsclient"
 
-	"sourcegraph.com/sourcegraph/api_router"
+	"github.com/sourcegraph/go-sourcegraph/router"
 )
 
 // RepositoryTreeService communicates with the Sourcegraph API endpoints that
@@ -85,7 +85,7 @@ type RepositoryTreeGetOptions struct {
 }
 
 func (s *repositoryTreeService) Get(entry TreeEntrySpec, opt *RepositoryTreeGetOptions) (*TreeEntry, Response, error) {
-	url, err := s.client.url(api_router.RepositoryTreeEntry, entry.RouteVars(), opt)
+	url, err := s.client.url(router.RepositoryTreeEntry, entry.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"sourcegraph.com/sourcegraph/api_router"
+	"github.com/sourcegraph/go-sourcegraph/router"
 )
 
 func TestSearchService_Search(t *testing.T) {
@@ -15,7 +15,7 @@ func TestSearchService_Search(t *testing.T) {
 	want := &SearchResults{}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.Search, nil), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.Search, nil), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 		testFormValues(t, r, values{

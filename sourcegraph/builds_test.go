@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"sourcegraph.com/sourcegraph/api_router"
+	"github.com/sourcegraph/go-sourcegraph/router"
 )
 
 func TestBuildsService_Get(t *testing.T) {
@@ -15,7 +15,7 @@ func TestBuildsService_Get(t *testing.T) {
 	want := &Build{BID: 1}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.Build, map[string]string{"BID": "1"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.Build, map[string]string{"BID": "1"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -44,7 +44,7 @@ func TestBuildsService_List(t *testing.T) {
 	want := []*Build{{BID: 1}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.Builds, nil), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.Builds, nil), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -74,7 +74,7 @@ func TestRepositoryBuildsService_ListByRepository(t *testing.T) {
 	want := []*Build{{BID: 1}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.RepositoryBuilds, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryBuilds, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -105,7 +105,7 @@ func TestBuildsService_Create(t *testing.T) {
 	want := &Build{BID: 123, Repo: 456}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, api_router.RepositoryBuildsCreate, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryBuildsCreate, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "POST")
 		testBody(t, r, `{"Import":true,"Queue":true,"UseCache":false,"Priority":0,"Force":true}`+"\n")

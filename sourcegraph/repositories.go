@@ -6,7 +6,7 @@ import (
 
 	"github.com/sourcegraph/vcsstore/vcsclient"
 
-	"sourcegraph.com/sourcegraph/api_router"
+	"github.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srcgraph/authorship"
 	"sourcegraph.com/sourcegraph/srcgraph/person"
 	"sourcegraph.com/sourcegraph/srcgraph/repo"
@@ -179,7 +179,7 @@ type RepositoryGetOptions struct {
 }
 
 func (s *repositoriesService) Get(repo RepositorySpec, opt *RepositoryGetOptions) (*Repository, Response, error) {
-	url, err := s.client.url(api_router.Repository, repo.RouteVars(), opt)
+	url, err := s.client.url(router.Repository, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -199,7 +199,7 @@ func (s *repositoriesService) Get(repo RepositorySpec, opt *RepositoryGetOptions
 }
 
 func (s *repositoriesService) GetOrCreate(repo_ RepositorySpec, opt *RepositoryGetOptions) (*Repository, Response, error) {
-	url, err := s.client.url(api_router.RepositoriesGetOrCreate, repo_.RouteVars(), opt)
+	url, err := s.client.url(router.RepositoriesGetOrCreate, repo_.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -219,7 +219,7 @@ func (s *repositoriesService) GetOrCreate(repo_ RepositorySpec, opt *RepositoryG
 }
 
 func (s *repositoriesService) RefreshProfile(repo RepositorySpec) (Response, error) {
-	url, err := s.client.url(api_router.RepositoryRefreshProfile, repo.RouteVars(), nil)
+	url, err := s.client.url(router.RepositoryRefreshProfile, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +238,7 @@ func (s *repositoriesService) RefreshProfile(repo RepositorySpec) (Response, err
 }
 
 func (s *repositoriesService) RefreshVCSData(repo RepositorySpec) (Response, error) {
-	url, err := s.client.url(api_router.RepositoryRefreshVCSData, repo.RouteVars(), nil)
+	url, err := s.client.url(router.RepositoryRefreshVCSData, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +257,7 @@ func (s *repositoriesService) RefreshVCSData(repo RepositorySpec) (Response, err
 }
 
 func (s *repositoriesService) ComputeStats(repo RepositorySpec) (Response, error) {
-	url, err := s.client.url(api_router.RepositoryComputeStats, repo.RouteVars(), nil)
+	url, err := s.client.url(router.RepositoryComputeStats, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -281,7 +281,7 @@ type NewRepositorySpec struct {
 }
 
 func (s *repositoriesService) Create(newRepoSpec NewRepositorySpec) (*repo.Repository, Response, error) {
-	url, err := s.client.url(api_router.RepositoriesCreate, nil, nil)
+	url, err := s.client.url(router.RepositoriesCreate, nil, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -301,7 +301,7 @@ func (s *repositoriesService) Create(newRepoSpec NewRepositorySpec) (*repo.Repos
 }
 
 func (s *repositoriesService) GetReadme(repo RepositorySpec) (*vcsclient.TreeEntry, Response, error) {
-	url, err := s.client.url(api_router.RepositoryReadme, repo.RouteVars(), nil)
+	url, err := s.client.url(router.RepositoryReadme, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -339,7 +339,7 @@ type RepositoryListOptions struct {
 }
 
 func (s *repositoriesService) List(opt *RepositoryListOptions) ([]*Repository, Response, error) {
-	url, err := s.client.url(api_router.Repositories, nil, opt)
+	url, err := s.client.url(router.Repositories, nil, opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -371,7 +371,7 @@ func (b *Badge) HTML() string {
 }
 
 func (s *repositoriesService) ListBadges(repo RepositorySpec) ([]*Badge, Response, error) {
-	url, err := s.client.url(api_router.RepositoryBadges, repo.RouteVars(), nil)
+	url, err := s.client.url(router.RepositoryBadges, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -403,7 +403,7 @@ func (c *Counter) HTML() string {
 }
 
 func (s *repositoriesService) ListCounters(repo RepositorySpec) ([]*Counter, Response, error) {
-	url, err := s.client.url(api_router.RepositoryCounters, repo.RouteVars(), nil)
+	url, err := s.client.url(router.RepositoryCounters, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -434,7 +434,7 @@ type RepositoryListAuthorsOptions struct {
 }
 
 func (s *repositoriesService) ListAuthors(repo RepositorySpec, opt *RepositoryListAuthorsOptions) ([]*AugmentedRepoAuthor, Response, error) {
-	url, err := s.client.url(api_router.RepositoryAuthors, repo.RouteVars(), opt)
+	url, err := s.client.url(router.RepositoryAuthors, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -465,7 +465,7 @@ type RepositoryListClientsOptions struct {
 }
 
 func (s *repositoriesService) ListClients(repo RepositorySpec, opt *RepositoryListClientsOptions) ([]*AugmentedRepoClient, Response, error) {
-	url, err := s.client.url(api_router.RepositoryClients, repo.RouteVars(), opt)
+	url, err := s.client.url(router.RepositoryClients, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -498,7 +498,7 @@ type RepositoryListDependenciesOptions struct {
 }
 
 func (s *repositoriesService) ListDependencies(repo RepositorySpec, opt *RepositoryListDependenciesOptions) ([]*AugmentedRepoDependency, Response, error) {
-	url, err := s.client.url(api_router.RepositoryDependencies, repo.RouteVars(), opt)
+	url, err := s.client.url(router.RepositoryDependencies, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -529,7 +529,7 @@ type AugmentedRepoDependent struct {
 type RepositoryListDependentsOptions struct{ ListOptions }
 
 func (s *repositoriesService) ListDependents(repo RepositorySpec, opt *RepositoryListDependentsOptions) ([]*AugmentedRepoDependent, Response, error) {
-	url, err := s.client.url(api_router.RepositoryDependents, repo.RouteVars(), opt)
+	url, err := s.client.url(router.RepositoryDependents, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -558,7 +558,7 @@ type RepositoryListByOwnerOptions struct {
 }
 
 func (s *repositoriesService) ListByOwner(person PersonSpec, opt *RepositoryListByOwnerOptions) ([]*repo.Repository, Response, error) {
-	url, err := s.client.url(api_router.PersonOwnedRepositories, person.RouteVars(), opt)
+	url, err := s.client.url(router.PersonOwnedRepositories, person.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -583,7 +583,7 @@ type RepositoryListByContributorOptions struct {
 }
 
 func (s *repositoriesService) ListByContributor(person PersonSpec, opt *RepositoryListByContributorOptions) ([]*AugmentedRepoContribution, Response, error) {
-	url, err := s.client.url(api_router.PersonRepositoryContributions, person.RouteVars(), opt)
+	url, err := s.client.url(router.PersonRepositoryContributions, person.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -614,7 +614,7 @@ type RepositoryListByClientOptions struct {
 }
 
 func (s *repositoriesService) ListByClient(person PersonSpec, opt *RepositoryListByClientOptions) ([]*AugmentedRepoUsageByClient, Response, error) {
-	url, err := s.client.url(api_router.PersonRepositoryDependencies, person.RouteVars(), opt)
+	url, err := s.client.url(router.PersonRepositoryDependencies, person.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -645,7 +645,7 @@ type RepositoryListByRefdAuthorOptions struct {
 }
 
 func (s *repositoriesService) ListByRefdAuthor(person PersonSpec, opt *RepositoryListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error) {
-	url, err := s.client.url(api_router.PersonRepositoryDependents, person.RouteVars(), opt)
+	url, err := s.client.url(router.PersonRepositoryDependents, person.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}

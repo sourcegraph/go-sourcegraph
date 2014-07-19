@@ -6,7 +6,7 @@ import (
 
 	"github.com/sourcegraph/go-nnz/nnz"
 
-	"sourcegraph.com/sourcegraph/api_router"
+	"github.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srcgraph/person"
 )
 
@@ -102,7 +102,7 @@ type PersonGetOptions struct {
 }
 
 func (s *peopleService) Get(person_ PersonSpec, opt *PersonGetOptions) (*Person, Response, error) {
-	url, err := s.client.url(api_router.Person, person_.RouteVars(), opt)
+	url, err := s.client.url(router.Person, person_.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -138,7 +138,7 @@ func (s GitHubUserSpec) RouteVars() map[string]string {
 }
 
 func (s *peopleService) GetOrCreateFromGitHub(user GitHubUserSpec, opt *PersonGetOptions) (*Person, Response, error) {
-	url, err := s.client.url(api_router.PersonFromGitHub, user.RouteVars(), opt)
+	url, err := s.client.url(router.PersonFromGitHub, user.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -158,7 +158,7 @@ func (s *peopleService) GetOrCreateFromGitHub(user GitHubUserSpec, opt *PersonGe
 }
 
 func (s *peopleService) RefreshProfile(person_ PersonSpec) (Response, error) {
-	url, err := s.client.url(api_router.PersonRefreshProfile, person_.RouteVars(), nil)
+	url, err := s.client.url(router.PersonRefreshProfile, person_.RouteVars(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +177,7 @@ func (s *peopleService) RefreshProfile(person_ PersonSpec) (Response, error) {
 }
 
 func (s *peopleService) ComputeStats(person_ PersonSpec) (Response, error) {
-	url, err := s.client.url(api_router.PersonComputeStats, person_.RouteVars(), nil)
+	url, err := s.client.url(router.PersonComputeStats, person_.RouteVars(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +208,7 @@ type PersonListOptions struct {
 }
 
 func (s *peopleService) List(opt *PersonListOptions) ([]*person.User, Response, error) {
-	url, err := s.client.url(api_router.People, nil, opt)
+	url, err := s.client.url(router.People, nil, opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -243,7 +243,7 @@ type AugmentedPersonUsageByClient struct {
 type PersonListAuthorsOptions PersonListOptions
 
 func (s *peopleService) ListAuthors(person PersonSpec, opt *PersonListAuthorsOptions) ([]*AugmentedPersonUsageByClient, Response, error) {
-	url, err := s.client.url(api_router.PersonAuthors, person.RouteVars(), opt)
+	url, err := s.client.url(router.PersonAuthors, person.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -278,7 +278,7 @@ type AugmentedPersonUsageOfAuthor struct {
 type PersonListClientsOptions PersonListOptions
 
 func (s *peopleService) ListClients(person PersonSpec, opt *PersonListClientsOptions) ([]*AugmentedPersonUsageOfAuthor, Response, error) {
-	url, err := s.client.url(api_router.PersonClients, person.RouteVars(), opt)
+	url, err := s.client.url(router.PersonClients, person.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}

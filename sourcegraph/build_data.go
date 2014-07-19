@@ -3,7 +3,7 @@ package sourcegraph
 import (
 	"io"
 
-	"sourcegraph.com/sourcegraph/api_router"
+	"github.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srcgraph/buildstore"
 )
 
@@ -38,7 +38,7 @@ type BuildDataListOptions struct {
 func (s *buildDataService) List(repo RepositorySpec, opt *BuildDataListOptions) ([]*buildstore.BuildDataFileInfo, Response, error) {
 	v := repo.RouteVars()
 	v["Path"] = "."
-	url, err := s.client.url(api_router.RepositoryBuildDataEntry, v, opt)
+	url, err := s.client.url(router.RepositoryBuildDataEntry, v, opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -58,7 +58,7 @@ func (s *buildDataService) List(repo RepositorySpec, opt *BuildDataListOptions) 
 }
 
 func (s *buildDataService) Get(file BuildDataFileSpec) ([]byte, Response, error) {
-	url, err := s.client.url(api_router.RepositoryBuildDataEntry, file.RouteVars(), nil)
+	url, err := s.client.url(router.RepositoryBuildDataEntry, file.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -78,7 +78,7 @@ func (s *buildDataService) Get(file BuildDataFileSpec) ([]byte, Response, error)
 }
 
 func (s *buildDataService) Upload(file BuildDataFileSpec, body io.ReadCloser) (Response, error) {
-	url, err := s.client.url(api_router.RepositoryBuildDataEntry, file.RouteVars(), nil)
+	url, err := s.client.url(router.RepositoryBuildDataEntry, file.RouteVars(), nil)
 	if err != nil {
 		return nil, err
 	}

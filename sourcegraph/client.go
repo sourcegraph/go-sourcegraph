@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/google/go-querystring/query"
-	"sourcegraph.com/sourcegraph/api_router"
+	"github.com/sourcegraph/go-sourcegraph/router"
 )
 
 const (
@@ -70,13 +70,13 @@ func NewClient(httpClient *http.Client) *Client {
 	return c
 }
 
-// router is used to generate URLs for the Sourcegraph API.
-var router = api_router.NewAPIRouter("")
+// apiRouter is used to generate URLs for the Sourcegraph API.
+var apiRouter = router.NewAPIRouter("")
 
 // url generates the URL to the named Sourcegraph API endpoint, using the
 // specified route variables and query options.
 func (c *Client) url(apiRouteName string, routeVars map[string]string, opt interface{}) (*url.URL, error) {
-	route := router.Get(apiRouteName)
+	route := apiRouter.Get(apiRouteName)
 	if route == nil {
 		return nil, fmt.Errorf("no API route named %q", apiRouteName)
 	}

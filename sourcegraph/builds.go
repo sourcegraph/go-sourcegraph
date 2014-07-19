@@ -7,7 +7,7 @@ import (
 
 	"strconv"
 
-	"sourcegraph.com/sourcegraph/api_router"
+	"github.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srcgraph/db_common"
 	"sourcegraph.com/sourcegraph/srcgraph/repo"
 	"sourcegraph.com/sourcegraph/srcgraph/task2"
@@ -150,7 +150,7 @@ var ErrBuildNotFound = errors.New("build not found")
 type BuildGetOptions struct{}
 
 func (s *buildsService) Get(build BuildSpec, opt *BuildGetOptions) (*Build, Response, error) {
-	url, err := s.client.url(api_router.Build, build.RouteVars(), opt)
+	url, err := s.client.url(router.Build, build.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -183,7 +183,7 @@ type BuildListOptions struct {
 }
 
 func (s *buildsService) List(opt *BuildListOptions) ([]*Build, Response, error) {
-	url, err := s.client.url(api_router.Builds, nil, opt)
+	url, err := s.client.url(router.Builds, nil, opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -208,7 +208,7 @@ type BuildListByRepositoryOptions struct {
 }
 
 func (s *buildsService) ListByRepository(repo RepositorySpec, opt *BuildListByRepositoryOptions) ([]*Build, Response, error) {
-	url, err := s.client.url(api_router.RepositoryBuilds, map[string]string{"RepoURI": repo.URI}, opt)
+	url, err := s.client.url(router.RepositoryBuilds, map[string]string{"RepoURI": repo.URI}, opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -228,7 +228,7 @@ func (s *buildsService) ListByRepository(repo RepositorySpec, opt *BuildListByRe
 }
 
 func (s *buildsService) Create(repo RepositorySpec, opt *BuildCreateOptions) (*Build, Response, error) {
-	url, err := s.client.url(api_router.RepositoryBuildsCreate, repo.RouteVars(), nil)
+	url, err := s.client.url(router.RepositoryBuildsCreate, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -250,7 +250,7 @@ func (s *buildsService) Create(repo RepositorySpec, opt *BuildCreateOptions) (*B
 type BuildTaskListOptions struct{ ListOptions }
 
 func (s *buildsService) ListBuildTasks(build BuildSpec, opt *BuildTaskListOptions) ([]*BuildTask, Response, error) {
-	url, err := s.client.url(api_router.BuildTasks, build.RouteVars(), opt)
+	url, err := s.client.url(router.BuildTasks, build.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
