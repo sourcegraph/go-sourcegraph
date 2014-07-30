@@ -5,7 +5,7 @@ import (
 
 	"github.com/sourcegraph/vcsstore/vcsclient"
 
-	"github.com/sourcegraph/go-sourcegraph/router"
+	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 )
 
 // RepositoryTreeService communicates with the Sourcegraph API endpoints that

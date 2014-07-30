@@ -7,7 +7,7 @@ import (
 
 	"strconv"
 
-	"github.com/sourcegraph/go-sourcegraph/router"
+	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/db_common"
 	"sourcegraph.com/sourcegraph/srclib/repo"
 	"sourcegraph.com/sourcegraph/srclib/task2"

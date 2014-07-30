@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sourcegraph/go-sourcegraph/router"
+	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 )
 
 func TestSearchService_Search(t *testing.T) {

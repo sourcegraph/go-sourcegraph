@@ -6,7 +6,7 @@ import (
 
 	"github.com/sourcegraph/go-nnz/nnz"
 
-	"github.com/sourcegraph/go-sourcegraph/router"
+	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/person"
 )
 

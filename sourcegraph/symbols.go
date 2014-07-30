@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"net/url"
 
-	"github.com/sourcegraph/go-sourcegraph/router"
+	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/authorship"
 	"sourcegraph.com/sourcegraph/srclib/graph"
 	"sourcegraph.com/sourcegraph/srclib/person"

@@ -6,7 +6,7 @@ import (
 
 	"github.com/sourcegraph/vcsstore/vcsclient"
 
-	"github.com/sourcegraph/go-sourcegraph/router"
+	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/authorship"
 	"sourcegraph.com/sourcegraph/srclib/person"
 	"sourcegraph.com/sourcegraph/srclib/repo"

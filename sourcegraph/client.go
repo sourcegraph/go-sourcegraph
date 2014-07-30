@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/google/go-querystring/query"
-	"github.com/sourcegraph/go-sourcegraph/router"
+	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 )
 
 const (
