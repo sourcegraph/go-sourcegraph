@@ -195,9 +195,12 @@ type SymbolListOptions struct {
 	// files whose path is underneath the specified prefix.
 	FilePathPrefix string `url:",omitempty" json:",omitempty"`
 
-	Kinds       []string `url:",omitempty,comma" json:",omitempty"`
-	Exported    bool     `url:",omitempty" json:",omitempty"`
-	IncludeTest bool     `url:",omitempty" json:",omitempty"`
+	Kinds    []string `url:",omitempty,comma" json:",omitempty"`
+	Exported bool     `url:",omitempty" json:",omitempty"`
+
+	// IncludeTest is whether the results should include definitions in test
+	// files.
+	IncludeTest bool `url:",omitempty" json:",omitempty"`
 
 	// Enhancements
 	Doc bool `url:",omitempty" json:",omitempty"`
