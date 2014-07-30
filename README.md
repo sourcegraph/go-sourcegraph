@@ -2,4 +2,4 @@
 
 [Sourcegraph](https://sourcegraph.com) API client library for [Go](http://golang.org).
 
-**Work in progress.**
+**Work in progress. If you want to use this, [post an issue](https://github.com/sourcegraph/go-sourcegraph/issues) or contact us [@srcgraph](https://twitter.com/srcgraph) and write up the docs asap.**
