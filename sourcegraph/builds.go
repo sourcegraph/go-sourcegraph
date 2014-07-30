@@ -8,9 +8,9 @@ import (
 	"strconv"
 
 	"github.com/sourcegraph/go-sourcegraph/router"
-	"github.com/sourcegraph/srclib/db_common"
-	"github.com/sourcegraph/srclib/repo"
-	"github.com/sourcegraph/srclib/task2"
+	"sourcegraph.com/sourcegraph/srclib/db_common"
+	"sourcegraph.com/sourcegraph/srclib/repo"
+	"sourcegraph.com/sourcegraph/srclib/task2"
 )
 
 // BuildsService communicates with the build-related endpoints in the

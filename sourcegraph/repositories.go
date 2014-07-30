@@ -7,9 +7,9 @@ import (
 	"github.com/sourcegraph/vcsstore/vcsclient"
 
 	"github.com/sourcegraph/go-sourcegraph/router"
-	"github.com/sourcegraph/srclib/authorship"
-	"github.com/sourcegraph/srclib/person"
-	"github.com/sourcegraph/srclib/repo"
+	"sourcegraph.com/sourcegraph/srclib/authorship"
+	"sourcegraph.com/sourcegraph/srclib/person"
+	"sourcegraph.com/sourcegraph/srclib/repo"
 )
 
 // RepositoriesService communicates with the repository-related endpoints in the

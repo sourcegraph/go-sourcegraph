@@ -2,7 +2,7 @@ package sourcegraph
 
 import (
 	"github.com/sourcegraph/go-sourcegraph/router"
-	"github.com/sourcegraph/srclib/unit"
+	"sourcegraph.com/sourcegraph/srclib/unit"
 )
 
 // UnitsService communicates with the source unit-related endpoints in

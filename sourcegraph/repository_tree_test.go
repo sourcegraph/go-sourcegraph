@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sourcegraph/vcsstore/vcsclient"
 	"github.com/sourcegraph/go-sourcegraph/router"
+	"github.com/sourcegraph/vcsstore/vcsclient"
 )
 
 func TestRepositoryTreeService_Get(t *testing.T) {

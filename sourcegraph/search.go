@@ -2,7 +2,7 @@ package sourcegraph
 
 import (
 	"github.com/sourcegraph/go-sourcegraph/router"
-	"github.com/sourcegraph/srclib/person"
+	"sourcegraph.com/sourcegraph/srclib/person"
 )
 
 // SearchService communicates with the search-related endpoints in

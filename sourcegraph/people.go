@@ -7,7 +7,7 @@ import (
 	"github.com/sourcegraph/go-nnz/nnz"
 
 	"github.com/sourcegraph/go-sourcegraph/router"
-	"github.com/sourcegraph/srclib/person"
+	"sourcegraph.com/sourcegraph/srclib/person"
 )
 
 // PeopleService communicates with the people-related endpoints in the

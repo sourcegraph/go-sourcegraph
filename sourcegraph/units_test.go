@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/sourcegraph/go-sourcegraph/router"
-	"github.com/sourcegraph/srclib/unit"
+	"sourcegraph.com/sourcegraph/srclib/unit"
 )
 
 func TestUnitsService_List(t *testing.T) {
