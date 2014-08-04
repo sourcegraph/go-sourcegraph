@@ -82,6 +82,10 @@ type RepositoryTreeGetOptions struct {
 	DirEntryDefinitions bool `url:",omitempty"`
 
 	ContentsAsString bool `url:",omitempty"`
+
+	// StartByte and EndByte, if EndByte is nonzero, specify the byte range of
+	// the file to fetch.
+	StartByte, EndByte int
 }
 
 func (s *repositoryTreeService) Get(entry TreeEntrySpec, opt *RepositoryTreeGetOptions) (*TreeEntry, Response, error) {

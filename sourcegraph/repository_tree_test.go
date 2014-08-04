@@ -28,7 +28,7 @@ func TestRepositoryTreeService_Get(t *testing.T) {
 	mux.HandleFunc(urlPath(t, router.RepositoryTreeEntry, map[string]string{"RepoURI": "r.com/x", "Rev": "v", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
-		testFormValues(t, r, values{"Formatted": "true"})
+		testFormValues(t, r, values{"Formatted": "true", "StartByte": "0", "EndByte": "0"})
 
 		writeJSON(w, want)
 	})
