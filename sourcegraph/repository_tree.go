@@ -43,7 +43,7 @@ type TreeEntry struct {
 	// FormatResult is only set if this TreeEntry is a file.
 	FormatResult *FormatResult `json:",omitempty"`
 
-	// EntryDefinitions is a list of defined symbols for each entry in this
+	// EntryDefinitions is a list of defined defs for each entry in this
 	// directory. It is only populated if DirEntryDefinitions is true.
 	EntryDefinitions map[string]interface{}
 }
@@ -74,10 +74,10 @@ type RepositoryTreeGetOptions struct {
 	Formatted bool
 
 	// DirEntryDefinitions is whether the specified entry, if it's a directory,
-	// should include a list of defined symbols for each of its entries (in
+	// should include a list of defined defs for each of its entries (in
 	// EntryDefinitions). For example, if the specified entry has a file "a" and
-	// a dir "b/", the result would include a list of symbols defined in "a" and
-	// in any file underneath "b/". Not all symbols defined in the entries are
+	// a dir "b/", the result would include a list of defs defined in "a" and
+	// in any file underneath "b/". Not all defs defined in the entries are
 	// returned; only the top few are.
 	DirEntryDefinitions bool `url:",omitempty"`
 

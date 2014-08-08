@@ -7,21 +7,21 @@ import (
 	"github.com/sqs/mux"
 )
 
-// SymbolPathPattern is the path pattern for symbols.
+// DefPathPattern is the path pattern for defs.
 //
-// We want the symbol routes to match the 2 following forms:
+// We want the def routes to match the 2 following forms:
 //
-//   1. /.MyUnitType/.def/MySymbol (i.e., Unit == ".")
-//   2. /.MyUnitType/MyUnitPath1/.def/MySymbol (i.e., Unit == "MyUnitPath1")
+//   1. /.MyUnitType/.def/MyDef (i.e., Unit == ".")
+//   2. /.MyUnitType/MyUnitPath1/.def/MyDef (i.e., Unit == "MyUnitPath1")
 //
 // To achieve this, we use a non-picky regexp for rawUnit and then sort it
-// out in the FixSymbolUnitVars PostMatchFunc.
-var SymbolPathPattern = `.{UnitType}/{rawUnit:.*}.def{Path:(?:(?:/(?:[^/.][^/]*/)*(?:[^/.][^/]*))|)}`
+// out in the FixDefUnitVars PostMatchFunc.
+var DefPathPattern = `.{UnitType}/{rawUnit:.*}.def{Path:(?:(?:/(?:[^/.][^/]*/)*(?:[^/.][^/]*))|)}`
 
-// FixSymbolUnitVars is a mux.PostMatchFunc that cleans up the dummy rawUnit route
-// variable matched by SymbolPathPattern. See the docs for SymbolPathPattern for
+// FixDefUnitVars is a mux.PostMatchFunc that cleans up the dummy rawUnit route
+// variable matched by DefPathPattern. See the docs for DefPathPattern for
 // more information.
-func FixSymbolUnitVars(req *http.Request, match *mux.RouteMatch, r *mux.Route) {
+func FixDefUnitVars(req *http.Request, match *mux.RouteMatch, r *mux.Route) {
 	match.Vars["Path"] = strings.TrimPrefix(match.Vars["Path"], "/")
 	if path := match.Vars["Path"]; path == "" {
 		match.Vars["Path"] = "."
@@ -37,10 +37,10 @@ func FixSymbolUnitVars(req *http.Request, match *mux.RouteMatch, r *mux.Route) {
 	delete(match.Vars, "rawUnit")
 }
 
-// PrepareSymbolRouteVars is a mux.BuildVarsFunc that converts from a "Unit"
+// PrepareDefRouteVars is a mux.BuildVarsFunc that converts from a "Unit"
 // route variable to the dummy "rawUnit" route variable that actually appears in
 // the route regexp pattern.
-func PrepareSymbolRouteVars(vars map[string]string) map[string]string {
+func PrepareDefRouteVars(vars map[string]string) map[string]string {
 	if path := vars["Path"]; path == "." {
 		vars["Path"] = ""
 	} else if path != "" {

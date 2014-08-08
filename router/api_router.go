@@ -56,15 +56,15 @@ const (
 
 	Snippet = "snippet"
 
-	Symbols               = "symbols"
-	Symbol                = "symbol"
-	SymbolBySID           = "symbol-by-sid"
-	SymbolExamples        = "symbol.examples"
-	SymbolAuthors         = "symbol.authors"
-	SymbolClients         = "symbol.clients"
-	SymbolDependents      = "symbol.dependents"
-	SymbolImplementations = "symbol.implementations"
-	SymbolInterfaces      = "symbol.interfaces"
+	Defs               = "defs"
+	Def                = "def"
+	DefBySID           = "def-by-sid"
+	DefExamples        = "def.examples"
+	DefAuthors         = "def.authors"
+	DefClients         = "def.clients"
+	DefDependents      = "def.dependents"
+	DefImplementations = "def.implementations"
+	DefInterfaces      = "def.interfaces"
 
 	// Redirects for old routes.
 	RedirectOldRepositoryBadgesAndCounters = "repo.redirect-old-badges-and-counters"
@@ -154,20 +154,20 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 
 	m.Path("/snippet").Methods("GET", "POST", "ORIGIN").Name(Snippet)
 
-	m.Path("/.symbols").Methods("GET").Name(Symbols)
-	m.Path(`/.symbols/{SID:\d+}`).Methods("GET").Name(SymbolBySID)
+	m.Path("/.defs").Methods("GET").Name(Defs)
+	m.Path(`/.defs/{SID:\d+}`).Methods("GET").Name(DefBySID)
 
-	// See router_util/symbol_route.go for an explanation of how we match symbol
+	// See router_util/def_route.go for an explanation of how we match def
 	// routes.
-	symbolPath := `/.symbols/` + SymbolPathPattern
-	repo.Path(symbolPath).Methods("GET").PostMatchFunc(FixSymbolUnitVars).BuildVarsFunc(PrepareSymbolRouteVars).Name(Symbol)
-	symbol := repo.PathPrefix(symbolPath).PostMatchFunc(FixSymbolUnitVars).BuildVarsFunc(PrepareSymbolRouteVars).Subrouter()
-	symbol.Path("/.examples").Methods("GET").Name(SymbolExamples)
-	symbol.Path("/.authors").Methods("GET").Name(SymbolAuthors)
-	symbol.Path("/.clients").Methods("GET").Name(SymbolClients)
-	symbol.Path("/.dependents").Methods("GET").Name(SymbolDependents)
-	symbol.Path("/.implementations").Methods("GET").Name(SymbolImplementations)
-	symbol.Path("/.interfaces").Methods("GET").Name(SymbolInterfaces)
+	defPath := `/.defs/` + DefPathPattern
+	repo.Path(defPath).Methods("GET").PostMatchFunc(FixDefUnitVars).BuildVarsFunc(PrepareDefRouteVars).Name(Def)
+	def := repo.PathPrefix(defPath).PostMatchFunc(FixDefUnitVars).BuildVarsFunc(PrepareDefRouteVars).Subrouter()
+	def.Path("/.examples").Methods("GET").Name(DefExamples)
+	def.Path("/.authors").Methods("GET").Name(DefAuthors)
+	def.Path("/.clients").Methods("GET").Name(DefClients)
+	def.Path("/.dependents").Methods("GET").Name(DefDependents)
+	def.Path("/.implementations").Methods("GET").Name(DefImplementations)
+	def.Path("/.interfaces").Methods("GET").Name(DefInterfaces)
 
 	m.Path("/.units").Methods("GET").Name(Units)
 	unitPath := `/.units/.{UnitType}/{Unit:.*}`
@@ -176,8 +176,8 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	return m
 }
 
-func URIToSymbol(key graph.SymbolKey) *url.URL {
-	return URITo(Symbol, "Repo", string(key.Repo), "UnitType", key.UnitType, "Unit", key.Unit, "Path", string(key.Path))
+func URIToDef(key graph.DefKey) *url.URL {
+	return URITo(Def, "Repo", string(key.Repo), "UnitType", key.UnitType, "Unit", key.Unit, "Path", string(key.Path))
 }
 
 func URITo(routeName string, params ...string) *url.URL {

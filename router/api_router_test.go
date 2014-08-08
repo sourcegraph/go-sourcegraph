@@ -88,47 +88,47 @@ func TestMatch(t *testing.T) {
 			wantVars:      map[string]string{"RepoURI": "repohost.com/foo", "Rev": "mycommitid", "Path": "my/file"},
 		},
 
-		// Symbols
+		// Defs
 		{
-			path:          "/repos/repohost.com/foo@mycommitid/.symbols/.t/.def/p",
-			wantRouteName: Symbol,
+			path:          "/repos/repohost.com/foo@mycommitid/.defs/.t/.def/p",
+			wantRouteName: Def,
 			wantVars:      map[string]string{"RepoURI": "repohost.com/foo", "UnitType": "t", "Unit": ".", "Path": "p", "Rev": "mycommitid"},
 		},
 		{
-			path:          "/repos/repohost.com/foo/.symbols/.t/.def/p",
-			wantRouteName: Symbol,
+			path:          "/repos/repohost.com/foo/.defs/.t/.def/p",
+			wantRouteName: Def,
 			wantVars:      map[string]string{"RepoURI": "repohost.com/foo", "UnitType": "t", "Unit": ".", "Path": "p"},
 		},
 		{
-			path:          "/repos/repohost.com/foo/.symbols/.t/.def", // empty path
-			wantRouteName: Symbol,
+			path:          "/repos/repohost.com/foo/.defs/.t/.def", // empty path
+			wantRouteName: Def,
 			wantVars:      map[string]string{"RepoURI": "repohost.com/foo", "UnitType": "t", "Unit": ".", "Path": "."},
 		},
 		{
-			path:          "/repos/repohost.com/foo/.symbols/.t/u1/.def/p",
-			wantRouteName: Symbol,
+			path:          "/repos/repohost.com/foo/.defs/.t/u1/.def/p",
+			wantRouteName: Def,
 			wantVars:      map[string]string{"RepoURI": "repohost.com/foo", "UnitType": "t", "Unit": "u1", "Path": "p"},
 		},
 		{
-			path:          "/repos/repohost.com/foo/.symbols/.t/u1/u2/.def/p1/p2",
-			wantRouteName: Symbol,
+			path:          "/repos/repohost.com/foo/.defs/.t/u1/u2/.def/p1/p2",
+			wantRouteName: Def,
 			wantVars:      map[string]string{"RepoURI": "repohost.com/foo", "UnitType": "t", "Unit": "u1/u2", "Path": "p1/p2"},
 		},
 
-		// Symbol sub-routes
+		// Def sub-routes
 		{
-			path:          "/repos/repohost.com/foo/.symbols/.t/.def/p/.authors",
-			wantRouteName: SymbolAuthors,
+			path:          "/repos/repohost.com/foo/.defs/.t/.def/p/.authors",
+			wantRouteName: DefAuthors,
 			wantVars:      map[string]string{"RepoURI": "repohost.com/foo", "UnitType": "t", "Unit": ".", "Path": "p"},
 		},
 		{
-			path:          "/repos/repohost.com/foo/.symbols/.t/.def/.authors", // empty path
-			wantRouteName: SymbolAuthors,
+			path:          "/repos/repohost.com/foo/.defs/.t/.def/.authors", // empty path
+			wantRouteName: DefAuthors,
 			wantVars:      map[string]string{"RepoURI": "repohost.com/foo", "UnitType": "t", "Unit": ".", "Path": "."},
 		},
 		{
-			path:          "/repos/repohost.com/foo/.symbols/.t/u1/u2/.def/p1/p2/.authors",
-			wantRouteName: SymbolAuthors,
+			path:          "/repos/repohost.com/foo/.defs/.t/u1/u2/.def/p1/p2/.authors",
+			wantRouteName: DefAuthors,
 			wantVars:      map[string]string{"RepoURI": "repohost.com/foo", "UnitType": "t", "Unit": "u1/u2", "Path": "p1/p2"},
 		},
 

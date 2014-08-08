@@ -69,14 +69,14 @@ type RepositoriesService interface {
 	// repo.
 	ListAuthors(repo RepositorySpec, opt *RepositoryListAuthorsOptions) ([]*AugmentedRepoAuthor, Response, error)
 
-	// ListClients lists people who reference symbols defined in repo.
+	// ListClients lists people who reference defs defined in repo.
 	ListClients(repo RepositorySpec, opt *RepositoryListClientsOptions) ([]*AugmentedRepoClient, Response, error)
 
-	// ListDependents lists repositories that contain symbols referenced by
+	// ListDependents lists repositories that contain defs referenced by
 	// repo.
 	ListDependencies(repo RepositorySpec, opt *RepositoryListDependenciesOptions) ([]*AugmentedRepoDependency, Response, error)
 
-	// ListDependents lists repositories that reference symbols defined in repo.
+	// ListDependents lists repositories that reference defs defined in repo.
 	ListDependents(repo RepositorySpec, opt *RepositoryListDependentsOptions) ([]*AugmentedRepoDependent, Response, error)
 
 	// ListByOwner lists repositories owned by person. Currently only GitHub
@@ -87,7 +87,7 @@ type RepositoriesService interface {
 	// committed) code to.
 	ListByContributor(person PersonSpec, opt *RepositoryListByContributorOptions) ([]*AugmentedRepoContribution, Response, error)
 
-	// ListByClient lists repositories that contain symbols referenced by
+	// ListByClient lists repositories that contain defs referenced by
 	// person.
 	ListByClient(person PersonSpec, opt *RepositoryListByClientOptions) ([]*AugmentedRepoUsageByClient, Response, error)
 
@@ -423,7 +423,7 @@ func (s *repositoriesService) ListCounters(repo RepositorySpec) ([]*Counter, Res
 }
 
 // AugmentedRepoAuthor is a rel.RepoAuthor with the full person.User and
-// graph.Symbol structs embedded.
+// graph.Def structs embedded.
 type AugmentedRepoAuthor struct {
 	User *person.User
 	*authorship.RepoAuthor
@@ -454,7 +454,7 @@ func (s *repositoriesService) ListAuthors(repo RepositorySpec, opt *RepositoryLi
 }
 
 // AugmentedRepoClient is a rel.RepoClient with the full person.User and
-// graph.Symbol structs embedded.
+// graph.Def structs embedded.
 type AugmentedRepoClient struct {
 	User *person.User
 	*authorship.RepoClient
@@ -605,7 +605,7 @@ func (s *repositoriesService) ListByContributor(person PersonSpec, opt *Reposito
 // AugmentedRepoUsageByClient is a authorship.RepoUsageByClient with the full repo.Repository
 // struct embedded.
 type AugmentedRepoUsageByClient struct {
-	SymbolRepo                    *repo.Repository
+	DefRepo                       *repo.Repository
 	*authorship.RepoUsageByClient `json:"RepoUsageByClient"`
 }
 

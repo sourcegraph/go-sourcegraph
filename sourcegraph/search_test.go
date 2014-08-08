@@ -22,7 +22,7 @@ func TestSearchService_Search(t *testing.T) {
 			"q":            "q",
 			"People":       "false",
 			"Repositories": "false",
-			"Symbols":      "false",
+			"Defs":         "false",
 			"PerPage":      "1",
 			"Page":         "2",
 		})

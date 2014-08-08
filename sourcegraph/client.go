@@ -30,7 +30,7 @@ type Client struct {
 	Repositories   RepositoriesService
 	RepositoryTree RepositoryTreeService
 	Search         SearchService
-	Symbols        SymbolsService
+	Defs           DefsService
 	Units          UnitsService
 
 	// Base URL for API requests, which should have a trailing slash.
@@ -60,7 +60,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.Repositories = &repositoriesService{c}
 	c.RepositoryTree = &repositoryTreeService{c}
 	c.Search = &searchService{c}
-	c.Symbols = &symbolsService{c}
+	c.Defs = &defsService{c}
 	c.Units = &unitsService{c}
 
 	c.BaseURL = &url.URL{Scheme: "https", Host: "sourcegraph.com", Path: "/api/"}
@@ -265,7 +265,7 @@ func NewMockClient() *Client {
 		Repositories:   &MockRepositoriesService{},
 		RepositoryTree: &MockRepositoryTreeService{},
 		Search:         &MockSearchService{},
-		Symbols:        &MockSymbolsService{},
+		Defs:           &MockDefsService{},
 		Units:          &MockUnitsService{},
 	}
 }

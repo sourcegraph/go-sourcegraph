@@ -464,7 +464,7 @@ func TestRepositoriesService_ListByClient(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedRepoUsageByClient{{SymbolRepo: &repo.Repository{URI: "r.com/x"}}}
+	want := []*AugmentedRepoUsageByClient{{DefRepo: &repo.Repository{URI: "r.com/x"}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.PersonRepositoryDependencies, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
