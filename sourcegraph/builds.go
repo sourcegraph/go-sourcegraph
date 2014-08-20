@@ -98,7 +98,7 @@ func buildIDString(bid int64) string { return "B" + strconv.FormatInt(bid, 36) }
 
 // A BuildTask represents an individual step of a build.
 type BuildTask struct {
-	TID int64
+	TaskID int64
 
 	// BID is the build that this task is a part of.
 	BID int64
@@ -106,7 +106,14 @@ type BuildTask struct {
 	UnitType string
 	Unit     string
 
-	Title string
+	// Op is the srclib toolchain operation (graph, depresolve, etc.) that this
+	// task performs.
+	Op string
+
+	// Order is the order in which this task is performed, relative to other
+	// tasks in the same build. Lower-number-ordered tasks are built first.
+	// Multiple tasks may have the same order.
+	Order int
 
 	StartedAt db_common.NullTime `db:"started_at"`
 	EndedAt   db_common.NullTime `db:"ended_at"`
@@ -115,7 +122,9 @@ type BuildTask struct {
 	Failure bool
 }
 
-func (t *BuildTask) Spec() TaskSpec { return TaskSpec{BuildSpec: BuildSpec{BID: t.BID}, TaskID: t.TID} }
+func (t *BuildTask) Spec() TaskSpec {
+	return TaskSpec{BuildSpec: BuildSpec{BID: t.BID}, TaskID: t.TaskID}
+}
 
 // IDString returns a succinct string that uniquely identifies this build task.
 func (t TaskSpec) IDString() string {
