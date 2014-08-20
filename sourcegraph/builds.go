@@ -89,8 +89,10 @@ type Build struct {
 	RepoURI repo.URI `db:"repo_uri" json:",omitempty"`
 }
 
+func (b *Build) Spec() BuildSpec { return BuildSpec{BID: b.BID} }
+
 // IDString returns a succinct string that uniquely identifies this build.
-func (b *Build) IDString() string { return buildIDString(b.BID) }
+func (b BuildSpec) IDString() string { return buildIDString(b.BID) }
 
 func buildIDString(bid int64) string { return "B" + strconv.FormatInt(bid, 36) }
 
@@ -113,9 +115,11 @@ type BuildTask struct {
 	Failure bool
 }
 
+func (t *BuildTask) Spec() TaskSpec { return TaskSpec{BuildSpec: BuildSpec{BID: t.BID}, TaskID: t.TID} }
+
 // IDString returns a succinct string that uniquely identifies this build task.
-func (t *BuildTask) IDString() string {
-	return buildIDString(t.BID) + "-T" + strconv.FormatInt(t.TID, 36)
+func (t TaskSpec) IDString() string {
+	return buildIDString(t.BID) + "-T" + strconv.FormatInt(t.TaskID, 36)
 }
 
 // BuildConfig configures a repository build.
