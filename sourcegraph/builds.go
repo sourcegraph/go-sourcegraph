@@ -31,6 +31,12 @@ type BuildsService interface {
 
 	// ListBuildTasks lists the tasks associated with a build.
 	ListBuildTasks(build BuildSpec, opt *BuildTaskListOptions) ([]*BuildTask, Response, error)
+
+	// GetLog gets log entries associated with a build.
+	GetLog(build BuildSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error)
+
+	// GetTaskLog gets log entries associated with a task.
+	GetTaskLog(task TaskSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error)
 }
 
 type buildsService struct {
@@ -45,6 +51,17 @@ type BuildSpec struct {
 
 func (s *BuildSpec) RouteVars() map[string]string {
 	return map[string]string{"BID": fmt.Sprintf("%d", s.BID)}
+}
+
+type TaskSpec struct {
+	BuildSpec
+	TaskID int64
+}
+
+func (s *TaskSpec) RouteVars() map[string]string {
+	v := s.BuildSpec.RouteVars()
+	v["TaskID"] = fmt.Sprintf("%d", s.TaskID)
+	return v
 }
 
 // A Build represents a scheduled, completed, or failed repository analysis and
@@ -269,12 +286,62 @@ func (s *buildsService) ListBuildTasks(build BuildSpec, opt *BuildTaskListOption
 	return tasks, resp, nil
 }
 
+type BuildGetLogOptions struct {
+}
+
+type LogEntries struct {
+	MaxID   string
+	Entries []string
+}
+
+func (s *buildsService) GetLog(build BuildSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error) {
+	url, err := s.client.url(router.BuildLog, build.RouteVars(), opt)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var entries *LogEntries
+	resp, err := s.client.Do(req, &entries)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return entries, resp, nil
+}
+
+func (s *buildsService) GetTaskLog(task TaskSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error) {
+	url, err := s.client.url(router.BuildTaskLog, task.RouteVars(), opt)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var entries *LogEntries
+	resp, err := s.client.Do(req, &entries)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return entries, resp, nil
+}
+
 type MockBuildsService struct {
 	Get_              func(build BuildSpec, opt *BuildGetOptions) (*Build, Response, error)
 	List_             func(opt *BuildListOptions) ([]*Build, Response, error)
 	ListByRepository_ func(repo RepositorySpec, opt *BuildListByRepositoryOptions) ([]*Build, Response, error)
 	Create_           func(repo RepositorySpec, opt *BuildCreateOptions) (*Build, Response, error)
 	ListBuildTasks_   func(build BuildSpec, opt *BuildTaskListOptions) ([]*BuildTask, Response, error)
+	GetLog_           func(build BuildSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error)
+	GetTaskLog_       func(task TaskSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error)
 }
 
 var _ BuildsService = MockBuildsService{}
@@ -312,4 +379,18 @@ func (s MockBuildsService) ListBuildTasks(build BuildSpec, opt *BuildTaskListOpt
 		return nil, nil, nil
 	}
 	return s.ListBuildTasks_(build, opt)
+}
+
+func (s MockBuildsService) GetLog(build BuildSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error) {
+	if s.GetLog_ == nil {
+		return nil, nil, nil
+	}
+	return s.GetLog_(build, opt)
+}
+
+func (s MockBuildsService) GetTaskLog(task TaskSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error) {
+	if s.GetTaskLog_ == nil {
+		return nil, nil, nil
+	}
+	return s.GetTaskLog_(task, opt)
 }

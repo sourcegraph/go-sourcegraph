@@ -129,6 +129,62 @@ func TestBuildsService_Create(t *testing.T) {
 	}
 }
 
+func TestBuildsService_GetLog(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := &LogEntries{MaxID: "1"}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.BuildLog, map[string]string{"BID": "1"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+
+		writeJSON(w, want)
+	})
+
+	entries, _, err := client.Builds.GetLog(BuildSpec{BID: 1}, nil)
+	if err != nil {
+		t.Errorf("Builds.GetLog returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(entries, want) {
+		t.Errorf("Builds.GetLog returned %+v, want %+v", entries, want)
+	}
+}
+
+func TestBuildsService_GetTaskLog(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := &LogEntries{MaxID: "1"}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.BuildTaskLog, map[string]string{"BID": "1", "TaskID": "2"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+
+		writeJSON(w, want)
+	})
+
+	entries, _, err := client.Builds.GetTaskLog(TaskSpec{BuildSpec: BuildSpec{BID: 1}, TaskID: 2}, nil)
+	if err != nil {
+		t.Errorf("Builds.GetTaskLog returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(entries, want) {
+		t.Errorf("Builds.GetTaskLog returned %+v, want %+v", entries, want)
+	}
+}
+
 func normalizeBuildTime(bs ...*Build) {
 	for _, b := range bs {
 		normalizeTime(&b.CreatedAt)

@@ -11,9 +11,11 @@ const (
 	AssistGoto = "assist.goto"
 	AssistInfo = "assist.info"
 
-	Build      = "build"
-	Builds     = "builds"
-	BuildTasks = "build.tasks"
+	Build        = "build"
+	BuildLog     = "build.log"
+	Builds       = "builds"
+	BuildTasks   = "build.tasks"
+	BuildTaskLog = "build.task.log"
 
 	People                        = "people"
 	Person                        = "person"
@@ -95,7 +97,9 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	buildPath := "/{BID}"
 	builds.Path(buildPath).Methods("GET").Name(Build)
 	build := builds.PathPrefix(buildPath).Subrouter()
+	build.Path("/log").Methods("GET").Name(BuildLog)
 	build.Path("/tasks").Methods("GET").Name(BuildTasks)
+	build.Path("/tasks/{TaskID}/log").Methods("GET").Name(BuildTaskLog)
 
 	m.Path("/repos").Methods("GET").Name(Repositories)
 	m.Path("/repos").Methods("POST").Name(RepositoriesCreate)
