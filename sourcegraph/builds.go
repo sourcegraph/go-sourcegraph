@@ -288,7 +288,14 @@ func (s *buildsService) ListBuildTasks(build BuildSpec, opt *BuildTaskListOption
 	return tasks, resp, nil
 }
 
+// BuildGetLogOptions specifies options for build log API methods.
 type BuildGetLogOptions struct {
+	// MinID indicates that only log entries whose monotonically increasing ID
+	// is greater than MinID should be returned.
+	//
+	// To "tail -f" or watch a log for updates, set each subsequent request's
+	// MinID to the MaxID of the previous request.
+	MinID string
 }
 
 type LogEntries struct {
