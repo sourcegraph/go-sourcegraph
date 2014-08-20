@@ -10,7 +10,6 @@ import (
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/db_common"
 	"sourcegraph.com/sourcegraph/srclib/repo"
-	"sourcegraph.com/sourcegraph/srclib/task2"
 )
 
 // BuildsService communicates with the build-related endpoints in the
@@ -95,11 +94,6 @@ func (b *Build) IDString() string { return buildIDString(b.BID) }
 
 func buildIDString(bid int64) string { return "B" + strconv.FormatInt(bid, 36) }
 
-// LogURL is the URL to the logs for this build.
-func (b *Build) LogURL() string {
-	return task2.LogURLForTag(b.IDString())
-}
-
 // A BuildTask represents an individual step of a build.
 type BuildTask struct {
 	TID int64
@@ -122,11 +116,6 @@ type BuildTask struct {
 // IDString returns a succinct string that uniquely identifies this build task.
 func (t *BuildTask) IDString() string {
 	return buildIDString(t.BID) + "-T" + strconv.FormatInt(t.TID, 36)
-}
-
-// LogURL is the URL to the logs for this task.
-func (t *BuildTask) LogURL() string {
-	return task2.LogURLForTag(t.IDString())
 }
 
 // BuildConfig configures a repository build.
