@@ -4,5 +4,10 @@ go:
   - 1.3
   - tip
 
+before_install:
+  - mkdir -p $HOME/gopath/src/sourcegraph.com/sourcegraph
+  - mv $TRAVIS_BUILD_DIR $HOME/gopath/src/sourcegraph.com/sourcegraph/go-sourcegraph
+  - export TRAVIS_BUILD_DIR=$HOME/gopath/src/sourcegraph.com/sourcegraph/go-sourcegraph
+
 install:
   - go get -t -d -v ./... && go build -v ./...
