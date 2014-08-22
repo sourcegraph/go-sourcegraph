@@ -62,6 +62,8 @@ const (
 	DefClients    = "def.clients"
 	DefDependents = "def.dependents"
 
+	ExtGitHubReceiveWebhook = "ext.github.receive-webhook"
+
 	// Redirects for old routes.
 	RedirectOldRepositoryBadgesAndCounters = "repo.redirect-old-badges-and-counters"
 )
@@ -164,6 +166,8 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	m.Path("/.units").Methods("GET").Name(Units)
 	unitPath := `/.units/.{UnitType}/{Unit:.*}`
 	repo.Path(unitPath).Methods("GET").Name(Unit)
+
+	m.Path("/ext/github/webhook").Methods("POST").Name(ExtGitHubReceiveWebhook)
 
 	return m
 }
