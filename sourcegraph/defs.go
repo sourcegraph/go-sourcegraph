@@ -34,11 +34,11 @@ type DefsService interface {
 	ListDependents(def DefSpec, opt *DefListDependentsOptions) ([]*AugmentedDefDependent, Response, error)
 
 	// ListImplementations lists types that implement def (an interface), according to
-	// language-specific semantics.
+	// language-specific semantics. NOT CURRENTLY IMPLEMENTED.
 	ListImplementations(def DefSpec, opt *DefListImplementationsOptions) ([]*Def, Response, error)
 
 	// ListInterfaces lists interfaces that are implemented by def (a type),
-	// according to language-specific semantics.
+	// according to language-specific semantics. NOT CURRENTLY IMPLEMENTED.
 	ListInterfaces(def DefSpec, opt *DefListInterfacesOptions) ([]*Def, Response, error)
 }
 
