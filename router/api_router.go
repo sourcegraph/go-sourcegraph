@@ -8,9 +8,6 @@ import (
 )
 
 const (
-	AssistGoto = "assist.goto"
-	AssistInfo = "assist.info"
-
 	Build        = "build"
 	BuildLog     = "build.log"
 	Builds       = "builds"
@@ -88,9 +85,6 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	}
 
 	m.StrictSlash(true)
-
-	m.Path("/assist/goto").Methods("GET").Name(AssistGoto)
-	m.Path("/assist/info").Methods("GET").Name(AssistInfo)
 
 	m.Path("/builds").Methods("GET").Name(Builds)
 	builds := m.PathPrefix("/builds").Subrouter()
