@@ -32,14 +32,6 @@ type DefsService interface {
 
 	// ListDependents lists repositories that use def in their code.
 	ListDependents(def DefSpec, opt *DefListDependentsOptions) ([]*AugmentedDefDependent, Response, error)
-
-	// ListImplementations lists types that implement def (an interface), according to
-	// language-specific semantics. NOT CURRENTLY IMPLEMENTED.
-	ListImplementations(def DefSpec, opt *DefListImplementationsOptions) ([]*Def, Response, error)
-
-	// ListInterfaces lists interfaces that are implemented by def (a type),
-	// according to language-specific semantics. NOT CURRENTLY IMPLEMENTED.
-	ListInterfaces(def DefSpec, opt *DefListInterfacesOptions) ([]*Def, Response, error)
 }
 
 // DefSpec specifies a def. If SID == 0, then Repo, UnitType, and Unit
@@ -386,67 +378,13 @@ func (s *defsService) ListDependents(def DefSpec, opt *DefListDependentsOptions)
 	return dependents, resp, nil
 }
 
-// DefListImplementationsOptions specifies options for
-// DefsService.ListImplementations.
-type DefListImplementationsOptions struct {
-	ListOptions
-}
-
-func (s *defsService) ListImplementations(def DefSpec, opt *DefListImplementationsOptions) ([]*Def, Response, error) {
-	url, err := s.client.url(router.DefImplementations, def.RouteVars(), opt)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := s.client.NewRequest("GET", url.String(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var defs []*Def
-	resp, err := s.client.Do(req, &defs)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return defs, resp, nil
-}
-
-// DefListInterfacesOptions specifies options for
-// DefsService.ListInterfaces.
-type DefListInterfacesOptions struct {
-	ListOptions
-}
-
-func (s *defsService) ListInterfaces(def DefSpec, opt *DefListInterfacesOptions) ([]*Def, Response, error) {
-	url, err := s.client.url(router.DefInterfaces, def.RouteVars(), opt)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := s.client.NewRequest("GET", url.String(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var defs []*Def
-	resp, err := s.client.Do(req, &defs)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return defs, resp, nil
-}
-
 type MockDefsService struct {
-	Get_                 func(def DefSpec, opt *DefGetOptions) (*Def, Response, error)
-	List_                func(opt *DefListOptions) ([]*Def, Response, error)
-	ListExamples_        func(def DefSpec, opt *DefListExamplesOptions) ([]*Example, Response, error)
-	ListAuthors_         func(def DefSpec, opt *DefListAuthorsOptions) ([]*AugmentedDefAuthor, Response, error)
-	ListClients_         func(def DefSpec, opt *DefListClientsOptions) ([]*AugmentedDefClient, Response, error)
-	ListDependents_      func(def DefSpec, opt *DefListDependentsOptions) ([]*AugmentedDefDependent, Response, error)
-	ListImplementations_ func(def DefSpec, opt *DefListImplementationsOptions) ([]*Def, Response, error)
-	ListInterfaces_      func(def DefSpec, opt *DefListInterfacesOptions) ([]*Def, Response, error)
+	Get_            func(def DefSpec, opt *DefGetOptions) (*Def, Response, error)
+	List_           func(opt *DefListOptions) ([]*Def, Response, error)
+	ListExamples_   func(def DefSpec, opt *DefListExamplesOptions) ([]*Example, Response, error)
+	ListAuthors_    func(def DefSpec, opt *DefListAuthorsOptions) ([]*AugmentedDefAuthor, Response, error)
+	ListClients_    func(def DefSpec, opt *DefListClientsOptions) ([]*AugmentedDefClient, Response, error)
+	ListDependents_ func(def DefSpec, opt *DefListDependentsOptions) ([]*AugmentedDefDependent, Response, error)
 }
 
 var _ DefsService = MockDefsService{}
@@ -491,18 +429,4 @@ func (s MockDefsService) ListDependents(def DefSpec, opt *DefListDependentsOptio
 		return nil, &HTTPResponse{}, nil
 	}
 	return s.ListDependents_(def, opt)
-}
-
-func (s MockDefsService) ListImplementations(def DefSpec, opt *DefListImplementationsOptions) ([]*Def, Response, error) {
-	if s.ListImplementations_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
-	return s.ListImplementations_(def, opt)
-}
-
-func (s MockDefsService) ListInterfaces(def DefSpec, opt *DefListInterfacesOptions) ([]*Def, Response, error) {
-	if s.ListInterfaces_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
-	return s.ListInterfaces_(def, opt)
 }

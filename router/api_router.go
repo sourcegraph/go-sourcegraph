@@ -55,15 +55,13 @@ const (
 
 	Snippet = "snippet"
 
-	Defs               = "defs"
-	Def                = "def"
-	DefBySID           = "def-by-sid"
-	DefExamples        = "def.examples"
-	DefAuthors         = "def.authors"
-	DefClients         = "def.clients"
-	DefDependents      = "def.dependents"
-	DefImplementations = "def.implementations"
-	DefInterfaces      = "def.interfaces"
+	Defs          = "defs"
+	Def           = "def"
+	DefBySID      = "def-by-sid"
+	DefExamples   = "def.examples"
+	DefAuthors    = "def.authors"
+	DefClients    = "def.clients"
+	DefDependents = "def.dependents"
 
 	// Redirects for old routes.
 	RedirectOldRepositoryBadgesAndCounters = "repo.redirect-old-badges-and-counters"
@@ -164,8 +162,6 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	def.Path("/.authors").Methods("GET").Name(DefAuthors)
 	def.Path("/.clients").Methods("GET").Name(DefClients)
 	def.Path("/.dependents").Methods("GET").Name(DefDependents)
-	def.Path("/.implementations").Methods("GET").Name(DefImplementations)
-	def.Path("/.interfaces").Methods("GET").Name(DefInterfaces)
 
 	m.Path("/.units").Methods("GET").Name(Units)
 	unitPath := `/.units/.{UnitType}/{Unit:.*}`
