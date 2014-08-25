@@ -96,8 +96,8 @@ type CodeFormatOptions struct {
 	// true, Start and End are ignored.
 	EntireFile bool `url:",omitempty"`
 
-	// LineDivs is whether to wrap each line in a <div> element.
-	LineDivs bool `url:",omitempty"`
+	// LineNumberedTableRows is whether to wrap each line in a <tr> element.
+	LineNumberedTableRows bool `url:",omitempty"`
 
 	// StartByte and EndByte, if EndByte is nonzero, specify the byte range of
 	// the file to fetch.
