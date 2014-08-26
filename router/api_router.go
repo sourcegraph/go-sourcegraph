@@ -23,6 +23,8 @@ const (
 	PersonRepositoryDependencies  = "person.repo-dependencies"
 	PersonRepositoryDependents    = "person.repo-dependents"
 	PersonRefreshProfile          = "person.refresh-profile"
+	PersonSettings                = "person.settings"
+	PersonSettingsUpdate          = "person.settings.update"
 	PersonComputeStats            = "person.compute-stats"
 
 	Repositories             = "repos"
@@ -144,6 +146,8 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	person.Path("/repo-dependents").Methods("GET").Name(PersonRepositoryDependents)
 	person.Path("/external-profile").Methods("PUT").Name(PersonRefreshProfile)
 	person.Path("/stats").Methods("PUT").Name(PersonComputeStats)
+	person.Path("/settings").Methods("GET").Name(PersonSettings)
+	person.Path("/settings").Methods("PUT").Name(PersonSettingsUpdate)
 	m.Path("/external-users/github/{GitHubUserSpec}").Methods("GET").Name(PersonFromGitHub)
 
 	m.Path("/search").Methods("GET").Name(Search)

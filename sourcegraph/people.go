@@ -16,6 +16,9 @@ type PeopleService interface {
 	// Get fetches a person.
 	Get(person PersonSpec, opt *PersonGetOptions) (*Person, Response, error)
 
+	// GetSettings fetches a person's configuration settings.
+	GetSettings(person PersonSpec) (*PersonSettings, Response, error)
+
 	// GetOrCreateFromGitHub creates a new person based a GitHub user.
 	GetOrCreateFromGitHub(user GitHubUserSpec, opt *PersonGetOptions) (*Person, Response, error)
 
@@ -119,6 +122,30 @@ func (s *peopleService) Get(person_ PersonSpec, opt *PersonGetOptions) (*Person,
 	}
 
 	return person__, resp, nil
+}
+
+// PersonSettings describes a user's configuration settings.
+type PersonSettings struct {
+}
+
+func (s *peopleService) GetSettings(person PersonSpec) (*PersonSettings, Response, error) {
+	url, err := s.client.url(router.PersonSettings, person.RouteVars(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var settings *PersonSettings
+	resp, err := s.client.Do(req, &settings)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return settings, resp, nil
 }
 
 // GitHubUserSpec specifies a GitHub user, either by GitHub login or GitHub user
@@ -299,6 +326,7 @@ func (s *peopleService) ListClients(person PersonSpec, opt *PersonListClientsOpt
 
 type MockPeopleService struct {
 	Get_                   func(person PersonSpec, opt *PersonGetOptions) (*Person, Response, error)
+	GetSettings_           func(person PersonSpec) (*PersonSettings, Response, error)
 	GetOrCreateFromGitHub_ func(user GitHubUserSpec, opt *PersonGetOptions) (*Person, Response, error)
 	RefreshProfile_        func(personSpec PersonSpec) (Response, error)
 	ComputeStats_          func(personSpec PersonSpec) (Response, error)
@@ -314,6 +342,13 @@ func (s MockPeopleService) Get(person PersonSpec, opt *PersonGetOptions) (*Perso
 		return nil, &HTTPResponse{}, nil
 	}
 	return s.Get_(person, opt)
+}
+
+func (s MockPeopleService) GetSettings(person PersonSpec) (*PersonSettings, Response, error) {
+	if s.GetSettings_ == nil {
+		return nil, nil, nil
+	}
+	return s.GetSettings_(person)
 }
 
 func (s MockPeopleService) GetOrCreateFromGitHub(user GitHubUserSpec, opt *PersonGetOptions) (*Person, Response, error) {
