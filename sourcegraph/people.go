@@ -168,6 +168,12 @@ func (s *peopleService) ListEmails(person PersonSpec) ([]*EmailAddr, Response, e
 
 // PersonSettings describes a user's configuration settings.
 type PersonSettings struct {
+	Plan *PlanSettings `json:",omitempty"`
+}
+
+// PlanSettings describes the pricing plan that the person or org has selected.
+type PlanSettings struct {
+	PlanID *string `json:",omitempty"`
 }
 
 func (s *peopleService) GetSettings(person PersonSpec) (*PersonSettings, Response, error) {
