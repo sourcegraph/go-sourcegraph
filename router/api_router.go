@@ -14,8 +14,14 @@ const (
 	BuildTasks   = "build.tasks"
 	BuildTaskLog = "build.task.log"
 
+	Org               = "org"
+	OrgMembers        = "org.members"
+	OrgSettings       = "org.settings"
+	OrgSettingsUpdate = "org.settings.update"
+
 	People                        = "people"
 	Person                        = "person"
+	PersonOrgs                    = "person.orgs"
 	PersonAuthors                 = "person.authors"
 	PersonClients                 = "person.clients"
 	PersonEmails                  = "person.emails"
@@ -140,6 +146,7 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	personPath := `/people/` + PersonSpecPattern
 	m.Path(personPath).Methods("GET").Name(Person)
 	person := m.PathPrefix(personPath).Subrouter()
+	person.Path("/orgs").Methods("GET").Name(PersonOrgs)
 	person.Path("/clients").Methods("GET").Name(PersonClients)
 	person.Path("/authors").Methods("GET").Name(PersonAuthors)
 	person.Path("/emails").Methods("GET").Name(PersonEmails)
@@ -152,6 +159,13 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	person.Path("/settings").Methods("GET").Name(PersonSettings)
 	person.Path("/settings").Methods("PUT").Name(PersonSettingsUpdate)
 	m.Path("/external-users/github/{GitHubUserSpec}").Methods("GET").Name(PersonFromGitHub)
+
+	orgPath := "/orgs/{OrgSpec}"
+	m.Path(orgPath).Methods("GET").Name(Org)
+	org := m.PathPrefix(orgPath).Subrouter()
+	org.Path("/settings").Methods("GET").Name(OrgSettings)
+	org.Path("/settings").Methods("PUT").Name(OrgSettingsUpdate)
+	org.Path("/members").Methods("GET").Name(OrgMembers)
 
 	m.Path("/search").Methods("GET").Name(Search)
 

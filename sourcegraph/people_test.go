@@ -13,7 +13,11 @@ func TestPersonSpec(t *testing.T) {
 	tests := []struct {
 		str  string
 		spec PersonSpec
-	}{}
+	}{
+		{"a", PersonSpec{Login: "a"}},
+		{"a@a.com", PersonSpec{Email: "a@a.com"}},
+		{"$1", PersonSpec{UID: 1}},
+	}
 
 	for _, test := range tests {
 		spec, err := ParsePersonSpec(test.str)
@@ -59,6 +63,59 @@ func TestPeopleService_Get(t *testing.T) {
 
 	if !reflect.DeepEqual(person_, want) {
 		t.Errorf("People.Get returned %+v, want %+v", person_, want)
+	}
+}
+
+func TestPeopleService_GetSettings(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := &PersonSettings{}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.PersonSettings, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+
+		writeJSON(w, want)
+	})
+
+	settings, _, err := client.People.GetSettings(PersonSpec{Login: "a"})
+	if err != nil {
+		t.Errorf("People.GetSettings returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(settings, want) {
+		t.Errorf("People.GetSettings returned %+v, want %+v", settings, want)
+	}
+}
+
+func TestPeopleService_UpdateSettings(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := PersonSettings{}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.PersonSettings, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "PUT")
+		testBody(t, r, `{}`+"\n")
+
+		writeJSON(w, want)
+	})
+
+	_, err := client.People.UpdateSettings(PersonSpec{Login: "a"}, want)
+	if err != nil {
+		t.Errorf("People.UpdateSettings returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
 	}
 }
 
@@ -251,5 +308,33 @@ func TestPeopleService_ListClients(t *testing.T) {
 
 	if !reflect.DeepEqual(clients, want) {
 		t.Errorf("People.ListClients returned %+v, want %+v", clients, want)
+	}
+}
+
+func TestPeopleService_ListOrgs(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := []*Org{{User: person.User{Login: "o"}}}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.PersonOrgs, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+
+		writeJSON(w, want)
+	})
+
+	orgs, _, err := client.People.ListOrgs(PersonSpec{Login: "a"}, nil)
+	if err != nil {
+		t.Errorf("People.ListOrgs returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(orgs, want) {
+		t.Errorf("People.ListOrgs returned %+v, want %+v", orgs, want)
 	}
 }

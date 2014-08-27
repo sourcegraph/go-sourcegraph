@@ -19,6 +19,9 @@ type PeopleService interface {
 	// GetSettings fetches a person's configuration settings.
 	GetSettings(person PersonSpec) (*PersonSettings, Response, error)
 
+	// UpdateSettings updates an person's configuration settings.
+	UpdateSettings(person PersonSpec, settings PersonSettings) (Response, error)
+
 	// ListEmails returns a list of a person's email addresses.
 	ListEmails(person PersonSpec) ([]*EmailAddr, Response, error)
 
@@ -48,6 +51,9 @@ type PeopleService interface {
 
 	// ListClients lists people who use code that person authored.
 	ListClients(person PersonSpec, opt *PersonListClientsOptions) ([]*AugmentedPersonUsageOfAuthor, Response, error)
+
+	// ListOrgs lists organizations that a person is a member of.
+	ListOrgs(member PersonSpec, opt *PersonListOrgsOptions) ([]*Org, Response, error)
 }
 
 // peopleService implements PeopleService.
@@ -182,6 +188,25 @@ func (s *peopleService) GetSettings(person PersonSpec) (*PersonSettings, Respons
 	}
 
 	return settings, resp, nil
+}
+
+func (s *peopleService) UpdateSettings(person PersonSpec, settings PersonSettings) (Response, error) {
+	url, err := s.client.url(router.PersonSettingsUpdate, person.RouteVars(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := s.client.NewRequest("PUT", url.String(), settings)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.client.Do(req, nil)
+	if err != nil {
+		return resp, err
+	}
+
+	return resp, nil
 }
 
 // GitHubUserSpec specifies a GitHub user, either by GitHub login or GitHub user
@@ -360,16 +385,42 @@ func (s *peopleService) ListClients(person PersonSpec, opt *PersonListClientsOpt
 	return people, resp, nil
 }
 
+type PersonListOrgsOptions struct {
+	ListOptions
+}
+
+func (s *peopleService) ListOrgs(member PersonSpec, opt *PersonListOrgsOptions) ([]*Org, Response, error) {
+	url, err := s.client.url(router.PersonOrgs, member.RouteVars(), opt)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var orgs []*Org
+	resp, err := s.client.Do(req, &orgs)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return orgs, resp, nil
+}
+
 type MockPeopleService struct {
 	Get_                   func(person PersonSpec, opt *PersonGetOptions) (*Person, Response, error)
 	ListEmails_            func(person PersonSpec) ([]*EmailAddr, Response, error)
 	GetSettings_           func(person PersonSpec) (*PersonSettings, Response, error)
+	UpdateSettings_        func(person PersonSpec, settings PersonSettings) (Response, error)
 	GetOrCreateFromGitHub_ func(user GitHubUserSpec, opt *PersonGetOptions) (*Person, Response, error)
 	RefreshProfile_        func(personSpec PersonSpec) (Response, error)
 	ComputeStats_          func(personSpec PersonSpec) (Response, error)
 	List_                  func(opt *PersonListOptions) ([]*person.User, Response, error)
 	ListAuthors_           func(person PersonSpec, opt *PersonListAuthorsOptions) ([]*AugmentedPersonUsageByClient, Response, error)
 	ListClients_           func(person PersonSpec, opt *PersonListClientsOptions) ([]*AugmentedPersonUsageOfAuthor, Response, error)
+	ListOrgs_              func(member PersonSpec, opt *PersonListOrgsOptions) ([]*Org, Response, error)
 }
 
 var _ PeopleService = MockPeopleService{}
@@ -393,6 +444,13 @@ func (s MockPeopleService) GetSettings(person PersonSpec) (*PersonSettings, Resp
 		return nil, nil, nil
 	}
 	return s.GetSettings_(person)
+}
+
+func (s MockPeopleService) UpdateSettings(person PersonSpec, settings PersonSettings) (Response, error) {
+	if s.UpdateSettings_ == nil {
+		return nil, nil
+	}
+	return s.UpdateSettings_(person, settings)
 }
 
 func (s MockPeopleService) GetOrCreateFromGitHub(user GitHubUserSpec, opt *PersonGetOptions) (*Person, Response, error) {
@@ -435,4 +493,11 @@ func (s MockPeopleService) ListClients(person PersonSpec, opt *PersonListClients
 		return nil, &HTTPResponse{}, nil
 	}
 	return s.ListClients_(person, opt)
+}
+
+func (s MockPeopleService) ListOrgs(member PersonSpec, opt *PersonListOrgsOptions) ([]*Org, Response, error) {
+	if s.ListOrgs_ == nil {
+		return nil, nil, nil
+	}
+	return s.ListOrgs_(member, opt)
 }
