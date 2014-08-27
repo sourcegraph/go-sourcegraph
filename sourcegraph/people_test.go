@@ -62,6 +62,34 @@ func TestPeopleService_Get(t *testing.T) {
 	}
 }
 
+func TestPeopleService_ListEmails(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := []*EmailAddr{{Email: "a@a.com", Verified: true, Primary: true}}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.PersonEmails, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+
+		writeJSON(w, want)
+	})
+
+	emails, _, err := client.People.ListEmails(PersonSpec{Login: "a"})
+	if err != nil {
+		t.Errorf("People.ListEmails returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(emails, want) {
+		t.Errorf("People.ListEmails returned %+v, want %+v", emails, want)
+	}
+}
+
 func TestPeopleService_GetOrCreateFromGitHub(t *testing.T) {
 	setup()
 	defer teardown()

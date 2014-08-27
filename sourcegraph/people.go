@@ -19,6 +19,9 @@ type PeopleService interface {
 	// GetSettings fetches a person's configuration settings.
 	GetSettings(person PersonSpec) (*PersonSettings, Response, error)
 
+	// ListEmails returns a list of a person's email addresses.
+	ListEmails(person PersonSpec) ([]*EmailAddr, Response, error)
+
 	// GetOrCreateFromGitHub creates a new person based a GitHub user.
 	GetOrCreateFromGitHub(user GitHubUserSpec, opt *PersonGetOptions) (*Person, Response, error)
 
@@ -122,6 +125,39 @@ func (s *peopleService) Get(person_ PersonSpec, opt *PersonGetOptions) (*Person,
 	}
 
 	return person__, resp, nil
+}
+
+// EmailAddr is an email address associated with a person.
+type EmailAddr struct {
+	Email string // the email address (case-insensitively compared in the DB and API)
+
+	Verified bool // whether this email address has been verified
+
+	Primary bool // indicates this is the user's primary email (only 1 email can be primary per user)
+
+	Guessed bool // whether Sourcegraph inferred via public data that this is an email for the user
+
+	Blacklisted bool // indicates that this email should not be associated with the user (even if guessed in the future)
+}
+
+func (s *peopleService) ListEmails(person PersonSpec) ([]*EmailAddr, Response, error) {
+	url, err := s.client.url(router.PersonEmails, person.RouteVars(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var emails []*EmailAddr
+	resp, err := s.client.Do(req, &emails)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return emails, resp, nil
 }
 
 // PersonSettings describes a user's configuration settings.
@@ -326,6 +362,7 @@ func (s *peopleService) ListClients(person PersonSpec, opt *PersonListClientsOpt
 
 type MockPeopleService struct {
 	Get_                   func(person PersonSpec, opt *PersonGetOptions) (*Person, Response, error)
+	ListEmails_            func(person PersonSpec) ([]*EmailAddr, Response, error)
 	GetSettings_           func(person PersonSpec) (*PersonSettings, Response, error)
 	GetOrCreateFromGitHub_ func(user GitHubUserSpec, opt *PersonGetOptions) (*Person, Response, error)
 	RefreshProfile_        func(personSpec PersonSpec) (Response, error)
@@ -342,6 +379,13 @@ func (s MockPeopleService) Get(person PersonSpec, opt *PersonGetOptions) (*Perso
 		return nil, &HTTPResponse{}, nil
 	}
 	return s.Get_(person, opt)
+}
+
+func (s MockPeopleService) ListEmails(person PersonSpec) ([]*EmailAddr, Response, error) {
+	if s.ListEmails_ == nil {
+		return nil, nil, nil
+	}
+	return s.ListEmails_(person)
 }
 
 func (s MockPeopleService) GetSettings(person PersonSpec) (*PersonSettings, Response, error) {
