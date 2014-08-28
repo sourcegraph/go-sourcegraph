@@ -72,6 +72,59 @@ func TestRepositoriesService_GetOrCreate(t *testing.T) {
 	}
 }
 
+func TestRepositoriesService_GetSettings(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := &RepositorySettings{}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.RepositorySettings, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+
+		writeJSON(w, want)
+	})
+
+	settings, _, err := client.Repositories.GetSettings(RepositorySpec{URI: "r.com/x"})
+	if err != nil {
+		t.Errorf("Repositories.GetSettings returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(settings, want) {
+		t.Errorf("Repositories.GetSettings returned %+v, want %+v", settings, want)
+	}
+}
+
+func TestRepositoriesService_UpdateSettings(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := RepositorySettings{}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.RepositorySettings, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "PUT")
+		testBody(t, r, `{}`+"\n")
+
+		writeJSON(w, want)
+	})
+
+	_, err := client.Repositories.UpdateSettings(RepositorySpec{URI: "r.com/x"}, want)
+	if err != nil {
+		t.Errorf("Repositories.UpdateSettings returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+}
+
 func TestRepositoriesService_RefreshProfile(t *testing.T) {
 	setup()
 	defer teardown()

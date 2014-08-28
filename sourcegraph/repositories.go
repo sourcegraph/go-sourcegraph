@@ -24,6 +24,12 @@ type RepositoriesService interface {
 	// host and the repository is created.
 	GetOrCreate(repo RepositorySpec, opt *RepositoryGetOptions) (*Repository, Response, error)
 
+	// GetSettings fetches a repository's configuration settings.
+	GetSettings(repo RepositorySpec) (*RepositorySettings, Response, error)
+
+	// UpdateSettings updates a repository's configuration settings.
+	UpdateSettings(repo RepositorySpec, settings RepositorySettings) (Response, error)
+
 	// RefreshProfile updates the repository metadata for a repository, fetching
 	// it from an external host if the host is recognized (such as GitHub).
 	//
@@ -212,6 +218,50 @@ func (s *repositoriesService) GetOrCreate(repo_ RepositorySpec, opt *RepositoryG
 	}
 
 	return repo__, resp, nil
+}
+
+// RepositorySettings describes a repository's configuration settings.
+type RepositorySettings struct {
+	Enabled *bool `json:",omitempty"`
+}
+
+func (s *repositoriesService) GetSettings(repo RepositorySpec) (*RepositorySettings, Response, error) {
+	url, err := s.client.url(router.RepositorySettings, repo.RouteVars(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var settings *RepositorySettings
+	resp, err := s.client.Do(req, &settings)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return settings, resp, nil
+}
+
+func (s *repositoriesService) UpdateSettings(repo RepositorySpec, settings RepositorySettings) (Response, error) {
+	url, err := s.client.url(router.RepositorySettingsUpdate, repo.RouteVars(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := s.client.NewRequest("PUT", url.String(), settings)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.client.Do(req, nil)
+	if err != nil {
+		return resp, err
+	}
+
+	return resp, nil
 }
 
 func (s *repositoriesService) RefreshProfile(repo RepositorySpec) (Response, error) {
@@ -641,6 +691,8 @@ func (s *repositoriesService) ListByRefdAuthor(person PersonSpec, opt *Repositor
 type MockRepositoriesService struct {
 	Get_               func(spec RepositorySpec, opt *RepositoryGetOptions) (*Repository, Response, error)
 	GetOrCreate_       func(repo RepositorySpec, opt *RepositoryGetOptions) (*Repository, Response, error)
+	GetSettings_       func(repo RepositorySpec) (*RepositorySettings, Response, error)
+	UpdateSettings_    func(repo RepositorySpec, settings RepositorySettings) (Response, error)
 	RefreshProfile_    func(repo RepositorySpec) (Response, error)
 	RefreshVCSData_    func(repo RepositorySpec) (Response, error)
 	ComputeStats_      func(repo RepositorySpec) (Response, error)
@@ -672,6 +724,20 @@ func (s MockRepositoriesService) GetOrCreate(repo RepositorySpec, opt *Repositor
 		return nil, &HTTPResponse{}, nil
 	}
 	return s.GetOrCreate_(repo, opt)
+}
+
+func (s MockRepositoriesService) GetSettings(repo RepositorySpec) (*RepositorySettings, Response, error) {
+	if s.GetSettings_ == nil {
+		return nil, nil, nil
+	}
+	return s.GetSettings_(repo)
+}
+
+func (s MockRepositoriesService) UpdateSettings(repo RepositorySpec, settings RepositorySettings) (Response, error) {
+	if s.UpdateSettings_ == nil {
+		return nil, nil
+	}
+	return s.UpdateSettings_(repo, settings)
 }
 
 func (s MockRepositoriesService) RefreshProfile(repo RepositorySpec) (Response, error) {

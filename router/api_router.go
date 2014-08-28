@@ -56,6 +56,9 @@ const (
 	RepositoryRefreshVCSData = "repo.refresh-vcs-data"
 	RepositoryComputeStats   = "repo.compute-stats"
 
+	RepositorySettings       = "repo.settings"
+	RepositorySettingsUpdate = "repo.settings.update"
+
 	Unit  = "unit"
 	Units = "units"
 
@@ -122,6 +125,8 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	repo.Path("/.external-profile").Methods("PUT").Name(RepositoryRefreshProfile)
 	repo.Path("/.vcs-data").Methods("PUT").Name(RepositoryRefreshVCSData)
 	repo.Path("/.stats").Methods("PUT").Name(RepositoryComputeStats)
+	repo.Path("/.settings").Methods("GET").Name(RepositorySettings)
+	repo.Path("/.settings").Methods("PUT").Name(RepositorySettingsUpdate)
 
 	// TODO(new-arch): set up redirects from /badges
 	repo.Path("/.badges").Methods("GET").Name(RepositoryBadges)
