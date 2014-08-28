@@ -150,7 +150,6 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	person.Path("/clients").Methods("GET").Name(PersonClients)
 	person.Path("/authors").Methods("GET").Name(PersonAuthors)
 	person.Path("/emails").Methods("GET").Name(PersonEmails)
-	person.Path("/repositories").Methods("GET").Name(PersonOwnedRepositories)
 	person.Path("/repo-contributions").Methods("GET").Name(PersonRepositoryContributions)
 	person.Path("/repo-dependencies").Methods("GET").Name(PersonRepositoryDependencies)
 	person.Path("/repo-dependents").Methods("GET").Name(PersonRepositoryDependents)
