@@ -204,6 +204,7 @@ func TestRepositoriesService_List(t *testing.T) {
 		testFormValues(t, r, values{
 			"URIs":      "a,b",
 			"Name":      "n",
+			"Owner":     "o",
 			"Sort":      "name",
 			"Direction": "asc",
 			"NoFork":    "true",
@@ -217,6 +218,7 @@ func TestRepositoriesService_List(t *testing.T) {
 	repos, _, err := client.Repositories.List(&RepositoryListOptions{
 		URIs:        []string{"a", "b"},
 		Name:        "n",
+		Owner:       "o",
 		Sort:        "name",
 		Direction:   "asc",
 		NoFork:      true,
@@ -400,34 +402,6 @@ func TestRepositoriesService_ListDependencies(t *testing.T) {
 
 	if !reflect.DeepEqual(dependencies, want) {
 		t.Errorf("Repositories.ListDependencies returned %+v, want %+v", dependencies, want)
-	}
-}
-
-func TestRepositoriesService_ListByOwner(t *testing.T) {
-	setup()
-	defer teardown()
-
-	want := []*repo.Repository{{URI: "r.com/x"}}
-
-	var called bool
-	mux.HandleFunc(urlPath(t, router.PersonOwnedRepositories, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		testMethod(t, r, "GET")
-
-		writeJSON(w, want)
-	})
-
-	repos, _, err := client.Repositories.ListByOwner(PersonSpec{Login: "a"}, nil)
-	if err != nil {
-		t.Errorf("Repositories.ListByOwner returned error: %v", err)
-	}
-
-	if !called {
-		t.Fatal("!called")
-	}
-
-	if !reflect.DeepEqual(repos, want) {
-		t.Errorf("Repositories.ListByOwner returned %+v, want %+v", repos, want)
 	}
 }
 

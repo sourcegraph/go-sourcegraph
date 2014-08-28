@@ -19,7 +19,6 @@ const (
 	PersonAuthors                 = "person.authors"
 	PersonClients                 = "person.clients"
 	PersonFromGitHub              = "person.from-github"
-	PersonOwnedRepositories       = "person.owned-repositories"
 	PersonRepositoryContributions = "person.repo-contributions"
 	PersonRepositoryDependencies  = "person.repo-dependencies"
 	PersonRepositoryDependents    = "person.repo-dependents"
@@ -138,7 +137,6 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	person := m.PathPrefix(personPath).Subrouter()
 	person.Path("/clients").Methods("GET").Name(PersonClients)
 	person.Path("/authors").Methods("GET").Name(PersonAuthors)
-	person.Path("/repositories").Methods("GET").Name(PersonOwnedRepositories)
 	person.Path("/repo-contributions").Methods("GET").Name(PersonRepositoryContributions)
 	person.Path("/repo-dependencies").Methods("GET").Name(PersonRepositoryDependencies)
 	person.Path("/repo-dependents").Methods("GET").Name(PersonRepositoryDependents)

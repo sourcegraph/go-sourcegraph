@@ -79,10 +79,6 @@ type RepositoriesService interface {
 	// ListDependents lists repositories that reference defs defined in repo.
 	ListDependents(repo RepositorySpec, opt *RepositoryListDependentsOptions) ([]*AugmentedRepoDependent, Response, error)
 
-	// ListByOwner lists repositories owned by person. Currently only GitHub
-	// repositories have an owner (e.g., alice owns github.com/alice/foo).
-	ListByOwner(person PersonSpec, opt *RepositoryListByOwnerOptions) ([]*repo.Repository, Response, error)
-
 	// ListByContributor lists repositories that person has contributed (i.e.,
 	// committed) code to.
 	ListByContributor(person PersonSpec, opt *RepositoryListByContributorOptions) ([]*AugmentedRepoContribution, Response, error)
@@ -335,6 +331,8 @@ type RepositoryListOptions struct {
 
 	NoFork bool `url:",omitempty" json:",omitempty"`
 
+	Owner string `url:",omitempty" json:",omitempty"`
+
 	ListOptions
 }
 
@@ -553,30 +551,6 @@ type AugmentedRepoContribution struct {
 	*authorship.RepoContribution
 }
 
-type RepositoryListByOwnerOptions struct {
-	ListOptions
-}
-
-func (s *repositoriesService) ListByOwner(person PersonSpec, opt *RepositoryListByOwnerOptions) ([]*repo.Repository, Response, error) {
-	url, err := s.client.url(router.PersonOwnedRepositories, person.RouteVars(), opt)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := s.client.NewRequest("GET", url.String(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var repos []*repo.Repository
-	resp, err := s.client.Do(req, &repos)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return repos, resp, nil
-}
-
 type RepositoryListByContributorOptions struct {
 	NoFork bool
 	ListOptions
@@ -679,7 +653,6 @@ type MockRepositoriesService struct {
 	ListClients_       func(repo RepositorySpec, opt *RepositoryListClientsOptions) ([]*AugmentedRepoClient, Response, error)
 	ListDependencies_  func(repo RepositorySpec, opt *RepositoryListDependenciesOptions) ([]*AugmentedRepoDependency, Response, error)
 	ListDependents_    func(repo RepositorySpec, opt *RepositoryListDependentsOptions) ([]*AugmentedRepoDependent, Response, error)
-	ListByOwner_       func(person PersonSpec, opt *RepositoryListByOwnerOptions) ([]*repo.Repository, Response, error)
 	ListByContributor_ func(person PersonSpec, opt *RepositoryListByContributorOptions) ([]*AugmentedRepoContribution, Response, error)
 	ListByClient_      func(person PersonSpec, opt *RepositoryListByClientOptions) ([]*AugmentedRepoUsageByClient, Response, error)
 	ListByRefdAuthor_  func(person PersonSpec, opt *RepositoryListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error)
@@ -783,13 +756,6 @@ func (s MockRepositoriesService) ListDependents(repo RepositorySpec, opt *Reposi
 		return nil, &HTTPResponse{}, nil
 	}
 	return s.ListDependents_(repo, opt)
-}
-
-func (s MockRepositoriesService) ListByOwner(person PersonSpec, opt *RepositoryListByOwnerOptions) ([]*repo.Repository, Response, error) {
-	if s.ListByOwner_ == nil {
-		return nil, nil, nil
-	}
-	return s.ListByOwner_(person, opt)
 }
 
 func (s MockRepositoriesService) ListByContributor(person PersonSpec, opt *RepositoryListByContributorOptions) ([]*AugmentedRepoContribution, Response, error) {
