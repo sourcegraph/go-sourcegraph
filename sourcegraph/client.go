@@ -28,6 +28,7 @@ type Client struct {
 	Builds         BuildsService
 	Orgs           OrgsService
 	People         PeopleService
+	PullRequests   PullRequestsService
 	Repositories   RepositoriesService
 	RepositoryTree RepositoryTreeService
 	Search         SearchService
@@ -59,6 +60,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.Builds = &buildsService{c}
 	c.Orgs = &orgsService{c}
 	c.People = &peopleService{c}
+	c.PullRequests = &pullRequestsService{c}
 	c.Repositories = &repositoriesService{c}
 	c.RepositoryTree = &repositoryTreeService{c}
 	c.Search = &searchService{c}

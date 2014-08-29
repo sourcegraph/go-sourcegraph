@@ -34,6 +34,9 @@ const (
 	PersonSettingsUpdate          = "person.settings.update"
 	PersonComputeStats            = "person.compute-stats"
 
+	RepoPullRequests = "repo.pull-requests"
+	RepoPullRequest  = "repo.pull-request"
+
 	Repositories             = "repos"
 	RepositoriesCreate       = "repos.create"
 	RepositoriesGetOrCreate  = "repos.get-or-create"
@@ -127,6 +130,9 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	repo.Path("/.stats").Methods("PUT").Name(RepositoryComputeStats)
 	repo.Path("/.settings").Methods("GET").Name(RepositorySettings)
 	repo.Path("/.settings").Methods("PUT").Name(RepositorySettingsUpdate)
+
+	repo.Path("/.pulls").Methods("GET").Name(RepoPullRequests)
+	repo.Path("/.pulls/{PullNumber}").Methods("GET").Name(RepoPullRequest)
 
 	// TODO(new-arch): set up redirects from /badges
 	repo.Path("/.badges").Methods("GET").Name(RepositoryBadges)
