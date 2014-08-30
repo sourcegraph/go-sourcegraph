@@ -62,6 +62,12 @@ const (
 	RepositorySettings       = "repo.settings"
 	RepositorySettingsUpdate = "repo.settings.update"
 
+	RepoCommits        = "repo.commits"
+	RepoCommit         = "repo.commit"
+	RepoCompareCommits = "repo.compare-commits"
+	RepoTags           = "repo.tags"
+	RepoBranches       = "repo.branches"
+
 	Unit  = "unit"
 	Units = "units"
 
@@ -76,6 +82,7 @@ const (
 	DefAuthors    = "def.authors"
 	DefClients    = "def.clients"
 	DefDependents = "def.dependents"
+	DefVersions   = "def.versions"
 
 	ExtGitHubReceiveWebhook = "ext.github.receive-webhook"
 
@@ -149,6 +156,13 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 
 	repo.Path("/.docs/{Path:.*}").Methods("GET").Name(RepositoryDocPage)
 
+	repoNoRev := m.PathPrefix(`/repos/` + RepoURIPathPattern).Subrouter()
+	repoNoRev.Path("/.commits").Methods("GET").Name(RepoCommits)
+	repoNoRev.Path("/.commits/{Rev}").Methods("GET").Name(RepoCommit)
+	repoNoRev.Path("/.commits/{Rev}/compare").Methods("GET").Name(RepoCompareCommits)
+	repoNoRev.Path("/.branches").Methods("GET").Name(RepoBranches)
+	repoNoRev.Path("/.tags").Methods("GET").Name(RepoTags)
+
 	// See router_util/tree_route.go for an explanation of how we match tree
 	// entry routes.
 	repo.Path("/.tree" + TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET").Name(RepositoryTreeEntry)
@@ -193,6 +207,7 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	def.Path("/.authors").Methods("GET").Name(DefAuthors)
 	def.Path("/.clients").Methods("GET").Name(DefClients)
 	def.Path("/.dependents").Methods("GET").Name(DefDependents)
+	def.Path("/.versions").Methods("GET").Name(DefVersions)
 
 	m.Path("/.units").Methods("GET").Name(Units)
 	unitPath := `/.units/.{UnitType}/{Unit:.*}`

@@ -1,11 +1,13 @@
 package sourcegraph
 
 import (
+	"log"
 	"net/http"
 	"reflect"
 	"testing"
 	"time"
 
+	"github.com/sourcegraph/go-vcs/vcs"
 	"github.com/sourcegraph/vcsstore/vcsclient"
 
 	"strings"
@@ -15,6 +17,71 @@ import (
 	"sourcegraph.com/sourcegraph/srclib/person"
 	"sourcegraph.com/sourcegraph/srclib/repo"
 )
+
+func TestRepositorySpec2(t *testing.T) {
+	tests := []struct {
+		str  string
+		spec RepositorySpec2
+	}{
+		{"a.com/x", RepositorySpec2{URI: "a.com/x"}},
+		{"R$1", RepositorySpec2{RID: 1}},
+	}
+
+	for _, test := range tests {
+		spec, err := ParseRepositorySpec2(test.str)
+		if err != nil {
+			t.Errorf("%q: ParseRepositorySpec2 failed: %s", test.str, err)
+			continue
+		}
+		if spec != test.spec {
+			t.Errorf("%q: got spec %+v, want %+v", test.str, spec, test.spec)
+			continue
+		}
+
+		str := test.spec.PathComponent()
+		if str != test.str {
+			t.Errorf("%+v: got str %q, want %q", test.spec, str, test.str)
+			continue
+		}
+
+		// TODO(sqs): temporarily disable this check for RIDs because they aren't supported yet, but uncomment when they are
+		if test.spec.RID == 0 {
+			spec2, err := UnmarshalRepositorySpec2(test.spec.RouteVars())
+			if err != nil {
+				t.Errorf("%+v: UnmarshalRepositorySpec2: %s", test.spec, err)
+				continue
+			}
+			if spec2 != test.spec {
+				t.Errorf("%q: got spec %+v, want %+v", test.str, spec, test.spec)
+				continue
+			}
+		}
+	}
+}
+
+func TestRepoRevSpec(t *testing.T) {
+	tests := []struct {
+		spec      RepoRevSpec
+		routeVars map[string]string
+	}{
+		{RepoRevSpec{RepositorySpec2: RepositorySpec2{URI: "a.com/x"}, Rev: "r"}, map[string]string{"RepoURI": "a.com/x", "Rev": "r"}},
+	}
+
+	for _, test := range tests {
+		routeVars := test.spec.RouteVars()
+		if !reflect.DeepEqual(routeVars, test.routeVars) {
+			t.Errorf("got route vars %+v, want %+v", routeVars, test.routeVars)
+		}
+		spec, err := UnmarshalRepoRevSpec(routeVars)
+		if err != nil {
+			t.Errorf("UnmarshalRepoRevSpec(%+v): %s", routeVars, err)
+			continue
+		}
+		if spec != test.spec {
+			t.Errorf("got spec %+v, want %+v", spec, test.spec)
+		}
+	}
+}
 
 func TestRepositoriesService_Get(t *testing.T) {
 	setup()
@@ -290,6 +357,154 @@ func TestRepositoriesService_List(t *testing.T) {
 	}
 }
 
+func TestRepositoriesService_ListCommits(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := []*Commit{{Commit: &vcs.Commit{Message: "m"}}}
+	normTime(want[0])
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.RepoCommits, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+		testFormValues(t, r, values{"Head": "myhead"})
+
+		writeJSON(w, want)
+	})
+
+	commits, _, err := client.Repositories.ListCommits(RepositorySpec2{URI: "r.com/x"}, &RepositoryListCommitsOptions{Head: "myhead"})
+	if err != nil {
+		t.Errorf("Repositories.ListCommits returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(commits, want) {
+		t.Errorf("Repositories.ListCommits returned %+v, want %+v", commits, want)
+	}
+}
+
+func TestRepositoriesService_GetCommit(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := &Commit{Commit: &vcs.Commit{Message: "m"}}
+	normTime(want)
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.RepoCommit, map[string]string{"RepoURI": "r.com/x", "Rev": "r"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+
+		writeJSON(w, want)
+	})
+
+	commit, _, err := client.Repositories.GetCommit(RepoRevSpec{RepositorySpec2: RepositorySpec2{URI: "r.com/x"}, Rev: "r"}, nil)
+	if err != nil {
+		t.Errorf("Repositories.GetCommit returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(commit, want) {
+		t.Errorf("Repositories.GetCommit returned %+v, want %+v", commit, want)
+	}
+}
+
+func TestRepositoriesService_CompareCommits(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := &CommitsComparison{}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.RepoCompareCommits, map[string]string{"RepoURI": "r.com/x", "Rev": "mybase"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+		log.Println(r.URL.String())
+		testFormValues(t, r, values{"HeadRev": "myhead"})
+
+		writeJSON(w, want)
+	})
+
+	opt := &RepositoryCompareCommitsOptions{
+		HeadRev: "myhead",
+	}
+	cmp, _, err := client.Repositories.CompareCommits(RepoRevSpec{RepositorySpec2: RepositorySpec2{URI: "r.com/x"}, Rev: "mybase"}, opt)
+	if err != nil {
+		t.Errorf("Repositories.CompareCommits returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(cmp, want) {
+		t.Errorf("Repositories.CompareCommits returned %+v, want %+v", cmp, want)
+	}
+}
+
+func TestRepositoriesService_ListBranches(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := []*vcs.Branch{{Name: "b", Head: "c"}}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.RepoBranches, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+
+		writeJSON(w, want)
+	})
+
+	branches, _, err := client.Repositories.ListBranches(RepositorySpec2{URI: "r.com/x"}, nil)
+	if err != nil {
+		t.Errorf("Repositories.ListBranches returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(branches, want) {
+		t.Errorf("Repositories.ListBranches returned %+v, want %+v", branches, want)
+	}
+}
+
+func TestRepositoriesService_ListTags(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := []*vcs.Tag{{Name: "t", CommitID: "c"}}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.RepoTags, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+
+		writeJSON(w, want)
+	})
+
+	tags, _, err := client.Repositories.ListTags(RepositorySpec2{URI: "r.com/x"}, nil)
+	if err != nil {
+		t.Errorf("Repositories.ListTags returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(tags, want) {
+		t.Errorf("Repositories.ListTags returned %+v, want %+v", tags, want)
+	}
+}
+
 func TestRepositoriesService_ListBadges(t *testing.T) {
 	setup()
 	defer teardown()
@@ -540,5 +755,12 @@ func TestRepositoriesService_ListByRefdAuthor(t *testing.T) {
 
 	if !reflect.DeepEqual(repos, want) {
 		t.Errorf("Repositories.ListByRefdAuthor returned %+v, want %+v", repos, want)
+	}
+}
+
+func normTime(c *Commit) {
+	c.Author.Date = c.Author.Date.In(time.UTC)
+	if c.Committer != nil {
+		c.Committer.Date = c.Committer.Date.In(time.UTC)
 	}
 }

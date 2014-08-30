@@ -51,6 +51,28 @@ func TestMatch(t *testing.T) {
 			wantRouteName: RepositoryAuthors,
 			wantVars:      map[string]string{"RepoURI": "repohost.com/foo"},
 		},
+		{
+			path:          "/repos/repohost.com/foo@myrev/.authors",
+			wantRouteName: RepositoryAuthors,
+			wantVars:      map[string]string{"RepoURI": "repohost.com/foo", "Rev": "myrev"},
+		},
+
+		// Repository sub-routes that don't allow an "@REVSPEC" revision.
+		{
+			path:          "/repos/repohost.com/foo/.commits",
+			wantRouteName: RepoCommits,
+			wantVars:      map[string]string{"RepoURI": "repohost.com/foo"},
+		},
+		{
+			path:          "/repos/repohost.com/foo/.commits/123abc",
+			wantRouteName: RepoCommit,
+			wantVars:      map[string]string{"RepoURI": "repohost.com/foo", "Rev": "123abc"},
+		},
+		{
+			path:          "/repos/repohost.com/foo/.commits/123abc/compare",
+			wantRouteName: RepoCompareCommits,
+			wantVars:      map[string]string{"RepoURI": "repohost.com/foo", "Rev": "123abc"},
+		},
 
 		// Repository tree
 		{

@@ -199,3 +199,31 @@ func TestDefsService_ListDependents(t *testing.T) {
 		t.Errorf("Defs.ListDependents returned %+v, want %+v", dependents, want)
 	}
 }
+
+func TestDefsService_ListVersions(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := []*Def{{Def: graph.Def{SID: 1}}}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.DefVersions, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+
+		writeJSON(w, want)
+	})
+
+	versions, _, err := client.Defs.ListVersions(DefSpec{Repo: "r.com/x", UnitType: "t", Unit: "u", Path: "p"}, nil)
+	if err != nil {
+		t.Errorf("Defs.ListVersions returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(versions, want) {
+		t.Errorf("Defs.ListVersions returned %+v, want %+v", versions, want)
+	}
+}

@@ -7,8 +7,11 @@ import (
 	"github.com/sqs/mux"
 )
 
-// RepoPathPattern is the path pattern for repository URIs.
-var RepoPathPattern = `{RepoURI:(?:[^/.@][^/@]*/)+(?:[^/.@][^/@]*)}{Rev:(?:@[\w-.]+)?}`
+// RepoURIPathPattern is the path pattern for repository URIs.
+var RepoURIPathPattern = `{RepoURI:(?:[^/.@][^/@]*/)+(?:[^/.@][^/@]*)}`
+
+// RepoPathPattern is the path pattern for repository URIs with optional revisions.
+var RepoPathPattern = RepoURIPathPattern + `{Rev:(?:@[\w-.]+)?}`
 
 // FixRepoVars is a mux.PostMatchFunc that cleans and normalizes the repository URI.
 func FixRepoVars(req *http.Request, match *mux.RouteMatch, r *mux.Route) {

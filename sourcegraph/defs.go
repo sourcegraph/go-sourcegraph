@@ -32,6 +32,12 @@ type DefsService interface {
 
 	// ListDependents lists repositories that use def in their code.
 	ListDependents(def DefSpec, opt *DefListDependentsOptions) ([]*AugmentedDefDependent, Response, error)
+
+	// ListVersions lists all available versions of a definition in
+	// the various repository commits in which it has appeared.
+	//
+	// TODO(sqs): how to deal with renames, etc.?
+	ListVersions(def DefSpec, opt *DefListVersionsOptions) ([]*Def, Response, error)
 }
 
 // DefSpec specifies a def. If SID == 0, then Repo, UnitType, and Unit
@@ -378,6 +384,30 @@ func (s *defsService) ListDependents(def DefSpec, opt *DefListDependentsOptions)
 	return dependents, resp, nil
 }
 
+type DefListVersionsOptions struct {
+	ListOptions
+}
+
+func (s *defsService) ListVersions(def DefSpec, opt *DefListVersionsOptions) ([]*Def, Response, error) {
+	url, err := s.client.url(router.DefVersions, def.RouteVars(), opt)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var defVersions []*Def
+	resp, err := s.client.Do(req, &defVersions)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return defVersions, resp, nil
+}
+
 type MockDefsService struct {
 	Get_            func(def DefSpec, opt *DefGetOptions) (*Def, Response, error)
 	List_           func(opt *DefListOptions) ([]*Def, Response, error)
@@ -385,6 +415,7 @@ type MockDefsService struct {
 	ListAuthors_    func(def DefSpec, opt *DefListAuthorsOptions) ([]*AugmentedDefAuthor, Response, error)
 	ListClients_    func(def DefSpec, opt *DefListClientsOptions) ([]*AugmentedDefClient, Response, error)
 	ListDependents_ func(def DefSpec, opt *DefListDependentsOptions) ([]*AugmentedDefDependent, Response, error)
+	ListVersions_   func(def DefSpec, opt *DefListVersionsOptions) ([]*Def, Response, error)
 }
 
 var _ DefsService = MockDefsService{}
@@ -429,4 +460,11 @@ func (s MockDefsService) ListDependents(def DefSpec, opt *DefListDependentsOptio
 		return nil, &HTTPResponse{}, nil
 	}
 	return s.ListDependents_(def, opt)
+}
+
+func (s MockDefsService) ListVersions(def DefSpec, opt *DefListVersionsOptions) ([]*Def, Response, error) {
+	if s.ListVersions_ == nil {
+		return nil, nil, nil
+	}
+	return s.ListVersions_(def, opt)
 }
