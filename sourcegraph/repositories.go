@@ -7,6 +7,7 @@ import (
 
 	"github.com/sourcegraph/go-vcs/vcs"
 	"github.com/sourcegraph/vcsstore/vcsclient"
+	"github.com/sqs/go-github/github"
 
 	"strconv"
 	"strings"
@@ -559,6 +560,8 @@ type CommitsComparison struct {
 	DefsAdded   []*Def
 	DefsChanged []*Def
 	DefsRemoved []*Def
+
+	*github.CommitsComparison
 
 	// TODO(x): add affected dependencies, dependents, users, authors
 	// TODO(x): add new/fixed warnings
