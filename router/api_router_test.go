@@ -36,6 +36,11 @@ func TestMatch(t *testing.T) {
 			wantVars:      map[string]string{"RepoSpec": "a.com/b"},
 		},
 		{
+			path:          "/repos/R$123",
+			wantRouteName: Repository,
+			wantVars:      map[string]string{"RepoSpec": "R$123"},
+		},
+		{
 			path:        "/repos/a.com/b@mycommitid", // doesn't accept a commit ID
 			wantNoMatch: true,
 		},
@@ -49,6 +54,11 @@ func TestMatch(t *testing.T) {
 			path:          "/repos/repohost.com/foo/.authors",
 			wantRouteName: RepositoryAuthors,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo"},
+		},
+		{
+			path:          "/repos/R$123/.authors",
+			wantRouteName: RepositoryAuthors,
+			wantVars:      map[string]string{"RepoSpec": "R$123"},
 		},
 		{
 			path:          "/repos/repohost.com/foo@myrev/.authors",

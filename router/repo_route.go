@@ -10,7 +10,7 @@ import (
 // RepoSpecPattern is the path pattern for encoding RepoSpec.
 //
 // TODO(sqs): match the "R$rid" format too.
-var RepoSpecPathPattern = `{RepoSpec:(?:[^/.@][^/@]*/)+(?:[^/.@][^/@]*)}`
+var RepoSpecPathPattern = `{RepoSpec:(?:(?:[^/.@][^/@]*/)+(?:[^/.@][^/@]*))|(?:R\$\d+)}`
 
 // RepoRevSpecPattern is the path pattern for encoding RepoRevSpec.
 var RepoRevSpecPattern = RepoSpecPathPattern + `{Rev:(?:@[\w-.]+)?}`

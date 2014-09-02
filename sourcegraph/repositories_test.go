@@ -44,17 +44,14 @@ func TestRepoSpec(t *testing.T) {
 			continue
 		}
 
-		// TODO(sqs): temporarily disable this check for RIDs because they aren't supported yet, but uncomment when they are
-		if test.spec.RID == 0 {
-			spec2, err := UnmarshalRepoSpec(test.spec.RouteVars())
-			if err != nil {
-				t.Errorf("%+v: UnmarshalRepoSpec: %s", test.spec, err)
-				continue
-			}
-			if spec2 != test.spec {
-				t.Errorf("%q: got spec %+v, want %+v", test.str, spec, test.spec)
-				continue
-			}
+		spec2, err := UnmarshalRepoSpec(test.spec.RouteVars())
+		if err != nil {
+			t.Errorf("%+v: UnmarshalRepoSpec: %s", test.spec, err)
+			continue
+		}
+		if spec2 != test.spec {
+			t.Errorf("%q: got spec %+v, want %+v", test.str, spec, test.spec)
+			continue
 		}
 	}
 }
@@ -65,6 +62,7 @@ func TestRepoRevSpec(t *testing.T) {
 		routeVars map[string]string
 	}{
 		{RepoRevSpec{RepoSpec: RepoSpec{URI: "a.com/x"}, Rev: "r"}, map[string]string{"RepoSpec": "a.com/x", "Rev": "r"}},
+		{RepoRevSpec{RepoSpec: RepoSpec{RID: 123}, Rev: "r"}, map[string]string{"RepoSpec": "R$123", "Rev": "r"}},
 		{RepoRevSpec{RepoSpec: RepoSpec{URI: "a.com/x"}, Rev: "r", CommitID: "c"}, map[string]string{"RepoSpec": "a.com/x", "Rev": "r===c"}},
 	}
 
