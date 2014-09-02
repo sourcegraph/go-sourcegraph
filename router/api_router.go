@@ -62,6 +62,8 @@ const (
 	RepositorySettings       = "repo.settings"
 	RepositorySettingsUpdate = "repo.settings.update"
 
+	RepositoryStats = "repo.stats"
+
 	RepoCommits        = "repo.commits"
 	RepoCommit         = "repo.commit"
 	RepoCompareCommits = "repo.compare-commits"
@@ -121,42 +123,43 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 
 	m.Path("/repos/github.com/{owner:[^/]+}/{repo:[^/]+}/{what:(?:badges|counters)}/{which}.png").Methods("GET").Name(RedirectOldRepositoryBadgesAndCounters)
 
-	repoPath := `/repos/` + RepoPathPattern
-	m.Path(repoPath).Methods("GET").PostMatchFunc(FixRepoVars).BuildVarsFunc(PrepareRepoRouteVars).Name(Repository)
-	m.Path(repoPath).Methods("PUT").PostMatchFunc(FixRepoVars).BuildVarsFunc(PrepareRepoRouteVars).Name(RepositoriesGetOrCreate)
-	repo := m.PathPrefix(repoPath).PostMatchFunc(FixRepoVars).BuildVarsFunc(PrepareRepoRouteVars).Subrouter()
-	repo.Path("/.authors").Methods("GET").Name(RepositoryAuthors)
-	repo.Path("/.readme").Methods("GET").Name(RepositoryReadme)
-	repo.Path("/.dependencies").Methods("GET").Name(RepositoryDependencies)
-	repo.PathPrefix("/.build-data"+TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET", "PUT").Name(RepositoryBuildDataEntry)
-	repo.Path("/.docs/{Path:.*}").Methods("GET").Name(RepositoryDocPage)
+	repoRev := m.PathPrefix(`/repos/` + RepoRevSpecPattern).PostMatchFunc(FixRepoRevSpecVars).BuildVarsFunc(PrepareRepoRevSpecRouteVars).Subrouter()
+	repoRev.Path("/.stats").Methods("GET").Name(RepositoryStats)
+	repoRev.Path("/.authors").Methods("GET").Name(RepositoryAuthors)
+	repoRev.Path("/.readme").Methods("GET").Name(RepositoryReadme)
+	repoRev.Path("/.dependencies").Methods("GET").Name(RepositoryDependencies)
+	repoRev.PathPrefix("/.build-data"+TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET", "PUT").Name(RepositoryBuildDataEntry)
+	repoRev.Path("/.docs/{Path:.*}").Methods("GET").Name(RepositoryDocPage)
 
-	// repoNoRev contains routes that are NOT specific to a revision. In these routes, the URL may not contain a revspec after the repo (that is, no "github.com/foo/bar@myrevspec").
-	repoNoRev := m.PathPrefix(`/repos/` + RepoSpecPathPattern).Subrouter()
-	repoNoRev.Path("/.clients").Methods("GET").Name(RepositoryClients)
-	repoNoRev.Path("/.dependents").Methods("GET").Name(RepositoryDependents)
-	repoNoRev.Path("/.external-profile").Methods("PUT").Name(RepositoryRefreshProfile)
-	repoNoRev.Path("/.vcs-data").Methods("PUT").Name(RepositoryRefreshVCSData)
-	repoNoRev.Path("/.settings").Methods("GET").Name(RepositorySettings)
-	repoNoRev.Path("/.settings").Methods("PUT").Name(RepositorySettingsUpdate)
-	repoNoRev.Path("/.stats").Methods("PUT").Name(RepositoryComputeStats)
-	repoNoRev.Path("/.pulls").Methods("GET").Name(RepoPullRequests)
-	repoNoRev.Path("/.pulls/{PullNumber}").Methods("GET").Name(RepoPullRequest)
-	repoNoRev.Path("/.commits").Methods("GET").Name(RepoCommits)
-	repoNoRev.Path("/.commits/{Rev}").Methods("GET").Name(RepoCommit)
-	repoNoRev.Path("/.commits/{Rev}/compare").Methods("GET").Name(RepoCompareCommits)
-	repoNoRev.Path("/.branches").Methods("GET").Name(RepoBranches)
-	repoNoRev.Path("/.tags").Methods("GET").Name(RepoTags)
-	repoNoRev.Path("/.badges").Methods("GET").Name(RepositoryBadges)
-	repoNoRev.Path("/.badges/{Badge}.png").Methods("GET").Name(RepositoryBadge)
-	repoNoRev.Path("/.counters").Methods("GET").Name(RepositoryCounters)
-	repoNoRev.Path("/.counters/{Counter}.png").Methods("GET").Name(RepositoryCounter)
-	repoNoRev.Path("/.builds").Methods("GET").Name(RepositoryBuilds)
-	repoNoRev.Path("/.builds").Methods("POST").Name(RepositoryBuildsCreate)
+	// repo contains routes that are NOT specific to a revision. In these routes, the URL may not contain a revspec after the repo (that is, no "github.com/foo/bar@myrevspec").
+	repoPath := `/repos/` + RepoSpecPathPattern
+	m.Path(repoPath).Methods("GET").Name(Repository)
+	m.Path(repoPath).Methods("PUT").Name(RepositoriesGetOrCreate)
+	repo := m.PathPrefix(repoPath).Subrouter()
+	repo.Path("/.clients").Methods("GET").Name(RepositoryClients)
+	repo.Path("/.dependents").Methods("GET").Name(RepositoryDependents)
+	repo.Path("/.external-profile").Methods("PUT").Name(RepositoryRefreshProfile)
+	repo.Path("/.vcs-data").Methods("PUT").Name(RepositoryRefreshVCSData)
+	repo.Path("/.settings").Methods("GET").Name(RepositorySettings)
+	repo.Path("/.settings").Methods("PUT").Name(RepositorySettingsUpdate)
+	repo.Path("/.stats").Methods("PUT").Name(RepositoryComputeStats)
+	repo.Path("/.pulls").Methods("GET").Name(RepoPullRequests)
+	repo.Path("/.pulls/{PullNumber}").Methods("GET").Name(RepoPullRequest)
+	repo.Path("/.commits").Methods("GET").Name(RepoCommits)
+	repo.Path("/.commits/{Rev}").Methods("GET").Name(RepoCommit)
+	repo.Path("/.commits/{Rev}/compare").Methods("GET").Name(RepoCompareCommits)
+	repo.Path("/.branches").Methods("GET").Name(RepoBranches)
+	repo.Path("/.tags").Methods("GET").Name(RepoTags)
+	repo.Path("/.badges").Methods("GET").Name(RepositoryBadges)
+	repo.Path("/.badges/{Badge}.png").Methods("GET").Name(RepositoryBadge)
+	repo.Path("/.counters").Methods("GET").Name(RepositoryCounters)
+	repo.Path("/.counters/{Counter}.png").Methods("GET").Name(RepositoryCounter)
+	repo.Path("/.builds").Methods("GET").Name(RepositoryBuilds)
+	repo.Path("/.builds").Methods("POST").Name(RepositoryBuildsCreate)
 
 	// See router_util/tree_route.go for an explanation of how we match tree
 	// entry routes.
-	repo.Path("/.tree" + TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET").Name(RepositoryTreeEntry)
+	repoRev.Path("/.tree" + TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET").Name(RepositoryTreeEntry)
 
 	m.Path("/people").Methods("GET").Name(People)
 	personPath := `/people/` + PersonSpecPattern
@@ -192,8 +195,8 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	// See router_util/def_route.go for an explanation of how we match def
 	// routes.
 	defPath := `/.defs/` + DefPathPattern
-	repo.Path(defPath).Methods("GET").PostMatchFunc(FixDefUnitVars).BuildVarsFunc(PrepareDefRouteVars).Name(Def)
-	def := repo.PathPrefix(defPath).PostMatchFunc(FixDefUnitVars).BuildVarsFunc(PrepareDefRouteVars).Subrouter()
+	repoRev.Path(defPath).Methods("GET").PostMatchFunc(FixDefUnitVars).BuildVarsFunc(PrepareDefRouteVars).Name(Def)
+	def := repoRev.PathPrefix(defPath).PostMatchFunc(FixDefUnitVars).BuildVarsFunc(PrepareDefRouteVars).Subrouter()
 	def.Path("/.examples").Methods("GET").Name(DefExamples)
 	def.Path("/.authors").Methods("GET").Name(DefAuthors)
 	def.Path("/.clients").Methods("GET").Name(DefClients)
@@ -202,7 +205,7 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 
 	m.Path("/.units").Methods("GET").Name(Units)
 	unitPath := `/.units/.{UnitType}/{Unit:.*}`
-	repo.Path(unitPath).Methods("GET").Name(Unit)
+	repoRev.Path(unitPath).Methods("GET").Name(Unit)
 
 	m.Path("/ext/github/webhook").Methods("POST").Name(ExtGitHubReceiveWebhook)
 

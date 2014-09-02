@@ -7,16 +7,17 @@ import (
 	"github.com/sqs/mux"
 )
 
-// RepoSpecPathPattern is the path pattern for repository URIs.
+// RepoSpecPattern is the path pattern for encoding RepoSpec.
 //
 // TODO(sqs): match the "R$rid" format too.
 var RepoSpecPathPattern = `{RepoSpec:(?:[^/.@][^/@]*/)+(?:[^/.@][^/@]*)}`
 
-// RepoPathPattern is the path pattern for repository URIs with optional revisions.
-var RepoPathPattern = RepoSpecPathPattern + `{Rev:(?:@[\w-.]+)?}`
+// RepoRevSpecPattern is the path pattern for encoding RepoRevSpec.
+var RepoRevSpecPattern = RepoSpecPathPattern + `{Rev:(?:@[\w-.]+)?}`
 
-// FixRepoVars is a mux.PostMatchFunc that cleans and normalizes the repository URI.
-func FixRepoVars(req *http.Request, match *mux.RouteMatch, r *mux.Route) {
+// FixRepoRevSpecVars is a mux.PostMatchFunc that cleans and normalizes the
+// RepoRevSpecPattern vars.
+func FixRepoRevSpecVars(req *http.Request, match *mux.RouteMatch, r *mux.Route) {
 	if rev, present := match.Vars["Rev"]; present {
 		if rev == "" {
 			delete(match.Vars, "Rev")
@@ -26,9 +27,10 @@ func FixRepoVars(req *http.Request, match *mux.RouteMatch, r *mux.Route) {
 	}
 }
 
-// PrepareRepoRouteVars is a mux.BuildVarsFunc that converts from a cleaned
-// and normalized repository URI to a repository component in the route.
-func PrepareRepoRouteVars(vars map[string]string) map[string]string {
+// PrepareRepoRevSpecRouteVars is a mux.BuildVarsFunc that converts
+// from a RepoRevSpec's route vars to components used to generate
+// routes.
+func PrepareRepoRevSpecRouteVars(vars map[string]string) map[string]string {
 	if rev, present := vars["Rev"]; !present {
 		vars["Rev"] = ""
 	} else if rev != "" {

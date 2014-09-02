@@ -112,6 +112,34 @@ func TestRepositoriesService_Get(t *testing.T) {
 	}
 }
 
+func TestRepositoriesService_GetStats(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := repo.Stats{"x": 1, "y": 2}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.RepositoryStats, map[string]string{"RepoSpec": "r.com/x", "Rev": "c"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+
+		writeJSON(w, want)
+	})
+
+	stats, _, err := client.Repositories.GetStats(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"})
+	if err != nil {
+		t.Errorf("Repositories.GetStats returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(stats, want) {
+		t.Errorf("Repositories.GetStats returned %+v, want %+v", stats, want)
+	}
+}
+
 func TestRepositoriesService_GetOrCreate(t *testing.T) {
 	setup()
 	defer teardown()

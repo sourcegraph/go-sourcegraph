@@ -25,6 +25,13 @@ type RepositoriesService interface {
 	// Get fetches a repository.
 	Get(repo RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error)
 
+	// GetStats gets statistics about a repository at a specific
+	// commit. Some statistics are per-commit and some are global to
+	// the repository. If you only care about global repository
+	// statistics, pass an empty Rev to the RepoRevSpec (which will be
+	// resolved to the repository's default branch).
+	GetStats(repo RepoRevSpec) (repo.Stats, Response, error)
+
 	// GetOrCreate fetches a repository using Get. If no such repository exists
 	// with the URI, and the URI refers to a recognized repository host (such as
 	// github.com), the repository's information is fetched from the external
@@ -263,56 +270,6 @@ func UnmarshalRepoRevSpec(routeVars map[string]string) (RepoRevSpec, error) {
 // Repository is a code repository returned by the Sourcegraph API.
 type Repository struct {
 	*repo.Repository
-
-	// CommitID is the commit which the Stats, Unsupported, and
-	// NoticeTitle/NoticeBody apply to. If the Repository was fetched with an
-	// empty (default) or non-commit-ID rev (such as a branch name), CommitID
-	// contains the resolved commit ID for that revision specifier.
-	//
-	// If CommitID is empty, it means that either the revision in
-	// RepositorySpec.CommitID could not be resolved to a commit ID, or the
-	// repository's VCS has not been cloned to Sourcegraph yet.
-	//
-	// This field is only populated in the Get method's results, and even then
-	// only if the RepositoryGetOptions.ResolveRevision or
-	// RepositoryGetOptions.Build field is true.
-	CommitID string
-
-	// RevSpec is the revision specifier that resolves to CommitID
-	// (see its docstring for more info).
-	//
-	// If the Repository was fetched with an empty revspec, the
-	// RevSpec field will contain the default branch name for the
-	// repository. Otherwise, it contains the exact same revspec as
-	// the one used to fetch this repository. (perhaps with minor
-	// normalization, such as lowercasing)
-	RevSpec string
-
-	// NoVCSData is true if the repository has NOT been cloned and no local copy
-	// resides on the Sourcegraph servers. If it has been cloned successfully,
-	// HasVCSData is false.
-	//
-	// If the caller specified no options to Get that require fetching VCS data
-	// (e.g., ResolveRevision), NoVCSData will be false (its value is unknowable
-	// without fetching VCS data).
-	NoVCSData bool `json:",omitempty"`
-
-	// Stat is a map of the statistics for the repository. It is only populated
-	// if the options Stats field is true.
-	Stat repo.Stats `json:",omitempty"`
-
-	// Unsupported is whether Sourcegraph doesn't support this repository.
-	Unsupported bool `json:",omitempty"`
-
-	NoticeTitle, NoticeBody string `json:",omitempty"`
-}
-
-// RepoRevSpec returns the RepoRevSpec that specifies r.
-func (r *Repository) RepoRevSpec() RepoRevSpec {
-	return RepoRevSpec{
-		RepoSpec: r.RepoSpec(),
-		CommitID: r.CommitID,
-	}
 }
 
 // RepoSpec returns the RepoSpec that specifies r.
@@ -320,15 +277,8 @@ func (r *Repository) RepoSpec() RepoSpec {
 	return RepoSpec{URI: string(r.Repository.URI), RID: int(r.Repository.RID)}
 }
 
-type RepositoryGetOptions struct {
-	// Stats is whether to include statistics about the repository in the
-	// response.
-	Stats bool `url:",omitempty"`
-
-	// ResolveRevision is whether to include the resolved VCS revision in the
-	// CommitID field in the response.
-	ResolveRevision bool `url:",omitempty"`
-}
+// RepositoryGetOptions specifies options for getting a repository.
+type RepositoryGetOptions struct{}
 
 func (s *repositoriesService) Get(repo RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error) {
 	url, err := s.client.url(router.Repository, repo.RouteVars(), opt)
@@ -348,6 +298,26 @@ func (s *repositoriesService) Get(repo RepoSpec, opt *RepositoryGetOptions) (*Re
 	}
 
 	return repo_, resp, nil
+}
+
+func (s *repositoriesService) GetStats(repoRev RepoRevSpec) (repo.Stats, Response, error) {
+	url, err := s.client.url(router.RepositoryStats, repoRev.RouteVars(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var stats repo.Stats
+	resp, err := s.client.Do(req, &stats)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return stats, resp, nil
 }
 
 func (s *repositoriesService) GetOrCreate(repo_ RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error) {
@@ -980,6 +950,7 @@ func (s *repositoriesService) ListByRefdAuthor(person PersonSpec, opt *Repositor
 
 type MockRepositoriesService struct {
 	Get_               func(spec RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error)
+	GetStats_          func(repo RepoRevSpec) (repo.Stats, Response, error)
 	GetOrCreate_       func(repo RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error)
 	GetSettings_       func(repo RepoSpec) (*RepositorySettings, Response, error)
 	UpdateSettings_    func(repo RepoSpec, settings RepositorySettings) (Response, error)
@@ -1012,6 +983,13 @@ func (s MockRepositoriesService) Get(repo RepoSpec, opt *RepositoryGetOptions) (
 		return nil, &HTTPResponse{}, nil
 	}
 	return s.Get_(repo, opt)
+}
+
+func (s MockRepositoriesService) GetStats(repo RepoRevSpec) (repo.Stats, Response, error) {
+	if s.GetStats_ == nil {
+		return nil, nil, nil
+	}
+	return s.GetStats_(repo)
 }
 
 func (s MockRepositoriesService) GetOrCreate(repo RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error) {
