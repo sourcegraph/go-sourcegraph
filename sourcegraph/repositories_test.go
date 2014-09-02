@@ -266,12 +266,12 @@ func TestRepositoriesService_ComputeStats(t *testing.T) {
 	defer teardown()
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryComputeStats, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryComputeStats, map[string]string{"RepoSpec": "r.com/x", "Rev": "c"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 	})
 
-	_, err := client.Repositories.ComputeStats(RepoSpec{URI: "r.com/x"})
+	_, err := client.Repositories.ComputeStats(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"})
 	if err != nil {
 		t.Errorf("Repositories.ComputeStats returned error: %v", err)
 	}

@@ -65,7 +65,7 @@ type RepositoriesService interface {
 	// This operation is performed asynchronously on the server side (after
 	// receiving the request) and the API currently has no way of notifying
 	// callers when the operation completes.
-	ComputeStats(repo RepoSpec) (Response, error)
+	ComputeStats(repo RepoRevSpec) (Response, error)
 
 	// Create adds the repository at cloneURL, filling in all information about
 	// the repository that can be inferred from the URL (or, for GitHub
@@ -428,7 +428,7 @@ func (s *repositoriesService) RefreshVCSData(repo RepoSpec) (Response, error) {
 	return resp, nil
 }
 
-func (s *repositoriesService) ComputeStats(repo RepoSpec) (Response, error) {
+func (s *repositoriesService) ComputeStats(repo RepoRevSpec) (Response, error) {
 	url, err := s.client.url(router.RepositoryComputeStats, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, err
@@ -962,7 +962,7 @@ type MockRepositoriesService struct {
 	UpdateSettings_    func(repo RepoSpec, settings RepositorySettings) (Response, error)
 	RefreshProfile_    func(repo RepoSpec) (Response, error)
 	RefreshVCSData_    func(repo RepoSpec) (Response, error)
-	ComputeStats_      func(repo RepoSpec) (Response, error)
+	ComputeStats_      func(repo RepoRevSpec) (Response, error)
 	Create_            func(newRepoSpec NewRepositorySpec) (*repo.Repository, Response, error)
 	GetReadme_         func(repo RepoRevSpec) (*vcsclient.TreeEntry, Response, error)
 	List_              func(opt *RepositoryListOptions) ([]*Repository, Response, error)
@@ -1033,7 +1033,7 @@ func (s MockRepositoriesService) RefreshVCSData(repo RepoSpec) (Response, error)
 	return s.RefreshVCSData_(repo)
 }
 
-func (s MockRepositoriesService) ComputeStats(repo RepoSpec) (Response, error) {
+func (s MockRepositoriesService) ComputeStats(repo RepoRevSpec) (Response, error) {
 	if s.ComputeStats_ == nil {
 		return nil, nil
 	}

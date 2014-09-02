@@ -124,6 +124,7 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	m.Path("/repos/github.com/{owner:[^/]+}/{repo:[^/]+}/{what:(?:badges|counters)}/{which}.png").Methods("GET").Name(RedirectOldRepositoryBadgesAndCounters)
 
 	repoRev := m.PathPrefix(`/repos/` + RepoRevSpecPattern).PostMatchFunc(FixRepoRevSpecVars).BuildVarsFunc(PrepareRepoRevSpecRouteVars).Subrouter()
+	repoRev.Path("/.stats").Methods("PUT").Name(RepositoryComputeStats)
 	repoRev.Path("/.stats").Methods("GET").Name(RepositoryStats)
 	repoRev.Path("/.authors").Methods("GET").Name(RepositoryAuthors)
 	repoRev.Path("/.readme").Methods("GET").Name(RepositoryReadme)
@@ -142,7 +143,6 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	repo.Path("/.vcs-data").Methods("PUT").Name(RepositoryRefreshVCSData)
 	repo.Path("/.settings").Methods("GET").Name(RepositorySettings)
 	repo.Path("/.settings").Methods("PUT").Name(RepositorySettingsUpdate)
-	repo.Path("/.stats").Methods("PUT").Name(RepositoryComputeStats)
 	repo.Path("/.pulls").Methods("GET").Name(RepoPullRequests)
 	repo.Path("/.pulls/{PullNumber}").Methods("GET").Name(RepoPullRequest)
 	repo.Path("/.commits").Methods("GET").Name(RepoCommits)
