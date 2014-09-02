@@ -276,6 +276,9 @@ func UnmarshalRepoRevSpec(routeVars map[string]string) (RepoRevSpec, error) {
 // Repository is a code repository returned by the Sourcegraph API.
 type Repository struct {
 	*repo.Repository
+
+	// Stat holds repository statistics. It's only filled in if Repository{Get,List}Options has Stats == true.
+	Stat repo.Stats
 }
 
 // RepoSpec returns the RepoSpec that specifies r.
@@ -284,7 +287,9 @@ func (r *Repository) RepoSpec() RepoSpec {
 }
 
 // RepositoryGetOptions specifies options for getting a repository.
-type RepositoryGetOptions struct{}
+type RepositoryGetOptions struct {
+	Stats bool `url:",omitempty" json:",omitempty"` // whether to fetch and include stats in the returned repository
+}
 
 func (s *repositoriesService) Get(repo RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error) {
 	url, err := s.client.url(router.Repository, repo.RouteVars(), opt)
@@ -508,6 +513,8 @@ type RepositoryListOptions struct {
 	NoFork bool `url:",omitempty" json:",omitempty"`
 
 	Owner string `url:",omitempty" json:",omitempty"`
+
+	Stats bool `url:",omitempty" json:",omitempty"` // whether to fetch and include stats in the returned repositories
 
 	ListOptions
 }
