@@ -145,11 +145,11 @@ type RepoSpec struct {
 
 // PathComponent returns the URL path component that specifies the person.
 func (s *RepoSpec) PathComponent() string {
-	if s.URI != "" {
-		return s.URI
-	}
 	if s.RID > 0 {
 		return "R$" + strconv.Itoa(s.RID)
+	}
+	if s.URI != "" {
+		return s.URI
 	}
 	panic("empty RepoSpec")
 }
