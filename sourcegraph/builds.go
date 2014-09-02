@@ -229,7 +229,7 @@ type BuildListByRepositoryOptions struct {
 }
 
 func (s *buildsService) ListByRepository(repo RepoSpec, opt *BuildListByRepositoryOptions) ([]*Build, Response, error) {
-	url, err := s.client.url(router.RepositoryBuilds, map[string]string{"RepoSpec": repo.URI}, opt)
+	url, err := s.client.url(router.RepositoryBuilds, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
