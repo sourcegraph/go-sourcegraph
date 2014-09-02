@@ -18,14 +18,14 @@ func TestBuildDataService_Get(t *testing.T) {
 	want := []byte("hello")
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryBuildDataEntry, map[string]string{"RepoURI": "r.com/x", "Rev": "c", "Path": "a/b"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryBuildDataEntry, map[string]string{"RepoSpec": "r.com/x", "Rev": "c", "Path": "a/b"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		w.Write(want)
 	})
 
-	file, _, err := client.BuildData.Get(BuildDataFileSpec{Repo: "r.com/x", Rev: "c", Path: "a/b"})
+	file, _, err := client.BuildData.Get(BuildDataFileSpec{RepoRev: RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"}, Path: "a/b"})
 	if err != nil {
 		t.Errorf("BuildData.Get returned error: %v", err)
 	}
@@ -46,14 +46,14 @@ func TestBuildDataService_List(t *testing.T) {
 	want := []*buildstore.BuildDataFileInfo{{Path: "a/b", CommitID: "c"}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryBuildDataEntry, map[string]string{"RepoURI": "r.com/x", "Rev": "c", "Path": "."}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryBuildDataEntry, map[string]string{"RepoSpec": "r.com/x", "Rev": "c", "Path": "."}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	files, _, err := client.BuildData.List(RepositorySpec{URI: "r.com/x", CommitID: "c"}, nil)
+	files, _, err := client.BuildData.List(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"}, nil)
 	if err != nil {
 		t.Errorf("BuildData.List returned error: %v", err)
 	}
@@ -76,12 +76,12 @@ func TestBuildDataService_Upload(t *testing.T) {
 	want := []byte("hello")
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryBuildDataEntry, map[string]string{"RepoURI": "r.com/x", "Rev": "c", "Path": "a/b"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryBuildDataEntry, map[string]string{"RepoSpec": "r.com/x", "Rev": "c", "Path": "a/b"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 	})
 
-	_, err := client.BuildData.Upload(BuildDataFileSpec{Repo: "r.com/x", Rev: "c", Path: "a/b"}, ioutil.NopCloser(bytes.NewReader(want)))
+	_, err := client.BuildData.Upload(BuildDataFileSpec{RepoRev: RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"}, Path: "a/b"}, ioutil.NopCloser(bytes.NewReader(want)))
 	if err != nil {
 		t.Errorf("BuildData.Upload returned error: %v", err)
 	}

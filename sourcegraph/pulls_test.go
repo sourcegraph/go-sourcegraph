@@ -20,14 +20,14 @@ func TestPullRequestsService_Get(t *testing.T) {
 	want := &PullRequest{PullRequest: github.PullRequest{Number: github.Int(1)}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepoPullRequest, map[string]string{"RepoURI": "r.com/x", "PullNumber": "1"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoPullRequest, map[string]string{"RepoSpec": "r.com/x", "PullNumber": "1"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	pull, _, err := client.PullRequests.Get(PullRequestSpec{Repo: RepositorySpec{URI: "r.com/x"}, Number: 1}, nil)
+	pull, _, err := client.PullRequests.Get(PullRequestSpec{Repo: RepoSpec{URI: "r.com/x"}, Number: 1}, nil)
 	if err != nil {
 		t.Errorf("PullRequests.Get returned error: %v", err)
 	}
@@ -46,7 +46,7 @@ func TestPullRequestsService_ListByRepository(t *testing.T) {
 	defer teardown()
 
 	want := []*PullRequest{&PullRequest{PullRequest: github.PullRequest{Number: github.Int(1)}}}
-	repoSpec := RepositorySpec{URI: "x.com/r"}
+	repoSpec := RepoSpec{URI: "x.com/r"}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.RepoPullRequests, repoSpec.RouteVars()), func(w http.ResponseWriter, r *http.Request) {

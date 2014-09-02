@@ -25,7 +25,7 @@ func TestRepositoryTreeService_Get(t *testing.T) {
 	want.ModTime = want.ModTime.In(time.UTC)
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryTreeEntry, map[string]string{"RepoURI": "r.com/x", "Rev": "v", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryTreeEntry, map[string]string{"RepoSpec": "r.com/x", "Rev": "v", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 		testFormValues(t, r, values{"Formatted": "true", "StartByte": "0", "EndByte": "0"})
@@ -34,8 +34,8 @@ func TestRepositoryTreeService_Get(t *testing.T) {
 	})
 
 	data, _, err := client.RepositoryTree.Get(TreeEntrySpec{
-		Repo: RepositorySpec{URI: "r.com/x", CommitID: "v"},
-		Path: "p",
+		RepoRev: RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "v"},
+		Path:    "p",
 	}, &RepositoryTreeGetOptions{Formatted: true})
 	if err != nil {
 		t.Errorf("RepositoryTree.Get returned error: %v", err)

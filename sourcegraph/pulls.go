@@ -16,7 +16,7 @@ type PullRequestsService interface {
 	Get(pull PullRequestSpec, opt *PullRequestGetOptions) (*PullRequest, Response, error)
 
 	// List pull requests for a repository.
-	ListByRepository(repo RepositorySpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error)
+	ListByRepository(repo RepoSpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error)
 }
 
 // pullRequestsService implements PullRequestsService.
@@ -28,13 +28,13 @@ var _ PullRequestsService = &pullRequestsService{}
 
 // PullRequestSpec specifies a pull request.
 type PullRequestSpec struct {
-	Repo RepositorySpec
+	Repo RepoSpec
 
 	Number int // Sequence number of the pull request
 }
 
 func (s PullRequestSpec) RouteVars() map[string]string {
-	return map[string]string{"RepoURI": s.Repo.URI, "PullNumber": strconv.Itoa(s.Number)}
+	return map[string]string{"RepoSpec": s.Repo.URI, "PullNumber": strconv.Itoa(s.Number)}
 }
 
 // PullRequest is a pull request returned by the Sourcegraph API.
@@ -47,7 +47,7 @@ func (r *PullRequest) Spec() PullRequestSpec {
 	// Extract the URI from the HTMLURL field.
 	uri := strings.Join(strings.Split(strings.TrimPrefix(*r.HTMLURL, "https://"), "/")[0:3], "/")
 	return PullRequestSpec{
-		Repo:   RepositorySpec{URI: uri},
+		Repo:   RepoSpec{URI: uri},
 		Number: *r.Number,
 	}
 }
@@ -78,7 +78,7 @@ type PullRequestListOptions struct {
 	ListOptions
 }
 
-func (s *pullRequestsService) ListByRepository(repo RepositorySpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error) {
+func (s *pullRequestsService) ListByRepository(repo RepoSpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error) {
 	url, err := s.client.url(router.RepoPullRequests, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
@@ -100,7 +100,7 @@ func (s *pullRequestsService) ListByRepository(repo RepositorySpec, opt *PullReq
 
 type MockPullRequestsService struct {
 	Get_              func(pull PullRequestSpec, opt *PullRequestGetOptions) (*PullRequest, Response, error)
-	ListByRepository_ func(repo RepositorySpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error)
+	ListByRepository_ func(repo RepoSpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error)
 }
 
 var _ PullRequestsService = MockPullRequestsService{}
@@ -112,7 +112,7 @@ func (s MockPullRequestsService) Get(pull PullRequestSpec, opt *PullRequestGetOp
 	return s.Get_(pull, opt)
 }
 
-func (s MockPullRequestsService) ListByRepository(repo RepositorySpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error) {
+func (s MockPullRequestsService) ListByRepository(repo RepoSpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error) {
 	if s.ListByRepository_ == nil {
 		return nil, &HTTPResponse{}, nil
 	}

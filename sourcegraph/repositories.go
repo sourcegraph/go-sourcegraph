@@ -23,19 +23,19 @@ import (
 // Sourcegraph API.
 type RepositoriesService interface {
 	// Get fetches a repository.
-	Get(repo RepositorySpec, opt *RepositoryGetOptions) (*Repository, Response, error)
+	Get(repo RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error)
 
 	// GetOrCreate fetches a repository using Get. If no such repository exists
 	// with the URI, and the URI refers to a recognized repository host (such as
 	// github.com), the repository's information is fetched from the external
 	// host and the repository is created.
-	GetOrCreate(repo RepositorySpec, opt *RepositoryGetOptions) (*Repository, Response, error)
+	GetOrCreate(repo RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error)
 
 	// GetSettings fetches a repository's configuration settings.
-	GetSettings(repo RepositorySpec) (*RepositorySettings, Response, error)
+	GetSettings(repo RepoSpec) (*RepositorySettings, Response, error)
 
 	// UpdateSettings updates a repository's configuration settings.
-	UpdateSettings(repo RepositorySpec, settings RepositorySettings) (Response, error)
+	UpdateSettings(repo RepoSpec, settings RepositorySettings) (Response, error)
 
 	// RefreshProfile updates the repository metadata for a repository, fetching
 	// it from an external host if the host is recognized (such as GitHub).
@@ -43,7 +43,7 @@ type RepositoriesService interface {
 	// This operation is performed asynchronously on the server side (after
 	// receiving the request) and the API currently has no way of notifying
 	// callers when the operation completes.
-	RefreshProfile(repo RepositorySpec) (Response, error)
+	RefreshProfile(repo RepoSpec) (Response, error)
 
 	// RefreshVCSData updates the repository VCS (git/hg) data, fetching all new
 	// commits, branches, tags, and blobs.
@@ -51,14 +51,14 @@ type RepositoriesService interface {
 	// This operation is performed asynchronously on the server side (after
 	// receiving the request) and the API currently has no way of notifying
 	// callers when the operation completes.
-	RefreshVCSData(repo RepositorySpec) (Response, error)
+	RefreshVCSData(repo RepoSpec) (Response, error)
 
 	// ComputeStats updates the statistics about a repository.
 	//
 	// This operation is performed asynchronously on the server side (after
 	// receiving the request) and the API currently has no way of notifying
 	// callers when the operation completes.
-	ComputeStats(repo RepositorySpec) (Response, error)
+	ComputeStats(repo RepoSpec) (Response, error)
 
 	// Create adds the repository at cloneURL, filling in all information about
 	// the repository that can be inferred from the URL (or, for GitHub
@@ -67,13 +67,13 @@ type RepositoriesService interface {
 	Create(newRepoSpec NewRepositorySpec) (*repo.Repository, Response, error)
 
 	// GetReadme fetches the formatted README file for a repository.
-	GetReadme(repo RepositorySpec) (*vcsclient.TreeEntry, Response, error)
+	GetReadme(repo RepoRevSpec) (*vcsclient.TreeEntry, Response, error)
 
 	// List repositories.
 	List(opt *RepositoryListOptions) ([]*Repository, Response, error)
 
 	// List commits.
-	ListCommits(repo RepositorySpec2, opt *RepositoryListCommitsOptions) ([]*Commit, Response, error)
+	ListCommits(repo RepoSpec, opt *RepositoryListCommitsOptions) ([]*Commit, Response, error)
 
 	// GetCommit gets a commit.
 	GetCommit(rev RepoRevSpec, opt *RepositoryGetCommitOptions) (*Commit, Response, error)
@@ -82,30 +82,30 @@ type RepositoriesService interface {
 	CompareCommits(base RepoRevSpec, opt *RepositoryCompareCommitsOptions) (*CommitsComparison, Response, error)
 
 	// ListBranches lists a repository's branches.
-	ListBranches(repo RepositorySpec2, opt *RepositoryListBranchesOptions) ([]*vcs.Branch, Response, error)
+	ListBranches(repo RepoSpec, opt *RepositoryListBranchesOptions) ([]*vcs.Branch, Response, error)
 
 	// ListTags lists a repository's tags.
-	ListTags(repo RepositorySpec2, opt *RepositoryListTagsOptions) ([]*vcs.Tag, Response, error)
+	ListTags(repo RepoSpec, opt *RepositoryListTagsOptions) ([]*vcs.Tag, Response, error)
 
 	// ListBadges lists the available badges for repo.
-	ListBadges(repo RepositorySpec) ([]*Badge, Response, error)
+	ListBadges(repo RepoSpec) ([]*Badge, Response, error)
 
 	// ListCounters lists the available counters for repo.
-	ListCounters(repo RepositorySpec) ([]*Counter, Response, error)
+	ListCounters(repo RepoSpec) ([]*Counter, Response, error)
 
 	// ListAuthors lists people who have contributed (i.e., committed) code to
 	// repo.
-	ListAuthors(repo RepositorySpec, opt *RepositoryListAuthorsOptions) ([]*AugmentedRepoAuthor, Response, error)
+	ListAuthors(repo RepoRevSpec, opt *RepositoryListAuthorsOptions) ([]*AugmentedRepoAuthor, Response, error)
 
 	// ListClients lists people who reference defs defined in repo.
-	ListClients(repo RepositorySpec, opt *RepositoryListClientsOptions) ([]*AugmentedRepoClient, Response, error)
+	ListClients(repo RepoSpec, opt *RepositoryListClientsOptions) ([]*AugmentedRepoClient, Response, error)
 
 	// ListDependents lists repositories that contain defs referenced by
 	// repo.
-	ListDependencies(repo RepositorySpec, opt *RepositoryListDependenciesOptions) ([]*AugmentedRepoDependency, Response, error)
+	ListDependencies(repo RepoRevSpec, opt *RepositoryListDependenciesOptions) ([]*AugmentedRepoDependency, Response, error)
 
 	// ListDependents lists repositories that reference defs defined in repo.
-	ListDependents(repo RepositorySpec, opt *RepositoryListDependentsOptions) ([]*AugmentedRepoDependent, Response, error)
+	ListDependents(repo RepoSpec, opt *RepositoryListDependentsOptions) ([]*AugmentedRepoDependent, Response, error)
 
 	// ListByContributor lists repositories that person has contributed (i.e.,
 	// committed) code to.
@@ -127,86 +127,110 @@ type repositoriesService struct {
 
 var _ RepositoriesService = &repositoriesService{}
 
-// RepositorySpec specifies a repository.
-type RepositorySpec struct {
-	URI string
-
-	// CommitID specifies which revision of the repository's VCS data to fetch
-	// data pertaining to. If CommitID is empty, the repository's default branch
-	// will be used. If CommitID is non-empty, it will be resolved as a VCS
-	// revision (so it can be a commit ID, branch, tag, etc.), and data
-	// pertaining to that revision will be returned.
-	CommitID string
-}
-
-func (s RepositorySpec) RouteVars() map[string]string {
-	m := map[string]string{"RepoURI": s.URI}
-	if s.CommitID != "" {
-		m["Rev"] = s.CommitID
-	}
-	return m
-}
-
-// RepositorySpec2 specifies a repository. We are transitioning AWAY
+// RepoSpec specifies a repository. We are transitioning AWAY
 // from using RepositorySpec because it actually specifies a repo at a
 // certain commit, not just a repo. We'll rename it to RepoRevSpec
-// and rename RepositorySpec2 to RepoSpec.
-type RepositorySpec2 struct {
+// and rename RepoSpec to RepoSpec.
+type RepoSpec struct {
 	URI string
 	RID int
 }
 
 // PathComponent returns the URL path component that specifies the person.
-func (s *RepositorySpec2) PathComponent() string {
+func (s *RepoSpec) PathComponent() string {
 	if s.URI != "" {
 		return s.URI
 	}
 	if s.RID > 0 {
 		return "R$" + strconv.Itoa(s.RID)
 	}
-	panic("empty RepositorySpec2")
+	panic("empty RepoSpec")
 }
 
-func (s RepositorySpec2) RouteVars() map[string]string {
+// RouteVars returns route variables for constructing repository
+// routes.
+func (s RepoSpec) RouteVars() map[string]string {
 	if s.RID != 0 {
 		panic("RID not supported yet")
 	}
-	return map[string]string{"RepoURI": s.URI}
+	return map[string]string{"RepoSpec": s.URI}
 }
 
-// ParseRepositorySpec2 parses a string generated by
-// (*RepositorySpec2).PathComponent() and returns the equivalent
-// RepositorySpec2 struct.
-func ParseRepositorySpec2(pathComponent string) (RepositorySpec2, error) {
+// ParseRepoSpec parses a string generated by
+// (*RepoSpec).PathComponent() and returns the equivalent
+// RepoSpec struct.
+func ParseRepoSpec(pathComponent string) (RepoSpec, error) {
 	if pathComponent == "" {
-		return RepositorySpec2{}, errors.New("empty repository spec")
+		return RepoSpec{}, errors.New("empty repository spec")
 	}
 	if strings.HasPrefix(pathComponent, "R$") {
 		rid, err := strconv.Atoi(pathComponent[2:])
-		return RepositorySpec2{RID: rid}, err
+		return RepoSpec{RID: rid}, err
 	}
-	return RepositorySpec2{URI: pathComponent}, nil
+	return RepoSpec{URI: pathComponent}, nil
 }
 
-// UnmarshalRepositorySpec2 marshals a map containing route variables
-// generated by (*RepositorySpec2).RouteVars() and returns the
-// equivalent RepositorySpec2 struct.
-func UnmarshalRepositorySpec2(routeVars map[string]string) (RepositorySpec2, error) {
-	return ParseRepositorySpec2(routeVars["RepoURI"])
+// UnmarshalRepoSpec marshals a map containing route variables
+// generated by (*RepoSpec).RouteVars() and returns the
+// equivalent RepoSpec struct.
+func UnmarshalRepoSpec(routeVars map[string]string) (RepoSpec, error) {
+	return ParseRepoSpec(routeVars["RepoSpec"])
 }
 
 // RepoRevSpec specifies a repository at a specific commit (or
 // revision specifier, such as a branch, which is resolved on the
 // server side to a specific commit).
+//
+// Filling in CommitID is an optional optimization. It avoids the need
+// for another resolution of Rev. If CommitID is filled in, the "Rev"
+// route variable becomes "Rev===CommitID" (e.g.,
+// "master===af4cd6"). Handlers can parse this string to retrieve the
+// pre-resolved commit ID (e.g., "af4cd6") and still return data that
+// constructs URLs using the unresolved revspec (e.g., "master").
+//
+// Why is it important/useful to pass the resolved commit ID instead
+// of just using a revspec everywhere? Consider this case. Your
+// application wants to make a bunch of requests for resources
+// relating to "master"; for example, it wants to retrieve a source
+// file foo.go at master and all of the definitions and references
+// contained in the file. This may consist of dozens of API calls. If
+// each API call specified just "master", there would be 2 problems:
+// (1) each API call would have to re-resolve "master" to its actual
+// commit ID, which takes a lot of extra work; and (2) if the "master"
+// ref changed during the API calls (if someone pushed in the middle
+// of the API call, for example), then your application would receive
+// data from 2 different commits. The solution is for your application
+// to resolve the revspec once and pass both the original revspec and
+// the resolved commit ID in all API calls it makes.
+//
+// And why do we want to preserve the unresolved revspec? In this
+// case, your app wants to let the user continue browsing "master". If
+// the API data all referred to a specific commit ID, then the user
+// would cease browsing master the next time she clicked a link on
+// your app. Preserving the revspec gives the user a choice whether to
+// use the absolute commit ID or the revspec (similar to how GitHub
+// lets you canonicalize a URL with 'y' but does not default to using
+// the canonical URL).
 type RepoRevSpec struct {
-	RepositorySpec2
-	Rev string
+	RepoSpec        // repository URI or RID
+	Rev      string // the abstract/unresolved revspec, such as a branch name or abbreviated commit ID
+	CommitID string // the full commit ID that Rev resolves to
 }
 
+const repoRevSpecCommitSep = "==="
+
+// RouteVars returns route variables for constructing routes to a
+// repository commit.
 func (s RepoRevSpec) RouteVars() map[string]string {
-	m := s.RepositorySpec2.RouteVars()
+	m := s.RepoSpec.RouteVars()
 	if s.Rev != "" {
 		m["Rev"] = s.Rev
+	}
+	if s.CommitID != "" {
+		if s.Rev == "" {
+			panic("invalid empty Rev but non-empty CommitID (" + s.CommitID + ")")
+		}
+		m["Rev"] += repoRevSpecCommitSep + s.CommitID
 	}
 	return m
 }
@@ -215,11 +239,25 @@ func (s RepoRevSpec) RouteVars() map[string]string {
 // generated by (*RepoRevSpec).RouteVars() and returns the equivalent
 // RepoRevSpec struct.
 func UnmarshalRepoRevSpec(routeVars map[string]string) (RepoRevSpec, error) {
-	repoSpec, err := UnmarshalRepositorySpec2(routeVars)
+	repoSpec, err := UnmarshalRepoSpec(routeVars)
 	if err != nil {
 		return RepoRevSpec{}, err
 	}
-	return RepoRevSpec{RepositorySpec2: repoSpec, Rev: routeVars["Rev"]}, nil
+
+	repoRevSpec := RepoRevSpec{RepoSpec: repoSpec}
+	revStr := routeVars["Rev"]
+	if i := strings.Index(revStr, repoRevSpecCommitSep); i == -1 {
+		repoRevSpec.Rev = revStr
+	} else {
+		repoRevSpec.Rev = revStr[:i]
+		repoRevSpec.CommitID = revStr[i+len(repoRevSpecCommitSep):]
+	}
+
+	if repoRevSpec.Rev == "" && repoRevSpec.CommitID != "" {
+		return RepoRevSpec{}, fmt.Errorf("invalid empty Rev but non-empty CommitID (%q)", repoRevSpec.CommitID)
+	}
+
+	return repoRevSpec, nil
 }
 
 // Repository is a code repository returned by the Sourcegraph API.
@@ -240,6 +278,16 @@ type Repository struct {
 	// RepositoryGetOptions.Build field is true.
 	CommitID string
 
+	// RevSpec is the revision specifier that resolves to CommitID
+	// (see its docstring for more info).
+	//
+	// If the Repository was fetched with an empty revspec, the
+	// RevSpec field will contain the default branch name for the
+	// repository. Otherwise, it contains the exact same revspec as
+	// the one used to fetch this repository. (perhaps with minor
+	// normalization, such as lowercasing)
+	RevSpec string
+
 	// NoVCSData is true if the repository has NOT been cloned and no local copy
 	// resides on the Sourcegraph servers. If it has been cloned successfully,
 	// HasVCSData is false.
@@ -259,12 +307,17 @@ type Repository struct {
 	NoticeTitle, NoticeBody string `json:",omitempty"`
 }
 
-// Spec returns the RepositorySpec that specifies r.
-func (r *Repository) Spec() RepositorySpec {
-	return RepositorySpec{
-		URI:      string(r.Repository.URI),
+// RepoRevSpec returns the RepoRevSpec that specifies r.
+func (r *Repository) RepoRevSpec() RepoRevSpec {
+	return RepoRevSpec{
+		RepoSpec: r.RepoSpec(),
 		CommitID: r.CommitID,
 	}
+}
+
+// RepoSpec returns the RepoSpec that specifies r.
+func (r *Repository) RepoSpec() RepoSpec {
+	return RepoSpec{URI: string(r.Repository.URI), RID: int(r.Repository.RID)}
 }
 
 type RepositoryGetOptions struct {
@@ -277,7 +330,7 @@ type RepositoryGetOptions struct {
 	ResolveRevision bool `url:",omitempty"`
 }
 
-func (s *repositoriesService) Get(repo RepositorySpec, opt *RepositoryGetOptions) (*Repository, Response, error) {
+func (s *repositoriesService) Get(repo RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error) {
 	url, err := s.client.url(router.Repository, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
@@ -297,7 +350,7 @@ func (s *repositoriesService) Get(repo RepositorySpec, opt *RepositoryGetOptions
 	return repo_, resp, nil
 }
 
-func (s *repositoriesService) GetOrCreate(repo_ RepositorySpec, opt *RepositoryGetOptions) (*Repository, Response, error) {
+func (s *repositoriesService) GetOrCreate(repo_ RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error) {
 	url, err := s.client.url(router.RepositoriesGetOrCreate, repo_.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
@@ -322,7 +375,7 @@ type RepositorySettings struct {
 	Enabled *bool `json:",omitempty"`
 }
 
-func (s *repositoriesService) GetSettings(repo RepositorySpec) (*RepositorySettings, Response, error) {
+func (s *repositoriesService) GetSettings(repo RepoSpec) (*RepositorySettings, Response, error) {
 	url, err := s.client.url(router.RepositorySettings, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
@@ -342,7 +395,7 @@ func (s *repositoriesService) GetSettings(repo RepositorySpec) (*RepositorySetti
 	return settings, resp, nil
 }
 
-func (s *repositoriesService) UpdateSettings(repo RepositorySpec, settings RepositorySettings) (Response, error) {
+func (s *repositoriesService) UpdateSettings(repo RepoSpec, settings RepositorySettings) (Response, error) {
 	url, err := s.client.url(router.RepositorySettingsUpdate, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, err
@@ -361,7 +414,7 @@ func (s *repositoriesService) UpdateSettings(repo RepositorySpec, settings Repos
 	return resp, nil
 }
 
-func (s *repositoriesService) RefreshProfile(repo RepositorySpec) (Response, error) {
+func (s *repositoriesService) RefreshProfile(repo RepoSpec) (Response, error) {
 	url, err := s.client.url(router.RepositoryRefreshProfile, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, err
@@ -380,7 +433,7 @@ func (s *repositoriesService) RefreshProfile(repo RepositorySpec) (Response, err
 	return resp, nil
 }
 
-func (s *repositoriesService) RefreshVCSData(repo RepositorySpec) (Response, error) {
+func (s *repositoriesService) RefreshVCSData(repo RepoSpec) (Response, error) {
 	url, err := s.client.url(router.RepositoryRefreshVCSData, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, err
@@ -399,7 +452,7 @@ func (s *repositoriesService) RefreshVCSData(repo RepositorySpec) (Response, err
 	return resp, nil
 }
 
-func (s *repositoriesService) ComputeStats(repo RepositorySpec) (Response, error) {
+func (s *repositoriesService) ComputeStats(repo RepoSpec) (Response, error) {
 	url, err := s.client.url(router.RepositoryComputeStats, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, err
@@ -443,7 +496,7 @@ func (s *repositoriesService) Create(newRepoSpec NewRepositorySpec) (*repo.Repos
 	return repo_, resp, nil
 }
 
-func (s *repositoriesService) GetReadme(repo RepositorySpec) (*vcsclient.TreeEntry, Response, error) {
+func (s *repositoriesService) GetReadme(repo RepoRevSpec) (*vcsclient.TreeEntry, Response, error) {
 	url, err := s.client.url(router.RepositoryReadme, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
@@ -512,7 +565,7 @@ type RepositoryListCommitsOptions struct {
 	ListOptions
 }
 
-func (s *repositoriesService) ListCommits(repo RepositorySpec2, opt *RepositoryListCommitsOptions) ([]*Commit, Response, error) {
+func (s *repositoriesService) ListCommits(repo RepoSpec, opt *RepositoryListCommitsOptions) ([]*Commit, Response, error) {
 	url, err := s.client.url(router.RepoCommits, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
@@ -599,7 +652,7 @@ type RepositoryListBranchesOptions struct {
 	ListOptions
 }
 
-func (s *repositoriesService) ListBranches(repo RepositorySpec2, opt *RepositoryListBranchesOptions) ([]*vcs.Branch, Response, error) {
+func (s *repositoriesService) ListBranches(repo RepoSpec, opt *RepositoryListBranchesOptions) ([]*vcs.Branch, Response, error) {
 	url, err := s.client.url(router.RepoBranches, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
@@ -623,7 +676,7 @@ type RepositoryListTagsOptions struct {
 	ListOptions
 }
 
-func (s *repositoriesService) ListTags(repo RepositorySpec2, opt *RepositoryListTagsOptions) ([]*vcs.Tag, Response, error) {
+func (s *repositoriesService) ListTags(repo RepoSpec, opt *RepositoryListTagsOptions) ([]*vcs.Tag, Response, error) {
 	url, err := s.client.url(router.RepoTags, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
@@ -655,7 +708,7 @@ func (b *Badge) HTML() string {
 	return fmt.Sprintf(`<img src="%s" alt="%s">`, template.HTMLEscapeString(b.ImageURL), template.HTMLEscapeString(b.Name))
 }
 
-func (s *repositoriesService) ListBadges(repo RepositorySpec) ([]*Badge, Response, error) {
+func (s *repositoriesService) ListBadges(repo RepoSpec) ([]*Badge, Response, error) {
 	url, err := s.client.url(router.RepositoryBadges, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
@@ -687,7 +740,7 @@ func (c *Counter) HTML() string {
 	return fmt.Sprintf(`<img src="%s" alt="%s">`, template.HTMLEscapeString(c.ImageURL), template.HTMLEscapeString(c.Name))
 }
 
-func (s *repositoriesService) ListCounters(repo RepositorySpec) ([]*Counter, Response, error) {
+func (s *repositoriesService) ListCounters(repo RepoSpec) ([]*Counter, Response, error) {
 	url, err := s.client.url(router.RepositoryCounters, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
@@ -718,7 +771,7 @@ type RepositoryListAuthorsOptions struct {
 	ListOptions
 }
 
-func (s *repositoriesService) ListAuthors(repo RepositorySpec, opt *RepositoryListAuthorsOptions) ([]*AugmentedRepoAuthor, Response, error) {
+func (s *repositoriesService) ListAuthors(repo RepoRevSpec, opt *RepositoryListAuthorsOptions) ([]*AugmentedRepoAuthor, Response, error) {
 	url, err := s.client.url(router.RepositoryAuthors, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
@@ -749,7 +802,7 @@ type RepositoryListClientsOptions struct {
 	ListOptions
 }
 
-func (s *repositoriesService) ListClients(repo RepositorySpec, opt *RepositoryListClientsOptions) ([]*AugmentedRepoClient, Response, error) {
+func (s *repositoriesService) ListClients(repo RepoSpec, opt *RepositoryListClientsOptions) ([]*AugmentedRepoClient, Response, error) {
 	url, err := s.client.url(router.RepositoryClients, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
@@ -782,7 +835,7 @@ type RepositoryListDependenciesOptions struct {
 	ListOptions
 }
 
-func (s *repositoriesService) ListDependencies(repo RepositorySpec, opt *RepositoryListDependenciesOptions) ([]*AugmentedRepoDependency, Response, error) {
+func (s *repositoriesService) ListDependencies(repo RepoRevSpec, opt *RepositoryListDependenciesOptions) ([]*AugmentedRepoDependency, Response, error) {
 	url, err := s.client.url(router.RepositoryDependencies, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
@@ -813,7 +866,7 @@ type AugmentedRepoDependent struct {
 
 type RepositoryListDependentsOptions struct{ ListOptions }
 
-func (s *repositoriesService) ListDependents(repo RepositorySpec, opt *RepositoryListDependentsOptions) ([]*AugmentedRepoDependent, Response, error) {
+func (s *repositoriesService) ListDependents(repo RepoSpec, opt *RepositoryListDependentsOptions) ([]*AugmentedRepoDependent, Response, error) {
 	url, err := s.client.url(router.RepositoryDependents, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
@@ -926,27 +979,27 @@ func (s *repositoriesService) ListByRefdAuthor(person PersonSpec, opt *Repositor
 }
 
 type MockRepositoriesService struct {
-	Get_               func(spec RepositorySpec, opt *RepositoryGetOptions) (*Repository, Response, error)
-	GetOrCreate_       func(repo RepositorySpec, opt *RepositoryGetOptions) (*Repository, Response, error)
-	GetSettings_       func(repo RepositorySpec) (*RepositorySettings, Response, error)
-	UpdateSettings_    func(repo RepositorySpec, settings RepositorySettings) (Response, error)
-	RefreshProfile_    func(repo RepositorySpec) (Response, error)
-	RefreshVCSData_    func(repo RepositorySpec) (Response, error)
-	ComputeStats_      func(repo RepositorySpec) (Response, error)
+	Get_               func(spec RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error)
+	GetOrCreate_       func(repo RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error)
+	GetSettings_       func(repo RepoSpec) (*RepositorySettings, Response, error)
+	UpdateSettings_    func(repo RepoSpec, settings RepositorySettings) (Response, error)
+	RefreshProfile_    func(repo RepoSpec) (Response, error)
+	RefreshVCSData_    func(repo RepoSpec) (Response, error)
+	ComputeStats_      func(repo RepoSpec) (Response, error)
 	Create_            func(newRepoSpec NewRepositorySpec) (*repo.Repository, Response, error)
-	GetReadme_         func(repo RepositorySpec) (*vcsclient.TreeEntry, Response, error)
+	GetReadme_         func(repo RepoRevSpec) (*vcsclient.TreeEntry, Response, error)
 	List_              func(opt *RepositoryListOptions) ([]*Repository, Response, error)
-	ListCommits_       func(repo RepositorySpec2, opt *RepositoryListCommitsOptions) ([]*Commit, Response, error)
+	ListCommits_       func(repo RepoSpec, opt *RepositoryListCommitsOptions) ([]*Commit, Response, error)
 	GetCommit_         func(rev RepoRevSpec, opt *RepositoryGetCommitOptions) (*Commit, Response, error)
 	CompareCommits_    func(base RepoRevSpec, opt *RepositoryCompareCommitsOptions) (*CommitsComparison, Response, error)
-	ListBranches_      func(repo RepositorySpec2, opt *RepositoryListBranchesOptions) ([]*vcs.Branch, Response, error)
-	ListTags_          func(repo RepositorySpec2, opt *RepositoryListTagsOptions) ([]*vcs.Tag, Response, error)
-	ListBadges_        func(repo RepositorySpec) ([]*Badge, Response, error)
-	ListCounters_      func(repo RepositorySpec) ([]*Counter, Response, error)
-	ListAuthors_       func(repo RepositorySpec, opt *RepositoryListAuthorsOptions) ([]*AugmentedRepoAuthor, Response, error)
-	ListClients_       func(repo RepositorySpec, opt *RepositoryListClientsOptions) ([]*AugmentedRepoClient, Response, error)
-	ListDependencies_  func(repo RepositorySpec, opt *RepositoryListDependenciesOptions) ([]*AugmentedRepoDependency, Response, error)
-	ListDependents_    func(repo RepositorySpec, opt *RepositoryListDependentsOptions) ([]*AugmentedRepoDependent, Response, error)
+	ListBranches_      func(repo RepoSpec, opt *RepositoryListBranchesOptions) ([]*vcs.Branch, Response, error)
+	ListTags_          func(repo RepoSpec, opt *RepositoryListTagsOptions) ([]*vcs.Tag, Response, error)
+	ListBadges_        func(repo RepoSpec) ([]*Badge, Response, error)
+	ListCounters_      func(repo RepoSpec) ([]*Counter, Response, error)
+	ListAuthors_       func(repo RepoRevSpec, opt *RepositoryListAuthorsOptions) ([]*AugmentedRepoAuthor, Response, error)
+	ListClients_       func(repo RepoSpec, opt *RepositoryListClientsOptions) ([]*AugmentedRepoClient, Response, error)
+	ListDependencies_  func(repo RepoRevSpec, opt *RepositoryListDependenciesOptions) ([]*AugmentedRepoDependency, Response, error)
+	ListDependents_    func(repo RepoSpec, opt *RepositoryListDependentsOptions) ([]*AugmentedRepoDependent, Response, error)
 	ListByContributor_ func(person PersonSpec, opt *RepositoryListByContributorOptions) ([]*AugmentedRepoContribution, Response, error)
 	ListByClient_      func(person PersonSpec, opt *RepositoryListByClientOptions) ([]*AugmentedRepoUsageByClient, Response, error)
 	ListByRefdAuthor_  func(person PersonSpec, opt *RepositoryListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error)
@@ -954,49 +1007,49 @@ type MockRepositoriesService struct {
 
 var _ RepositoriesService = MockRepositoriesService{}
 
-func (s MockRepositoriesService) Get(repo RepositorySpec, opt *RepositoryGetOptions) (*Repository, Response, error) {
+func (s MockRepositoriesService) Get(repo RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error) {
 	if s.Get_ == nil {
 		return nil, &HTTPResponse{}, nil
 	}
 	return s.Get_(repo, opt)
 }
 
-func (s MockRepositoriesService) GetOrCreate(repo RepositorySpec, opt *RepositoryGetOptions) (*Repository, Response, error) {
+func (s MockRepositoriesService) GetOrCreate(repo RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error) {
 	if s.GetOrCreate_ == nil {
 		return nil, &HTTPResponse{}, nil
 	}
 	return s.GetOrCreate_(repo, opt)
 }
 
-func (s MockRepositoriesService) GetSettings(repo RepositorySpec) (*RepositorySettings, Response, error) {
+func (s MockRepositoriesService) GetSettings(repo RepoSpec) (*RepositorySettings, Response, error) {
 	if s.GetSettings_ == nil {
 		return nil, nil, nil
 	}
 	return s.GetSettings_(repo)
 }
 
-func (s MockRepositoriesService) UpdateSettings(repo RepositorySpec, settings RepositorySettings) (Response, error) {
+func (s MockRepositoriesService) UpdateSettings(repo RepoSpec, settings RepositorySettings) (Response, error) {
 	if s.UpdateSettings_ == nil {
 		return nil, nil
 	}
 	return s.UpdateSettings_(repo, settings)
 }
 
-func (s MockRepositoriesService) RefreshProfile(repo RepositorySpec) (Response, error) {
+func (s MockRepositoriesService) RefreshProfile(repo RepoSpec) (Response, error) {
 	if s.RefreshProfile_ == nil {
 		return nil, nil
 	}
 	return s.RefreshProfile_(repo)
 }
 
-func (s MockRepositoriesService) RefreshVCSData(repo RepositorySpec) (Response, error) {
+func (s MockRepositoriesService) RefreshVCSData(repo RepoSpec) (Response, error) {
 	if s.RefreshVCSData_ == nil {
 		return nil, nil
 	}
 	return s.RefreshVCSData_(repo)
 }
 
-func (s MockRepositoriesService) ComputeStats(repo RepositorySpec) (Response, error) {
+func (s MockRepositoriesService) ComputeStats(repo RepoSpec) (Response, error) {
 	if s.ComputeStats_ == nil {
 		return nil, nil
 	}
@@ -1010,7 +1063,7 @@ func (s MockRepositoriesService) Create(newRepoSpec NewRepositorySpec) (*repo.Re
 	return s.Create_(newRepoSpec)
 }
 
-func (s MockRepositoriesService) GetReadme(repo RepositorySpec) (*vcsclient.TreeEntry, Response, error) {
+func (s MockRepositoriesService) GetReadme(repo RepoRevSpec) (*vcsclient.TreeEntry, Response, error) {
 	if s.GetReadme_ == nil {
 		return nil, nil, nil
 	}
@@ -1024,42 +1077,42 @@ func (s MockRepositoriesService) List(opt *RepositoryListOptions) ([]*Repository
 	return s.List_(opt)
 }
 
-func (s MockRepositoriesService) ListBadges(repo RepositorySpec) ([]*Badge, Response, error) {
+func (s MockRepositoriesService) ListBadges(repo RepoSpec) ([]*Badge, Response, error) {
 	if s.ListBadges_ == nil {
 		return nil, &HTTPResponse{}, nil
 	}
 	return s.ListBadges_(repo)
 }
 
-func (s MockRepositoriesService) ListCounters(repo RepositorySpec) ([]*Counter, Response, error) {
+func (s MockRepositoriesService) ListCounters(repo RepoSpec) ([]*Counter, Response, error) {
 	if s.ListCounters_ == nil {
 		return nil, &HTTPResponse{}, nil
 	}
 	return s.ListCounters_(repo)
 }
 
-func (s MockRepositoriesService) ListAuthors(repo RepositorySpec, opt *RepositoryListAuthorsOptions) ([]*AugmentedRepoAuthor, Response, error) {
+func (s MockRepositoriesService) ListAuthors(repo RepoRevSpec, opt *RepositoryListAuthorsOptions) ([]*AugmentedRepoAuthor, Response, error) {
 	if s.ListAuthors_ == nil {
 		return nil, &HTTPResponse{}, nil
 	}
 	return s.ListAuthors_(repo, opt)
 }
 
-func (s MockRepositoriesService) ListClients(repo RepositorySpec, opt *RepositoryListClientsOptions) ([]*AugmentedRepoClient, Response, error) {
+func (s MockRepositoriesService) ListClients(repo RepoSpec, opt *RepositoryListClientsOptions) ([]*AugmentedRepoClient, Response, error) {
 	if s.ListClients_ == nil {
 		return nil, &HTTPResponse{}, nil
 	}
 	return s.ListClients_(repo, opt)
 }
 
-func (s MockRepositoriesService) ListDependencies(repo RepositorySpec, opt *RepositoryListDependenciesOptions) ([]*AugmentedRepoDependency, Response, error) {
+func (s MockRepositoriesService) ListDependencies(repo RepoRevSpec, opt *RepositoryListDependenciesOptions) ([]*AugmentedRepoDependency, Response, error) {
 	if s.ListDependencies_ == nil {
 		return nil, &HTTPResponse{}, nil
 	}
 	return s.ListDependencies_(repo, opt)
 }
 
-func (s MockRepositoriesService) ListDependents(repo RepositorySpec, opt *RepositoryListDependentsOptions) ([]*AugmentedRepoDependent, Response, error) {
+func (s MockRepositoriesService) ListDependents(repo RepoSpec, opt *RepositoryListDependentsOptions) ([]*AugmentedRepoDependent, Response, error) {
 	if s.ListDependents_ == nil {
 		return nil, &HTTPResponse{}, nil
 	}
@@ -1087,7 +1140,7 @@ func (s MockRepositoriesService) ListByRefdAuthor(person PersonSpec, opt *Reposi
 	return s.ListByRefdAuthor_(person, opt)
 }
 
-func (s MockRepositoriesService) ListCommits(repo RepositorySpec2, opt *RepositoryListCommitsOptions) ([]*Commit, Response, error) {
+func (s MockRepositoriesService) ListCommits(repo RepoSpec, opt *RepositoryListCommitsOptions) ([]*Commit, Response, error) {
 	if s.ListCommits_ == nil {
 		return nil, nil, nil
 	}
@@ -1108,14 +1161,14 @@ func (s MockRepositoriesService) CompareCommits(base RepoRevSpec, opt *Repositor
 	return s.CompareCommits_(base, opt)
 }
 
-func (s MockRepositoriesService) ListBranches(repo RepositorySpec2, opt *RepositoryListBranchesOptions) ([]*vcs.Branch, Response, error) {
+func (s MockRepositoriesService) ListBranches(repo RepoSpec, opt *RepositoryListBranchesOptions) ([]*vcs.Branch, Response, error) {
 	if s.ListBranches_ == nil {
 		return nil, nil, nil
 	}
 	return s.ListBranches_(repo, opt)
 }
 
-func (s MockRepositoriesService) ListTags(repo RepositorySpec2, opt *RepositoryListTagsOptions) ([]*vcs.Tag, Response, error) {
+func (s MockRepositoriesService) ListTags(repo RepoSpec, opt *RepositoryListTagsOptions) ([]*vcs.Tag, Response, error) {
 	if s.ListTags_ == nil {
 		return nil, nil, nil
 	}

@@ -74,14 +74,14 @@ func TestRepositoryBuildsService_ListByRepository(t *testing.T) {
 	want := []*Build{{BID: 1}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryBuilds, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryBuilds, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	builds, _, err := client.Builds.ListByRepository(RepositorySpec{URI: "r.com/x"}, nil)
+	builds, _, err := client.Builds.ListByRepository(RepoSpec{URI: "r.com/x"}, nil)
 	if err != nil {
 		t.Errorf("Builds.ListByRepository returned error: %v", err)
 	}
@@ -101,19 +101,19 @@ func TestBuildsService_Create(t *testing.T) {
 	setup()
 	defer teardown()
 
-	config := &BuildCreateOptions{BuildConfig: BuildConfig{Import: true, Queue: true}, Force: true}
+	config := &BuildCreateOptions{BuildConfig: BuildConfig{Import: true, Queue: true, CommitID: "c"}, Force: true}
 	want := &Build{BID: 123, Repo: 456}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryBuildsCreate, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryBuildsCreate, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "POST")
-		testBody(t, r, `{"Import":true,"Queue":true,"UseCache":false,"Priority":0,"Force":true}`+"\n")
+		testBody(t, r, `{"Import":true,"Queue":true,"UseCache":false,"Priority":0,"CommitID":"c","Force":true}`+"\n")
 
 		writeJSON(w, want)
 	})
 
-	build_, _, err := client.Builds.Create(RepositorySpec{URI: "r.com/x"}, config)
+	build_, _, err := client.Builds.Create(RepoSpec{URI: "r.com/x"}, config)
 	if err != nil {
 		t.Errorf("Builds.Create returned error: %v", err)
 	}

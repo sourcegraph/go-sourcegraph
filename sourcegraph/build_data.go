@@ -10,7 +10,7 @@ import (
 // BuildDataService communicates with the build data-related endpoints in the
 // Sourcegraph API.
 type BuildDataService interface {
-	List(repo RepositorySpec, opt *BuildDataListOptions) ([]*buildstore.BuildDataFileInfo, Response, error)
+	List(repo RepoRevSpec, opt *BuildDataListOptions) ([]*buildstore.BuildDataFileInfo, Response, error)
 	Get(file BuildDataFileSpec) ([]byte, Response, error)
 	Upload(spec BuildDataFileSpec, body io.ReadCloser) (Response, error)
 }
@@ -22,20 +22,21 @@ type buildDataService struct {
 var _ BuildDataService = &buildDataService{}
 
 type BuildDataFileSpec struct {
-	Repo string
-	Rev  string
-	Path string
+	RepoRev RepoRevSpec
+	Path    string
 }
 
 func (s *BuildDataFileSpec) RouteVars() map[string]string {
-	return map[string]string{"RepoURI": s.Repo, "Rev": s.Rev, "Path": s.Path}
+	m := s.RepoRev.RouteVars()
+	m["Path"] = s.Path
+	return m
 }
 
 type BuildDataListOptions struct {
 	ListOptions
 }
 
-func (s *buildDataService) List(repo RepositorySpec, opt *BuildDataListOptions) ([]*buildstore.BuildDataFileInfo, Response, error) {
+func (s *buildDataService) List(repo RepoRevSpec, opt *BuildDataListOptions) ([]*buildstore.BuildDataFileInfo, Response, error) {
 	v := repo.RouteVars()
 	v["Path"] = "."
 	url, err := s.client.url(router.RepositoryBuildDataEntry, v, opt)
@@ -98,14 +99,14 @@ func (s *buildDataService) Upload(file BuildDataFileSpec, body io.ReadCloser) (R
 }
 
 type MockBuildDataService struct {
-	List_   func(repo RepositorySpec, opt *BuildDataListOptions) ([]*buildstore.BuildDataFileInfo, Response, error)
+	List_   func(repo RepoRevSpec, opt *BuildDataListOptions) ([]*buildstore.BuildDataFileInfo, Response, error)
 	Get_    func(file BuildDataFileSpec) ([]byte, Response, error)
 	Upload_ func(spec BuildDataFileSpec, body io.ReadCloser) (Response, error)
 }
 
 var _ BuildDataService = MockBuildDataService{}
 
-func (s MockBuildDataService) List(repo RepositorySpec, opt *BuildDataListOptions) ([]*buildstore.BuildDataFileInfo, Response, error) {
+func (s MockBuildDataService) List(repo RepoRevSpec, opt *BuildDataListOptions) ([]*buildstore.BuildDataFileInfo, Response, error) {
 	if s.List_ == nil {
 		return nil, &HTTPResponse{}, nil
 	}

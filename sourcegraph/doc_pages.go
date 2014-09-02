@@ -10,15 +10,15 @@ type DocPagesService interface {
 }
 
 type DocPageSpec struct {
-	Repo RepositorySpec
-	Path string
+	RepoRev RepoRevSpec
+	Path    string
 
 	// TODO(new-arch): what is the primary key for a doc page? update it here
 	// when we figure out the best way to set a primary key for doc pages.
 }
 
 func (s *DocPageSpec) RouteVars() map[string]string {
-	m := s.Repo.RouteVars()
+	m := s.RepoRev.RouteVars()
 	m["Path"] = s.Path
 	return m
 }

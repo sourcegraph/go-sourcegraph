@@ -12,7 +12,7 @@ type Range struct {
 // FileData represents a range of (possibly annotated) data in a file.
 type FileData struct {
 	// Repo is the repository that contains this file data.
-	Repo RepositorySpec
+	RepoRev RepoRevSpec
 
 	// File is the file (relative to the repository root directory) that this
 	// file data is from.

@@ -34,7 +34,7 @@ func SpecFromUnit(u *unit.RepoSourceUnit) *UnitSpec {
 
 func UnitSpecFromRouteVars(vars map[string]string) *UnitSpec {
 	return &UnitSpec{
-		Repo:     vars["RepoURI"],
+		Repo:     vars["RepoSpec"],
 		CommitID: vars["Rev"],
 		UnitType: vars["UnitType"],
 		Unit:     vars["Unit"],
@@ -42,7 +42,7 @@ func UnitSpecFromRouteVars(vars map[string]string) *UnitSpec {
 }
 
 func (s *UnitSpec) RouteVars() map[string]string {
-	m := map[string]string{"RepoURI": s.Repo, "UnitType": s.UnitType, "Unit": s.Unit}
+	m := map[string]string{"RepoSpec": s.Repo, "UnitType": s.UnitType, "Unit": s.Unit}
 	if s.CommitID != "" {
 		m["Rev"] = s.CommitID
 	}

@@ -21,16 +21,18 @@ type repositoryTreeService struct {
 var _ RepositoryTreeService = &repositoryTreeService{}
 
 type TreeEntrySpec struct {
-	Repo RepositorySpec
-	Path string
+	RepoRev RepoRevSpec
+	Path    string
 }
 
 func (s *TreeEntrySpec) RouteVars() map[string]string {
-	return map[string]string{"RepoURI": s.Repo.URI, "Rev": s.Repo.CommitID, "Path": s.Path}
+	m := s.RepoRev.RouteVars()
+	m["Path"] = s.Path
+	return m
 }
 
 func (s TreeEntrySpec) String() string {
-	return fmt.Sprintf("%s: %s (rev %q)", s.Repo.URI, s.Path, s.Repo.CommitID)
+	return fmt.Sprintf("%v: %s (rev %q)", s.RepoRev, s.Path, s.RepoRev.Rev)
 }
 
 // TreeEntry is a file or directory in a repository, with additional feedback

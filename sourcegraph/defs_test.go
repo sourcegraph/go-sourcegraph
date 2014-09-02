@@ -18,7 +18,7 @@ func TestDefsService_Get(t *testing.T) {
 	want := &Def{Def: graph.Def{SID: 1}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.Def, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.Def, map[string]string{"RepoSpec": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 		testFormValues(t, r, values{"Doc": "true"})
@@ -95,7 +95,7 @@ func TestDefsService_ListExamples(t *testing.T) {
 	want := []*Example{{Ref: graph.Ref{File: "f"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.DefExamples, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.DefExamples, map[string]string{"RepoSpec": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -123,7 +123,7 @@ func TestDefsService_ListAuthors(t *testing.T) {
 	want := []*AugmentedDefAuthor{{User: &person.User{Login: "b"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.DefAuthors, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.DefAuthors, map[string]string{"RepoSpec": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -151,7 +151,7 @@ func TestDefsService_ListClients(t *testing.T) {
 	want := []*AugmentedDefClient{{User: &person.User{Login: "b"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.DefClients, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.DefClients, map[string]string{"RepoSpec": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -179,7 +179,7 @@ func TestDefsService_ListDependents(t *testing.T) {
 	want := []*AugmentedDefDependent{{Repo: &repo.Repository{URI: "r2"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.DefDependents, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.DefDependents, map[string]string{"RepoSpec": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -207,7 +207,7 @@ func TestDefsService_ListVersions(t *testing.T) {
 	want := []*Def{{Def: graph.Def{SID: 1}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.DefVersions, map[string]string{"RepoURI": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.DefVersions, map[string]string{"RepoSpec": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 

@@ -18,19 +18,19 @@ import (
 	"sourcegraph.com/sourcegraph/srclib/repo"
 )
 
-func TestRepositorySpec2(t *testing.T) {
+func TestRepoSpec(t *testing.T) {
 	tests := []struct {
 		str  string
-		spec RepositorySpec2
+		spec RepoSpec
 	}{
-		{"a.com/x", RepositorySpec2{URI: "a.com/x"}},
-		{"R$1", RepositorySpec2{RID: 1}},
+		{"a.com/x", RepoSpec{URI: "a.com/x"}},
+		{"R$1", RepoSpec{RID: 1}},
 	}
 
 	for _, test := range tests {
-		spec, err := ParseRepositorySpec2(test.str)
+		spec, err := ParseRepoSpec(test.str)
 		if err != nil {
-			t.Errorf("%q: ParseRepositorySpec2 failed: %s", test.str, err)
+			t.Errorf("%q: ParseRepoSpec failed: %s", test.str, err)
 			continue
 		}
 		if spec != test.spec {
@@ -46,9 +46,9 @@ func TestRepositorySpec2(t *testing.T) {
 
 		// TODO(sqs): temporarily disable this check for RIDs because they aren't supported yet, but uncomment when they are
 		if test.spec.RID == 0 {
-			spec2, err := UnmarshalRepositorySpec2(test.spec.RouteVars())
+			spec2, err := UnmarshalRepoSpec(test.spec.RouteVars())
 			if err != nil {
-				t.Errorf("%+v: UnmarshalRepositorySpec2: %s", test.spec, err)
+				t.Errorf("%+v: UnmarshalRepoSpec: %s", test.spec, err)
 				continue
 			}
 			if spec2 != test.spec {
@@ -64,7 +64,8 @@ func TestRepoRevSpec(t *testing.T) {
 		spec      RepoRevSpec
 		routeVars map[string]string
 	}{
-		{RepoRevSpec{RepositorySpec2: RepositorySpec2{URI: "a.com/x"}, Rev: "r"}, map[string]string{"RepoURI": "a.com/x", "Rev": "r"}},
+		{RepoRevSpec{RepoSpec: RepoSpec{URI: "a.com/x"}, Rev: "r"}, map[string]string{"RepoSpec": "a.com/x", "Rev": "r"}},
+		{RepoRevSpec{RepoSpec: RepoSpec{URI: "a.com/x"}, Rev: "r", CommitID: "c"}, map[string]string{"RepoSpec": "a.com/x", "Rev": "r===c"}},
 	}
 
 	for _, test := range tests {
@@ -90,14 +91,14 @@ func TestRepositoriesService_Get(t *testing.T) {
 	want := &Repository{Repository: &repo.Repository{RID: 1}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.Repository, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.Repository, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	repo_, _, err := client.Repositories.Get(RepositorySpec{URI: "r.com/x"}, nil)
+	repo_, _, err := client.Repositories.Get(RepoSpec{URI: "r.com/x"}, nil)
 	if err != nil {
 		t.Errorf("Repositories.Get returned error: %v", err)
 	}
@@ -118,14 +119,14 @@ func TestRepositoriesService_GetOrCreate(t *testing.T) {
 	want := &Repository{Repository: &repo.Repository{RID: 1}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoriesGetOrCreate, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoriesGetOrCreate, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 
 		writeJSON(w, want)
 	})
 
-	repo_, _, err := client.Repositories.GetOrCreate(RepositorySpec{URI: "r.com/x"}, nil)
+	repo_, _, err := client.Repositories.GetOrCreate(RepoSpec{URI: "r.com/x"}, nil)
 	if err != nil {
 		t.Errorf("Repositories.GetOrCreate returned error: %v", err)
 	}
@@ -146,14 +147,14 @@ func TestRepositoriesService_GetSettings(t *testing.T) {
 	want := &RepositorySettings{}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositorySettings, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositorySettings, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	settings, _, err := client.Repositories.GetSettings(RepositorySpec{URI: "r.com/x"})
+	settings, _, err := client.Repositories.GetSettings(RepoSpec{URI: "r.com/x"})
 	if err != nil {
 		t.Errorf("Repositories.GetSettings returned error: %v", err)
 	}
@@ -174,7 +175,7 @@ func TestRepositoriesService_UpdateSettings(t *testing.T) {
 	want := RepositorySettings{}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositorySettings, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositorySettings, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 		testBody(t, r, `{}`+"\n")
@@ -182,7 +183,7 @@ func TestRepositoriesService_UpdateSettings(t *testing.T) {
 		writeJSON(w, want)
 	})
 
-	_, err := client.Repositories.UpdateSettings(RepositorySpec{URI: "r.com/x"}, want)
+	_, err := client.Repositories.UpdateSettings(RepoSpec{URI: "r.com/x"}, want)
 	if err != nil {
 		t.Errorf("Repositories.UpdateSettings returned error: %v", err)
 	}
@@ -197,12 +198,12 @@ func TestRepositoriesService_RefreshProfile(t *testing.T) {
 	defer teardown()
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryRefreshProfile, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryRefreshProfile, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 	})
 
-	_, err := client.Repositories.RefreshProfile(RepositorySpec{URI: "r.com/x"})
+	_, err := client.Repositories.RefreshProfile(RepoSpec{URI: "r.com/x"})
 	if err != nil {
 		t.Errorf("Repositories.RefreshProfile returned error: %v", err)
 	}
@@ -217,12 +218,12 @@ func TestRepositoriesService_RefreshVCSData(t *testing.T) {
 	defer teardown()
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryRefreshVCSData, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryRefreshVCSData, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 	})
 
-	_, err := client.Repositories.RefreshVCSData(RepositorySpec{URI: "r.com/x"})
+	_, err := client.Repositories.RefreshVCSData(RepoSpec{URI: "r.com/x"})
 	if err != nil {
 		t.Errorf("Repositories.RefreshVCSData returned error: %v", err)
 	}
@@ -237,12 +238,12 @@ func TestRepositoriesService_ComputeStats(t *testing.T) {
 	defer teardown()
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryComputeStats, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryComputeStats, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 	})
 
-	_, err := client.Repositories.ComputeStats(RepositorySpec{URI: "r.com/x"})
+	_, err := client.Repositories.ComputeStats(RepoSpec{URI: "r.com/x"})
 	if err != nil {
 		t.Errorf("Repositories.ComputeStats returned error: %v", err)
 	}
@@ -290,14 +291,14 @@ func TestRepositoriesService_GetReadme(t *testing.T) {
 	want.ModTime = want.ModTime.In(time.UTC)
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryReadme, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryReadme, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	readme, _, err := client.Repositories.GetReadme(RepositorySpec{URI: "r.com/x"})
+	readme, _, err := client.Repositories.GetReadme(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}})
 	if err != nil {
 		t.Errorf("Repositories.GetReadme returned error: %v", err)
 	}
@@ -365,7 +366,7 @@ func TestRepositoriesService_ListCommits(t *testing.T) {
 	normTime(want[0])
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepoCommits, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoCommits, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 		testFormValues(t, r, values{"Head": "myhead"})
@@ -373,7 +374,7 @@ func TestRepositoriesService_ListCommits(t *testing.T) {
 		writeJSON(w, want)
 	})
 
-	commits, _, err := client.Repositories.ListCommits(RepositorySpec2{URI: "r.com/x"}, &RepositoryListCommitsOptions{Head: "myhead"})
+	commits, _, err := client.Repositories.ListCommits(RepoSpec{URI: "r.com/x"}, &RepositoryListCommitsOptions{Head: "myhead"})
 	if err != nil {
 		t.Errorf("Repositories.ListCommits returned error: %v", err)
 	}
@@ -395,14 +396,14 @@ func TestRepositoriesService_GetCommit(t *testing.T) {
 	normTime(want)
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepoCommit, map[string]string{"RepoURI": "r.com/x", "Rev": "r"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoCommit, map[string]string{"RepoSpec": "r.com/x", "Rev": "r"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	commit, _, err := client.Repositories.GetCommit(RepoRevSpec{RepositorySpec2: RepositorySpec2{URI: "r.com/x"}, Rev: "r"}, nil)
+	commit, _, err := client.Repositories.GetCommit(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "r"}, nil)
 	if err != nil {
 		t.Errorf("Repositories.GetCommit returned error: %v", err)
 	}
@@ -423,7 +424,7 @@ func TestRepositoriesService_CompareCommits(t *testing.T) {
 	want := &CommitsComparison{}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepoCompareCommits, map[string]string{"RepoURI": "r.com/x", "Rev": "mybase"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoCompareCommits, map[string]string{"RepoSpec": "r.com/x", "Rev": "mybase"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 		log.Println(r.URL.String())
@@ -435,7 +436,7 @@ func TestRepositoriesService_CompareCommits(t *testing.T) {
 	opt := &RepositoryCompareCommitsOptions{
 		HeadRev: "myhead",
 	}
-	cmp, _, err := client.Repositories.CompareCommits(RepoRevSpec{RepositorySpec2: RepositorySpec2{URI: "r.com/x"}, Rev: "mybase"}, opt)
+	cmp, _, err := client.Repositories.CompareCommits(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "mybase"}, opt)
 	if err != nil {
 		t.Errorf("Repositories.CompareCommits returned error: %v", err)
 	}
@@ -456,14 +457,14 @@ func TestRepositoriesService_ListBranches(t *testing.T) {
 	want := []*vcs.Branch{{Name: "b", Head: "c"}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepoBranches, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoBranches, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	branches, _, err := client.Repositories.ListBranches(RepositorySpec2{URI: "r.com/x"}, nil)
+	branches, _, err := client.Repositories.ListBranches(RepoSpec{URI: "r.com/x"}, nil)
 	if err != nil {
 		t.Errorf("Repositories.ListBranches returned error: %v", err)
 	}
@@ -484,14 +485,14 @@ func TestRepositoriesService_ListTags(t *testing.T) {
 	want := []*vcs.Tag{{Name: "t", CommitID: "c"}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepoTags, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoTags, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	tags, _, err := client.Repositories.ListTags(RepositorySpec2{URI: "r.com/x"}, nil)
+	tags, _, err := client.Repositories.ListTags(RepoSpec{URI: "r.com/x"}, nil)
 	if err != nil {
 		t.Errorf("Repositories.ListTags returned error: %v", err)
 	}
@@ -512,14 +513,14 @@ func TestRepositoriesService_ListBadges(t *testing.T) {
 	want := []*Badge{{Name: "b"}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryBadges, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryBadges, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	badges, _, err := client.Repositories.ListBadges(RepositorySpec{URI: "r.com/x"})
+	badges, _, err := client.Repositories.ListBadges(RepoSpec{URI: "r.com/x"})
 	if err != nil {
 		t.Errorf("Repositories.ListBadges returned error: %v", err)
 	}
@@ -540,14 +541,14 @@ func TestRepositoriesService_ListCounters(t *testing.T) {
 	want := []*Counter{{Name: "b"}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryCounters, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryCounters, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	counters, _, err := client.Repositories.ListCounters(RepositorySpec{URI: "r.com/x"})
+	counters, _, err := client.Repositories.ListCounters(RepoSpec{URI: "r.com/x"})
 	if err != nil {
 		t.Errorf("Repositories.ListCounters returned error: %v", err)
 	}
@@ -568,14 +569,14 @@ func TestRepositoriesService_ListAuthors(t *testing.T) {
 	want := []*AugmentedRepoAuthor{{User: &person.User{Login: "b"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryAuthors, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryAuthors, map[string]string{"RepoSpec": "r.com/x", "Rev": "c"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	authors, _, err := client.Repositories.ListAuthors(RepositorySpec{URI: "r.com/x"}, nil)
+	authors, _, err := client.Repositories.ListAuthors(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"}, nil)
 	if err != nil {
 		t.Errorf("Repositories.ListAuthors returned error: %v", err)
 	}
@@ -596,14 +597,14 @@ func TestRepositoriesService_ListClients(t *testing.T) {
 	want := []*AugmentedRepoClient{{User: &person.User{Login: "b"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryClients, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryClients, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	clients, _, err := client.Repositories.ListClients(RepositorySpec{URI: "r.com/x"}, nil)
+	clients, _, err := client.Repositories.ListClients(RepoSpec{URI: "r.com/x"}, nil)
 	if err != nil {
 		t.Errorf("Repositories.ListClients returned error: %v", err)
 	}
@@ -624,14 +625,14 @@ func TestRepositoriesService_ListDependents(t *testing.T) {
 	want := []*AugmentedRepoDependent{{Repo: &repo.Repository{URI: "r2"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryDependents, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryDependents, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	dependents, _, err := client.Repositories.ListDependents(RepositorySpec{URI: "r.com/x"}, nil)
+	dependents, _, err := client.Repositories.ListDependents(RepoSpec{URI: "r.com/x"}, nil)
 	if err != nil {
 		t.Errorf("Repositories.ListDependents returned error: %v", err)
 	}
@@ -652,14 +653,14 @@ func TestRepositoriesService_ListDependencies(t *testing.T) {
 	want := []*AugmentedRepoDependency{{Repo: &repo.Repository{URI: "r2"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryDependencies, map[string]string{"RepoURI": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepositoryDependencies, map[string]string{"RepoSpec": "r.com/x", "Rev": "c"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	dependencies, _, err := client.Repositories.ListDependencies(RepositorySpec{URI: "r.com/x"}, nil)
+	dependencies, _, err := client.Repositories.ListDependencies(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"}, nil)
 	if err != nil {
 		t.Errorf("Repositories.ListDependencies returned error: %v", err)
 	}
