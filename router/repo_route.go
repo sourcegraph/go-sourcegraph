@@ -13,7 +13,7 @@ import (
 var RepoSpecPathPattern = `{RepoSpec:(?:(?:[^/.@][^/@]*/)+(?:[^/.@][^/@]*))|(?:R\$\d+)}`
 
 // RepoRevSpecPattern is the path pattern for encoding RepoRevSpec.
-var RepoRevSpecPattern = RepoSpecPathPattern + `{Rev:(?:@[\w-.]+)?}`
+var RepoRevSpecPattern = RepoSpecPathPattern + `{Rev:(?:@[\w-_=.]+)?}`
 
 // FixRepoRevSpecVars is a mux.PostMatchFunc that cleans and normalizes the
 // RepoRevSpecPattern vars.
