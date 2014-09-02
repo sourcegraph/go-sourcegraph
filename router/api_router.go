@@ -131,6 +131,7 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	repoRev.Path("/.dependencies").Methods("GET").Name(RepositoryDependencies)
 	repoRev.PathPrefix("/.build-data"+TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET", "PUT").Name(RepositoryBuildDataEntry)
 	repoRev.Path("/.docs/{Path:.*}").Methods("GET").Name(RepositoryDocPage)
+	repoRev.Path("/.badges/{Badge}.png").Methods("GET").Name(RepositoryBadge)
 
 	// repo contains routes that are NOT specific to a revision. In these routes, the URL may not contain a revspec after the repo (that is, no "github.com/foo/bar@myrevspec").
 	repoPath := `/repos/` + RepoSpecPathPattern
@@ -151,7 +152,6 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	repo.Path("/.branches").Methods("GET").Name(RepoBranches)
 	repo.Path("/.tags").Methods("GET").Name(RepoTags)
 	repo.Path("/.badges").Methods("GET").Name(RepositoryBadges)
-	repo.Path("/.badges/{Badge}.png").Methods("GET").Name(RepositoryBadge)
 	repo.Path("/.counters").Methods("GET").Name(RepositoryCounters)
 	repo.Path("/.counters/{Counter}.png").Methods("GET").Name(RepositoryCounter)
 	repo.Path("/.builds").Methods("GET").Name(RepositoryBuilds)
