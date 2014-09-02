@@ -230,16 +230,22 @@ const repoRevSpecCommitSep = "==="
 // repository commit.
 func (s RepoRevSpec) RouteVars() map[string]string {
 	m := s.RepoSpec.RouteVars()
-	if s.Rev != "" {
-		m["Rev"] = s.Rev
+	m["Rev"] = s.RevPathComponent()
+	return m
+}
+
+// RevPathComponent encodes the revision and commit ID for use in a
+// URL path. If CommitID is set, the path component is
+// "Rev===CommitID"; otherwise, it is just "Rev". See the docstring
+// for RepoRevSpec for an explanation why.
+func (s RepoRevSpec) RevPathComponent() string {
+	if s.Rev == "" && s.CommitID != "" {
+		panic("invalid empty Rev but non-empty CommitID (" + s.CommitID + ")")
 	}
 	if s.CommitID != "" {
-		if s.Rev == "" {
-			panic("invalid empty Rev but non-empty CommitID (" + s.CommitID + ")")
-		}
-		m["Rev"] += repoRevSpecCommitSep + s.CommitID
+		return s.Rev + repoRevSpecCommitSep + s.CommitID
 	}
-	return m
+	return s.Rev
 }
 
 // UnmarshalRepoRevSpec marshals a map containing route variables
