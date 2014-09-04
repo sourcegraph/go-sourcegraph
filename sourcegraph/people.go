@@ -15,7 +15,7 @@ import (
 // Sourcegraph API.
 type PeopleService interface {
 	// Get fetches a person.
-	// SAMER It seems like 'opt' is allowed to be nil. This should be added to the docs.
+	// TODO(samer): add *Type pattern for options to docs.
 	Get(person PersonSpec, opt *PersonGetOptions) (*Person, Response, error)
 
 	// GetSettings fetches a person's configuration settings. If err is nil, then the returned PersonSettings must be

@@ -73,14 +73,6 @@ type Build struct {
 	EndedAt   db_common.NullTime `db:"ended_at"`
 	Success   bool
 	Failure   bool
-	
-	// SAMER
-	// Email will trigger an email after a build if true.
-	// Idea: 'Email bool' -> 'ToEmail Person (or somethign)' of people
-	// associated to this build that want to get emails. Possibly a
-	// Repo specific (rather than build specific) thing. Or, the 'Emails'
-	// field can be filled in with Repo emails.
-	Email bool
 
 	// Host is the hostname of the machine that is working on this build.
 	Host string
@@ -164,6 +156,14 @@ type BuildConfig struct {
 
 	// CommitID is the full resolved commit ID to build.
 	CommitID string `db:"commit_id"`
+
+	// SAMER
+	// Email will trigger an email after a build if true.
+	// Idea: 'Email bool' -> 'ToEmail Person (or somethign)' of people
+	// associated to this build that want to get emails. Possibly a
+	// Repo specific (rather than build specific) thing. Or, the 'Emails'
+	// field can be filled in with Repo emails.
+	Email bool
 }
 
 type BuildCreateOptions struct {
