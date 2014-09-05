@@ -64,6 +64,8 @@ const (
 
 	RepositoryStats = "repo.stats"
 
+	RepoBuild = "repo.build"
+
 	RepoCommits        = "repo.commits"
 	RepoCommit         = "repo.commit"
 	RepoCompareCommits = "repo.compare-commits"
@@ -128,6 +130,7 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	repoRev.Path("/.stats").Methods("GET").Name(RepositoryStats)
 	repoRev.Path("/.authors").Methods("GET").Name(RepositoryAuthors)
 	repoRev.Path("/.readme").Methods("GET").Name(RepositoryReadme)
+	repoRev.Path("/.build").Methods("GET").Name(RepoBuild)
 	repoRev.Path("/.dependencies").Methods("GET").Name(RepositoryDependencies)
 	repoRev.PathPrefix("/.build-data"+TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET", "PUT").Name(RepositoryBuildDataEntry)
 	repoRev.Path("/.docs/{Path:.*}").Methods("GET").Name(RepositoryDocPage)

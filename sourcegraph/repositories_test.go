@@ -279,6 +279,45 @@ func TestRepositoriesService_ComputeStats(t *testing.T) {
 	}
 }
 
+func TestRepositoriesService_GetBuild(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := &RepoBuildInfo{
+		Exact:                &Build{BID: 1},
+		LastSuccessful:       &Build{BID: 2},
+		CommitsBehind:        3,
+		LastSuccessfulCommit: &Commit{Commit: &vcs.Commit{Message: "m"}},
+	}
+	normalizeTime(&want.LastSuccessfulCommit.Author.Date)
+	normalizeBuildTime(want.Exact)
+	normalizeBuildTime(want.LastSuccessful)
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.RepoBuild, map[string]string{"RepoSpec": "r.com/x", "Rev": "r"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+
+		writeJSON(w, want)
+	})
+
+	buildInfo, _, err := client.Repositories.GetBuild(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "r"}, nil)
+	if err != nil {
+		t.Errorf("Repositories.GetBuild returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	normalizeTime(&buildInfo.LastSuccessfulCommit.Author.Date)
+	normalizeBuildTime(buildInfo.Exact)
+	normalizeBuildTime(buildInfo.LastSuccessful)
+	if !reflect.DeepEqual(buildInfo.Exact, want.Exact) {
+		t.Errorf("Repositories.GetBuild returned %+v, want %+v", buildInfo.Exact, want.Exact)
+	}
+}
+
 func TestRepositoriesService_Create(t *testing.T) {
 	setup()
 	defer teardown()

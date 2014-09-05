@@ -67,6 +67,12 @@ type RepositoriesService interface {
 	// callers when the operation completes.
 	ComputeStats(repo RepoRevSpec) (Response, error)
 
+	// GetBuild gets the build for a specific revspec. It returns
+	// additional information about the build, such as whether it is
+	// exactly up-to-date with the revspec or a few commits behind the
+	// revspec. The opt param controls what is returned in this case.
+	GetBuild(repo RepoRevSpec, opt *RepoGetBuildOptions) (*RepoBuildInfo, Response, error)
+
 	// Create adds the repository at cloneURL, filling in all information about
 	// the repository that can be inferred from the URL (or, for GitHub
 	// repositories, fetched from the GitHub API). If a repository with the
@@ -447,6 +453,57 @@ func (s *repositoriesService) ComputeStats(repo RepoRevSpec) (Response, error) {
 	}
 
 	return resp, nil
+}
+
+// RepoGetBuildOptions sets options for the Repositories.GetBuild call.
+type RepoGetBuildOptions struct {
+	// Exact is whether only a build whose commit ID exactly matches
+	// the revspec should be returned. (For non-full-commit ID
+	// revspecs, such as branches, tags, and partial commit IDs, this
+	// means that the build's commit ID matches the resolved revspec's
+	// commit ID.)
+	//
+	// If Exact is false, then builds for older commits that are
+	// reachable from the revspec may also be returned. For example,
+	// if there's a build for master~1 but no build for master, and
+	// your revspec is master, using Exact=false will return the build
+	// for master~1.
+	//
+	// Using Exact=true is faster as the commit and build history
+	// never needs to be searched.
+	Exact bool `url:",omitempty" json:",omitempty"`
+}
+
+// RepoBuildInfo holds a repository build (if one exists for the
+// originally specified revspec) and additional information. It is returned by
+// Repositories.GetBuild.
+type RepoBuildInfo struct {
+	Exact *Build // the newest build, if any, that exactly matches the revspec (can be same as LastSuccessful)
+
+	LastSuccessful *Build // the last successful build of a commit ID reachable from the revspec (can be same as Exact)
+
+	CommitsBehind        int     // the number of commits between the revspec and the commit of the LastSuccessful build
+	LastSuccessfulCommit *Commit // the commit of the LastSuccessful build
+}
+
+func (s *repositoriesService) GetBuild(repo RepoRevSpec, opt *RepoGetBuildOptions) (*RepoBuildInfo, Response, error) {
+	url, err := s.client.url(router.RepoBuild, repo.RouteVars(), opt)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var info *RepoBuildInfo
+	resp, err := s.client.Do(req, &info)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return info, resp, nil
 }
 
 type NewRepositorySpec struct {
@@ -967,6 +1024,7 @@ type MockRepositoriesService struct {
 	RefreshProfile_    func(repo RepoSpec) (Response, error)
 	RefreshVCSData_    func(repo RepoSpec) (Response, error)
 	ComputeStats_      func(repo RepoRevSpec) (Response, error)
+	GetBuild_          func(repo RepoRevSpec, opt *RepoGetBuildOptions) (*RepoBuildInfo, Response, error)
 	Create_            func(newRepoSpec NewRepositorySpec) (*repo.Repository, Response, error)
 	GetReadme_         func(repo RepoRevSpec) (*vcsclient.TreeEntry, Response, error)
 	List_              func(opt *RepositoryListOptions) ([]*Repository, Response, error)
@@ -1042,6 +1100,13 @@ func (s MockRepositoriesService) ComputeStats(repo RepoRevSpec) (Response, error
 		return nil, nil
 	}
 	return s.ComputeStats_(repo)
+}
+
+func (s MockRepositoriesService) GetBuild(repo RepoRevSpec, opt *RepoGetBuildOptions) (*RepoBuildInfo, Response, error) {
+	if s.GetBuild_ == nil {
+		return nil, nil, nil
+	}
+	return s.GetBuild_(repo, opt)
 }
 
 func (s MockRepositoriesService) Create(newRepoSpec NewRepositorySpec) (*repo.Repository, Response, error) {
