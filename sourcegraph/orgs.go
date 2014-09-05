@@ -113,7 +113,7 @@ func (s *orgsService) ListMembers(org OrgSpec, opt *OrgListMembersOptions) ([]*P
 
 // OrgSettings describes an org's configuration settings.
 type OrgSettings struct {
-	Plan *PlanSettings `json:",omitempty"`
+	PlanSettings `json:",omitempty"`
 }
 
 func (s *orgsService) GetSettings(org OrgSpec) (*OrgSettings, Response, error) {
