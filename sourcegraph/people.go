@@ -175,6 +175,8 @@ type PersonSettings struct {
 	RequestedUpgradeAt db_common.NullTime `json:",omitempty"`
 
 	PlanSettings `json:",omitempty"`
+	// TODO(samer): notification settings
+	BuildEmails *bool `json:",omitempty"`
 }
 
 // PlanSettings describes the pricing plan that the person or org has selected.
