@@ -7,6 +7,7 @@ import (
 	"github.com/sourcegraph/go-nnz/nnz"
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
+	"sourcegraph.com/sourcegraph/srclib/db_common"
 	"sourcegraph.com/sourcegraph/srclib/person"
 )
 
@@ -168,7 +169,8 @@ func (s *peopleService) ListEmails(person PersonSpec) ([]*EmailAddr, Response, e
 
 // PersonSettings describes a user's configuration settings.
 type PersonSettings struct {
-	PlanSettings `json:",omitempty"`
+	RequestedUpgradeAt db_common.NullTime `json:",omitempty"`
+	PlanSettings       `json:",omitempty"`
 }
 
 // PlanSettings describes the pricing plan that the person or org has selected.
