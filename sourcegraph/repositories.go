@@ -662,7 +662,8 @@ type CommitsComparison struct {
 }
 
 type RepositoryCompareCommitsOptions struct {
-	HeadRev string `url:",omitempty" json:",omitempty"`
+	HeadRev      string `url:",omitempty" json:",omitempty"`
+	HeadRepoSpec string `url:",omitempty" json:",omitempty"` // PathComponent of the head repo spec; defaults to the base RepoSpec
 }
 
 func (s *repositoriesService) CompareCommits(base RepoRevSpec, opt *RepositoryCompareCommitsOptions) (*CommitsComparison, Response, error) {
