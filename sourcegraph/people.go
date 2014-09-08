@@ -17,7 +17,8 @@ type PeopleService interface {
 	// Get fetches a person.
 	Get(person PersonSpec, opt *PersonGetOptions) (*Person, Response, error)
 
-	// GetSettings fetches a person's configuration settings.
+	// GetSettings fetches a person's configuration settings. If err is nil, then the returned PersonSettings must be
+	// non-nill
 	GetSettings(person PersonSpec) (*PersonSettings, Response, error)
 
 	// UpdateSettings updates an person's configuration settings.
