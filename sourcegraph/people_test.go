@@ -1,6 +1,7 @@
 package sourcegraph
 
 import (
+	"encoding/json"
 	"net/http"
 	"reflect"
 	"testing"
@@ -104,9 +105,8 @@ func TestPeopleService_UpdateSettings(t *testing.T) {
 	mux.HandleFunc(urlPath(t, router.PersonSettings, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
-		testBody(t, r, `{}`+"\n")
-
-		writeJSON(w, want)
+		wantBody, _ := json.Marshal(want)
+		testBody(t, r, string(wantBody)+"\n")
 	})
 
 	_, err := client.People.UpdateSettings(PersonSpec{Login: "a"}, want)
