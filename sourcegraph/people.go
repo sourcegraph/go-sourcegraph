@@ -71,7 +71,6 @@ var _ PeopleService = &peopleService{}
 type PersonSpec struct {
 	Email string
 	Login string
-	// TODO(samer): change this to person.UID?
 	UID   int
 }
 
