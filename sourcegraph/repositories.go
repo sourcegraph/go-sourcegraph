@@ -140,10 +140,7 @@ type repositoriesService struct {
 
 var _ RepositoriesService = &repositoriesService{}
 
-// RepoSpec specifies a repository. We are transitioning AWAY
-// from using RepositorySpec because it actually specifies a repo at a
-// certain commit, not just a repo. We'll rename it to RepoRevSpec
-// and rename RepoSpec to RepoSpec.
+// RepoSpec specifies a repository.
 type RepoSpec struct {
 	URI string
 	RID int
