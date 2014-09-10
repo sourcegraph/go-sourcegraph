@@ -158,10 +158,6 @@ type BuildConfig struct {
 	CommitID string `db:"commit_id"`
 
 	// Notification will trigger an email after a build if true.
-	// TODO(samer): 'Notification bool' -> 'ToNotify Person (or something)' of people
-	// associated to this build that want to get notifications. Possibly a
-	// Repo specific (rather than build specific) thing. Or, the 'Notifications'
-	// field can be filled in with Repo emails.
 	Notification bool
 }
 
