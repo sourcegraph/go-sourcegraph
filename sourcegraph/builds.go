@@ -157,12 +157,12 @@ type BuildConfig struct {
 	// CommitID is the full resolved commit ID to build.
 	CommitID string `db:"commit_id"`
 
-	// Email will trigger an email after a build if true.
-	// TODO(samer): 'Email bool' -> 'ToEmail Person (or somethign)' of people
-	// associated to this build that want to get emails. Possibly a
-	// Repo specific (rather than build specific) thing. Or, the 'Emails'
+	// Notification will trigger an email after a build if true.
+	// TODO(samer): 'Notification bool' -> 'ToNotify Person (or something)' of people
+	// associated to this build that want to get notifications. Possibly a
+	// Repo specific (rather than build specific) thing. Or, the 'Notifications'
 	// field can be filled in with Repo emails.
-	Email bool
+	Notification bool
 }
 
 type BuildCreateOptions struct {
