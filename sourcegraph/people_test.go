@@ -71,6 +71,7 @@ func TestPeopleService_GetSettings(t *testing.T) {
 	setup()
 	defer teardown()
 
+	// Test success.
 	want := &PersonSettings{}
 
 	var called bool
@@ -93,6 +94,17 @@ func TestPeopleService_GetSettings(t *testing.T) {
 	if !reflect.DeepEqual(settings, want) {
 		t.Errorf("People.GetSettings returned %+v, want %+v", settings, want)
 	}
+
+	// Test failure.
+	expectErr := func(p PersonSpec) {
+		_, _, err = client.People.GetSettings(p)
+		if err == nil {
+			t.Error("Expected GetSettings to error for %v.", p)
+		}
+	}
+	expectErr(PersonSpec{UID:1000})
+	expectErr(PersonSpec{Email:"doesnotexist"})
+	expectErr(PersonSpec{Login:"doesnotexist"})
 }
 
 func TestPeopleService_UpdateSettings(t *testing.T) {
