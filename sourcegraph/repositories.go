@@ -651,7 +651,7 @@ type CommitsComparison struct {
 
 	*github.CommitsComparison
 
-	FileDiffs map[string]*diff.Diff
+	FileDiffs map[string]*diff.FileDiff
 
 	// TODO(x): add affected dependencies, dependents, users, authors
 	// TODO(x): add new/fixed warnings
