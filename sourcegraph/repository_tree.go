@@ -63,6 +63,10 @@ type FormatResult struct {
 	// number of refs in the file exceeds the (server-defined) limit, NumRefs is
 	// capped at the limit.
 	NumRefs int
+
+	// LineStartByteOffsets is the byte offset of each line's first
+	// byte.
+	LineStartByteOffsets []int
 }
 
 // RepositoryTreeGetOptions specifies options for (RepositoryTreeService).Get.
