@@ -85,36 +85,7 @@ type RepositoryTreeGetOptions struct {
 
 	ContentsAsString bool `url:",omitempty"`
 
-	CodeFormatOptions
-}
-
-type CodeFormatOptions struct {
-	// StartLine and EndLine, if EndLine is nonzero, specify the line range of
-	// the file to fetch.
-	StartLine int `url:",omitempty"`
-	EndLine   int `url:",omitempty"`
-
-	// EntireFile is whether the entire file contents should be annotated. If
-	// true, Start and End are ignored.
-	EntireFile bool `url:",omitempty"`
-
-	// LineNumberedTableRows is whether to wrap each line in a <tr> element.
-	LineNumberedTableRows bool `url:",omitempty"`
-
-	// StartByte and EndByte, if EndByte is nonzero, specify the byte range of
-	// the file to fetch.
-	StartByte, EndByte int
-
-	// ExpandContextLines is how many lines of output context to include (if
-	// StartByte and EndByte are specified). For
-	// example, specifying 2 will expand the annotation range to include 2 full
-	// lines before the beginning and 2 full lines after the end.
-	ExpandContextLines int `url:",omitempty"`
-
-	// FullLines is whether an annotation range that includes partial lines
-	// should be extended to the nearest line boundaries on both sides. It is
-	// only valid if StartByte and EndByte are specified.
-	FullLines bool `url:",omitempty"`
+	vcsclient.GetFileOptions
 }
 
 func (s *repositoryTreeService) Get(entry TreeEntrySpec, opt *RepositoryTreeGetOptions) (*TreeEntry, Response, error) {
