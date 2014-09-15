@@ -40,6 +40,8 @@ func (s TreeEntrySpec) String() string {
 type TreeEntry struct {
 	*vcsclient.TreeEntry
 
+	*vcsclient.FileRange // only set for files
+
 	ContentsString string
 
 	// FormatResult is only set if this TreeEntry is a file.
