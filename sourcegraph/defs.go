@@ -201,7 +201,8 @@ type DefListOptions struct {
 	IncludeTest bool `url:",omitempty" json:",omitempty"`
 
 	// Enhancements
-	Doc bool `url:",omitempty" json:",omitempty"`
+	Doc   bool `url:",omitempty" json:",omitempty"`
+	Stats bool `url:",omitempty" json:",omitempty"`
 
 	// Sorting
 	Sort      string `url:",omitempty" json:",omitempty"`
