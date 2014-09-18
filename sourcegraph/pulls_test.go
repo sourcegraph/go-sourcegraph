@@ -20,7 +20,7 @@ func TestPullRequestsService_Get(t *testing.T) {
 	want := &PullRequest{PullRequest: github.PullRequest{Number: github.Int(1)}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepoPullRequest, map[string]string{"RepoSpec": "r.com/x", "PullNumber": "1"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoPullRequest, map[string]string{"RepoSpec": "r.com/x", "Pull": "1"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -76,5 +76,43 @@ func TestPullRequestsService_ListByRepository(t *testing.T) {
 
 	if !reflect.DeepEqual(pulls, want) {
 		t.Errorf("PullRequests.List returned %+v, want %+v with diff: %s", pulls, want, strings.Join(pretty.Diff(want, pulls), "\n"))
+	}
+}
+
+func TestPullRequestsService_ListComments(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := []*PullRequestComment{&PullRequestComment{PullRequestComment: github.PullRequestComment{ID: github.Int(1)}}}
+	pullSpec := PullRequestSpec{Repo: RepoSpec{URI: "r.com/x"}, Number: 1}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.RepoPullRequestComments, pullSpec.RouteVars()), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+		testFormValues(t, r, values{
+			"PerPage": "1",
+			"Page":    "2",
+		})
+
+		writeJSON(w, want)
+	})
+
+	comments, _, err := client.PullRequests.ListComments(
+		pullSpec,
+		&PullRequestListCommentsOptions{
+			ListOptions: ListOptions{PerPage: 1, Page: 2},
+		},
+	)
+	if err != nil {
+		t.Errorf("PullRequests.List returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(comments, want) {
+		t.Errorf("PullRequests.List returned %+v, want %+v with diff: %s", comments, want, strings.Join(pretty.Diff(want, comments), "\n"))
 	}
 }

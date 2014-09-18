@@ -1,7 +1,6 @@
 package sourcegraph
 
 import (
-	"log"
 	"net/http"
 	"reflect"
 	"testing"
@@ -479,39 +478,6 @@ func TestRepositoriesService_GetCommit(t *testing.T) {
 
 	if !reflect.DeepEqual(commit, want) {
 		t.Errorf("Repositories.GetCommit returned %+v, want %+v", commit, want)
-	}
-}
-
-func TestRepositoriesService_CompareCommits(t *testing.T) {
-	setup()
-	defer teardown()
-
-	want := &CommitsComparison{}
-
-	var called bool
-	mux.HandleFunc(urlPath(t, router.RepoCompareCommits, map[string]string{"RepoSpec": "r.com/x", "Rev": "mybase"}), func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		testMethod(t, r, "GET")
-		log.Println(r.URL.String())
-		testFormValues(t, r, values{"HeadRev": "myhead"})
-
-		writeJSON(w, want)
-	})
-
-	opt := &RepositoryCompareCommitsOptions{
-		HeadRev: "myhead",
-	}
-	cmp, _, err := client.Repositories.CompareCommits(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "mybase"}, opt)
-	if err != nil {
-		t.Errorf("Repositories.CompareCommits returned error: %v", err)
-	}
-
-	if !called {
-		t.Fatal("!called")
-	}
-
-	if !reflect.DeepEqual(cmp, want) {
-		t.Errorf("Repositories.CompareCommits returned %+v, want %+v", cmp, want)
 	}
 }
 
