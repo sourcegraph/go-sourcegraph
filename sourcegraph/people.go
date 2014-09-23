@@ -176,6 +176,8 @@ type PersonSettings struct {
 
 	PlanSettings `json:",omitempty"`
 	BuildEmails  *bool `json:",omitempty"`
+
+	PullRequestSrcbotNotification *bool `json:",omitempty"`
 }
 
 // PlanSettings describes the pricing plan that the person or org has selected.
