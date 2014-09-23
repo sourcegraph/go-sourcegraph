@@ -17,17 +17,17 @@ type DeltasService interface {
 	// Get fetches a summary of a delta.
 	Get(ds DeltaSpec, opt *DeltaGetOptions) (*Delta, Response, error)
 
-	// ListDefs lists definitions added/changed/removed in a delta.
+	// ListDefs lists definitions added/changed/deleted in a delta.
 	ListDefs(ds DeltaSpec, opt *DeltaListDefsOptions) (*DeltaDefs, Response, error)
 
-	// ListDependencies lists dependencies added/changed/removed in a
+	// ListDependencies lists dependencies added/changed/deleted in a
 	// delta.
 	ListDependencies(ds DeltaSpec, opt *DeltaListDependenciesOptions) (*DeltaDependencies, Response, error)
 
 	// ListFiles fetches the file diff for a delta.
 	ListFiles(ds DeltaSpec, opt *DeltaListFilesOptions) (*DeltaFiles, Response, error)
 
-	// ListAffectedAuthors lists authors whose code is added/removed/changed
+	// ListAffectedAuthors lists authors whose code is added/deleted/changed
 	// in a delta.
 	ListAffectedAuthors(ds DeltaSpec, opt *DeltaListAffectedAuthorsOptions) ([]*DeltaAffectedPerson, Response, error)
 
@@ -161,9 +161,9 @@ type DeltaListDefsOptions struct {
 	ListOptions
 }
 
-// DeltaDefs describes definitions added/changed/removed in a delta.
+// DeltaDefs describes definitions added/changed/deleted in a delta.
 type DeltaDefs struct {
-	Defs []*DefDelta // added/changed/removed defs
+	Defs []*DefDelta // added/changed/deleted defs
 
 	DiffStat diff.Stat // overall diffstat (not subject to pagination)
 }
@@ -172,12 +172,24 @@ type DeltaDefs struct {
 // fields for the before (Base) and after (Head) versions. If both
 // Base and Head are non-nil, then the def was changed from base to
 // head. Otherwise, one of the fields being nil means that the def did
-// not exist in that revision (e.g., it was added or removed from base
+// not exist in that revision (e.g., it was added or deleted from base
 // to head).
 type DefDelta struct {
 	Base *Def // the def in the base commit (if nil, this def was added in the head)
-	Head *Def // the def in the head commit (if nil, this def was removed in the head)
+	Head *Def // the def in the head commit (if nil, this def was deleted in the head)
 }
+
+// Added is whether this represents an added def (not present in base,
+// present in head).
+func (dd DefDelta) Added() bool { return dd.Base == nil && dd.Head != nil }
+
+// Changed is whether this represents a changed def (present in base,
+// present in head).
+func (dd DefDelta) Changed() bool { return dd.Base != nil && dd.Head != nil }
+
+// Deleted is whether this represents a deleted def (present in base,
+// not present in head).
+func (dd DefDelta) Deleted() bool { return dd.Base != nil && dd.Head == nil }
 
 func (s *deltasService) ListDefs(ds DeltaSpec, opt *DeltaListDefsOptions) (*DeltaDefs, Response, error) {
 	url, err := s.client.url(router.DeltaDefs, ds.RouteVars(), opt)
@@ -205,14 +217,14 @@ type DeltaListDependenciesOptions struct {
 	ListOptions
 }
 
-// DeltaDependencies describes dependencies added/changed/removed in a
+// DeltaDependencies describes dependencies added/changed/deleted in a
 // delta.
 type DeltaDependencies struct {
 	// TODO(sqs): define this struct
 
 	// Added   []*Dependency
 	// Changed []*Dependency
-	// Removed []*Dependency
+	// Deleted []*Dependency
 }
 
 func (s *deltasService) ListDependencies(ds DeltaSpec, opt *DeltaListDependenciesOptions) (*DeltaDependencies, Response, error) {
@@ -239,7 +251,7 @@ func (s *deltasService) ListDependencies(ds DeltaSpec, opt *DeltaListDependencie
 // ListFiles.
 type DeltaListFilesOptions struct{}
 
-// DeltaFiles describes files added/changed/removed in a delta.
+// DeltaFiles describes files added/changed/deleted in a delta.
 type DeltaFiles struct {
 	FileDiffs []*diff.FileDiff
 }
@@ -350,13 +362,13 @@ func (s *deltasService) ListAffectedClients(ds DeltaSpec, opt *DeltaListAffected
 type DeltaAffectedRepo struct {
 	Repository // the affected repository
 
-	DefRefs []*DeltaDefRefs // refs to defs that were changed/removed
+	DefRefs []*DeltaDefRefs // refs to defs that were changed/deleted
 }
 
 // DeltaDefRefs is used in DeltaAffectedRepo to store a single
-// changed/removed def and all of the repository's refs to that def.
+// changed/deleted def and all of the repository's refs to that def.
 type DeltaDefRefs struct {
-	Def  *Def       // the changed/removed def
+	Def  *Def       // the changed/deleted def
 	Refs []*Example // all of the parent DeltaAffectedRepo.Repository's refs to Def
 }
 
