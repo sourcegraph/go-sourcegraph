@@ -157,30 +157,26 @@ func (s *deltasService) Get(ds DeltaSpec, opt *DeltaGetOptions) (*Delta, Respons
 }
 
 // DeltaListDefsOptions specifies options for ListDefs.
-type DeltaListDefsOptions struct{}
+type DeltaListDefsOptions struct {
+	ListOptions
+}
 
 // DeltaDefs describes definitions added/changed/removed in a delta.
 type DeltaDefs struct {
-	Added   []*Def
-	Changed []*DefDelta
-	Removed []*Def
-}
+	Defs []*DefDelta // added/changed/removed defs
 
-// DiffStat returns a diffstat with the number of defs
-// added/changed/removed.
-func (d *DeltaDefs) DiffStat() diff.Stat {
-	return diff.Stat{
-		Added:   len(d.Added),
-		Changed: len(d.Changed),
-		Deleted: len(d.Removed),
-	}
+	DiffStat diff.Stat // overall diffstat (not subject to pagination)
 }
 
 // A DefDelta represents a single definition that was changed. It has
-// fields for the before (Base) and after (Head) versions.
+// fields for the before (Base) and after (Head) versions. If both
+// Base and Head are non-nil, then the def was changed from base to
+// head. Otherwise, one of the fields being nil means that the def did
+// not exist in that revision (e.g., it was added or removed from base
+// to head).
 type DefDelta struct {
-	Base *Def // the def in the base commit
-	Head *Def // the def in the head commit
+	Base *Def // the def in the base commit (if nil, this def was added in the head)
+	Head *Def // the def in the head commit (if nil, this def was removed in the head)
 }
 
 func (s *deltasService) ListDefs(ds DeltaSpec, opt *DeltaListDefsOptions) (*DeltaDefs, Response, error) {
@@ -205,7 +201,9 @@ func (s *deltasService) ListDefs(ds DeltaSpec, opt *DeltaListDefsOptions) (*Delt
 
 // DeltaListDependenciesOptions specifies options for
 // ListDependencies.
-type DeltaListDependenciesOptions struct{}
+type DeltaListDependenciesOptions struct {
+	ListOptions
+}
 
 // DeltaDependencies describes dependencies added/changed/removed in a
 // delta.
@@ -297,7 +295,9 @@ type DeltaAffectedPerson struct {
 
 // DeltaListAffectedAuthorsOptions specifies options for
 // ListAffectedAuthors.
-type DeltaListAffectedAuthorsOptions struct{}
+type DeltaListAffectedAuthorsOptions struct {
+	ListOptions
+}
 
 func (s *deltasService) ListAffectedAuthors(ds DeltaSpec, opt *DeltaListAffectedAuthorsOptions) ([]*DeltaAffectedPerson, Response, error) {
 	url, err := s.client.url(router.DeltaAffectedAuthors, ds.RouteVars(), opt)
@@ -321,7 +321,9 @@ func (s *deltasService) ListAffectedAuthors(ds DeltaSpec, opt *DeltaListAffected
 
 // DeltaListAffectedClientsOptions specifies options for
 // ListAffectedClients.
-type DeltaListAffectedClientsOptions struct{}
+type DeltaListAffectedClientsOptions struct {
+	ListOptions
+}
 
 func (s *deltasService) ListAffectedClients(ds DeltaSpec, opt *DeltaListAffectedClientsOptions) ([]*DeltaAffectedPerson, Response, error) {
 	url, err := s.client.url(router.DeltaAffectedClients, ds.RouteVars(), opt)
@@ -360,7 +362,9 @@ type DeltaDefRefs struct {
 
 // DeltaListAffectedDependentsOptions specifies options for
 // ListAffectedDependents.
-type DeltaListAffectedDependentsOptions struct{}
+type DeltaListAffectedDependentsOptions struct {
+	ListOptions
+}
 
 func (s *deltasService) ListAffectedDependents(ds DeltaSpec, opt *DeltaListAffectedDependentsOptions) ([]*DeltaAffectedRepo, Response, error) {
 	url, err := s.client.url(router.DeltaAffectedDependents, ds.RouteVars(), opt)
@@ -393,7 +397,9 @@ type DeltaReviewer struct {
 	Defs []*Def `json:",omitempty"` // defs that this reviewer committed to and that were changed in or affected by the delta
 }
 
-type DeltaListReviewersOptions struct{}
+type DeltaListReviewersOptions struct {
+	ListOptions
+}
 
 func (s *deltasService) ListReviewers(ds DeltaSpec, opt *DeltaListReviewersOptions) ([]*DeltaReviewer, Response, error) {
 	url, err := s.client.url(router.DeltaReviewers, ds.RouteVars(), opt)
@@ -417,7 +423,9 @@ func (s *deltasService) ListReviewers(ds DeltaSpec, opt *DeltaListReviewersOptio
 
 // DeltaListIncomingOptions specifies options for
 // ListIncoming.
-type DeltaListIncomingOptions struct{}
+type DeltaListIncomingOptions struct {
+	ListOptions
+}
 
 func (s *deltasService) ListIncoming(rr RepoRevSpec, opt *DeltaListIncomingOptions) ([]*Delta, Response, error) {
 	url, err := s.client.url(router.DeltasIncoming, rr.RouteVars(), opt)

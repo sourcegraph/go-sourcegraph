@@ -106,7 +106,7 @@ func TestDeltasService_ListDefs(t *testing.T) {
 		Base: baseRev,
 		Head: headRev,
 	}
-	want := &DeltaDefs{Added: []*Def{{Def: graph.Def{Name: "x"}}}}
+	want := &DeltaDefs{Defs: []*DefDelta{{Base: &Def{Def: graph.Def{Name: "x"}}}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.DeltaDefs, ds.RouteVars()), func(w http.ResponseWriter, r *http.Request) {
