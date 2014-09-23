@@ -290,6 +290,38 @@ func TestDeltasService_ListAffectedDependents(t *testing.T) {
 	}
 }
 
+func TestDeltasService_ListReviewers(t *testing.T) {
+	setup()
+	defer teardown()
+
+	ds := DeltaSpec{
+		Base: baseRev,
+		Head: headRev,
+	}
+	want := []*DeltaReviewer{}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.DeltaReviewers, ds.RouteVars()), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+
+		writeJSON(w, want)
+	})
+
+	reviewers, _, err := client.Deltas.ListReviewers(ds, nil)
+	if err != nil {
+		t.Errorf("Deltas.ListReviewers returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(reviewers, want) {
+		t.Errorf("Deltas.ListReviewers returned %+v, want %+v", reviewers, want)
+	}
+}
+
 func TestDeltasService_ListIncoming(t *testing.T) {
 	setup()
 	defer teardown()

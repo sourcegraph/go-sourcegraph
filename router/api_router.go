@@ -100,6 +100,7 @@ const (
 	DeltaAffectedAuthors    = "delta.affected-authors"
 	DeltaAffectedClients    = "delta.affected-clients"
 	DeltaAffectedDependents = "delta.affected-dependents"
+	DeltaReviewers          = "delta.reviewers"
 	DeltasIncoming          = "deltas.incoming"
 
 	ExtGitHubReceiveWebhook = "ext.github.receive-webhook"
@@ -193,6 +194,7 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	deltas.Path("/affected-authors").Methods("GET").Name(DeltaAffectedAuthors)
 	deltas.Path("/affected-clients").Methods("GET").Name(DeltaAffectedClients)
 	deltas.Path("/affected-dependents").Methods("GET").Name(DeltaAffectedDependents)
+	deltas.Path("/reviewers").Methods("GET").Name(DeltaReviewers)
 
 	repo.Path("/.deltas-incoming").Methods("GET").Name(DeltasIncoming)
 

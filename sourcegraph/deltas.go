@@ -38,6 +38,10 @@ type DeltasService interface {
 	// by a delta.
 	ListAffectedDependents(ds DeltaSpec, opt *DeltaListAffectedDependentsOptions) ([]*DeltaAffectedRepo, Response, error)
 
+	// ListReviewers lists people who are reviewing or are suggested
+	// reviewers for this delta.
+	ListReviewers(ds DeltaSpec, opt *DeltaListReviewersOptions) ([]*DeltaReviewer, Response, error)
+
 	// ListIncoming lists deltas that affect the given repo.
 	ListIncoming(rr RepoRevSpec, opt *DeltaListIncomingOptions) ([]*Delta, Response, error)
 }
@@ -120,6 +124,13 @@ type Delta struct {
 	BaseBuild, HeadBuild   *Build      // base/head builds (or nil)
 
 	// add summary fields
+}
+
+func (d *Delta) DeltaSpec() DeltaSpec {
+	return DeltaSpec{
+		Base: d.Base,
+		Head: d.Head,
+	}
 }
 
 // DeltaGetOptions specifies options for getting a delta.
@@ -371,6 +382,39 @@ func (s *deltasService) ListAffectedDependents(ds DeltaSpec, opt *DeltaListAffec
 	return dependents, resp, nil
 }
 
+// A DeltaReviewer is a person who is reviewing, or is suggested as a
+// reviewer for, a delta.
+type DeltaReviewer struct {
+	Person
+
+	Suggested       bool   `json:",omitempty"` // whether this reviewer is just suggested as a possible reviewer (and not actually assigned)
+	ReasonSuggested string `json:",omitempty"` // if Suggested, this is why (e.g., because the person wrote code this delta touches)
+
+	Defs []*Def `json:",omitempty"` // defs that this reviewer committed to and that were changed in or affected by the delta
+}
+
+type DeltaListReviewersOptions struct{}
+
+func (s *deltasService) ListReviewers(ds DeltaSpec, opt *DeltaListReviewersOptions) ([]*DeltaReviewer, Response, error) {
+	url, err := s.client.url(router.DeltaReviewers, ds.RouteVars(), opt)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var reviewers []*DeltaReviewer
+	resp, err := s.client.Do(req, &reviewers)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return reviewers, resp, nil
+}
+
 // DeltaListIncomingOptions specifies options for
 // ListIncoming.
 type DeltaListIncomingOptions struct{}
@@ -403,6 +447,7 @@ type MockDeltasService struct {
 	ListAffectedAuthors_    func(ds DeltaSpec, opt *DeltaListAffectedAuthorsOptions) ([]*DeltaAffectedPerson, Response, error)
 	ListAffectedClients_    func(ds DeltaSpec, opt *DeltaListAffectedClientsOptions) ([]*DeltaAffectedPerson, Response, error)
 	ListAffectedDependents_ func(ds DeltaSpec, opt *DeltaListAffectedDependentsOptions) ([]*DeltaAffectedRepo, Response, error)
+	ListReviewers_          func(ds DeltaSpec, opt *DeltaListReviewersOptions) ([]*DeltaReviewer, Response, error)
 	ListIncoming_           func(rr RepoRevSpec, opt *DeltaListIncomingOptions) ([]*Delta, Response, error)
 }
 
@@ -453,6 +498,13 @@ func (s MockDeltasService) ListAffectedDependents(ds DeltaSpec, opt *DeltaListAf
 		return nil, nil, nil
 	}
 	return s.ListAffectedDependents_(ds, opt)
+}
+
+func (s MockDeltasService) ListReviewers(ds DeltaSpec, opt *DeltaListReviewersOptions) ([]*DeltaReviewer, Response, error) {
+	if s.ListReviewers_ == nil {
+		return nil, nil, nil
+	}
+	return s.ListReviewers_(ds, opt)
 }
 
 func (s MockDeltasService) ListIncoming(rr RepoRevSpec, opt *DeltaListIncomingOptions) ([]*Delta, Response, error) {
