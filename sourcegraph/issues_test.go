@@ -13,6 +13,33 @@ import (
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 )
 
+func TestIssues(t *testing.T) {
+	tests := []struct {
+		spec          IssueSpec
+		wantRouteVars map[string]string
+	}{
+		{
+			spec:          IssueSpec{Repo: RepoSpec{URI: "foo.com/bar"}, Number: 1},
+			wantRouteVars: map[string]string{"RepoSpec": "foo.com/bar", "Issue": "1"},
+		},
+	}
+
+	for _, test := range tests {
+		routeVars := test.spec.RouteVars()
+		if !reflect.DeepEqual(routeVars, test.wantRouteVars) {
+			t.Errorf("Got route vars %+v, but wanted %+v", routeVars, test.wantRouteVars)
+		}
+
+		spec, err := UnmarshalIssueSpec(test.wantRouteVars)
+		if err != nil {
+			t.Errorf("UnmarshalIssueSpec(%+v): %s", test.wantRouteVars, err)
+		}
+		if !reflect.DeepEqual(spec, test.spec) {
+			t.Errorf("Got spec %+v, but wanted %+v", spec, test.spec)
+		}
+	}
+}
+
 func TestIssuesService_Get(t *testing.T) {
 	setup()
 	defer teardown()

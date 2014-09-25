@@ -1,6 +1,8 @@
 package sourcegraph
 
 import (
+	"fmt"
+
 	"github.com/sqs/go-github/github"
 
 	"strconv"
@@ -38,6 +40,21 @@ type IssueSpec struct {
 
 func (s IssueSpec) RouteVars() map[string]string {
 	return map[string]string{"RepoSpec": s.Repo.URI, "Issue": strconv.Itoa(s.Number)}
+}
+
+func UnmarshalIssueSpec(routeVars map[string]string) (IssueSpec, error) {
+	issueNumber, err := strconv.Atoi(routeVars["Issue"])
+	if err != nil {
+		return IssueSpec{}, err
+	}
+	repoURI := routeVars["RepoSpec"]
+	if repoURI == "" {
+		return IssueSpec{}, fmt.Errorf("RepoSpec was empty")
+	}
+	return IssueSpec{
+		Repo:   RepoSpec{URI: repoURI},
+		Number: issueNumber,
+	}, nil
 }
 
 // Issue is a issue returned by the Sourcegraph API.
