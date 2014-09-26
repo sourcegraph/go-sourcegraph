@@ -17,6 +17,9 @@ type PullRequestsService interface {
 
 	// List pull requests for a repository.
 	ListByRepository(repo RepoSpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error)
+
+	// ListComments lists comments on a pull request.
+	ListComments(pull PullRequestSpec, opt *PullRequestListCommentsOptions) ([]*PullRequestComment, Response, error)
 }
 
 // pullRequestsService implements PullRequestsService.
@@ -28,13 +31,35 @@ var _ PullRequestsService = &pullRequestsService{}
 
 // PullRequestSpec specifies a pull request.
 type PullRequestSpec struct {
-	Repo RepoSpec
+	Repo RepoSpec // the base repository of the pull request
 
 	Number int // Sequence number of the pull request
 }
 
+// RouteVars returns the route variables for generating pull request
+// URLs.
 func (s PullRequestSpec) RouteVars() map[string]string {
-	return map[string]string{"RepoSpec": s.Repo.URI, "PullNumber": strconv.Itoa(s.Number)}
+	return map[string]string{"RepoSpec": s.Repo.URI, "Pull": strconv.Itoa(s.Number)}
+}
+
+// IssueSpec returns a specifier for the issue associated with this
+// pull request (same repo, same number).
+func (s PullRequestSpec) IssueSpec() IssueSpec {
+	return IssueSpec{Repo: s.Repo, Number: s.Number}
+}
+
+// UnmarshalPullRequestSpec parses route variables (a map returned by
+// (PullRequestSpec).RouteVars()) to construct a PullRequestSpec.
+func UnmarshalPullRequestSpec(v map[string]string) (PullRequestSpec, error) {
+	ps := PullRequestSpec{}
+	var err error
+	ps.Repo, err = UnmarshalRepoSpec(v)
+	if err != nil {
+		return ps, err
+	}
+
+	ps.Number, err = strconv.Atoi(v["Pull"])
+	return ps, err
 }
 
 // PullRequest is a pull request returned by the Sourcegraph API.
@@ -75,6 +100,7 @@ func (s *pullRequestsService) Get(pull PullRequestSpec, opt *PullRequestGetOptio
 }
 
 type PullRequestListOptions struct {
+	State string `url:",omitempty"` // "open", "closed", or "all"
 	ListOptions
 }
 
@@ -98,9 +124,38 @@ func (s *pullRequestsService) ListByRepository(repo RepoSpec, opt *PullRequestLi
 	return pulls, resp, nil
 }
 
+type PullRequestListCommentsOptions struct {
+	ListOptions
+}
+
+type PullRequestComment struct {
+	github.PullRequestComment
+}
+
+func (s *pullRequestsService) ListComments(pull PullRequestSpec, opt *PullRequestListCommentsOptions) ([]*PullRequestComment, Response, error) {
+	url, err := s.client.url(router.RepoPullRequestComments, pull.RouteVars(), opt)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var comments []*PullRequestComment
+	resp, err := s.client.Do(req, &comments)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return comments, resp, nil
+}
+
 type MockPullRequestsService struct {
 	Get_              func(pull PullRequestSpec, opt *PullRequestGetOptions) (*PullRequest, Response, error)
 	ListByRepository_ func(repo RepoSpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error)
+	ListComments_     func(pull PullRequestSpec, opt *PullRequestListCommentsOptions) ([]*PullRequestComment, Response, error)
 }
 
 var _ PullRequestsService = MockPullRequestsService{}
@@ -117,4 +172,11 @@ func (s MockPullRequestsService) ListByRepository(repo RepoSpec, opt *PullReques
 		return nil, &HTTPResponse{}, nil
 	}
 	return s.ListByRepository_(repo, opt)
+}
+
+func (s MockPullRequestsService) ListComments(pull PullRequestSpec, opt *PullRequestListCommentsOptions) ([]*PullRequestComment, Response, error) {
+	if s.ListComments_ == nil {
+		return nil, nil, nil
+	}
+	return s.ListComments_(pull, opt)
 }

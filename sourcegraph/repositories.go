@@ -7,12 +7,10 @@ import (
 
 	"github.com/sourcegraph/go-vcs/vcs"
 	"github.com/sourcegraph/vcsstore/vcsclient"
-	"github.com/sqs/go-github/github"
 
 	"strconv"
 	"strings"
 
-	"sourcegraph.com/sourcegraph/go-diff/diff"
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/authorship"
 	"sourcegraph.com/sourcegraph/srclib/person"
@@ -90,9 +88,6 @@ type RepositoriesService interface {
 
 	// GetCommit gets a commit.
 	GetCommit(rev RepoRevSpec, opt *RepositoryGetCommitOptions) (*Commit, Response, error)
-
-	// CompareCommits compares two commits. The head commit is specified in opt.
-	CompareCommits(base RepoRevSpec, opt *RepositoryCompareCommitsOptions) (*CommitsComparison, Response, error)
 
 	// ListBranches lists a repository's branches.
 	ListBranches(repo RepoSpec, opt *RepositoryListBranchesOptions) ([]*vcs.Branch, Response, error)
@@ -642,47 +637,6 @@ func (s *repositoriesService) GetCommit(rev RepoRevSpec, opt *RepositoryGetCommi
 	return commit, resp, nil
 }
 
-type CommitsComparison struct {
-	Head, Base *Commit
-
-	DefsAdded   []*Def
-	DefsChanged []*Def
-	DefsRemoved []*Def
-
-	*github.CommitsComparison
-
-	FileDiffs map[string]*diff.FileDiff
-
-	// TODO(x): add affected dependencies, dependents, users, authors
-	// TODO(x): add new/fixed warnings
-	// TODO(x): add file diffs
-}
-
-type RepositoryCompareCommitsOptions struct {
-	HeadRev      string `url:",omitempty" json:",omitempty"`
-	HeadRepoSpec string `url:",omitempty" json:",omitempty"` // PathComponent of the head repo spec; defaults to the base RepoSpec
-}
-
-func (s *repositoriesService) CompareCommits(base RepoRevSpec, opt *RepositoryCompareCommitsOptions) (*CommitsComparison, Response, error) {
-	url, err := s.client.url(router.RepoCompareCommits, base.RouteVars(), opt)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := s.client.NewRequest("GET", url.String(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var cmp *CommitsComparison
-	resp, err := s.client.Do(req, &cmp)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return cmp, resp, nil
-}
-
 type RepositoryListBranchesOptions struct {
 	ListOptions
 }
@@ -1028,7 +982,6 @@ type MockRepositoriesService struct {
 	List_              func(opt *RepositoryListOptions) ([]*Repository, Response, error)
 	ListCommits_       func(repo RepoSpec, opt *RepositoryListCommitsOptions) ([]*Commit, Response, error)
 	GetCommit_         func(rev RepoRevSpec, opt *RepositoryGetCommitOptions) (*Commit, Response, error)
-	CompareCommits_    func(base RepoRevSpec, opt *RepositoryCompareCommitsOptions) (*CommitsComparison, Response, error)
 	ListBranches_      func(repo RepoSpec, opt *RepositoryListBranchesOptions) ([]*vcs.Branch, Response, error)
 	ListTags_          func(repo RepoSpec, opt *RepositoryListTagsOptions) ([]*vcs.Tag, Response, error)
 	ListBadges_        func(repo RepoSpec) ([]*Badge, Response, error)
@@ -1203,13 +1156,6 @@ func (s MockRepositoriesService) GetCommit(rev RepoRevSpec, opt *RepositoryGetCo
 		return nil, nil, nil
 	}
 	return s.GetCommit_(rev, opt)
-}
-
-func (s MockRepositoriesService) CompareCommits(base RepoRevSpec, opt *RepositoryCompareCommitsOptions) (*CommitsComparison, Response, error) {
-	if s.CompareCommits_ == nil {
-		return nil, nil, nil
-	}
-	return s.CompareCommits_(base, opt)
 }
 
 func (s MockRepositoriesService) ListBranches(repo RepoSpec, opt *RepositoryListBranchesOptions) ([]*vcs.Branch, Response, error) {

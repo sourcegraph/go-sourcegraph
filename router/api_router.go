@@ -34,8 +34,13 @@ const (
 	PersonSettingsUpdate          = "person.settings.update"
 	PersonComputeStats            = "person.compute-stats"
 
-	RepoPullRequests = "repo.pull-requests"
-	RepoPullRequest  = "repo.pull-request"
+	RepoPullRequests        = "repo.pull-requests"
+	RepoPullRequest         = "repo.pull-request"
+	RepoPullRequestComments = "repo.pull-request.comments"
+
+	RepoIssues        = "repo.issues"
+	RepoIssue         = "repo.issue"
+	RepoIssueComments = "repo.issue.comments"
 
 	Repositories             = "repos"
 	RepositoriesCreate       = "repos.create"
@@ -87,6 +92,16 @@ const (
 	DefClients    = "def.clients"
 	DefDependents = "def.dependents"
 	DefVersions   = "def.versions"
+
+	Delta                   = "delta"
+	DeltaDefs               = "delta.defs"
+	DeltaDependencies       = "delta.dependencies"
+	DeltaFiles              = "delta.files"
+	DeltaAffectedAuthors    = "delta.affected-authors"
+	DeltaAffectedClients    = "delta.affected-clients"
+	DeltaAffectedDependents = "delta.affected-dependents"
+	DeltaReviewers          = "delta.reviewers"
+	DeltasIncoming          = "deltas.incoming"
 
 	ExtGitHubReceiveWebhook = "ext.github.receive-webhook"
 
@@ -147,8 +162,6 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	repo.Path("/.vcs-data").Methods("PUT").Name(RepositoryRefreshVCSData)
 	repo.Path("/.settings").Methods("GET").Name(RepositorySettings)
 	repo.Path("/.settings").Methods("PUT").Name(RepositorySettingsUpdate)
-	repo.Path("/.pulls").Methods("GET").Name(RepoPullRequests)
-	repo.Path("/.pulls/{PullNumber}").Methods("GET").Name(RepoPullRequest)
 	repo.Path("/.commits").Methods("GET").Name(RepoCommits)
 	repo.Path("/.commits/{Rev}").Methods("GET").Name(RepoCommit)
 	repo.Path("/.commits/{Rev}/compare").Methods("GET").Name(RepoCompareCommits)
@@ -159,6 +172,31 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	repo.Path("/.counters/{Counter}.png").Methods("GET").Name(RepositoryCounter)
 	repo.Path("/.builds").Methods("GET").Name(RepositoryBuilds)
 	repo.Path("/.builds").Methods("POST").Name(RepositoryBuildsCreate)
+
+	repo.Path("/.pulls").Methods("GET").Name(RepoPullRequests)
+	pullPath := "/.pulls/{Pull}"
+	repo.Path(pullPath).Methods("GET").Name(RepoPullRequest)
+	pull := repo.PathPrefix(pullPath).Subrouter()
+	pull.Path("/comments").Methods("GET").Name(RepoPullRequestComments)
+
+	repo.Path("/.issues").Methods("GET").Name(RepoIssues)
+	issuePath := "/.issues/{Issue}"
+	repo.Path(issuePath).Methods("GET").Name(RepoIssue)
+	issue := repo.PathPrefix(issuePath).Subrouter()
+	issue.Path("/comments").Methods("GET").Name(RepoIssueComments)
+
+	deltaPath := "/.deltas/{Rev}..{DeltaHeadRev}"
+	repo.Path(deltaPath).Methods("GET").Name(Delta)
+	deltas := repo.PathPrefix(deltaPath).Subrouter()
+	deltas.Path("/defs").Methods("GET").Name(DeltaDefs)
+	deltas.Path("/dependencies").Methods("GET").Name(DeltaDependencies)
+	deltas.Path("/files").Methods("GET").Name(DeltaFiles)
+	deltas.Path("/affected-authors").Methods("GET").Name(DeltaAffectedAuthors)
+	deltas.Path("/affected-clients").Methods("GET").Name(DeltaAffectedClients)
+	deltas.Path("/affected-dependents").Methods("GET").Name(DeltaAffectedDependents)
+	deltas.Path("/reviewers").Methods("GET").Name(DeltaReviewers)
+
+	repo.Path("/.deltas-incoming").Methods("GET").Name(DeltasIncoming)
 
 	// See router_util/tree_route.go for an explanation of how we match tree
 	// entry routes.

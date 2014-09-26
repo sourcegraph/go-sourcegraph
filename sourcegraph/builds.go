@@ -164,7 +164,10 @@ type BuildConfig struct {
 type BuildCreateOptions struct {
 	BuildConfig
 
-	// Force creation of build (if false, the build will not be created if it already exists and has succeeded)
+	// Force creation of build (if false, the build will not be
+	// created if a build for the same repository and commit ID
+	// exists).
+	//
 	// TODO(bliu): test this
 	Force bool
 }
