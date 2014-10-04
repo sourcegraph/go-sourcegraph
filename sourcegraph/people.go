@@ -177,6 +177,7 @@ type PersonSettings struct {
 	PlanSettings `json:",omitempty"`
 	BuildEmails  *bool `json:",omitempty"`
 
+	// SAMER rename to SrcbotPullRequestsNotification
 	PullRequestSrcbotNotification *bool `json:",omitempty"`
 }
 
