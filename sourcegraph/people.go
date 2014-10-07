@@ -175,10 +175,9 @@ type PersonSettings struct {
 	RequestedUpgradeAt db_common.NullTime `json:",omitempty"`
 
 	PlanSettings `json:",omitempty"`
-	BuildEmails  *bool `json:",omitempty"`
 
-	// SAMER rename to SrcbotPullRequestsNotification
-	PullRequestSrcbotNotification *bool `json:",omitempty"`
+	BuildEmails       *bool `json:",omitempty"`
+	SrcbotPullRequest *bool `json:",omitempty"`
 }
 
 // PlanSettings describes the pricing plan that the person or org has selected.
