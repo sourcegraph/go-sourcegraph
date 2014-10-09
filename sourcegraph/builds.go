@@ -156,9 +156,6 @@ type BuildConfig struct {
 
 	// CommitID is the full resolved commit ID to build.
 	CommitID string `db:"commit_id"`
-
-	// Notification will trigger an email after a build if true.
-	Notification bool
 }
 
 type BuildCreateOptions struct {
