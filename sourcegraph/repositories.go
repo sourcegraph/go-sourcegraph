@@ -147,7 +147,11 @@ func (s *RepoSpec) PathComponent() string {
 		return "R$" + strconv.Itoa(s.RID)
 	}
 	if s.URI != "" {
-		return s.URI
+		if strings.HasPrefix("sourcegraph.com/", s.URI) {
+			return s.URI[len("sourcegraph.com/"):]
+		} else {
+			return s.URI
+		}
 	}
 	panic("empty RepoSpec")
 }
@@ -169,7 +173,15 @@ func ParseRepoSpec(pathComponent string) (RepoSpec, error) {
 		rid, err := strconv.Atoi(pathComponent[2:])
 		return RepoSpec{RID: rid}, err
 	}
-	return RepoSpec{URI: pathComponent}, nil
+
+	var uri string
+	if strings.HasPrefix(pathComponent, "sourcegraph/") {
+		uri = "sourcegraph.com/" + pathComponent
+	} else {
+		uri = pathComponent
+	}
+
+	return RepoSpec{URI: uri}, nil
 }
 
 // UnmarshalRepoSpec marshals a map containing route variables
