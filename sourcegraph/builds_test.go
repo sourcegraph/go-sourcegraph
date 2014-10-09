@@ -108,7 +108,7 @@ func TestBuildsService_Create(t *testing.T) {
 	mux.HandleFunc(urlPath(t, router.RepositoryBuildsCreate, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "POST")
-		testBody(t, r, `{"Import":true,"Queue":true,"UseCache":false,"Priority":0,"CommitID":"c","Notification":false,"Force":true}`+"\n")
+		testBody(t, r, `{"Import":true,"Queue":true,"UseCache":false,"Priority":0,"CommitID":"c","Force":true}`+"\n")
 
 		writeJSON(w, want)
 	})
