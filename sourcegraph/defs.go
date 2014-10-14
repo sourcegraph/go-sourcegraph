@@ -1,12 +1,15 @@
 package sourcegraph
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/url"
+	"time"
+
+	"github.com/sourcegraph/go-nnz/nnz"
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
-	"sourcegraph.com/sourcegraph/srclib/authorship"
 	"sourcegraph.com/sourcegraph/srclib/graph"
 	"sourcegraph.com/sourcegraph/srclib/person"
 	"sourcegraph.com/sourcegraph/srclib/repo"
@@ -290,9 +293,34 @@ func (s *defsService) ListExamples(def DefSpec, opt *DefListExamplesOptions) ([]
 	return examples, resp, nil
 }
 
+type AuthorshipInfo struct {
+	AuthorEmail    string    `db:"author_email"`
+	LastCommitDate time.Time `db:"last_commit_date"`
+
+	// LastCommitID is the commit ID of the last commit that this author made to
+	// the thing that this info describes.
+	LastCommitID string `db:"last_commit_id"`
+}
+
+type DefAuthorship struct {
+	AuthorshipInfo
+
+	// Exported is whether the def is exported.
+	Exported bool
+
+	Chars           int     `db:"chars"`
+	CharsProportion float64 `db:"chars_proportion"`
+}
+
+type DefAuthor struct {
+	UID   nnz.Int
+	Email nnz.String
+	DefAuthorship
+}
+
 type AugmentedDefAuthor struct {
 	User *person.User
-	*authorship.DefAuthor
+	*DefAuthor
 }
 
 // DefListAuthorsOptions specifies options for DefsService.ListAuthors.
@@ -320,9 +348,35 @@ func (s *defsService) ListAuthors(def DefSpec, opt *DefListAuthorsOptions) ([]*A
 	return authors, resp, nil
 }
 
+// RefAuthorship describes the authorship information (author email, date, and
+// commit ID) of a ref. A ref may only have one author.
+type RefAuthorship struct {
+	graph.RefKey
+	AuthorshipInfo
+}
+
+func (a *RefAuthorship) sortKey() string {
+	// PERF TODO(sqs): slow
+	b, err := json.Marshal(a)
+	if err != nil {
+		panic(err.Error())
+	}
+	return string(b)
+}
+
+type DefClient struct {
+	UID   nnz.Int
+	Email nnz.String
+
+	AuthorshipInfo
+
+	// UseCount is the number of times this person referred to the def.
+	UseCount int `db:"use_count"`
+}
+
 type AugmentedDefClient struct {
 	User *person.User
-	*authorship.DefClient
+	*DefClient
 }
 
 // DefListClientsOptions specifies options for DefsService.ListClients.

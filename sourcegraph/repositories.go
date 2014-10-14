@@ -1,10 +1,12 @@
 package sourcegraph
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"text/template"
 
+	"github.com/sourcegraph/go-nnz/nnz"
 	"github.com/sourcegraph/go-vcs/vcs"
 	"github.com/sourcegraph/vcsstore/vcsclient"
 
@@ -12,7 +14,6 @@ import (
 	"strings"
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
-	"sourcegraph.com/sourcegraph/srclib/authorship"
 	"sourcegraph.com/sourcegraph/srclib/person"
 	"sourcegraph.com/sourcegraph/srclib/repo"
 )
@@ -749,11 +750,17 @@ func (s *repositoriesService) ListCounters(repo RepoSpec) ([]*Counter, Response,
 	return counters, resp, nil
 }
 
-// AugmentedRepoAuthor is a rel.RepoAuthor with the full person.User and
+type RepoAuthor struct {
+	UID   nnz.Int
+	Email nnz.String
+	AuthorStats
+}
+
+// AugmentedRepoAuthor is a RepoAuthor with the full person.User and
 // graph.Def structs embedded.
 type AugmentedRepoAuthor struct {
 	User *person.User
-	*authorship.RepoAuthor
+	*RepoAuthor
 }
 
 type RepositoryListAuthorsOptions struct {
@@ -780,11 +787,45 @@ func (s *repositoriesService) ListAuthors(repo RepoRevSpec, opt *RepositoryListA
 	return authors, resp, nil
 }
 
-// AugmentedRepoClient is a rel.RepoClient with the full person.User and
+type RepoClient struct {
+	UID   nnz.Int
+	Email nnz.String
+	ClientStats
+}
+
+type ClientStats struct {
+	AuthorshipInfo
+
+	// DefRepo is the repository that defines defs that this client
+	// referred to.
+	DefRepo repo.URI `db:"def_repo"`
+
+	// DefUnitType and DefUnit are the unit in DefRepo that defines
+	// defs that this client referred to. If DefUnitType == "" and
+	// DefUnit == "", then this ClientStats is an aggregate of this client's
+	// refs to all units in DefRepo.
+	DefUnitType nnz.String `db:"def_unit_type"`
+	DefUnit     nnz.String `db:"def_unit"`
+
+	// RefCount is the number of references this client made in this repository
+	// to DefRepo.
+	RefCount int `db:"ref_count"`
+}
+
+func (a *ClientStats) sortKey() string {
+	// PERF TODO(sqs): slow
+	b, err := json.Marshal(a)
+	if err != nil {
+		panic(err.Error())
+	}
+	return string(b)
+}
+
+// AugmentedRepoClient is a RepoClient with the full person.User and
 // graph.Def structs embedded.
 type AugmentedRepoClient struct {
 	User *person.User
-	*authorship.RepoClient
+	*RepoClient
 }
 
 type RepositoryListClientsOptions struct {
@@ -875,9 +916,42 @@ func (s *repositoriesService) ListDependents(repo RepoSpec, opt *RepositoryListD
 	return dependents, resp, nil
 }
 
+type AuthorStats struct {
+	AuthorshipInfo
+
+	// DefCount is the number of defs that this author contributed (where
+	// "contributed" means "committed any hunk of code to source code files").
+	DefCount int `db:"def_count"`
+
+	DefsProportion float64 `db:"defs_proportion"`
+
+	// ExportedDefCount is the number of exported defs that this author
+	// contributed (where "contributed to" means "committed any hunk of code to
+	// source code files").
+	ExportedDefCount int `db:"exported_def_count"`
+
+	ExportedDefsProportion float64 `db:"exported_defs_proportion"`
+
+	// TODO(sqs): add "most recently contributed exported def"
+}
+
+func (a *AuthorStats) sortKey() string {
+	// PERF TODO(sqs): slow
+	b, err := json.Marshal(a)
+	if err != nil {
+		panic(err.Error())
+	}
+	return string(b)
+}
+
+type RepoContribution struct {
+	RepoURI repo.URI `db:"repo"`
+	AuthorStats
+}
+
 type AugmentedRepoContribution struct {
 	Repo *repo.Repository
-	*authorship.RepoContribution
+	*RepoContribution
 }
 
 type RepositoryListByContributorOptions struct {
@@ -905,11 +979,25 @@ func (s *repositoriesService) ListByContributor(person PersonSpec, opt *Reposito
 	return repos, resp, nil
 }
 
-// AugmentedRepoUsageByClient is a authorship.RepoUsageByClient with the full repo.Repository
+// RepoUsageByClient describes a repository whose code is referenced by a
+// specific person.
+type RepoUsageByClient struct {
+	// DefRepo is the repository that defines the code that was referenced.
+	// It's called DefRepo because "Repo" usually refers to the repository
+	// whose analysis created this linkage (i.e., the repository that contains
+	// the reference).
+	DefRepo repo.URI `db:"def_repo"`
+
+	RefCount int `db:"ref_count"`
+
+	AuthorshipInfo
+}
+
+// AugmentedRepoUsageByClient is a RepoUsageByClient with the full repo.Repository
 // struct embedded.
 type AugmentedRepoUsageByClient struct {
-	DefRepo                       *repo.Repository
-	*authorship.RepoUsageByClient `json:"RepoUsageByClient"`
+	DefRepo            *repo.Repository
+	*RepoUsageByClient `json:"RepoUsageByClient"`
 }
 
 type RepositoryListByClientOptions struct {
@@ -936,11 +1024,19 @@ func (s *repositoriesService) ListByClient(person PersonSpec, opt *RepositoryLis
 	return repos, resp, nil
 }
 
-// AugmentedRepoUsageOfAuthor is a authorship.RepoUsageOfAuthor with the full
+// RepoUsageOfAuthor describes a repository referencing code committed by a
+// specific person.
+type RepoUsageOfAuthor struct {
+	Repo repo.URI
+
+	RefCount int `db:"ref_count"`
+}
+
+// AugmentedRepoUsageOfAuthor is a RepoUsageOfAuthor with the full
 // repo.Repository struct embedded.
 type AugmentedRepoUsageOfAuthor struct {
-	Repo                          *repo.Repository
-	*authorship.RepoUsageOfAuthor `json:"RepoUsageOfAuthor"`
+	Repo               *repo.Repository
+	*RepoUsageOfAuthor `json:"RepoUsageOfAuthor"`
 }
 
 type RepositoryListByRefdAuthorOptions struct {
