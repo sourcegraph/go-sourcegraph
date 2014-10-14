@@ -1,7 +1,6 @@
 package sourcegraph
 
 import (
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/url"
@@ -353,15 +352,6 @@ func (s *defsService) ListAuthors(def DefSpec, opt *DefListAuthorsOptions) ([]*A
 type RefAuthorship struct {
 	graph.RefKey
 	AuthorshipInfo
-}
-
-func (a *RefAuthorship) sortKey() string {
-	// PERF TODO(sqs): slow
-	b, err := json.Marshal(a)
-	if err != nil {
-		panic(err.Error())
-	}
-	return string(b)
 }
 
 type DefClient struct {

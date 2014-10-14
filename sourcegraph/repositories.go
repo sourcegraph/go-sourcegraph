@@ -1,7 +1,6 @@
 package sourcegraph
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"text/template"
@@ -812,15 +811,6 @@ type ClientStats struct {
 	RefCount int `db:"ref_count"`
 }
 
-func (a *ClientStats) sortKey() string {
-	// PERF TODO(sqs): slow
-	b, err := json.Marshal(a)
-	if err != nil {
-		panic(err.Error())
-	}
-	return string(b)
-}
-
 // AugmentedRepoClient is a RepoClient with the full person.User and
 // graph.Def structs embedded.
 type AugmentedRepoClient struct {
@@ -933,15 +923,6 @@ type AuthorStats struct {
 	ExportedDefsProportion float64 `db:"exported_defs_proportion"`
 
 	// TODO(sqs): add "most recently contributed exported def"
-}
-
-func (a *AuthorStats) sortKey() string {
-	// PERF TODO(sqs): slow
-	b, err := json.Marshal(a)
-	if err != nil {
-		panic(err.Error())
-	}
-	return string(b)
 }
 
 type RepoContribution struct {
