@@ -360,8 +360,8 @@ func (s *repositoriesService) GetOrCreate(repo_ RepoSpec, opt *RepositoryGetOpti
 
 // RepositorySettings describes a repository's configuration settings.
 type RepositorySettings struct {
-	Enabled *bool `json:",omitempty"`
-	Srcbot  *bool `json:",omitempty"`
+	Enabled       *bool `json:",omitempty"`
+	SrcbotEnabled *bool `json:",omitempty"`
 }
 
 func (s *repositoriesService) GetSettings(repo RepoSpec) (*RepositorySettings, Response, error) {
