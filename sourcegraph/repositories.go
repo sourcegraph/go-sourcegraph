@@ -475,7 +475,10 @@ type RepoGetBuildOptions struct {
 	// for master~1.
 	//
 	// Using Exact=true is faster as the commit and build history
-	// never needs to be searched.
+	// never needs to be searched. If the exact build is not
+	// found, or the exact build was found but it failed,
+	// LastSuccessful and LastSuccessfulCommit for RepoBuildInfo
+	// will be nil.
 	Exact bool `url:",omitempty" json:",omitempty"`
 }
 
