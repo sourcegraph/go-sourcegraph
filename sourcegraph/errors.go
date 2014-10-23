@@ -14,21 +14,10 @@ import (
 type ErrorResponse struct {
 	Response *http.Response `json:",omitempty"` // HTTP response that caused this error
 	Message  string         // error message
-	// Kind is the type of error recieved.
-	Kind ErrorResponseKind
 }
 
-type ErrorResponseKind string
-
-const (
-	DefError ErrorResponseKind = "deferror"
-)
-
-func parseErrorKind(errorMessage string) ErrorResponseKind {
-	if strings.Contains(errorMessage, graph.ErrDefNotExist.Error()) {
-		return DefError
-	}
-	return ""
+func IsDefError(err error) bool {
+	return strings.Contains(err.Error(), graph.ErrDefNotExist.Error())
 }
 
 func (r *ErrorResponse) Error() string {
@@ -53,7 +42,6 @@ func CheckResponse(r *http.Response) error {
 	if err == nil && data != nil {
 		json.Unmarshal(data, errorResponse)
 	}
-	errorResponse.Kind = parseErrorKind(errorResponse.Message)
 	return errorResponse
 }
 
