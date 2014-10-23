@@ -17,7 +17,7 @@ type ErrorResponse struct {
 }
 
 func IsDefError(err error) bool {
-	return strings.Contains(err.Error(), graph.ErrDefNotExist.Error())
+	return err != nil && strings.Contains(err.Error(), graph.ErrDefNotExist.Error())
 }
 
 func (r *ErrorResponse) Error() string {
