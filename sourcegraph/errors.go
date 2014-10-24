@@ -5,12 +5,19 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
+
+	"sourcegraph.com/sourcegraph/srclib/graph"
 )
 
 // An ErrorResponse reports errors caused by an API request.
 type ErrorResponse struct {
 	Response *http.Response `json:",omitempty"` // HTTP response that caused this error
 	Message  string         // error message
+}
+
+func IsDefError(err error) bool {
+	return err != nil && strings.Contains(err.Error(), graph.ErrDefNotExist.Error())
 }
 
 func (r *ErrorResponse) Error() string {
