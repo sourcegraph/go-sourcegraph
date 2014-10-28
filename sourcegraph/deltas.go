@@ -375,6 +375,7 @@ type DeltaDefRefs struct {
 // DeltaListAffectedDependentsOptions specifies options for
 // ListAffectedDependents.
 type DeltaListAffectedDependentsOptions struct {
+	NotFormatted bool
 	ListOptions
 }
 
