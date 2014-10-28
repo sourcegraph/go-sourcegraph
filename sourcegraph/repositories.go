@@ -360,7 +360,10 @@ func (s *repositoriesService) GetOrCreate(repo_ RepoSpec, opt *RepositoryGetOpti
 
 // RepositorySettings describes a repository's configuration settings.
 type RepositorySettings struct {
-	Enabled       *bool `json:",omitempty"`
+	// BuildPushes is whether head commits on newly pushed branches
+	// should be automatically built.
+	BuildPushes *bool `db:"build_pushes" json:",omitempty"`
+
 	SrcbotEnabled *bool `json:",omitempty"`
 }
 
