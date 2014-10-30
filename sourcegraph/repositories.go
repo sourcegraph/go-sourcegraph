@@ -586,6 +586,8 @@ type RepositoryListOptions struct {
 
 	Type string `url:",omitempty" json:",omitempty"` // "public" or "private" (empty default means "all")
 
+	State string `url:",omitempty" json:",omitempty"` // "enabled" or "disabled" (empty default means return "all")
+
 	Owner string `url:",omitempty" json:",omitempty"`
 
 	Stats bool `url:",omitempty" json:",omitempty"` // whether to fetch and include stats in the returned repositories
