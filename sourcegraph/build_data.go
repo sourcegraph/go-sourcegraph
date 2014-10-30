@@ -41,6 +41,14 @@ func (s *BuildDataFileSpec) RouteVars() map[string]string {
 	return m
 }
 
+const (
+	// MIME types to use in Accept request header for the server to
+	// know (without statting the path) what kind of resource (file or
+	// directory) the client wants to fetch.
+	BuildDataFileContentType = "application/vnd.sourcegraph.build-data-file"
+	BuildDataDirContentType  = "application/vnd.sourcegraph.build-data-dir"
+)
+
 // BuildDataListOptions specifies options for listing build data
 // files.
 type BuildDataListOptions struct {
@@ -59,6 +67,7 @@ func (s *buildDataService) List(repo RepoRevSpec, opt *BuildDataListOptions) ([]
 	if err != nil {
 		return nil, nil, err
 	}
+	req.Header.Set("accept", BuildDataDirContentType)
 
 	var fileInfo []*buildstore.BuildDataFileInfo
 	resp, err := s.client.Do(req, &fileInfo)
@@ -79,6 +88,7 @@ func (s *buildDataService) Get(file BuildDataFileSpec) ([]byte, Response, error)
 	if err != nil {
 		return nil, nil, err
 	}
+	req.Header.Set("accept", BuildDataFileContentType)
 
 	var data []byte
 	resp, err := s.client.Do(req, &data)
