@@ -10,8 +10,13 @@ import (
 // BuildDataService communicates with the build data-related endpoints in the
 // Sourcegraph API.
 type BuildDataService interface {
+	// List lists build data files and subdirectories.
 	List(repo RepoRevSpec, opt *BuildDataListOptions) ([]*buildstore.BuildDataFileInfo, Response, error)
+
+	// Get gets a build data file.
 	Get(file BuildDataFileSpec) ([]byte, Response, error)
+
+	// Upload uploads a build data file.
 	Upload(spec BuildDataFileSpec, body io.ReadCloser) (Response, error)
 }
 
@@ -21,17 +26,23 @@ type buildDataService struct {
 
 var _ BuildDataService = &buildDataService{}
 
+// BuildDataFileSpec specifies a new or existing build data file in a
+// repository.
 type BuildDataFileSpec struct {
 	RepoRev RepoRevSpec
 	Path    string
 }
 
+// RouteVars returns route variables used to construct URLs to a build
+// data file.
 func (s *BuildDataFileSpec) RouteVars() map[string]string {
 	m := s.RepoRev.RouteVars()
 	m["Path"] = s.Path
 	return m
 }
 
+// BuildDataListOptions specifies options for listing build data
+// files.
 type BuildDataListOptions struct {
 	ListOptions
 }
