@@ -88,10 +88,6 @@ type Build struct {
 	// Host is the hostname of the machine that is working on this build.
 	Host string `json:",omitempty"`
 
-	// Tries is the number of times that this build has started to run. Builds
-	// may be retried after a failure or timeout, in which case Tries > 1.
-	Tries int
-
 	BuildConfig
 
 	// RepoURI is populated (as a convenience) in results by Get and List but
@@ -309,7 +305,6 @@ func (s *buildsService) ListBuildTasks(build BuildSpec, opt *BuildTaskListOption
 type BuildUpdate struct {
 	StartedAt *time.Time
 	EndedAt   *time.Time
-	Tries     *int
 	Host      *string
 	Success   *bool
 	Failure   *bool

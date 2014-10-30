@@ -133,14 +133,14 @@ func TestBuildsService_Update(t *testing.T) {
 	setup()
 	defer teardown()
 
-	update := BuildUpdate{Tries: Int(1), Host: String("h")}
+	update := BuildUpdate{Host: String("h")}
 	want := &Build{BID: 123, Repo: 456}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.BuildUpdate, map[string]string{"BID": "123"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
-		testBody(t, r, `{"StartedAt":null,"EndedAt":null,"Tries":1,"Host":"h","Success":null,"Failure":null}`+"\n")
+		testBody(t, r, `{"StartedAt":null,"EndedAt":null,"Host":"h","Success":null,"Failure":null}`+"\n")
 
 		writeJSON(w, want)
 	})
