@@ -241,7 +241,7 @@ func (c *Client) Do(req *http.Request, v interface{}) (*HTTPResponse, error) {
 		}
 	}
 	if err != nil {
-		return nil, fmt.Errorf("error reading response from %s %s: %s", req.Method, req.URL.RequestURI(), err)
+		return response, fmt.Errorf("error reading response from %s %s: %s", req.Method, req.URL.RequestURI(), err)
 	}
 	return response, nil
 }

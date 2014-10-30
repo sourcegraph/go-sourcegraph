@@ -113,7 +113,7 @@ func (s *buildDataService) Upload(file BuildDataFileSpec, body io.ReadCloser) (R
 
 	resp, err := s.client.Do(req, nil)
 	if err != nil {
-		return nil, err
+		return resp, err
 	}
 
 	return resp, nil
