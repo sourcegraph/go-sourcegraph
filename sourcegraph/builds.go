@@ -28,8 +28,19 @@ type BuildsService interface {
 	// wait for it to return. To monitor the build's status, use Get.)
 	Create(repo RepoSpec, opt *BuildCreateOptions) (*Build, Response, error)
 
+	// Update updates information about a build and returns the build
+	// after the update has been applied.
+	Update(build BuildSpec, info BuildUpdate) (*Build, Response, error)
+
 	// ListBuildTasks lists the tasks associated with a build.
 	ListBuildTasks(build BuildSpec, opt *BuildTaskListOptions) ([]*BuildTask, Response, error)
+
+	// CreateTasks creates tasks associated with a build and returns
+	// them with their TID fields set.
+	CreateTasks(build BuildSpec, tasks []*BuildTask) ([]*BuildTask, Response, error)
+
+	// UpdateTask updates a task associated with a build.
+	UpdateTask(task TaskSpec, info TaskUpdate) (*BuildTask, Response, error)
 
 	// GetLog gets log entries associated with a build.
 	GetLog(build BuildSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error)
@@ -66,20 +77,16 @@ func (s *TaskSpec) RouteVars() map[string]string {
 // A Build represents a scheduled, completed, or failed repository analysis and
 // import job.
 type Build struct {
-	BID       int64
+	BID       int64 `json:",omitempty"`
 	Repo      repo.RID
 	CreatedAt time.Time          `db:"created_at"`
 	StartedAt db_common.NullTime `db:"started_at"`
 	EndedAt   db_common.NullTime `db:"ended_at"`
-	Success   bool
-	Failure   bool
+	Success   bool               `json:",omitempty"`
+	Failure   bool               `json:",omitempty"`
 
 	// Host is the hostname of the machine that is working on this build.
-	Host string
-
-	// Tries is the number of times that this build has started to run. Builds
-	// may be retried after a failure or timeout, in which case Tries > 1.
-	Tries int
+	Host string `json:",omitempty"`
 
 	BuildConfig
 
@@ -97,7 +104,7 @@ func buildIDString(bid int64) string { return "B" + strconv.FormatInt(bid, 36) }
 
 // A BuildTask represents an individual step of a build.
 type BuildTask struct {
-	TaskID int64
+	TaskID int64 `json:",omitempty"`
 
 	// BID is the build that this task is a part of.
 	BID int64
@@ -107,18 +114,18 @@ type BuildTask struct {
 
 	// Op is the srclib toolchain operation (graph, depresolve, etc.) that this
 	// task performs.
-	Op string
+	Op string `json:",omitempty"`
 
 	// Order is the order in which this task is performed, relative to other
 	// tasks in the same build. Lower-number-ordered tasks are built first.
 	// Multiple tasks may have the same order.
-	Order int
+	Order int `json:",omitempty"`
 
-	StartedAt db_common.NullTime `db:"started_at"`
-	EndedAt   db_common.NullTime `db:"ended_at"`
+	StartedAt db_common.NullTime `db:"started_at" json:",omitempty"`
+	EndedAt   db_common.NullTime `db:"ended_at" json:",omitempty"`
 
-	Success bool
-	Failure bool
+	Success bool `json:",omitempty"`
+	Failure bool `json:",omitempty"`
 }
 
 func (t *BuildTask) Spec() TaskSpec {
@@ -293,6 +300,85 @@ func (s *buildsService) ListBuildTasks(build BuildSpec, opt *BuildTaskListOption
 	return tasks, resp, nil
 }
 
+// A BuildUpdate contains updated information to update on an existing
+// build.
+type BuildUpdate struct {
+	StartedAt *time.Time
+	EndedAt   *time.Time
+	Host      *string
+	Success   *bool
+	Failure   *bool
+}
+
+func (s *buildsService) Update(build BuildSpec, info BuildUpdate) (*Build, Response, error) {
+	url, err := s.client.url(router.BuildUpdate, build.RouteVars(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("PUT", url.String(), info)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var updated *Build
+	resp, err := s.client.Do(req, &updated)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return updated, resp, nil
+}
+
+func (s *buildsService) CreateTasks(build BuildSpec, tasks []*BuildTask) ([]*BuildTask, Response, error) {
+	url, err := s.client.url(router.BuildTasksCreate, build.RouteVars(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("POST", url.String(), tasks)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var created []*BuildTask
+	resp, err := s.client.Do(req, &created)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return created, resp, nil
+}
+
+// A TaskUpdate contains updated information to update on an existing
+// task.
+type TaskUpdate struct {
+	StartedAt *time.Time
+	EndedAt   *time.Time
+	Success   *bool
+	Failure   *bool
+}
+
+func (s *buildsService) UpdateTask(task TaskSpec, info TaskUpdate) (*BuildTask, Response, error) {
+	url, err := s.client.url(router.BuildTaskUpdate, task.RouteVars(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("PUT", url.String(), info)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var updated *BuildTask
+	resp, err := s.client.Do(req, &updated)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return updated, resp, nil
+}
+
 // BuildGetLogOptions specifies options for build log API methods.
 type BuildGetLogOptions struct {
 	// MinID indicates that only log entries whose monotonically increasing ID
@@ -354,6 +440,9 @@ type MockBuildsService struct {
 	ListByRepository_ func(repo RepoSpec, opt *BuildListByRepositoryOptions) ([]*Build, Response, error)
 	Create_           func(repo RepoSpec, opt *BuildCreateOptions) (*Build, Response, error)
 	ListBuildTasks_   func(build BuildSpec, opt *BuildTaskListOptions) ([]*BuildTask, Response, error)
+	Update_           func(build BuildSpec, info BuildUpdate) (*Build, Response, error)
+	CreateTasks_      func(build BuildSpec, tasks []*BuildTask) ([]*BuildTask, Response, error)
+	UpdateTask_       func(task TaskSpec, info TaskUpdate) (*BuildTask, Response, error)
 	GetLog_           func(build BuildSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error)
 	GetTaskLog_       func(task TaskSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error)
 }
@@ -393,6 +482,18 @@ func (s MockBuildsService) ListBuildTasks(build BuildSpec, opt *BuildTaskListOpt
 		return nil, nil, nil
 	}
 	return s.ListBuildTasks_(build, opt)
+}
+
+func (s MockBuildsService) Update(build BuildSpec, info BuildUpdate) (*Build, Response, error) {
+	return s.Update_(build, info)
+}
+
+func (s MockBuildsService) CreateTasks(build BuildSpec, tasks []*BuildTask) ([]*BuildTask, Response, error) {
+	return s.CreateTasks_(build, tasks)
+}
+
+func (s MockBuildsService) UpdateTask(task TaskSpec, info TaskUpdate) (*BuildTask, Response, error) {
+	return s.UpdateTask_(task, info)
 }
 
 func (s MockBuildsService) GetLog(build BuildSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error) {

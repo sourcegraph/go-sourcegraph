@@ -129,6 +129,97 @@ func TestBuildsService_Create(t *testing.T) {
 	}
 }
 
+func TestBuildsService_Update(t *testing.T) {
+	setup()
+	defer teardown()
+
+	update := BuildUpdate{Host: String("h")}
+	want := &Build{BID: 123, Repo: 456}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.BuildUpdate, map[string]string{"BID": "123"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "PUT")
+		testBody(t, r, `{"StartedAt":null,"EndedAt":null,"Host":"h","Success":null,"Failure":null}`+"\n")
+
+		writeJSON(w, want)
+	})
+
+	build, _, err := client.Builds.Update(BuildSpec{BID: 123}, update)
+	if err != nil {
+		t.Errorf("Builds.Update returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	normalizeBuildTime(build)
+	normalizeBuildTime(want)
+	if !reflect.DeepEqual(build, want) {
+		t.Errorf("Builds.Update returned %+v, want %+v", build, want)
+	}
+}
+
+func TestBuildsService_UpdateTask(t *testing.T) {
+	setup()
+	defer teardown()
+
+	update := TaskUpdate{Success: Bool(true)}
+	want := &BuildTask{BID: 123, TaskID: 456}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.BuildTaskUpdate, map[string]string{"BID": "123", "TaskID": "456"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "PUT")
+		testBody(t, r, `{"StartedAt":null,"EndedAt":null,"Success":true,"Failure":null}`+"\n")
+
+		writeJSON(w, want)
+	})
+
+	task, _, err := client.Builds.UpdateTask(TaskSpec{BuildSpec: BuildSpec{BID: 123}, TaskID: 456}, update)
+	if err != nil {
+		t.Errorf("Builds.UpdateTask returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+	if !reflect.DeepEqual(task, want) {
+		t.Errorf("Builds.UpdateTask returned %+v, want %+v", task, want)
+	}
+}
+
+func TestBuildsService_CreateTasks(t *testing.T) {
+	setup()
+	defer teardown()
+
+	create := []*BuildTask{
+		{BID: 123, Op: "foo", UnitType: "t", Unit: "u"},
+		{BID: 123, Op: "bar", UnitType: "t", Unit: "u"},
+	}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.BuildTasksCreate, map[string]string{"BID": "123"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "POST")
+		testBody(t, r, `[{"BID":123,"UnitType":"t","Unit":"u","Op":"foo","StartedAt":null,"EndedAt":null},{"BID":123,"UnitType":"t","Unit":"u","Op":"bar","StartedAt":null,"EndedAt":null}]`+"\n")
+		writeJSON(w, create)
+	})
+
+	tasks, _, err := client.Builds.CreateTasks(BuildSpec{BID: 123}, create)
+	if err != nil {
+		t.Errorf("Builds.CreateTasks returned error: %v", err)
+	}
+	if len(tasks) != len(create) {
+		t.Error("len(tasks) != len(create)")
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+}
+
 func TestBuildsService_GetLog(t *testing.T) {
 	setup()
 	defer teardown()
@@ -187,8 +278,10 @@ func TestBuildsService_GetTaskLog(t *testing.T) {
 
 func normalizeBuildTime(bs ...*Build) {
 	for _, b := range bs {
-		normalizeTime(&b.CreatedAt)
-		normalizeTime(&b.StartedAt.Time)
-		normalizeTime(&b.EndedAt.Time)
+		if b != nil {
+			normalizeTime(&b.CreatedAt)
+			normalizeTime(&b.StartedAt.Time)
+			normalizeTime(&b.EndedAt.Time)
+		}
 	}
 }
