@@ -3,7 +3,7 @@ package sourcegraph
 import (
 	"fmt"
 
-	"github.com/sqs/go-github/github"
+	"github.com/sourcegraph/go-github/github"
 
 	"strconv"
 	"strings"

@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sqs/go-github/github"
+	"github.com/sourcegraph/go-github/github"
 
 	"strings"
 
