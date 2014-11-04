@@ -112,7 +112,7 @@ const (
 	RedirectOldRepositoryBadgesAndCounters = "repo.redirect-old-badges-and-counters"
 )
 
-var APIRouter = NewAPIRouter("/api")
+var APIRouter = NewAPIRouter(mux.NewRouter().PathPrefix("/api").Subrouter())
 
 // NewAPIRouter creates a new API router with route URL pattern definitions but
 // no handlers attached to the routes.
@@ -120,17 +120,15 @@ var APIRouter = NewAPIRouter("/api")
 // It is in a separate package from app so that other packages may use it to
 // generate URLs without resulting in Go import cycles (and so we can release
 // the router as open-source to support our client library).
-func NewAPIRouter(pathPrefix string) *mux.Router {
-	m := mux.NewRouter()
-
-	if pathPrefix != "" && pathPrefix != "/" {
-		m = m.PathPrefix(pathPrefix).Subrouter()
+func NewAPIRouter(base *mux.Router) *mux.Router {
+	if base == nil {
+		base = mux.NewRouter()
 	}
 
-	m.StrictSlash(true)
+	base.StrictSlash(true)
 
-	m.Path("/builds").Methods("GET").Name(Builds)
-	builds := m.PathPrefix("/builds").Subrouter()
+	base.Path("/builds").Methods("GET").Name(Builds)
+	builds := base.PathPrefix("/builds").Subrouter()
 	buildPath := "/{BID}"
 	builds.Path(buildPath).Methods("GET").Name(Build)
 	builds.Path(buildPath).Methods("PUT").Name(BuildUpdate)
@@ -141,12 +139,12 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	build.Path("/tasks/{TaskID}").Methods("PUT").Name(BuildTaskUpdate)
 	build.Path("/tasks/{TaskID}/log").Methods("GET").Name(BuildTaskLog)
 
-	m.Path("/repos").Methods("GET").Name(Repositories)
-	m.Path("/repos").Methods("POST").Name(RepositoriesCreate)
+	base.Path("/repos").Methods("GET").Name(Repositories)
+	base.Path("/repos").Methods("POST").Name(RepositoriesCreate)
 
-	m.Path("/repos/github.com/{owner:[^/]+}/{repo:[^/]+}/{what:(?:badges|counters)}/{which}.png").Methods("GET").Name(RedirectOldRepositoryBadgesAndCounters)
+	base.Path("/repos/github.com/{owner:[^/]+}/{repo:[^/]+}/{what:(?:badges|counters)}/{which}.png").Methods("GET").Name(RedirectOldRepositoryBadgesAndCounters)
 
-	repoRev := m.PathPrefix(`/repos/` + RepoRevSpecPattern).PostMatchFunc(FixRepoRevSpecVars).BuildVarsFunc(PrepareRepoRevSpecRouteVars).Subrouter()
+	repoRev := base.PathPrefix(`/repos/` + RepoRevSpecPattern).PostMatchFunc(FixRepoRevSpecVars).BuildVarsFunc(PrepareRepoRevSpecRouteVars).Subrouter()
 	repoRev.Path("/.stats").Methods("PUT").Name(RepositoryComputeStats)
 	repoRev.Path("/.stats").Methods("GET").Name(RepositoryStats)
 	repoRev.Path("/.authors").Methods("GET").Name(RepositoryAuthors)
@@ -159,9 +157,9 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 
 	// repo contains routes that are NOT specific to a revision. In these routes, the URL may not contain a revspec after the repo (that is, no "github.com/foo/bar@myrevspec").
 	repoPath := `/repos/` + RepoSpecPathPattern
-	m.Path(repoPath).Methods("GET").Name(Repository)
-	m.Path(repoPath).Methods("PUT").Name(RepositoriesGetOrCreate)
-	repo := m.PathPrefix(repoPath).Subrouter()
+	base.Path(repoPath).Methods("GET").Name(Repository)
+	base.Path(repoPath).Methods("PUT").Name(RepositoriesGetOrCreate)
+	repo := base.PathPrefix(repoPath).Subrouter()
 	repo.Path("/.clients").Methods("GET").Name(RepositoryClients)
 	repo.Path("/.dependents").Methods("GET").Name(RepositoryDependents)
 	repo.Path("/.external-profile").Methods("PUT").Name(RepositoryRefreshProfile)
@@ -208,10 +206,10 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	// entry routes.
 	repoRev.Path("/.tree" + TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET").Name(RepositoryTreeEntry)
 
-	m.Path("/people").Methods("GET").Name(People)
+	base.Path("/people").Methods("GET").Name(People)
 	personPath := `/people/` + PersonSpecPattern
-	m.Path(personPath).Methods("GET").Name(Person)
-	person := m.PathPrefix(personPath).Subrouter()
+	base.Path(personPath).Methods("GET").Name(Person)
+	person := base.PathPrefix(personPath).Subrouter()
 	person.Path("/orgs").Methods("GET").Name(PersonOrgs)
 	person.Path("/clients").Methods("GET").Name(PersonClients)
 	person.Path("/authors").Methods("GET").Name(PersonAuthors)
@@ -223,21 +221,21 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	person.Path("/stats").Methods("PUT").Name(PersonComputeStats)
 	person.Path("/settings").Methods("GET").Name(PersonSettings)
 	person.Path("/settings").Methods("PUT").Name(PersonSettingsUpdate)
-	m.Path("/external-users/github/{GitHubUserSpec}").Methods("GET").Name(PersonFromGitHub)
+	base.Path("/external-users/github/{GitHubUserSpec}").Methods("GET").Name(PersonFromGitHub)
 
 	orgPath := "/orgs/{OrgSpec}"
-	m.Path(orgPath).Methods("GET").Name(Org)
-	org := m.PathPrefix(orgPath).Subrouter()
+	base.Path(orgPath).Methods("GET").Name(Org)
+	org := base.PathPrefix(orgPath).Subrouter()
 	org.Path("/settings").Methods("GET").Name(OrgSettings)
 	org.Path("/settings").Methods("PUT").Name(OrgSettingsUpdate)
 	org.Path("/members").Methods("GET").Name(OrgMembers)
 
-	m.Path("/search").Methods("GET").Name(Search)
+	base.Path("/search").Methods("GET").Name(Search)
 
-	m.Path("/snippet").Methods("GET", "POST", "ORIGIN").Name(Snippet)
+	base.Path("/snippet").Methods("GET", "POST", "ORIGIN").Name(Snippet)
 
-	m.Path("/.defs").Methods("GET").Name(Defs)
-	m.Path(`/.defs/{SID:\d+}`).Methods("GET").Name(DefBySID)
+	base.Path("/.defs").Methods("GET").Name(Defs)
+	base.Path(`/.defs/{SID:\d+}`).Methods("GET").Name(DefBySID)
 
 	// See router_util/def_route.go for an explanation of how we match def
 	// routes.
@@ -250,13 +248,13 @@ func NewAPIRouter(pathPrefix string) *mux.Router {
 	def.Path("/.dependents").Methods("GET").Name(DefDependents)
 	def.Path("/.versions").Methods("GET").Name(DefVersions)
 
-	m.Path("/.units").Methods("GET").Name(Units)
+	base.Path("/.units").Methods("GET").Name(Units)
 	unitPath := `/.units/.{UnitType}/{Unit:.*}`
 	repoRev.Path(unitPath).Methods("GET").Name(Unit)
 
-	m.Path("/ext/github/webhook").Methods("POST").Name(ExtGitHubReceiveWebhook)
+	base.Path("/ext/github/webhook").Methods("POST").Name(ExtGitHubReceiveWebhook)
 
-	return m
+	return base
 }
 
 func URIToDef(key graph.DefKey) *url.URL {
