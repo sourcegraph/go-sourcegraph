@@ -11,7 +11,7 @@ import (
 )
 
 func TestMatch(t *testing.T) {
-	router := NewAPIRouter("/")
+	router := NewAPIRouter(nil)
 	tests := []struct {
 		path          string
 		wantNoMatch   bool

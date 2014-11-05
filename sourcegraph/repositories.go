@@ -365,6 +365,13 @@ type RepositorySettings struct {
 	BuildPushes *bool `db:"build_pushes" json:",omitempty"`
 
 	SrcbotEnabled *bool `json:",omitempty"`
+
+	// UseSSHPrivateKey is whether Sourcegraph should clone and update
+	// the repository using an SSH key, and whether it should copy the
+	// corresponding public key to the repository's origin host as an
+	// authorized key. It is only necessary for private repositories
+	// and for write operations on public repositories.
+	UseSSHPrivateKey *bool `db:"use_ssh_private_key" json:",omitempty"`
 }
 
 func (s *repositoriesService) GetSettings(repo RepoSpec) (*RepositorySettings, Response, error) {
@@ -576,6 +583,10 @@ type RepositoryListOptions struct {
 	Direction string `url:",omitempty" json:",omitempty"`
 
 	NoFork bool `url:",omitempty" json:",omitempty"`
+
+	Type string `url:",omitempty" json:",omitempty"` // "public" or "private" (empty default means "all")
+
+	State string `url:",omitempty" json:",omitempty"` // "enabled" or "disabled" (empty default means return "all")
 
 	Owner string `url:",omitempty" json:",omitempty"`
 
