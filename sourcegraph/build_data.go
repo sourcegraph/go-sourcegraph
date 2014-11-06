@@ -14,7 +14,7 @@ type BuildDataService interface {
 	List(repo RepoRevSpec, opt *BuildDataListOptions) ([]*buildstore.BuildDataFileInfo, Response, error)
 
 	// Get gets a build data file.
-	Get(file BuildDataFileSpec) ([]byte, Response, error)
+	Get(file BuildDataFileSpec) (io.ReadCloser, Response, error)
 
 	// Upload uploads a build data file.
 	Upload(spec BuildDataFileSpec, body io.ReadCloser) (Response, error)
@@ -78,7 +78,7 @@ func (s *buildDataService) List(repo RepoRevSpec, opt *BuildDataListOptions) ([]
 	return fileInfo, resp, nil
 }
 
-func (s *buildDataService) Get(file BuildDataFileSpec) ([]byte, Response, error) {
+func (s *buildDataService) Get(file BuildDataFileSpec) (io.ReadCloser, Response, error) {
 	url, err := s.client.url(router.RepositoryBuildDataEntry, file.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
@@ -90,13 +90,12 @@ func (s *buildDataService) Get(file BuildDataFileSpec) ([]byte, Response, error)
 	}
 	req.Header.Set("accept", BuildDataFileContentType)
 
-	var data []byte
-	resp, err := s.client.Do(req, &data)
+	resp, err := s.client.Do(req, preserveBody)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return data, resp, nil
+	return resp.Body, resp, nil
 }
 
 func (s *buildDataService) Upload(file BuildDataFileSpec, body io.ReadCloser) (Response, error) {
@@ -121,7 +120,7 @@ func (s *buildDataService) Upload(file BuildDataFileSpec, body io.ReadCloser) (R
 
 type MockBuildDataService struct {
 	List_   func(repo RepoRevSpec, opt *BuildDataListOptions) ([]*buildstore.BuildDataFileInfo, Response, error)
-	Get_    func(file BuildDataFileSpec) ([]byte, Response, error)
+	Get_    func(file BuildDataFileSpec) (io.ReadCloser, Response, error)
 	Upload_ func(spec BuildDataFileSpec, body io.ReadCloser) (Response, error)
 }
 
@@ -134,7 +133,7 @@ func (s MockBuildDataService) List(repo RepoRevSpec, opt *BuildDataListOptions) 
 	return s.List_(repo, opt)
 }
 
-func (s MockBuildDataService) Get(file BuildDataFileSpec) ([]byte, Response, error) {
+func (s MockBuildDataService) Get(file BuildDataFileSpec) (io.ReadCloser, Response, error) {
 	if s.Get_ == nil {
 		return nil, &HTTPResponse{}, nil
 	}

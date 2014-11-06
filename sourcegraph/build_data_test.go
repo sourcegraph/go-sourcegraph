@@ -27,15 +27,20 @@ func TestBuildDataService_Get(t *testing.T) {
 
 	file, _, err := client.BuildData.Get(BuildDataFileSpec{RepoRev: RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"}, Path: "a/b"})
 	if err != nil {
-		t.Errorf("BuildData.Get returned error: %v", err)
+		t.Fatalf("BuildData.Get returned error: %v", err)
 	}
+	defer file.Close()
 
 	if !called {
 		t.Fatal("!called")
 	}
 
-	if !reflect.DeepEqual(file, want) {
-		t.Errorf("BuildData.Get returned %+v, want %+v", file, want)
+	fileData, err := ioutil.ReadAll(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(fileData, want) {
+		t.Errorf("BuildData.Get returned file data %+v, want %+v", fileData, want)
 	}
 }
 

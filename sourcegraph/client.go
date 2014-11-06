@@ -213,16 +213,24 @@ func (o ListOptions) Offset() int {
 	return (o.PageOrDefault() - 1) * o.PerPageOrDefault()
 }
 
-// Do sends an API request and returns the API response.  The API response is
-// decoded and stored in the value pointed to by v, or returned as an error if
-// an API error has occurred.
+type doKey int // sentinel value type for (*Client).Do v parameter
+
+const preserveBody doKey = iota // when passed as v to (*Client).Do, the resp body is neither parsed nor closed
+
+// Do sends an API request and returns the API response.  The API
+// response is decoded and stored in the value pointed to by v, or
+// returned as an error if an API error has occurred. If v is
+// preserveBody, then the HTTP response body is not closed by Do; the
+// caller is responsible for closing it.
 func (c *Client) Do(req *http.Request, v interface{}) (*HTTPResponse, error) {
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
-	defer resp.Body.Close()
+	if v != preserveBody {
+		defer resp.Body.Close()
+	}
 
 	response := newResponse(resp)
 
@@ -236,7 +244,7 @@ func (c *Client) Do(req *http.Request, v interface{}) (*HTTPResponse, error) {
 	if v != nil {
 		if bp, ok := v.(*[]byte); ok {
 			*bp, err = ioutil.ReadAll(resp.Body)
-		} else {
+		} else if v != preserveBody {
 			err = json.NewDecoder(resp.Body).Decode(v)
 		}
 	}
