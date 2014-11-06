@@ -309,6 +309,7 @@ type BuildUpdate struct {
 	EndedAt   *time.Time
 	Host      *string
 	Success   *bool
+	Purged    *bool
 	Failure   *bool
 }
 
