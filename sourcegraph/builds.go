@@ -88,6 +88,8 @@ type Build struct {
 	// Host is the hostname of the machine that is working on this build.
 	Host string `json:",omitempty"`
 
+	Purged bool // whether the build's data (defs/refs/etc.) has been purged
+
 	BuildConfig
 
 	// RepoURI is populated (as a convenience) in results by Get and List but
