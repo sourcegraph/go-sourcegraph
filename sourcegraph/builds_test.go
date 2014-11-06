@@ -140,7 +140,7 @@ func TestBuildsService_Update(t *testing.T) {
 	mux.HandleFunc(urlPath(t, router.BuildUpdate, map[string]string{"BID": "123"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
-		testBody(t, r, `{"StartedAt":null,"EndedAt":null,"Host":"h","Success":null,"Purged":null,"Failure":null,"Priority":null}`+"\n")
+		testBody(t, r, `{"StartedAt":null,"EndedAt":null,"HeartbeatAt":null,"Host":"h","Success":null,"Purged":null,"Failure":null,"Killed":null,"Priority":null}`+"\n")
 
 		writeJSON(w, want)
 	})

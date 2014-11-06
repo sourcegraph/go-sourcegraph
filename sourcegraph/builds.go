@@ -314,13 +314,15 @@ func (s *buildsService) ListBuildTasks(build BuildSpec, opt *BuildTaskListOption
 // A BuildUpdate contains updated information to update on an existing
 // build.
 type BuildUpdate struct {
-	StartedAt *time.Time
-	EndedAt   *time.Time
-	Host      *string
-	Success   *bool
-	Purged    *bool
-	Failure   *bool
-	Priority  *int
+	StartedAt   *time.Time
+	EndedAt     *time.Time
+	HeartbeatAt *time.Time
+	Host        *string
+	Success     *bool
+	Purged      *bool
+	Failure     *bool
+	Killed      *bool
+	Priority    *int
 }
 
 func (s *buildsService) Update(build BuildSpec, info BuildUpdate) (*Build, Response, error) {
