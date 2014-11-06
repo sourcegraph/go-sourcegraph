@@ -77,13 +77,20 @@ func (s *TaskSpec) RouteVars() map[string]string {
 // A Build represents a scheduled, completed, or failed repository analysis and
 // import job.
 type Build struct {
-	BID       int64 `json:",omitempty"`
-	Repo      repo.RID
-	CreatedAt time.Time          `db:"created_at"`
-	StartedAt db_common.NullTime `db:"started_at"`
-	EndedAt   db_common.NullTime `db:"ended_at"`
-	Success   bool               `json:",omitempty"`
-	Failure   bool               `json:",omitempty"`
+	BID         int64 `json:",omitempty"`
+	Repo        repo.RID
+	CreatedAt   time.Time          `db:"created_at"`
+	StartedAt   db_common.NullTime `db:"started_at"`
+	EndedAt     db_common.NullTime `db:"ended_at"`
+	HeartbeatAt db_common.NullTime `db:"heartbeat_at"`
+	Success     bool               `json:",omitempty"`
+	Failure     bool               `json:",omitempty"`
+
+	// Killed is true if this build's worker didn't exit on its own
+	// accord. It is generally set when no heartbeat has been received
+	// within a certain interval. If Killed is true, then Failure must
+	// also always be set to true.
+	Killed bool `json:",omitempty"`
 
 	// Host is the hostname of the machine that is working on this build.
 	Host string `json:",omitempty"`
