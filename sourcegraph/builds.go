@@ -313,6 +313,7 @@ type BuildUpdate struct {
 	Success   *bool
 	Purged    *bool
 	Failure   *bool
+	Priority  *int
 }
 
 func (s *buildsService) Update(build BuildSpec, info BuildUpdate) (*Build, Response, error) {
