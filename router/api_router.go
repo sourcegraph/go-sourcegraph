@@ -89,6 +89,7 @@ const (
 
 	Defs          = "defs"
 	Def           = "def"
+	DefBySID      = "def-by-sid"
 	DefExamples   = "def.examples"
 	DefAuthors    = "def.authors"
 	DefClients    = "def.clients"
@@ -234,6 +235,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	base.Path("/snippet").Methods("GET", "POST", "ORIGIN").Name(Snippet)
 
 	base.Path("/.defs").Methods("GET").Name(Defs)
+	base.Path(`/.defs/{SID:\d+}`).Methods("GET").Name(DefBySID)
 
 	// See router_util/def_route.go for an explanation of how we match def
 	// routes.

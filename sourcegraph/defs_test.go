@@ -15,7 +15,7 @@ func TestDefsService_Get(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := &Def{Def: graph.Def{Name: "n"}}
+	want := &Def{Def: graph.Def{SID: 1}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.Def, map[string]string{"RepoSpec": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +44,7 @@ func TestDefsService_List(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*Def{{Def: graph.Def{Name: "n"}}}
+	want := []*Def{{Def: graph.Def{SID: 1}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.Defs, nil), func(w http.ResponseWriter, r *http.Request) {
@@ -204,7 +204,7 @@ func TestDefsService_ListVersions(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*Def{{Def: graph.Def{Name: "n"}}}
+	want := []*Def{{Def: graph.Def{SID: 1}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.DefVersions, map[string]string{"RepoSpec": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
