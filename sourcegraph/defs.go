@@ -296,8 +296,8 @@ type DefAuthorship struct {
 	// Exported is whether the def is exported.
 	Exported bool
 
-	Chars           int     `db:"chars"`
-	CharsProportion float64 `db:"chars_proportion"`
+	Bytes           int
+	BytesProportion float64
 }
 
 type DefAuthor struct {
@@ -305,6 +305,12 @@ type DefAuthor struct {
 	Email nnz.String
 	DefAuthorship
 }
+
+type DefAuthorsByBytes []*DefAuthor
+
+func (v DefAuthorsByBytes) Len() int           { return len(v) }
+func (v DefAuthorsByBytes) Swap(i, j int)      { v[i], v[j] = v[j], v[i] }
+func (v DefAuthorsByBytes) Less(i, j int) bool { return v[i].Bytes < v[j].Bytes }
 
 type AugmentedDefAuthor struct {
 	User *person.User
