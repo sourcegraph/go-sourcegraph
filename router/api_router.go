@@ -89,6 +89,7 @@ const (
 
 	Defs          = "defs"
 	Def           = "def"
+	DefRefs       = "def.refs"
 	DefExamples   = "def.examples"
 	DefAuthors    = "def.authors"
 	DefClients    = "def.clients"
@@ -240,6 +241,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	defPath := `/.defs/` + DefPathPattern
 	repoRev.Path(defPath).Methods("GET").PostMatchFunc(FixDefUnitVars).BuildVarsFunc(PrepareDefRouteVars).Name(Def)
 	def := repoRev.PathPrefix(defPath).PostMatchFunc(FixDefUnitVars).BuildVarsFunc(PrepareDefRouteVars).Subrouter()
+	def.Path("/.refs").Methods("GET").Name(DefRefs)
 	def.Path("/.examples").Methods("GET").Name(DefExamples)
 	def.Path("/.authors").Methods("GET").Name(DefAuthors)
 	def.Path("/.clients").Methods("GET").Name(DefClients)

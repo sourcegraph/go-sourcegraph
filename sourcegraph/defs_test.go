@@ -88,6 +88,35 @@ func TestDefsService_List(t *testing.T) {
 	}
 }
 
+func TestDefsService_ListRefs(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := []*Ref{{Ref: graph.Ref{File: "f"}}}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.DefRefs, map[string]string{"RepoSpec": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+		testFormValues(t, r, values{"Authorship": "true"})
+
+		writeJSON(w, want)
+	})
+
+	refs, _, err := client.Defs.ListRefs(DefSpec{Repo: "r.com/x", UnitType: "t", Unit: "u", Path: "p"}, &DefListRefsOptions{Authorship: true})
+	if err != nil {
+		t.Errorf("Defs.ListRefs returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(refs, want) {
+		t.Errorf("Defs.ListRefs returned %+v, want %+v", refs, want)
+	}
+}
+
 func TestDefsService_ListExamples(t *testing.T) {
 	setup()
 	defer teardown()
