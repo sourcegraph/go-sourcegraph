@@ -70,6 +70,21 @@ func TestMatch(t *testing.T) {
 			wantRouteName: RepositoryAuthors,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev==abcd"},
 		},
+		{
+			path:          "/repos/repohost.com/foo@myrev/subrev/.authors",
+			wantRouteName: RepositoryAuthors,
+			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev/subrev"},
+		},
+		{
+			path:          "/repos/repohost.com/foo@myrev/subrev1/subrev2/.authors",
+			wantRouteName: RepositoryAuthors,
+			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev/subrev1/subrev2"},
+		},
+		{
+			path:          "/repos/repohost.com/foo@myrev/subrev==abcd/.authors",
+			wantRouteName: RepositoryAuthors,
+			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev/subrev==abcd"},
+		},
 
 		// Repository sub-routes that don't allow an "@REVSPEC" revision.
 		{
@@ -114,6 +129,11 @@ func TestMatch(t *testing.T) {
 			wantRouteName: RepositoryTreeEntry,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "mycommitid", "Path": "my/file"},
 		},
+		{
+			path:          "/repos/repohost.com/foo@myrev/subrev/.tree/my/file",
+			wantRouteName: RepositoryTreeEntry,
+			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev/subrev", "Path": "my/file"},
+		},
 
 		// Repository build data
 		{
@@ -138,6 +158,11 @@ func TestMatch(t *testing.T) {
 			path:          "/repos/repohost.com/foo@mycommitid/.defs/.t/.def/p",
 			wantRouteName: Def,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "UnitType": "t", "Unit": ".", "Path": "p", "Rev": "mycommitid"},
+		},
+		{
+			path:          "/repos/repohost.com/foo@myrev/mysubrev/.defs/.t/.def/p",
+			wantRouteName: Def,
+			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "UnitType": "t", "Unit": ".", "Path": "p", "Rev": "myrev/mysubrev"},
 		},
 		{
 			path:          "/repos/repohost.com/foo/.defs/.t/.def/p",
