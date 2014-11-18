@@ -167,8 +167,8 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	repo.Path("/.settings").Methods("GET").Name(RepositorySettings)
 	repo.Path("/.settings").Methods("PUT").Name(RepositorySettingsUpdate)
 	repo.Path("/.commits").Methods("GET").Name(RepoCommits)
-	repo.Path("/.commits/{Rev}").Methods("GET").Name(RepoCommit)
-	repo.Path("/.commits/{Rev}/compare").Methods("GET").Name(RepoCompareCommits)
+	repo.Path("/.commits/{Rev:.+}/compare").Methods("GET").Name(RepoCompareCommits)
+	repo.Path("/.commits/{Rev:.+}").Methods("GET").Name(RepoCommit)
 	repo.Path("/.branches").Methods("GET").Name(RepoBranches)
 	repo.Path("/.tags").Methods("GET").Name(RepoTags)
 	repo.Path("/.badges").Methods("GET").Name(RepositoryBadges)
@@ -189,7 +189,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	issue := repo.PathPrefix(issuePath).Subrouter()
 	issue.Path("/comments").Methods("GET").Name(RepoIssueComments)
 
-	deltaPath := "/.deltas/{Rev}..{DeltaHeadRev}"
+	deltaPath := "/.deltas/{Rev:.+}..{DeltaHeadRev:.+}"
 	repo.Path(deltaPath).Methods("GET").Name(Delta)
 	deltas := repo.PathPrefix(deltaPath).Subrouter()
 	deltas.Path("/defs").Methods("GET").Name(DeltaDefs)

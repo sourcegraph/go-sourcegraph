@@ -111,6 +111,11 @@ func TestMatch(t *testing.T) {
 			wantRouteName: RepoCompareCommits,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "123abc"},
 		},
+		{
+			path:          "/repos/repohost.com/foo/.commits/123abc/xyz/compare",
+			wantRouteName: RepoCompareCommits,
+			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "123abc/xyz"},
+		},
 
 		// Repository tree
 		{
@@ -200,6 +205,18 @@ func TestMatch(t *testing.T) {
 			path:          "/repos/repohost.com/foo/.defs/.t/u1/u2/.def/p1/p2/.authors",
 			wantRouteName: DefAuthors,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "UnitType": "t", "Unit": "u1/u2", "Path": "p1/p2"},
+		},
+
+		// Deltas
+		{
+			path:          "/repos/repohost.com/foo/.deltas/branch1..branch2",
+			wantRouteName: Delta,
+			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "branch1", "DeltaHeadRev": "branch2"},
+		},
+		{
+			path:          "/repos/repohost.com/foo/.deltas/a/b/c..x/y/z",
+			wantRouteName: Delta,
+			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "a/b/c", "DeltaHeadRev": "x/y/z"},
 		},
 
 		// Person
