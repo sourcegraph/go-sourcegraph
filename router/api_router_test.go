@@ -107,12 +107,12 @@ func TestMatch(t *testing.T) {
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "123abc"},
 		},
 		{
-			path:          "/repos/repohost.com/foo/.commits/123abc/compare",
+			path:          "/repos/repohost.com/foo/.commits/123abc/.compare",
 			wantRouteName: RepoCompareCommits,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "123abc"},
 		},
 		{
-			path:          "/repos/repohost.com/foo/.commits/123abc/xyz/compare",
+			path:          "/repos/repohost.com/foo/.commits/123abc/xyz/.compare",
 			wantRouteName: RepoCompareCommits,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "123abc/xyz"},
 		},
