@@ -13,7 +13,10 @@ import (
 var RepoSpecPathPattern = `{RepoSpec:(?:(?:[^/.@][^/@]*/)+(?:[^/.@][^/@]*))|(?:R\$\d+)}`
 
 // RepoRevSpecPattern is the path pattern for encoding RepoRevSpec.
-var RepoRevSpecPattern = RepoSpecPathPattern + `{Rev:(?:@(?:(?:[^/@]*(?:/[^.@/]+)*)))?}`
+var RepoRevSpecPattern = RepoSpecPathPattern + `{Rev:(?:@` + PathComponentNoLeadingDot + `)?}`
+
+// PathComponentNoLeadingDot is a pattern that matches any string that doesn't contain "/.".
+var PathComponentNoLeadingDot = `(?:[^/]*(?:/[^./]+)*)`
 
 // FixRepoRevSpecVars is a mux.PostMatchFunc that cleans and normalizes the
 // RepoRevSpecPattern vars.

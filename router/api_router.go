@@ -189,16 +189,16 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	issue := repo.PathPrefix(issuePath).Subrouter()
 	issue.Path("/comments").Methods("GET").Name(RepoIssueComments)
 
-	deltaPath := "/.deltas/{Rev:.+}..{DeltaHeadRev:.+}"
+	deltaPath := "/.deltas/{Rev:.+}..{DeltaHeadRev:" + PathComponentNoLeadingDot + "}"
 	repo.Path(deltaPath).Methods("GET").Name(Delta)
 	deltas := repo.PathPrefix(deltaPath).Subrouter()
-	deltas.Path("/defs").Methods("GET").Name(DeltaDefs)
-	deltas.Path("/dependencies").Methods("GET").Name(DeltaDependencies)
-	deltas.Path("/files").Methods("GET").Name(DeltaFiles)
-	deltas.Path("/affected-authors").Methods("GET").Name(DeltaAffectedAuthors)
-	deltas.Path("/affected-clients").Methods("GET").Name(DeltaAffectedClients)
-	deltas.Path("/affected-dependents").Methods("GET").Name(DeltaAffectedDependents)
-	deltas.Path("/reviewers").Methods("GET").Name(DeltaReviewers)
+	deltas.Path("/.defs").Methods("GET").Name(DeltaDefs)
+	deltas.Path("/.dependencies").Methods("GET").Name(DeltaDependencies)
+	deltas.Path("/.files").Methods("GET").Name(DeltaFiles)
+	deltas.Path("/.affected-authors").Methods("GET").Name(DeltaAffectedAuthors)
+	deltas.Path("/.affected-clients").Methods("GET").Name(DeltaAffectedClients)
+	deltas.Path("/.affected-dependents").Methods("GET").Name(DeltaAffectedDependents)
+	deltas.Path("/.reviewers").Methods("GET").Name(DeltaReviewers)
 
 	repo.Path("/.deltas-incoming").Methods("GET").Name(DeltasIncoming)
 
