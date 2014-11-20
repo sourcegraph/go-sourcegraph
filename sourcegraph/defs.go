@@ -19,7 +19,7 @@ type DefsService interface {
 	// Get fetches a def.
 	Get(def DefSpec, opt *DefGetOptions) (*Def, Response, error)
 
-	// List defs.
+	// List defs. List is a no-op if opt.RepositoryURI or opt.Query are empty.
 	List(opt *DefListOptions) ([]*Def, Response, error)
 
 	// ListRefs lists references to def.
