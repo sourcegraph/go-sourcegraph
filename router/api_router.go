@@ -80,9 +80,6 @@ const (
 	RepoTags           = "repo.tags"
 	RepoBranches       = "repo.branches"
 
-	Unit  = "unit"
-	Units = "units"
-
 	Search = "search"
 
 	Snippet = "snippet"
@@ -247,10 +244,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	def.Path("/.clients").Methods("GET").Name(DefClients)
 	def.Path("/.dependents").Methods("GET").Name(DefDependents)
 	def.Path("/.versions").Methods("GET").Name(DefVersions)
-
-	base.Path("/.units").Methods("GET").Name(Units)
-	unitPath := `/.units/.{UnitType}/{Unit:.*}`
-	repoRev.Path(unitPath).Methods("GET").Name(Unit)
 
 	base.Path("/ext/github/webhook").Methods("POST").Name(ExtGitHubReceiveWebhook)
 
