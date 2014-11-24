@@ -3,7 +3,6 @@ package sourcegraph
 import (
 	"fmt"
 	"html/template"
-	"net/url"
 	"time"
 
 	"github.com/sourcegraph/go-nnz/nnz"
@@ -42,11 +41,8 @@ type DefsService interface {
 	ListVersions(def DefSpec, opt *DefListVersionsOptions) ([]*Def, Response, error)
 }
 
-// DefSpec specifies a def. If SID == 0, then Repo, UnitType, and Unit
-// must all be non-empty. (It is valid for Path to be empty.)
+// DefSpec specifies a def.
 type DefSpec struct {
-	SID int64
-
 	Repo     string
 	CommitID string
 	UnitType string
@@ -63,7 +59,7 @@ func (s *DefSpec) RouteVars() map[string]string {
 }
 
 // DefKey returns the def key specified by s, using the Repo, UnitType,
-// Unit, and Path fields of s. If only s.SID is set, DefKey will panic.
+// Unit, and Path fields of s.
 func (s *DefSpec) DefKey() graph.DefKey {
 	if s.Repo == "" {
 		panic("Repo is empty")
@@ -115,7 +111,6 @@ type Def struct {
 // DefSpec returns the DefSpec that specifies s.
 func (s *Def) DefSpec() DefSpec {
 	spec := NewDefSpecFromDefKey(s.Def.DefKey)
-	spec.SID = int64(s.Def.SID)
 	return spec
 }
 
@@ -140,13 +135,7 @@ type DefGetOptions struct {
 }
 
 func (s *defsService) Get(def DefSpec, opt *DefGetOptions) (*Def, Response, error) {
-	var url *url.URL
-	var err error
-	if def.SID != 0 {
-		url, err = s.client.url(router.DefBySID, map[string]string{"SID": fmt.Sprintf("%d", def.SID)}, opt)
-	} else {
-		url, err = s.client.url(router.Def, def.RouteVars(), opt)
-	}
+	url, err := s.client.url(router.Def, def.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
