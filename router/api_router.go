@@ -80,15 +80,13 @@ const (
 	RepoTags           = "repo.tags"
 	RepoBranches       = "repo.branches"
 
-	Unit  = "unit"
-	Units = "units"
-
 	Search = "search"
 
 	Snippet = "snippet"
 
 	Defs          = "defs"
 	Def           = "def"
+	DefRefs       = "def.refs"
 	DefExamples   = "def.examples"
 	DefAuthors    = "def.authors"
 	DefClients    = "def.clients"
@@ -240,15 +238,12 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	defPath := `/.defs/` + DefPathPattern
 	repoRev.Path(defPath).Methods("GET").PostMatchFunc(FixDefUnitVars).BuildVarsFunc(PrepareDefRouteVars).Name(Def)
 	def := repoRev.PathPrefix(defPath).PostMatchFunc(FixDefUnitVars).BuildVarsFunc(PrepareDefRouteVars).Subrouter()
+	def.Path("/.refs").Methods("GET").Name(DefRefs)
 	def.Path("/.examples").Methods("GET").Name(DefExamples)
 	def.Path("/.authors").Methods("GET").Name(DefAuthors)
 	def.Path("/.clients").Methods("GET").Name(DefClients)
 	def.Path("/.dependents").Methods("GET").Name(DefDependents)
 	def.Path("/.versions").Methods("GET").Name(DefVersions)
-
-	base.Path("/.units").Methods("GET").Name(Units)
-	unitPath := `/.units/.{UnitType}/{Unit:.*}`
-	repoRev.Path(unitPath).Methods("GET").Name(Unit)
 
 	base.Path("/ext/github/webhook").Methods("POST").Name(ExtGitHubReceiveWebhook)
 

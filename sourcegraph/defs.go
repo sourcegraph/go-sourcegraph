@@ -22,6 +22,9 @@ type DefsService interface {
 	// List defs.
 	List(opt *DefListOptions) ([]*Def, Response, error)
 
+	// ListRefs lists references to def.
+	ListRefs(def DefSpec, opt *DefListRefsOptions) ([]*Ref, Response, error)
+
 	// ListExamples lists examples for def.
 	ListExamples(def DefSpec, opt *DefListExamplesOptions) ([]*Example, Response, error)
 
@@ -223,6 +226,44 @@ func (s *defsService) List(opt *DefListOptions) ([]*Def, Response, error) {
 	return defs, resp, nil
 }
 
+type Ref struct {
+	graph.Ref
+	Authorship *AuthorshipInfo
+}
+
+type Refs []*Ref
+
+func (r *Ref) sortKey() string     { return fmt.Sprintf("%+v", r) }
+func (vs Refs) Len() int           { return len(vs) }
+func (vs Refs) Swap(i, j int)      { vs[i], vs[j] = vs[j], vs[i] }
+func (vs Refs) Less(i, j int) bool { return vs[i].sortKey() < vs[j].sortKey() }
+
+type DefListRefsOptions struct {
+	Authorship bool   `url:",omitempty"` // whether to fetch authorship info about the refs
+	Repository string `url:",omitempty"` // only fetch refs from this repository URI
+	ListOptions
+}
+
+func (s *defsService) ListRefs(def DefSpec, opt *DefListRefsOptions) ([]*Ref, Response, error) {
+	url, err := s.client.url(router.DefRefs, def.RouteVars(), opt)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var defRefs []*Ref
+	resp, err := s.client.Do(req, &defRefs)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return defRefs, resp, nil
+}
+
 // Example is a usage example of a def.
 type Example struct {
 	graph.Ref
@@ -254,9 +295,6 @@ type DefListExamplesOptions struct {
 
 	// Filter by a specific Repository URI
 	Repository string
-
-	// Filter by a specific User
-	User string
 
 	ListOptions
 }
@@ -296,8 +334,8 @@ type DefAuthorship struct {
 	// Exported is whether the def is exported.
 	Exported bool
 
-	Chars           int     `db:"chars"`
-	CharsProportion float64 `db:"chars_proportion"`
+	Bytes           int
+	BytesProportion float64
 }
 
 type DefAuthor struct {
@@ -305,6 +343,12 @@ type DefAuthor struct {
 	Email nnz.String
 	DefAuthorship
 }
+
+type DefAuthorsByBytes []*DefAuthor
+
+func (v DefAuthorsByBytes) Len() int           { return len(v) }
+func (v DefAuthorsByBytes) Swap(i, j int)      { v[i], v[j] = v[j], v[i] }
+func (v DefAuthorsByBytes) Less(i, j int) bool { return v[i].Bytes < v[j].Bytes }
 
 type AugmentedDefAuthor struct {
 	User *person.User
@@ -334,13 +378,6 @@ func (s *defsService) ListAuthors(def DefSpec, opt *DefListAuthorsOptions) ([]*A
 	}
 
 	return authors, resp, nil
-}
-
-// RefAuthorship describes the authorship information (author email, date, and
-// commit ID) of a ref. A ref may only have one author.
-type RefAuthorship struct {
-	graph.RefKey
-	AuthorshipInfo
 }
 
 type DefClient struct {
@@ -445,6 +482,7 @@ func (s *defsService) ListVersions(def DefSpec, opt *DefListVersionsOptions) ([]
 type MockDefsService struct {
 	Get_            func(def DefSpec, opt *DefGetOptions) (*Def, Response, error)
 	List_           func(opt *DefListOptions) ([]*Def, Response, error)
+	ListRefs_       func(def DefSpec, opt *DefListRefsOptions) ([]*Ref, Response, error)
 	ListExamples_   func(def DefSpec, opt *DefListExamplesOptions) ([]*Example, Response, error)
 	ListAuthors_    func(def DefSpec, opt *DefListAuthorsOptions) ([]*AugmentedDefAuthor, Response, error)
 	ListClients_    func(def DefSpec, opt *DefListClientsOptions) ([]*AugmentedDefClient, Response, error)
@@ -466,6 +504,10 @@ func (s MockDefsService) List(opt *DefListOptions) ([]*Def, Response, error) {
 		return nil, &HTTPResponse{}, nil
 	}
 	return s.List_(opt)
+}
+
+func (s MockDefsService) ListRefs(def DefSpec, opt *DefListRefsOptions) ([]*Ref, Response, error) {
+	return s.ListRefs_(def, opt)
 }
 
 func (s MockDefsService) ListExamples(def DefSpec, opt *DefListExamplesOptions) ([]*Example, Response, error) {
