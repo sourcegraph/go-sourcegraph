@@ -6,8 +6,8 @@ import (
 	"text/template"
 
 	"github.com/sourcegraph/go-nnz/nnz"
-	"github.com/sourcegraph/go-vcs/vcs"
-	"github.com/sourcegraph/vcsstore/vcsclient"
+	"sourcegraph.com/sourcegraph/go-vcs/vcs"
+	"sourcegraph.com/sourcegraph/vcsstore/vcsclient"
 
 	"strconv"
 	"strings"
