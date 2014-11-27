@@ -102,9 +102,9 @@ func TestPeopleService_GetSettings(t *testing.T) {
 			t.Error("Expected GetSettings to error for %v.", p)
 		}
 	}
-	expectErr(PersonSpec{UID:1000})
-	expectErr(PersonSpec{Email:"doesnotexist"})
-	expectErr(PersonSpec{Login:"doesnotexist"})
+	expectErr(PersonSpec{UID: 1000})
+	expectErr(PersonSpec{Email: "doesnotexist"})
+	expectErr(PersonSpec{Login: "doesnotexist"})
 }
 
 func TestPeopleService_UpdateSettings(t *testing.T) {
