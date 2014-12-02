@@ -9,7 +9,6 @@ import (
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/db_common"
-	"sourcegraph.com/sourcegraph/srclib/repo"
 )
 
 // BuildsService communicates with the build-related endpoints in the
@@ -21,8 +20,8 @@ type BuildsService interface {
 	// List builds.
 	List(opt *BuildListOptions) ([]*Build, Response, error)
 
-	// ListByRepository lists builds for a repository.
-	ListByRepository(repo RepoSpec, opt *BuildListByRepositoryOptions) ([]*Build, Response, error)
+	// ListByRepo lists builds for a repository.
+	ListByRepo(repo RepoSpec, opt *BuildListByRepoOptions) ([]*Build, Response, error)
 
 	// Create a new build. The build will run asynchronously (Create does not
 	// wait for it to return. To monitor the build's status, use Get.)
@@ -78,7 +77,7 @@ func (s *TaskSpec) RouteVars() map[string]string {
 // import job.
 type Build struct {
 	BID         int64 `json:",omitempty"`
-	Repo        repo.RID
+	Repo        int
 	CreatedAt   time.Time          `db:"created_at"`
 	StartedAt   db_common.NullTime `db:"started_at"`
 	EndedAt     db_common.NullTime `db:"ended_at"`
@@ -101,7 +100,7 @@ type Build struct {
 
 	// RepoURI is populated (as a convenience) in results by Get and List but
 	// should not be set when creating builds (it will be ignored).
-	RepoURI repo.URI `db:"repo_uri" json:",omitempty"`
+	RepoURI *string `db:"repo_uri" json:",omitempty"`
 }
 
 func (b *Build) Spec() BuildSpec { return BuildSpec{BID: b.BID} }
@@ -244,13 +243,13 @@ func (s *buildsService) List(opt *BuildListOptions) ([]*Build, Response, error) 
 	return builds, resp, nil
 }
 
-type BuildListByRepositoryOptions struct {
+type BuildListByRepoOptions struct {
 	BuildListOptions
 	Rev string `url:",omitempty"`
 }
 
-func (s *buildsService) ListByRepository(repo RepoSpec, opt *BuildListByRepositoryOptions) ([]*Build, Response, error) {
-	url, err := s.client.url(router.RepositoryBuilds, repo.RouteVars(), opt)
+func (s *buildsService) ListByRepo(repo RepoSpec, opt *BuildListByRepoOptions) ([]*Build, Response, error) {
+	url, err := s.client.url(router.RepoBuilds, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -270,7 +269,7 @@ func (s *buildsService) ListByRepository(repo RepoSpec, opt *BuildListByReposito
 }
 
 func (s *buildsService) Create(repo RepoSpec, opt *BuildCreateOptions) (*Build, Response, error) {
-	url, err := s.client.url(router.RepositoryBuildsCreate, repo.RouteVars(), nil)
+	url, err := s.client.url(router.RepoBuildsCreate, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -450,16 +449,16 @@ func (s *buildsService) GetTaskLog(task TaskSpec, opt *BuildGetLogOptions) (*Log
 }
 
 type MockBuildsService struct {
-	Get_              func(build BuildSpec, opt *BuildGetOptions) (*Build, Response, error)
-	List_             func(opt *BuildListOptions) ([]*Build, Response, error)
-	ListByRepository_ func(repo RepoSpec, opt *BuildListByRepositoryOptions) ([]*Build, Response, error)
-	Create_           func(repo RepoSpec, opt *BuildCreateOptions) (*Build, Response, error)
-	ListBuildTasks_   func(build BuildSpec, opt *BuildTaskListOptions) ([]*BuildTask, Response, error)
-	Update_           func(build BuildSpec, info BuildUpdate) (*Build, Response, error)
-	CreateTasks_      func(build BuildSpec, tasks []*BuildTask) ([]*BuildTask, Response, error)
-	UpdateTask_       func(task TaskSpec, info TaskUpdate) (*BuildTask, Response, error)
-	GetLog_           func(build BuildSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error)
-	GetTaskLog_       func(task TaskSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error)
+	Get_            func(build BuildSpec, opt *BuildGetOptions) (*Build, Response, error)
+	List_           func(opt *BuildListOptions) ([]*Build, Response, error)
+	ListByRepo_     func(repo RepoSpec, opt *BuildListByRepoOptions) ([]*Build, Response, error)
+	Create_         func(repo RepoSpec, opt *BuildCreateOptions) (*Build, Response, error)
+	ListBuildTasks_ func(build BuildSpec, opt *BuildTaskListOptions) ([]*BuildTask, Response, error)
+	Update_         func(build BuildSpec, info BuildUpdate) (*Build, Response, error)
+	CreateTasks_    func(build BuildSpec, tasks []*BuildTask) ([]*BuildTask, Response, error)
+	UpdateTask_     func(task TaskSpec, info TaskUpdate) (*BuildTask, Response, error)
+	GetLog_         func(build BuildSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error)
+	GetTaskLog_     func(task TaskSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error)
 }
 
 var _ BuildsService = MockBuildsService{}
@@ -478,11 +477,11 @@ func (s MockBuildsService) List(opt *BuildListOptions) ([]*Build, Response, erro
 	return s.List_(opt)
 }
 
-func (s MockBuildsService) ListByRepository(repo RepoSpec, opt *BuildListByRepositoryOptions) ([]*Build, Response, error) {
-	if s.ListByRepository_ == nil {
+func (s MockBuildsService) ListByRepo(repo RepoSpec, opt *BuildListByRepoOptions) ([]*Build, Response, error) {
+	if s.ListByRepo_ == nil {
 		return nil, &HTTPResponse{}, nil
 	}
-	return s.ListByRepository_(repo, opt)
+	return s.ListByRepo_(repo, opt)
 }
 
 func (s MockBuildsService) Create(repo RepoSpec, opt *BuildCreateOptions) (*Build, Response, error) {

@@ -8,7 +8,6 @@ import (
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/graph"
 	"sourcegraph.com/sourcegraph/srclib/person"
-	"sourcegraph.com/sourcegraph/srclib/repo"
 )
 
 func TestDefsService_Get(t *testing.T) {
@@ -51,29 +50,29 @@ func TestDefsService_List(t *testing.T) {
 		called = true
 		testMethod(t, r, "GET")
 		testFormValues(t, r, values{
-			"RepositoryURI": "r1",
-			"Sort":          "name",
-			"UnitTypes":     "a,b",
-			"Direction":     "asc",
-			"Kinds":         "a,b",
-			"Exported":      "true",
-			"Doc":           "true",
-			"PerPage":       "1",
-			"Page":          "2",
+			"RepoURI":   "r1",
+			"Sort":      "name",
+			"UnitTypes": "a,b",
+			"Direction": "asc",
+			"Kinds":     "a,b",
+			"Exported":  "true",
+			"Doc":       "true",
+			"PerPage":   "1",
+			"Page":      "2",
 		})
 
 		writeJSON(w, want)
 	})
 
 	defs, _, err := client.Defs.List(&DefListOptions{
-		RepositoryURI: "r1",
-		Sort:          "name",
-		UnitTypes:     []string{"a", "b"},
-		Direction:     "asc",
-		Kinds:         []string{"a", "b"},
-		Exported:      true,
-		Doc:           true,
-		ListOptions:   ListOptions{PerPage: 1, Page: 2},
+		RepoURI:     "r1",
+		Sort:        "name",
+		UnitTypes:   []string{"a", "b"},
+		Direction:   "asc",
+		Kinds:       []string{"a", "b"},
+		Exported:    true,
+		Doc:         true,
+		ListOptions: ListOptions{PerPage: 1, Page: 2},
 	})
 	if err != nil {
 		t.Errorf("Defs.List returned error: %v", err)
@@ -205,7 +204,7 @@ func TestDefsService_ListDependents(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedDefDependent{{Repo: &repo.Repository{URI: "r2"}}}
+	want := []*AugmentedDefDependent{{Repo: &Repo{URI: "r2"}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.DefDependents, map[string]string{"RepoSpec": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {

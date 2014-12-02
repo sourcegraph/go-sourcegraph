@@ -32,7 +32,7 @@ var _ DocPagesService = &docPagesService{}
 type DocPageGetOptions struct{}
 
 func (s *docPagesService) Get(docPage DocPageSpec, opt *DocPageGetOptions) (*graph.DocPage, Response, error) {
-	url, err := s.client.url(router.RepositoryDocPage, docPage.RouteVars(), opt)
+	url, err := s.client.url(router.RepoDocPage, docPage.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}

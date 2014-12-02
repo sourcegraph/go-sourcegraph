@@ -3,18 +3,15 @@ package sourcegraph
 import (
 	"net/http"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
-	"sourcegraph.com/sourcegraph/go-vcs/vcs"
-	"sourcegraph.com/sourcegraph/vcsstore/vcsclient"
-
-	"strings"
-
 	"github.com/kr/pretty"
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
+	"sourcegraph.com/sourcegraph/go-vcs/vcs"
 	"sourcegraph.com/sourcegraph/srclib/person"
-	"sourcegraph.com/sourcegraph/srclib/repo"
+	"sourcegraph.com/sourcegraph/vcsstore/vcsclient"
 )
 
 func TestRepoSpec(t *testing.T) {
@@ -81,23 +78,23 @@ func TestRepoRevSpec(t *testing.T) {
 	}
 }
 
-func TestRepositoriesService_Get(t *testing.T) {
+func TestReposService_Get(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := &Repository{Repository: &repo.Repository{RID: 1}}
+	want := &Repo{RID: 1}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.Repository, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.Repo, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	repo_, _, err := client.Repositories.Get(RepoSpec{URI: "r.com/x"}, nil)
+	repo_, _, err := client.Repos.Get(RepoSpec{URI: "r.com/x"}, nil)
 	if err != nil {
-		t.Errorf("Repositories.Get returned error: %v", err)
+		t.Errorf("Repos.Get returned error: %v", err)
 	}
 
 	if !called {
@@ -105,27 +102,27 @@ func TestRepositoriesService_Get(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(repo_, want) {
-		t.Errorf("Repositories.Get returned %+v, want %+v", repo_, want)
+		t.Errorf("Repos.Get returned %+v, want %+v", repo_, want)
 	}
 }
 
-func TestRepositoriesService_GetStats(t *testing.T) {
+func TestReposService_GetStats(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := repo.Stats{"x": 1, "y": 2}
+	want := RepoStats{"x": 1, "y": 2}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryStats, map[string]string{"RepoSpec": "r.com/x", "Rev": "c"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoStats, map[string]string{"RepoSpec": "r.com/x", "Rev": "c"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	stats, _, err := client.Repositories.GetStats(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"})
+	stats, _, err := client.Repos.GetStats(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"})
 	if err != nil {
-		t.Errorf("Repositories.GetStats returned error: %v", err)
+		t.Errorf("Repos.GetStats returned error: %v", err)
 	}
 
 	if !called {
@@ -133,27 +130,27 @@ func TestRepositoriesService_GetStats(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(stats, want) {
-		t.Errorf("Repositories.GetStats returned %+v, want %+v", stats, want)
+		t.Errorf("Repos.GetStats returned %+v, want %+v", stats, want)
 	}
 }
 
-func TestRepositoriesService_GetOrCreate(t *testing.T) {
+func TestReposService_GetOrCreate(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := &Repository{Repository: &repo.Repository{RID: 1}}
+	want := &Repo{RID: 1}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoriesGetOrCreate, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.ReposGetOrCreate, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 
 		writeJSON(w, want)
 	})
 
-	repo_, _, err := client.Repositories.GetOrCreate(RepoSpec{URI: "r.com/x"}, nil)
+	repo_, _, err := client.Repos.GetOrCreate(RepoSpec{URI: "r.com/x"}, nil)
 	if err != nil {
-		t.Errorf("Repositories.GetOrCreate returned error: %v", err)
+		t.Errorf("Repos.GetOrCreate returned error: %v", err)
 	}
 
 	if !called {
@@ -161,27 +158,27 @@ func TestRepositoriesService_GetOrCreate(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(repo_, want) {
-		t.Errorf("Repositories.GetOrCreate returned %+v, want %+v", repo_, want)
+		t.Errorf("Repos.GetOrCreate returned %+v, want %+v", repo_, want)
 	}
 }
 
-func TestRepositoriesService_GetSettings(t *testing.T) {
+func TestReposService_GetSettings(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := &RepositorySettings{}
+	want := &RepoSettings{}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositorySettings, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoSettings, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	settings, _, err := client.Repositories.GetSettings(RepoSpec{URI: "r.com/x"})
+	settings, _, err := client.Repos.GetSettings(RepoSpec{URI: "r.com/x"})
 	if err != nil {
-		t.Errorf("Repositories.GetSettings returned error: %v", err)
+		t.Errorf("Repos.GetSettings returned error: %v", err)
 	}
 
 	if !called {
@@ -189,18 +186,18 @@ func TestRepositoriesService_GetSettings(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(settings, want) {
-		t.Errorf("Repositories.GetSettings returned %+v, want %+v", settings, want)
+		t.Errorf("Repos.GetSettings returned %+v, want %+v", settings, want)
 	}
 }
 
-func TestRepositoriesService_UpdateSettings(t *testing.T) {
+func TestReposService_UpdateSettings(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := RepositorySettings{}
+	want := RepoSettings{}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositorySettings, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoSettings, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 		testBody(t, r, `{}`+"\n")
@@ -208,9 +205,9 @@ func TestRepositoriesService_UpdateSettings(t *testing.T) {
 		writeJSON(w, want)
 	})
 
-	_, err := client.Repositories.UpdateSettings(RepoSpec{URI: "r.com/x"}, want)
+	_, err := client.Repos.UpdateSettings(RepoSpec{URI: "r.com/x"}, want)
 	if err != nil {
-		t.Errorf("Repositories.UpdateSettings returned error: %v", err)
+		t.Errorf("Repos.UpdateSettings returned error: %v", err)
 	}
 
 	if !called {
@@ -218,19 +215,19 @@ func TestRepositoriesService_UpdateSettings(t *testing.T) {
 	}
 }
 
-func TestRepositoriesService_RefreshProfile(t *testing.T) {
+func TestReposService_RefreshProfile(t *testing.T) {
 	setup()
 	defer teardown()
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryRefreshProfile, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoRefreshProfile, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 	})
 
-	_, err := client.Repositories.RefreshProfile(RepoSpec{URI: "r.com/x"})
+	_, err := client.Repos.RefreshProfile(RepoSpec{URI: "r.com/x"})
 	if err != nil {
-		t.Errorf("Repositories.RefreshProfile returned error: %v", err)
+		t.Errorf("Repos.RefreshProfile returned error: %v", err)
 	}
 
 	if !called {
@@ -238,19 +235,19 @@ func TestRepositoriesService_RefreshProfile(t *testing.T) {
 	}
 }
 
-func TestRepositoriesService_RefreshVCSData(t *testing.T) {
+func TestReposService_RefreshVCSData(t *testing.T) {
 	setup()
 	defer teardown()
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryRefreshVCSData, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoRefreshVCSData, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 	})
 
-	_, err := client.Repositories.RefreshVCSData(RepoSpec{URI: "r.com/x"})
+	_, err := client.Repos.RefreshVCSData(RepoSpec{URI: "r.com/x"})
 	if err != nil {
-		t.Errorf("Repositories.RefreshVCSData returned error: %v", err)
+		t.Errorf("Repos.RefreshVCSData returned error: %v", err)
 	}
 
 	if !called {
@@ -258,19 +255,19 @@ func TestRepositoriesService_RefreshVCSData(t *testing.T) {
 	}
 }
 
-func TestRepositoriesService_ComputeStats(t *testing.T) {
+func TestReposService_ComputeStats(t *testing.T) {
 	setup()
 	defer teardown()
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryComputeStats, map[string]string{"RepoSpec": "r.com/x", "Rev": "c"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoComputeStats, map[string]string{"RepoSpec": "r.com/x", "Rev": "c"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 	})
 
-	_, err := client.Repositories.ComputeStats(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"})
+	_, err := client.Repos.ComputeStats(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"})
 	if err != nil {
-		t.Errorf("Repositories.ComputeStats returned error: %v", err)
+		t.Errorf("Repos.ComputeStats returned error: %v", err)
 	}
 
 	if !called {
@@ -278,7 +275,7 @@ func TestRepositoriesService_ComputeStats(t *testing.T) {
 	}
 }
 
-func TestRepositoriesService_GetBuild(t *testing.T) {
+func TestReposService_GetBuild(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -300,9 +297,9 @@ func TestRepositoriesService_GetBuild(t *testing.T) {
 		writeJSON(w, want)
 	})
 
-	buildInfo, _, err := client.Repositories.GetBuild(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "r"}, nil)
+	buildInfo, _, err := client.Repos.GetBuild(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "r"}, nil)
 	if err != nil {
-		t.Errorf("Repositories.GetBuild returned error: %v", err)
+		t.Errorf("Repos.GetBuild returned error: %v", err)
 	}
 
 	if !called {
@@ -313,19 +310,19 @@ func TestRepositoriesService_GetBuild(t *testing.T) {
 	normalizeBuildTime(buildInfo.Exact)
 	normalizeBuildTime(buildInfo.LastSuccessful)
 	if !reflect.DeepEqual(buildInfo.Exact, want.Exact) {
-		t.Errorf("Repositories.GetBuild returned %+v, want %+v", buildInfo.Exact, want.Exact)
+		t.Errorf("Repos.GetBuild returned %+v, want %+v", buildInfo.Exact, want.Exact)
 	}
 }
 
-func TestRepositoriesService_Create(t *testing.T) {
+func TestReposService_Create(t *testing.T) {
 	setup()
 	defer teardown()
 
-	newRepo := NewRepositorySpec{Type: "git", CloneURLStr: "http://r.com/x"}
-	want := &repo.Repository{RID: 1}
+	newRepo := NewRepoSpec{Type: "git", CloneURLStr: "http://r.com/x"}
+	want := &Repo{RID: 1}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoriesCreate, nil), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.ReposCreate, nil), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "POST")
 		testBody(t, r, `{"Type":"git","CloneURL":"http://r.com/x"}`+"\n")
@@ -333,9 +330,9 @@ func TestRepositoriesService_Create(t *testing.T) {
 		writeJSON(w, want)
 	})
 
-	repo_, _, err := client.Repositories.Create(newRepo)
+	repo_, _, err := client.Repos.Create(newRepo)
 	if err != nil {
-		t.Errorf("Repositories.Create returned error: %v", err)
+		t.Errorf("Repos.Create returned error: %v", err)
 	}
 
 	if !called {
@@ -343,11 +340,11 @@ func TestRepositoriesService_Create(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(repo_, want) {
-		t.Errorf("Repositories.Create returned %+v, want %+v", repo_, want)
+		t.Errorf("Repos.Create returned %+v, want %+v", repo_, want)
 	}
 }
 
-func TestRepositoriesService_GetReadme(t *testing.T) {
+func TestReposService_GetReadme(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -355,16 +352,16 @@ func TestRepositoriesService_GetReadme(t *testing.T) {
 	want.ModTime = want.ModTime.In(time.UTC)
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryReadme, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoReadme, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	readme, _, err := client.Repositories.GetReadme(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}})
+	readme, _, err := client.Repos.GetReadme(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}})
 	if err != nil {
-		t.Errorf("Repositories.GetReadme returned error: %v", err)
+		t.Errorf("Repos.GetReadme returned error: %v", err)
 	}
 
 	if !called {
@@ -372,18 +369,18 @@ func TestRepositoriesService_GetReadme(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(readme, want) {
-		t.Errorf("Repositories.GetReadme returned %+v, want %+v", readme, want)
+		t.Errorf("Repos.GetReadme returned %+v, want %+v", readme, want)
 	}
 }
 
-func TestRepositoriesService_List(t *testing.T) {
+func TestReposService_List(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*Repository{&Repository{Repository: &repo.Repository{RID: 1}}}
+	want := []*Repo{&Repo{RID: 1}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.Repositories, nil), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.Repos, nil), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 		testFormValues(t, r, values{
@@ -400,7 +397,7 @@ func TestRepositoriesService_List(t *testing.T) {
 		writeJSON(w, want)
 	})
 
-	repos, _, err := client.Repositories.List(&RepositoryListOptions{
+	repos, _, err := client.Repos.List(&RepoListOptions{
 		URIs:        []string{"a", "b"},
 		Name:        "n",
 		Owner:       "o",
@@ -410,7 +407,7 @@ func TestRepositoriesService_List(t *testing.T) {
 		ListOptions: ListOptions{PerPage: 1, Page: 2},
 	})
 	if err != nil {
-		t.Errorf("Repositories.List returned error: %v", err)
+		t.Errorf("Repos.List returned error: %v", err)
 	}
 
 	if !called {
@@ -418,11 +415,11 @@ func TestRepositoriesService_List(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(repos, want) {
-		t.Errorf("Repositories.List returned %+v, want %+v with diff: %s", repos, want, strings.Join(pretty.Diff(want, repos), "\n"))
+		t.Errorf("Repos.List returned %+v, want %+v with diff: %s", repos, want, strings.Join(pretty.Diff(want, repos), "\n"))
 	}
 }
 
-func TestRepositoriesService_ListCommits(t *testing.T) {
+func TestReposService_ListCommits(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -438,9 +435,9 @@ func TestRepositoriesService_ListCommits(t *testing.T) {
 		writeJSON(w, want)
 	})
 
-	commits, _, err := client.Repositories.ListCommits(RepoSpec{URI: "r.com/x"}, &RepositoryListCommitsOptions{Head: "myhead"})
+	commits, _, err := client.Repos.ListCommits(RepoSpec{URI: "r.com/x"}, &RepoListCommitsOptions{Head: "myhead"})
 	if err != nil {
-		t.Errorf("Repositories.ListCommits returned error: %v", err)
+		t.Errorf("Repos.ListCommits returned error: %v", err)
 	}
 
 	if !called {
@@ -448,11 +445,11 @@ func TestRepositoriesService_ListCommits(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(commits, want) {
-		t.Errorf("Repositories.ListCommits returned %+v, want %+v", commits, want)
+		t.Errorf("Repos.ListCommits returned %+v, want %+v", commits, want)
 	}
 }
 
-func TestRepositoriesService_GetCommit(t *testing.T) {
+func TestReposService_GetCommit(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -467,9 +464,9 @@ func TestRepositoriesService_GetCommit(t *testing.T) {
 		writeJSON(w, want)
 	})
 
-	commit, _, err := client.Repositories.GetCommit(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "r"}, nil)
+	commit, _, err := client.Repos.GetCommit(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "r"}, nil)
 	if err != nil {
-		t.Errorf("Repositories.GetCommit returned error: %v", err)
+		t.Errorf("Repos.GetCommit returned error: %v", err)
 	}
 
 	if !called {
@@ -477,11 +474,11 @@ func TestRepositoriesService_GetCommit(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(commit, want) {
-		t.Errorf("Repositories.GetCommit returned %+v, want %+v", commit, want)
+		t.Errorf("Repos.GetCommit returned %+v, want %+v", commit, want)
 	}
 }
 
-func TestRepositoriesService_ListBranches(t *testing.T) {
+func TestReposService_ListBranches(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -495,9 +492,9 @@ func TestRepositoriesService_ListBranches(t *testing.T) {
 		writeJSON(w, want)
 	})
 
-	branches, _, err := client.Repositories.ListBranches(RepoSpec{URI: "r.com/x"}, nil)
+	branches, _, err := client.Repos.ListBranches(RepoSpec{URI: "r.com/x"}, nil)
 	if err != nil {
-		t.Errorf("Repositories.ListBranches returned error: %v", err)
+		t.Errorf("Repos.ListBranches returned error: %v", err)
 	}
 
 	if !called {
@@ -505,11 +502,11 @@ func TestRepositoriesService_ListBranches(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(branches, want) {
-		t.Errorf("Repositories.ListBranches returned %+v, want %+v", branches, want)
+		t.Errorf("Repos.ListBranches returned %+v, want %+v", branches, want)
 	}
 }
 
-func TestRepositoriesService_ListTags(t *testing.T) {
+func TestReposService_ListTags(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -523,9 +520,9 @@ func TestRepositoriesService_ListTags(t *testing.T) {
 		writeJSON(w, want)
 	})
 
-	tags, _, err := client.Repositories.ListTags(RepoSpec{URI: "r.com/x"}, nil)
+	tags, _, err := client.Repos.ListTags(RepoSpec{URI: "r.com/x"}, nil)
 	if err != nil {
-		t.Errorf("Repositories.ListTags returned error: %v", err)
+		t.Errorf("Repos.ListTags returned error: %v", err)
 	}
 
 	if !called {
@@ -533,27 +530,27 @@ func TestRepositoriesService_ListTags(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(tags, want) {
-		t.Errorf("Repositories.ListTags returned %+v, want %+v", tags, want)
+		t.Errorf("Repos.ListTags returned %+v, want %+v", tags, want)
 	}
 }
 
-func TestRepositoriesService_ListBadges(t *testing.T) {
+func TestReposService_ListBadges(t *testing.T) {
 	setup()
 	defer teardown()
 
 	want := []*Badge{{Name: "b"}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryBadges, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoBadges, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	badges, _, err := client.Repositories.ListBadges(RepoSpec{URI: "r.com/x"})
+	badges, _, err := client.Repos.ListBadges(RepoSpec{URI: "r.com/x"})
 	if err != nil {
-		t.Errorf("Repositories.ListBadges returned error: %v", err)
+		t.Errorf("Repos.ListBadges returned error: %v", err)
 	}
 
 	if !called {
@@ -561,27 +558,27 @@ func TestRepositoriesService_ListBadges(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(badges, want) {
-		t.Errorf("Repositories.ListBadges returned %+v, want %+v", badges, want)
+		t.Errorf("Repos.ListBadges returned %+v, want %+v", badges, want)
 	}
 }
 
-func TestRepositoriesService_ListCounters(t *testing.T) {
+func TestReposService_ListCounters(t *testing.T) {
 	setup()
 	defer teardown()
 
 	want := []*Counter{{Name: "b"}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryCounters, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoCounters, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	counters, _, err := client.Repositories.ListCounters(RepoSpec{URI: "r.com/x"})
+	counters, _, err := client.Repos.ListCounters(RepoSpec{URI: "r.com/x"})
 	if err != nil {
-		t.Errorf("Repositories.ListCounters returned error: %v", err)
+		t.Errorf("Repos.ListCounters returned error: %v", err)
 	}
 
 	if !called {
@@ -589,27 +586,27 @@ func TestRepositoriesService_ListCounters(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(counters, want) {
-		t.Errorf("Repositories.ListCounters returned %+v, want %+v", counters, want)
+		t.Errorf("Repos.ListCounters returned %+v, want %+v", counters, want)
 	}
 }
 
-func TestRepositoriesService_ListAuthors(t *testing.T) {
+func TestReposService_ListAuthors(t *testing.T) {
 	setup()
 	defer teardown()
 
 	want := []*AugmentedRepoAuthor{{User: &person.User{Login: "b"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryAuthors, map[string]string{"RepoSpec": "r.com/x", "Rev": "c"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoAuthors, map[string]string{"RepoSpec": "r.com/x", "Rev": "c"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	authors, _, err := client.Repositories.ListAuthors(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"}, nil)
+	authors, _, err := client.Repos.ListAuthors(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"}, nil)
 	if err != nil {
-		t.Errorf("Repositories.ListAuthors returned error: %v", err)
+		t.Errorf("Repos.ListAuthors returned error: %v", err)
 	}
 
 	if !called {
@@ -617,27 +614,27 @@ func TestRepositoriesService_ListAuthors(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(authors, want) {
-		t.Errorf("Repositories.ListAuthors returned %+v, want %+v", authors, want)
+		t.Errorf("Repos.ListAuthors returned %+v, want %+v", authors, want)
 	}
 }
 
-func TestRepositoriesService_ListClients(t *testing.T) {
+func TestReposService_ListClients(t *testing.T) {
 	setup()
 	defer teardown()
 
 	want := []*AugmentedRepoClient{{User: &person.User{Login: "b"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryClients, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoClients, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	clients, _, err := client.Repositories.ListClients(RepoSpec{URI: "r.com/x"}, nil)
+	clients, _, err := client.Repos.ListClients(RepoSpec{URI: "r.com/x"}, nil)
 	if err != nil {
-		t.Errorf("Repositories.ListClients returned error: %v", err)
+		t.Errorf("Repos.ListClients returned error: %v", err)
 	}
 
 	if !called {
@@ -645,27 +642,27 @@ func TestRepositoriesService_ListClients(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(clients, want) {
-		t.Errorf("Repositories.ListClients returned %+v, want %+v", clients, want)
+		t.Errorf("Repos.ListClients returned %+v, want %+v", clients, want)
 	}
 }
 
-func TestRepositoriesService_ListDependents(t *testing.T) {
+func TestReposService_ListDependents(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedRepoDependent{{Repo: &repo.Repository{URI: "r2"}}}
+	want := []*AugmentedRepoDependent{{Repo: &Repo{URI: "r2"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryDependents, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoDependents, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	dependents, _, err := client.Repositories.ListDependents(RepoSpec{URI: "r.com/x"}, nil)
+	dependents, _, err := client.Repos.ListDependents(RepoSpec{URI: "r.com/x"}, nil)
 	if err != nil {
-		t.Errorf("Repositories.ListDependents returned error: %v", err)
+		t.Errorf("Repos.ListDependents returned error: %v", err)
 	}
 
 	if !called {
@@ -673,27 +670,27 @@ func TestRepositoriesService_ListDependents(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(dependents, want) {
-		t.Errorf("Repositories.ListDependents returned %+v, want %+v", dependents, want)
+		t.Errorf("Repos.ListDependents returned %+v, want %+v", dependents, want)
 	}
 }
 
-func TestRepositoriesService_ListDependencies(t *testing.T) {
+func TestReposService_ListDependencies(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedRepoDependency{{Repo: &repo.Repository{URI: "r2"}}}
+	want := []*AugmentedRepoDependency{{Repo: &Repo{URI: "r2"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryDependencies, map[string]string{"RepoSpec": "r.com/x", "Rev": "c"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoDependencies, map[string]string{"RepoSpec": "r.com/x", "Rev": "c"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	dependencies, _, err := client.Repositories.ListDependencies(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"}, nil)
+	dependencies, _, err := client.Repos.ListDependencies(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"}, nil)
 	if err != nil {
-		t.Errorf("Repositories.ListDependencies returned error: %v", err)
+		t.Errorf("Repos.ListDependencies returned error: %v", err)
 	}
 
 	if !called {
@@ -701,18 +698,18 @@ func TestRepositoriesService_ListDependencies(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(dependencies, want) {
-		t.Errorf("Repositories.ListDependencies returned %+v, want %+v", dependencies, want)
+		t.Errorf("Repos.ListDependencies returned %+v, want %+v", dependencies, want)
 	}
 }
 
-func TestRepositoriesService_ListByContributor(t *testing.T) {
+func TestReposService_ListByContributor(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedRepoContribution{{Repo: &repo.Repository{URI: "r.com/x"}}}
+	want := []*AugmentedRepoContribution{{Repo: &Repo{URI: "r.com/x"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.PersonRepositoryContributions, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.PersonRepoContributions, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 		testFormValues(t, r, values{"NoFork": "true"})
@@ -720,9 +717,9 @@ func TestRepositoriesService_ListByContributor(t *testing.T) {
 		writeJSON(w, want)
 	})
 
-	repos, _, err := client.Repositories.ListByContributor(PersonSpec{Login: "a"}, &RepositoryListByContributorOptions{NoFork: true})
+	repos, _, err := client.Repos.ListByContributor(PersonSpec{Login: "a"}, &RepoListByContributorOptions{NoFork: true})
 	if err != nil {
-		t.Errorf("Repositories.ListByContributor returned error: %v", err)
+		t.Errorf("Repos.ListByContributor returned error: %v", err)
 	}
 
 	if !called {
@@ -730,27 +727,27 @@ func TestRepositoriesService_ListByContributor(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(repos, want) {
-		t.Errorf("Repositories.ListByContributor returned %+v, want %+v", repos, want)
+		t.Errorf("Repos.ListByContributor returned %+v, want %+v", repos, want)
 	}
 }
 
-func TestRepositoriesService_ListByClient(t *testing.T) {
+func TestReposService_ListByClient(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedRepoUsageByClient{{DefRepo: &repo.Repository{URI: "r.com/x"}}}
+	want := []*AugmentedRepoUsageByClient{{DefRepo: &Repo{URI: "r.com/x"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.PersonRepositoryDependencies, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.PersonRepoDependencies, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	repos, _, err := client.Repositories.ListByClient(PersonSpec{Login: "a"}, nil)
+	repos, _, err := client.Repos.ListByClient(PersonSpec{Login: "a"}, nil)
 	if err != nil {
-		t.Errorf("Repositories.ListByClient returned error: %v", err)
+		t.Errorf("Repos.ListByClient returned error: %v", err)
 	}
 
 	if !called {
@@ -758,27 +755,27 @@ func TestRepositoriesService_ListByClient(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(repos, want) {
-		t.Errorf("Repositories.ListByClient returned %+v, want %+v", repos, want)
+		t.Errorf("Repos.ListByClient returned %+v, want %+v", repos, want)
 	}
 }
 
-func TestRepositoriesService_ListByRefdAuthor(t *testing.T) {
+func TestReposService_ListByRefdAuthor(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedRepoUsageOfAuthor{{Repo: &repo.Repository{URI: "r.com/x"}}}
+	want := []*AugmentedRepoUsageOfAuthor{{Repo: &Repo{URI: "r.com/x"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.PersonRepositoryDependents, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.PersonRepoDependents, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	repos, _, err := client.Repositories.ListByRefdAuthor(PersonSpec{Login: "a"}, nil)
+	repos, _, err := client.Repos.ListByRefdAuthor(PersonSpec{Login: "a"}, nil)
 	if err != nil {
-		t.Errorf("Repositories.ListByRefdAuthor returned error: %v", err)
+		t.Errorf("Repos.ListByRefdAuthor returned error: %v", err)
 	}
 
 	if !called {
@@ -786,7 +783,7 @@ func TestRepositoriesService_ListByRefdAuthor(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(repos, want) {
-		t.Errorf("Repositories.ListByRefdAuthor returned %+v, want %+v", repos, want)
+		t.Errorf("Repos.ListByRefdAuthor returned %+v, want %+v", repos, want)
 	}
 }
 

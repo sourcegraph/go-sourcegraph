@@ -10,7 +10,6 @@ import (
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/graph"
 	"sourcegraph.com/sourcegraph/srclib/person"
-	"sourcegraph.com/sourcegraph/srclib/repo"
 )
 
 // DefsService communicates with the def- and graph-related endpoints in
@@ -74,7 +73,7 @@ func (s *DefSpec) DefKey() graph.DefKey {
 		panic("Unit is empty")
 	}
 	return graph.DefKey{
-		Repo:     repo.URI(s.Repo),
+		Repo:     s.Repo,
 		CommitID: s.CommitID,
 		UnitType: s.UnitType,
 		Unit:     s.Unit,
@@ -86,7 +85,7 @@ func (s *DefSpec) DefKey() graph.DefKey {
 // def as the given key.
 func NewDefSpecFromDefKey(key graph.DefKey) DefSpec {
 	return DefSpec{
-		Repo:     string(key.Repo),
+		Repo:     key.Repo,
 		CommitID: key.CommitID,
 		UnitType: key.UnitType,
 		Unit:     key.Unit,
@@ -165,10 +164,10 @@ type DefListOptions struct {
 	Query string `url:",omitempty" json:",omitempty"`
 
 	// Filters
-	RepositoryURI string   `url:",omitempty" json:",omitempty"`
-	CommitID      string   `url:",omitempty" json:",omitempty"`
-	UnitTypes     []string `url:",omitempty,comma" json:",omitempty"`
-	Unit          string   `url:",omitempty" json:",omitempty"`
+	RepoURI   string   `url:",omitempty" json:",omitempty"`
+	CommitID  string   `url:",omitempty" json:",omitempty"`
+	UnitTypes []string `url:",omitempty,comma" json:",omitempty"`
+	Unit      string   `url:",omitempty" json:",omitempty"`
 
 	Path string `url:",omitempty" json:",omitempty"`
 
@@ -240,7 +239,7 @@ func (vs Refs) Less(i, j int) bool { return vs[i].sortKey() < vs[j].sortKey() }
 
 type DefListRefsOptions struct {
 	Authorship bool   `url:",omitempty"` // whether to fetch authorship info about the refs
-	Repository string `url:",omitempty"` // only fetch refs from this repository URI
+	Repo       string `url:",omitempty"` // only fetch refs from this repository URI
 	ListOptions
 }
 
@@ -293,8 +292,8 @@ func (vs Examples) Less(i, j int) bool { return vs[i].sortKey() < vs[j].sortKey(
 type DefListExamplesOptions struct {
 	Formatted bool
 
-	// Filter by a specific Repository URI
-	Repository string
+	// Filter by a specific Repo URI
+	Repo string
 
 	ListOptions
 }
@@ -421,12 +420,12 @@ func (s *defsService) ListClients(def DefSpec, opt *DefListClientsOptions) ([]*A
 }
 
 type DefDependent struct {
-	FromRepo repo.URI `db:"from_repo"`
+	FromRepo string `db:"from_repo"`
 	Count    int
 }
 
 type AugmentedDefDependent struct {
-	Repo *repo.Repository
+	Repo *Repo
 	*DefDependent
 }
 

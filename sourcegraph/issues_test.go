@@ -68,7 +68,7 @@ func TestIssuesService_Get(t *testing.T) {
 	}
 }
 
-func TestIssuesService_ListByRepository(t *testing.T) {
+func TestIssuesService_ListByRepo(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -87,7 +87,7 @@ func TestIssuesService_ListByRepository(t *testing.T) {
 		writeJSON(w, want)
 	})
 
-	issues, _, err := client.Issues.ListByRepository(
+	issues, _, err := client.Issues.ListByRepo(
 		repoSpec,
 		&IssueListOptions{
 			ListOptions: ListOptions{PerPage: 1, Page: 2},

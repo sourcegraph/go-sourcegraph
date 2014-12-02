@@ -16,7 +16,7 @@ type PullRequestsService interface {
 	Get(pull PullRequestSpec, opt *PullRequestGetOptions) (*PullRequest, Response, error)
 
 	// List pull requests for a repository.
-	ListByRepository(repo RepoSpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error)
+	ListByRepo(repo RepoSpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error)
 
 	// ListComments lists comments on a pull request.
 	ListComments(pull PullRequestSpec, opt *PullRequestListCommentsOptions) ([]*PullRequestComment, Response, error)
@@ -104,7 +104,7 @@ type PullRequestListOptions struct {
 	ListOptions
 }
 
-func (s *pullRequestsService) ListByRepository(repo RepoSpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error) {
+func (s *pullRequestsService) ListByRepo(repo RepoSpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error) {
 	url, err := s.client.url(router.RepoPullRequests, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
@@ -153,9 +153,9 @@ func (s *pullRequestsService) ListComments(pull PullRequestSpec, opt *PullReques
 }
 
 type MockPullRequestsService struct {
-	Get_              func(pull PullRequestSpec, opt *PullRequestGetOptions) (*PullRequest, Response, error)
-	ListByRepository_ func(repo RepoSpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error)
-	ListComments_     func(pull PullRequestSpec, opt *PullRequestListCommentsOptions) ([]*PullRequestComment, Response, error)
+	Get_          func(pull PullRequestSpec, opt *PullRequestGetOptions) (*PullRequest, Response, error)
+	ListByRepo_   func(repo RepoSpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error)
+	ListComments_ func(pull PullRequestSpec, opt *PullRequestListCommentsOptions) ([]*PullRequestComment, Response, error)
 }
 
 var _ PullRequestsService = MockPullRequestsService{}
@@ -167,11 +167,11 @@ func (s MockPullRequestsService) Get(pull PullRequestSpec, opt *PullRequestGetOp
 	return s.Get_(pull, opt)
 }
 
-func (s MockPullRequestsService) ListByRepository(repo RepoSpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error) {
-	if s.ListByRepository_ == nil {
+func (s MockPullRequestsService) ListByRepo(repo RepoSpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error) {
+	if s.ListByRepo_ == nil {
 		return nil, &HTTPResponse{}, nil
 	}
-	return s.ListByRepository_(repo, opt)
+	return s.ListByRepo_(repo, opt)
 }
 
 func (s MockPullRequestsService) ListComments(pull PullRequestSpec, opt *PullRequestListCommentsOptions) ([]*PullRequestComment, Response, error) {

@@ -19,25 +19,25 @@ func TestMatch(t *testing.T) {
 		wantVars      map[string]string
 		wantPath      string
 	}{
-		// Repository
+		// Repo
 		{
 			path:          "/repos/repohost.com/foo",
-			wantRouteName: Repository,
+			wantRouteName: Repo,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo"},
 		},
 		{
 			path:          "/repos/a/b/c",
-			wantRouteName: Repository,
+			wantRouteName: Repo,
 			wantVars:      map[string]string{"RepoSpec": "a/b/c"},
 		},
 		{
 			path:          "/repos/a.com/b",
-			wantRouteName: Repository,
+			wantRouteName: Repo,
 			wantVars:      map[string]string{"RepoSpec": "a.com/b"},
 		},
 		{
 			path:          "/repos/R$123",
-			wantRouteName: Repository,
+			wantRouteName: Repo,
 			wantVars:      map[string]string{"RepoSpec": "R$123"},
 		},
 		{
@@ -49,47 +49,47 @@ func TestMatch(t *testing.T) {
 			wantNoMatch: true,
 		},
 
-		// Repository sub-routes
+		// Repo sub-routes
 		{
 			path:          "/repos/repohost.com/foo/.authors",
-			wantRouteName: RepositoryAuthors,
+			wantRouteName: RepoAuthors,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo"},
 		},
 		{
 			path:          "/repos/R$123/.authors",
-			wantRouteName: RepositoryAuthors,
+			wantRouteName: RepoAuthors,
 			wantVars:      map[string]string{"RepoSpec": "R$123"},
 		},
 		{
 			path:          "/repos/repohost.com/foo@myrev/.authors",
-			wantRouteName: RepositoryAuthors,
+			wantRouteName: RepoAuthors,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev"},
 		},
 		{
 			path:          "/repos/repohost.com/foo@myrev==abcd/.authors",
-			wantRouteName: RepositoryAuthors,
+			wantRouteName: RepoAuthors,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev==abcd"},
 		},
 		{
 			path:          "/repos/repohost.com/foo@myrev/subrev/.authors",
-			wantRouteName: RepositoryAuthors,
+			wantRouteName: RepoAuthors,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev/subrev"},
 		},
 		{
 			path:          "/repos/repohost.com/foo@myrev/subrev1/subrev2/.authors",
-			wantRouteName: RepositoryAuthors,
+			wantRouteName: RepoAuthors,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev/subrev1/subrev2"},
 		},
 		{
 			path:          "/repos/repohost.com/foo@myrev/subrev==abcd/.authors",
-			wantRouteName: RepositoryAuthors,
+			wantRouteName: RepoAuthors,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev/subrev==abcd"},
 		},
 
-		// Repository sub-routes that don't allow an "@REVSPEC" revision.
+		// Repo sub-routes that don't allow an "@REVSPEC" revision.
 		{
 			path:          "/repos/repohost.com/foo/.dependents",
-			wantRouteName: RepositoryDependents,
+			wantRouteName: RepoDependents,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo"},
 		},
 		{
@@ -117,44 +117,44 @@ func TestMatch(t *testing.T) {
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "123abc/xyz"},
 		},
 
-		// Repository tree
+		// Repo tree
 		{
 			path:          "/repos/repohost.com/foo@mycommitid/.tree",
-			wantRouteName: RepositoryTreeEntry,
+			wantRouteName: RepoTreeEntry,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "mycommitid", "Path": "."},
 		},
 		{
 			path:          "/repos/repohost.com/foo@mycommitid/.tree/",
-			wantRouteName: RepositoryTreeEntry,
+			wantRouteName: RepoTreeEntry,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "mycommitid", "Path": "."},
 			wantPath:      "/repos/repohost.com/foo@mycommitid/.tree",
 		},
 		{
 			path:          "/repos/repohost.com/foo@mycommitid/.tree/my/file",
-			wantRouteName: RepositoryTreeEntry,
+			wantRouteName: RepoTreeEntry,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "mycommitid", "Path": "my/file"},
 		},
 		{
 			path:          "/repos/repohost.com/foo@myrev/subrev/.tree/my/file",
-			wantRouteName: RepositoryTreeEntry,
+			wantRouteName: RepoTreeEntry,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev/subrev", "Path": "my/file"},
 		},
 
-		// Repository build data
+		// Repo build data
 		{
 			path:          "/repos/repohost.com/foo/.build-data",
-			wantRouteName: RepositoryBuildDataEntry,
+			wantRouteName: RepoBuildDataEntry,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Path": "."},
 		},
 		{
 			path:          "/repos/repohost.com/foo@mycommitid/.build-data/",
-			wantRouteName: RepositoryBuildDataEntry,
+			wantRouteName: RepoBuildDataEntry,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "mycommitid", "Path": "."},
 			wantPath:      "/repos/repohost.com/foo@mycommitid/.build-data",
 		},
 		{
 			path:          "/repos/repohost.com/foo@mycommitid/.build-data/my/file",
-			wantRouteName: RepositoryBuildDataEntry,
+			wantRouteName: RepoBuildDataEntry,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "mycommitid", "Path": "my/file"},
 		},
 

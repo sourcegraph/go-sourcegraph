@@ -120,7 +120,7 @@ func UnmarshalDeltaSpec(routeVars map[string]string) (DeltaSpec, error) {
 type Delta struct {
 	Base, Head             RepoRevSpec // base/head repo and revspec
 	BaseCommit, HeadCommit *Commit     // base/head commits
-	BaseRepo, HeadRepo     *Repository // base/head repositories
+	BaseRepo, HeadRepo     *Repo       // base/head repositories
 	BaseBuild, HeadBuild   *Build      // base/head builds (or nil)
 
 	// add summary fields
@@ -360,7 +360,7 @@ func (s *deltasService) ListAffectedClients(ds DeltaSpec, opt *DeltaListAffected
 // DeltaAffectedRepo describes a repository that is affected by a
 // delta.
 type DeltaAffectedRepo struct {
-	Repository // the affected repository
+	Repo // the affected repository
 
 	DefRefs []*DeltaDefRefs // refs to defs that were changed/deleted
 }
@@ -369,7 +369,7 @@ type DeltaAffectedRepo struct {
 // changed/deleted def and all of the repository's refs to that def.
 type DeltaDefRefs struct {
 	Def  *Def       // the changed/deleted def
-	Refs []*Example // all of the parent DeltaAffectedRepo.Repository's refs to Def
+	Refs []*Example // all of the parent DeltaAffectedRepo.Repo's refs to Def
 }
 
 // DeltaListAffectedDependentsOptions specifies options for
