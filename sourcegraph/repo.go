@@ -131,9 +131,6 @@ func (rs Repos) URIs() (uris []string) {
 	return
 }
 
-// URI identifies a repository.
-type URI string
-
 // IsGitHubRepo returns true iff this repository is hosted on GitHub.
 func IsGitHubRepo(repoURI string) bool {
 	return strings.HasPrefix(strings.ToLower(repoURI), "github.com/")
@@ -184,7 +181,7 @@ var ErrNotPersisted = errors.New("repository is not persisted locally, but it mi
 var ErrNonStandardURI = errors.New("cannot infer repository clone URL because repository host is not standard; try adding it explicitly")
 
 type ErrRedirect struct {
-	RedirectURI URI
+	RedirectURI string
 }
 
 func (e ErrRedirect) Error() string {
@@ -195,7 +192,7 @@ var errRedirectMsgPattern = regexp.MustCompile(`the repository requested exists 
 
 func ErrRedirectFromString(msg string) *ErrRedirect {
 	if match := errRedirectMsgPattern.FindStringSubmatch(msg); len(match) == 2 {
-		return &ErrRedirect{URI(match[1])}
+		return &ErrRedirect{match[1]}
 	}
 	return nil
 }

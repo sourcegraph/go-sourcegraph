@@ -811,9 +811,9 @@ type RepoClient struct {
 type ClientStats struct {
 	AuthorshipInfo
 
-	// DefRepo is the repository that defines defs that this client
-	// referred to.
-	DefRepo URI `db:"def_repo"`
+	// DefRepo is the URI of the repository that defines defs that
+	// this client referred to.
+	DefRepo string `db:"def_repo"`
 
 	// DefUnitType and DefUnit are the unit in DefRepo that defines
 	// defs that this client referred to. If DefUnitType == "" and
