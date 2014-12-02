@@ -100,7 +100,7 @@ type Build struct {
 
 	// RepoURI is populated (as a convenience) in results by Get and List but
 	// should not be set when creating builds (it will be ignored).
-	RepoURI string `db:"repo_uri" json:",omitempty"`
+	RepoURI *string `db:"repo_uri" json:",omitempty"`
 }
 
 func (b *Build) Spec() BuildSpec { return BuildSpec{BID: b.BID} }
