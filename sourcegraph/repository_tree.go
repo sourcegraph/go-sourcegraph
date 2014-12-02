@@ -8,17 +8,17 @@ import (
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 )
 
-// RepositoryTreeService communicates with the Sourcegraph API endpoints that
+// RepoTreeService communicates with the Sourcegraph API endpoints that
 // fetch file and directory entries in repositories.
-type RepositoryTreeService interface {
-	Get(entry TreeEntrySpec, opt *RepositoryTreeGetOptions) (*TreeEntry, Response, error)
+type RepoTreeService interface {
+	Get(entry TreeEntrySpec, opt *RepoTreeGetOptions) (*TreeEntry, Response, error)
 }
 
-type repositoryTreeService struct {
+type repoTreeService struct {
 	client *Client
 }
 
-var _ RepositoryTreeService = &repositoryTreeService{}
+var _ RepoTreeService = &repoTreeService{}
 
 type TreeEntrySpec struct {
 	RepoRev RepoRevSpec
@@ -69,8 +69,8 @@ type FormatResult struct {
 	LineStartByteOffsets []int
 }
 
-// RepositoryTreeGetOptions specifies options for (RepositoryTreeService).Get.
-type RepositoryTreeGetOptions struct {
+// RepoTreeGetOptions specifies options for (RepoTreeService).Get.
+type RepoTreeGetOptions struct {
 	// Formatted is whether the specified entry, if it's a file, should have its
 	// contents code-formatted.
 	Formatted bool
@@ -88,8 +88,8 @@ type RepositoryTreeGetOptions struct {
 	vcsclient.GetFileOptions
 }
 
-func (s *repositoryTreeService) Get(entry TreeEntrySpec, opt *RepositoryTreeGetOptions) (*TreeEntry, Response, error) {
-	url, err := s.client.url(router.RepositoryTreeEntry, entry.RouteVars(), opt)
+func (s *repoTreeService) Get(entry TreeEntrySpec, opt *RepoTreeGetOptions) (*TreeEntry, Response, error) {
+	url, err := s.client.url(router.RepoTreeEntry, entry.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -108,13 +108,13 @@ func (s *repositoryTreeService) Get(entry TreeEntrySpec, opt *RepositoryTreeGetO
 	return entry_, resp, nil
 }
 
-type MockRepositoryTreeService struct {
-	Get_ func(entry TreeEntrySpec, opt *RepositoryTreeGetOptions) (*TreeEntry, Response, error)
+type MockRepoTreeService struct {
+	Get_ func(entry TreeEntrySpec, opt *RepoTreeGetOptions) (*TreeEntry, Response, error)
 }
 
-var _ RepositoryTreeService = MockRepositoryTreeService{}
+var _ RepoTreeService = MockRepoTreeService{}
 
-func (s MockRepositoryTreeService) Get(entry TreeEntrySpec, opt *RepositoryTreeGetOptions) (*TreeEntry, Response, error) {
+func (s MockRepoTreeService) Get(entry TreeEntrySpec, opt *RepoTreeGetOptions) (*TreeEntry, Response, error) {
 	if s.Get_ == nil {
 		return nil, &HTTPResponse{}, nil
 	}

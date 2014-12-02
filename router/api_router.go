@@ -22,20 +22,20 @@ const (
 	OrgSettings       = "org.settings"
 	OrgSettingsUpdate = "org.settings.update"
 
-	People                        = "people"
-	Person                        = "person"
-	PersonOrgs                    = "person.orgs"
-	PersonAuthors                 = "person.authors"
-	PersonClients                 = "person.clients"
-	PersonEmails                  = "person.emails"
-	PersonFromGitHub              = "person.from-github"
-	PersonRepositoryContributions = "person.repo-contributions"
-	PersonRepositoryDependencies  = "person.repo-dependencies"
-	PersonRepositoryDependents    = "person.repo-dependents"
-	PersonRefreshProfile          = "person.refresh-profile"
-	PersonSettings                = "person.settings"
-	PersonSettingsUpdate          = "person.settings.update"
-	PersonComputeStats            = "person.compute-stats"
+	People                  = "people"
+	Person                  = "person"
+	PersonOrgs              = "person.orgs"
+	PersonAuthors           = "person.authors"
+	PersonClients           = "person.clients"
+	PersonEmails            = "person.emails"
+	PersonFromGitHub        = "person.from-github"
+	PersonRepoContributions = "person.repo-contributions"
+	PersonRepoDependencies  = "person.repo-dependencies"
+	PersonRepoDependents    = "person.repo-dependents"
+	PersonRefreshProfile    = "person.refresh-profile"
+	PersonSettings          = "person.settings"
+	PersonSettingsUpdate    = "person.settings.update"
+	PersonComputeStats      = "person.compute-stats"
 
 	RepoPullRequests        = "repo.pull-requests"
 	RepoPullRequest         = "repo.pull-request"
@@ -45,32 +45,32 @@ const (
 	RepoIssue         = "repo.issue"
 	RepoIssueComments = "repo.issue.comments"
 
-	Repositories             = "repos"
-	RepositoriesCreate       = "repos.create"
-	RepositoriesGetOrCreate  = "repos.get-or-create"
-	Repo                     = "repo"
-	RepositoryAuthors        = "repo.authors"
-	RepositoryClients        = "repo.clients"
-	RepositoryDependents     = "repo.dependents"
-	RepositoryDependencies   = "repo.dependencies"
-	RepositoryBadge          = "repo.badge"
-	RepositoryBadges         = "repo.badges"
-	RepositoryCounter        = "repo.counter"
-	RepositoryCounters       = "repo.counters"
-	RepositoryReadme         = "repo.readme"
-	RepositoryBuilds         = "repo.builds"
-	RepositoryBuildsCreate   = "repo.builds.create"
-	RepositoryBuildDataEntry = "repo.build-data.entry"
-	RepositoryDocPage        = "repo.doc-page"
-	RepositoryTreeEntry      = "repo.tree.entry"
-	RepositoryRefreshProfile = "repo.refresh-profile"
-	RepositoryRefreshVCSData = "repo.refresh-vcs-data"
-	RepositoryComputeStats   = "repo.compute-stats"
+	Repos              = "repos"
+	ReposCreate        = "repos.create"
+	ReposGetOrCreate   = "repos.get-or-create"
+	Repo               = "repo"
+	RepoAuthors        = "repo.authors"
+	RepoClients        = "repo.clients"
+	RepoDependents     = "repo.dependents"
+	RepoDependencies   = "repo.dependencies"
+	RepoBadge          = "repo.badge"
+	RepoBadges         = "repo.badges"
+	RepoCounter        = "repo.counter"
+	RepoCounters       = "repo.counters"
+	RepoReadme         = "repo.readme"
+	RepoBuilds         = "repo.builds"
+	RepoBuildsCreate   = "repo.builds.create"
+	RepoBuildDataEntry = "repo.build-data.entry"
+	RepoDocPage        = "repo.doc-page"
+	RepoTreeEntry      = "repo.tree.entry"
+	RepoRefreshProfile = "repo.refresh-profile"
+	RepoRefreshVCSData = "repo.refresh-vcs-data"
+	RepoComputeStats   = "repo.compute-stats"
 
-	RepositorySettings       = "repo.settings"
-	RepositorySettingsUpdate = "repo.settings.update"
+	RepoSettings       = "repo.settings"
+	RepoSettingsUpdate = "repo.settings.update"
 
-	RepositoryStats = "repo.stats"
+	RepoStats = "repo.stats"
 
 	RepoBuild = "repo.build"
 
@@ -106,7 +106,7 @@ const (
 	ExtGitHubReceiveWebhook = "ext.github.receive-webhook"
 
 	// Redirects for old routes.
-	RedirectOldRepositoryBadgesAndCounters = "repo.redirect-old-badges-and-counters"
+	RedirectOldRepoBadgesAndCounters = "repo.redirect-old-badges-and-counters"
 )
 
 var APIRouter = NewAPIRouter(mux.NewRouter().PathPrefix("/api").Subrouter())
@@ -136,43 +136,43 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	build.Path("/tasks/{TaskID}").Methods("PUT").Name(BuildTaskUpdate)
 	build.Path("/tasks/{TaskID}/log").Methods("GET").Name(BuildTaskLog)
 
-	base.Path("/repos").Methods("GET").Name(Repositories)
-	base.Path("/repos").Methods("POST").Name(RepositoriesCreate)
+	base.Path("/repos").Methods("GET").Name(Repos)
+	base.Path("/repos").Methods("POST").Name(ReposCreate)
 
-	base.Path("/repos/github.com/{owner:[^/]+}/{repo:[^/]+}/{what:(?:badges|counters)}/{which}.png").Methods("GET").Name(RedirectOldRepositoryBadgesAndCounters)
+	base.Path("/repos/github.com/{owner:[^/]+}/{repo:[^/]+}/{what:(?:badges|counters)}/{which}.png").Methods("GET").Name(RedirectOldRepoBadgesAndCounters)
 
 	repoRev := base.PathPrefix(`/repos/` + RepoRevSpecPattern).PostMatchFunc(FixRepoRevSpecVars).BuildVarsFunc(PrepareRepoRevSpecRouteVars).Subrouter()
-	repoRev.Path("/.stats").Methods("PUT").Name(RepositoryComputeStats)
-	repoRev.Path("/.stats").Methods("GET").Name(RepositoryStats)
-	repoRev.Path("/.authors").Methods("GET").Name(RepositoryAuthors)
-	repoRev.Path("/.readme").Methods("GET").Name(RepositoryReadme)
+	repoRev.Path("/.stats").Methods("PUT").Name(RepoComputeStats)
+	repoRev.Path("/.stats").Methods("GET").Name(RepoStats)
+	repoRev.Path("/.authors").Methods("GET").Name(RepoAuthors)
+	repoRev.Path("/.readme").Methods("GET").Name(RepoReadme)
 	repoRev.Path("/.build").Methods("GET").Name(RepoBuild)
-	repoRev.Path("/.dependencies").Methods("GET").Name(RepositoryDependencies)
-	repoRev.PathPrefix("/.build-data"+TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET", "PUT").Name(RepositoryBuildDataEntry)
-	repoRev.Path("/.docs/{Path:.*}").Methods("GET").Name(RepositoryDocPage)
-	repoRev.Path("/.badges/{Badge}.png").Methods("GET").Name(RepositoryBadge)
+	repoRev.Path("/.dependencies").Methods("GET").Name(RepoDependencies)
+	repoRev.PathPrefix("/.build-data"+TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET", "PUT").Name(RepoBuildDataEntry)
+	repoRev.Path("/.docs/{Path:.*}").Methods("GET").Name(RepoDocPage)
+	repoRev.Path("/.badges/{Badge}.png").Methods("GET").Name(RepoBadge)
 
 	// repo contains routes that are NOT specific to a revision. In these routes, the URL may not contain a revspec after the repo (that is, no "github.com/foo/bar@myrevspec").
 	repoPath := `/repos/` + RepoSpecPathPattern
 	base.Path(repoPath).Methods("GET").Name(Repo)
-	base.Path(repoPath).Methods("PUT").Name(RepositoriesGetOrCreate)
+	base.Path(repoPath).Methods("PUT").Name(ReposGetOrCreate)
 	repo := base.PathPrefix(repoPath).Subrouter()
-	repo.Path("/.clients").Methods("GET").Name(RepositoryClients)
-	repo.Path("/.dependents").Methods("GET").Name(RepositoryDependents)
-	repo.Path("/.external-profile").Methods("PUT").Name(RepositoryRefreshProfile)
-	repo.Path("/.vcs-data").Methods("PUT").Name(RepositoryRefreshVCSData)
-	repo.Path("/.settings").Methods("GET").Name(RepositorySettings)
-	repo.Path("/.settings").Methods("PUT").Name(RepositorySettingsUpdate)
+	repo.Path("/.clients").Methods("GET").Name(RepoClients)
+	repo.Path("/.dependents").Methods("GET").Name(RepoDependents)
+	repo.Path("/.external-profile").Methods("PUT").Name(RepoRefreshProfile)
+	repo.Path("/.vcs-data").Methods("PUT").Name(RepoRefreshVCSData)
+	repo.Path("/.settings").Methods("GET").Name(RepoSettings)
+	repo.Path("/.settings").Methods("PUT").Name(RepoSettingsUpdate)
 	repo.Path("/.commits").Methods("GET").Name(RepoCommits)
 	repo.Path("/.commits/{Rev:" + PathComponentNoLeadingDot + "}/.compare").Methods("GET").Name(RepoCompareCommits)
 	repo.Path("/.commits/{Rev:" + PathComponentNoLeadingDot + "}").Methods("GET").Name(RepoCommit)
 	repo.Path("/.branches").Methods("GET").Name(RepoBranches)
 	repo.Path("/.tags").Methods("GET").Name(RepoTags)
-	repo.Path("/.badges").Methods("GET").Name(RepositoryBadges)
-	repo.Path("/.counters").Methods("GET").Name(RepositoryCounters)
-	repo.Path("/.counters/{Counter}.png").Methods("GET").Name(RepositoryCounter)
-	repo.Path("/.builds").Methods("GET").Name(RepositoryBuilds)
-	repo.Path("/.builds").Methods("POST").Name(RepositoryBuildsCreate)
+	repo.Path("/.badges").Methods("GET").Name(RepoBadges)
+	repo.Path("/.counters").Methods("GET").Name(RepoCounters)
+	repo.Path("/.counters/{Counter}.png").Methods("GET").Name(RepoCounter)
+	repo.Path("/.builds").Methods("GET").Name(RepoBuilds)
+	repo.Path("/.builds").Methods("POST").Name(RepoBuildsCreate)
 
 	repo.Path("/.pulls").Methods("GET").Name(RepoPullRequests)
 	pullPath := "/.pulls/{Pull}"
@@ -201,7 +201,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 
 	// See router_util/tree_route.go for an explanation of how we match tree
 	// entry routes.
-	repoRev.Path("/.tree" + TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET").Name(RepositoryTreeEntry)
+	repoRev.Path("/.tree" + TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET").Name(RepoTreeEntry)
 
 	base.Path("/people").Methods("GET").Name(People)
 	personPath := `/people/` + PersonSpecPattern
@@ -211,9 +211,9 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	person.Path("/clients").Methods("GET").Name(PersonClients)
 	person.Path("/authors").Methods("GET").Name(PersonAuthors)
 	person.Path("/emails").Methods("GET").Name(PersonEmails)
-	person.Path("/repo-contributions").Methods("GET").Name(PersonRepositoryContributions)
-	person.Path("/repo-dependencies").Methods("GET").Name(PersonRepositoryDependencies)
-	person.Path("/repo-dependents").Methods("GET").Name(PersonRepositoryDependents)
+	person.Path("/repo-contributions").Methods("GET").Name(PersonRepoContributions)
+	person.Path("/repo-dependencies").Methods("GET").Name(PersonRepoDependencies)
+	person.Path("/repo-dependents").Methods("GET").Name(PersonRepoDependents)
 	person.Path("/external-profile").Methods("PUT").Name(PersonRefreshProfile)
 	person.Path("/stats").Methods("PUT").Name(PersonComputeStats)
 	person.Path("/settings").Methods("GET").Name(PersonSettings)

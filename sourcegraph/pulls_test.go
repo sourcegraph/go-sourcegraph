@@ -41,7 +41,7 @@ func TestPullRequestsService_Get(t *testing.T) {
 	}
 }
 
-func TestPullRequestsService_ListByRepository(t *testing.T) {
+func TestPullRequestsService_ListByRepo(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -60,7 +60,7 @@ func TestPullRequestsService_ListByRepository(t *testing.T) {
 		writeJSON(w, want)
 	})
 
-	pulls, _, err := client.PullRequests.ListByRepository(
+	pulls, _, err := client.PullRequests.ListByRepo(
 		repoSpec,
 		&PullRequestListOptions{
 			ListOptions: ListOptions{PerPage: 1, Page: 2},

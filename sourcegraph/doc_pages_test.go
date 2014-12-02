@@ -16,7 +16,7 @@ func TestDocPagesService_Get(t *testing.T) {
 	want := &graph.DocPage{Title: "hello"}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryDocPage, map[string]string{"RepoSpec": "r.com/x", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoDocPage, map[string]string{"RepoSpec": "r.com/x", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 

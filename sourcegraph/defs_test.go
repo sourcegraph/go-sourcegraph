@@ -50,29 +50,29 @@ func TestDefsService_List(t *testing.T) {
 		called = true
 		testMethod(t, r, "GET")
 		testFormValues(t, r, values{
-			"RepositoryURI": "r1",
-			"Sort":          "name",
-			"UnitTypes":     "a,b",
-			"Direction":     "asc",
-			"Kinds":         "a,b",
-			"Exported":      "true",
-			"Doc":           "true",
-			"PerPage":       "1",
-			"Page":          "2",
+			"RepoURI":   "r1",
+			"Sort":      "name",
+			"UnitTypes": "a,b",
+			"Direction": "asc",
+			"Kinds":     "a,b",
+			"Exported":  "true",
+			"Doc":       "true",
+			"PerPage":   "1",
+			"Page":      "2",
 		})
 
 		writeJSON(w, want)
 	})
 
 	defs, _, err := client.Defs.List(&DefListOptions{
-		RepositoryURI: "r1",
-		Sort:          "name",
-		UnitTypes:     []string{"a", "b"},
-		Direction:     "asc",
-		Kinds:         []string{"a", "b"},
-		Exported:      true,
-		Doc:           true,
-		ListOptions:   ListOptions{PerPage: 1, Page: 2},
+		RepoURI:     "r1",
+		Sort:        "name",
+		UnitTypes:   []string{"a", "b"},
+		Direction:   "asc",
+		Kinds:       []string{"a", "b"},
+		Exported:    true,
+		Doc:         true,
+		ListOptions: ListOptions{PerPage: 1, Page: 2},
 	})
 	if err != nil {
 		t.Errorf("Defs.List returned error: %v", err)

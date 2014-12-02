@@ -369,7 +369,7 @@ type DeltaAffectedRepo struct {
 // changed/deleted def and all of the repository's refs to that def.
 type DeltaDefRefs struct {
 	Def  *Def       // the changed/deleted def
-	Refs []*Example // all of the parent DeltaAffectedRepo.Repository's refs to Def
+	Refs []*Example // all of the parent DeltaAffectedRepo.Repo's refs to Def
 }
 
 // DeltaListAffectedDependentsOptions specifies options for

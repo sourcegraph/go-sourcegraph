@@ -18,7 +18,7 @@ type IssuesService interface {
 	Get(issue IssueSpec, opt *IssueGetOptions) (*Issue, Response, error)
 
 	// List issues for a repository.
-	ListByRepository(repo RepoSpec, opt *IssueListOptions) ([]*Issue, Response, error)
+	ListByRepo(repo RepoSpec, opt *IssueListOptions) ([]*Issue, Response, error)
 
 	// ListComments lists comments on a issue.
 	ListComments(issue IssueSpec, opt *IssueListCommentsOptions) ([]*IssueComment, Response, error)
@@ -99,7 +99,7 @@ type IssueListOptions struct {
 	ListOptions
 }
 
-func (s *issuesService) ListByRepository(repo RepoSpec, opt *IssueListOptions) ([]*Issue, Response, error) {
+func (s *issuesService) ListByRepo(repo RepoSpec, opt *IssueListOptions) ([]*Issue, Response, error) {
 	url, err := s.client.url(router.RepoIssues, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
@@ -148,9 +148,9 @@ func (s *issuesService) ListComments(issue IssueSpec, opt *IssueListCommentsOpti
 }
 
 type MockIssuesService struct {
-	Get_              func(issue IssueSpec, opt *IssueGetOptions) (*Issue, Response, error)
-	ListByRepository_ func(repo RepoSpec, opt *IssueListOptions) ([]*Issue, Response, error)
-	ListComments_     func(issue IssueSpec, opt *IssueListCommentsOptions) ([]*IssueComment, Response, error)
+	Get_          func(issue IssueSpec, opt *IssueGetOptions) (*Issue, Response, error)
+	ListByRepo_   func(repo RepoSpec, opt *IssueListOptions) ([]*Issue, Response, error)
+	ListComments_ func(issue IssueSpec, opt *IssueListCommentsOptions) ([]*IssueComment, Response, error)
 }
 
 var _ IssuesService = MockIssuesService{}
@@ -162,11 +162,11 @@ func (s MockIssuesService) Get(issue IssueSpec, opt *IssueGetOptions) (*Issue, R
 	return s.Get_(issue, opt)
 }
 
-func (s MockIssuesService) ListByRepository(repo RepoSpec, opt *IssueListOptions) ([]*Issue, Response, error) {
-	if s.ListByRepository_ == nil {
+func (s MockIssuesService) ListByRepo(repo RepoSpec, opt *IssueListOptions) ([]*Issue, Response, error) {
+	if s.ListByRepo_ == nil {
 		return nil, &HTTPResponse{}, nil
 	}
-	return s.ListByRepository_(repo, opt)
+	return s.ListByRepo_(repo, opt)
 }
 
 func (s MockIssuesService) ListComments(issue IssueSpec, opt *IssueListCommentsOptions) ([]*IssueComment, Response, error) {

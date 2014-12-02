@@ -81,12 +81,12 @@ type Repo struct {
 	// Private is whether this repository is private.
 	Private bool
 
-	// Stat holds repository statistics. It's only filled in if Repository{Get,List}Options has Stats == true.
+	// Stat holds repository statistics. It's only filled in if Repo{Get,List}Options has Stats == true.
 	Stat RepoStats `db:"-" json:",omitempty"`
 }
 
-// IsGitHubRepository returns true iff this repository is hosted on GitHub.
-func (r *Repo) IsGitHubRepository() bool {
+// IsGitHubRepo returns true iff this repository is hosted on GitHub.
+func (r *Repo) IsGitHubRepo() bool {
 	cloneURLStr := r.GetActualCloneURL()
 	if cloneURLStr == "" {
 		return strings.HasPrefix(strings.ToLower(r.URI), "github.com/")
@@ -121,9 +121,9 @@ func MapByURI(repos []*Repo) map[string]*Repo {
 	return repoMap
 }
 
-type Repositories []*Repo
+type Repos []*Repo
 
-func (rs Repositories) URIs() (uris []string) {
+func (rs Repos) URIs() (uris []string) {
 	uris = make([]string, len(rs))
 	for i, r := range rs {
 		uris[i] = r.URI
@@ -134,14 +134,14 @@ func (rs Repositories) URIs() (uris []string) {
 // URI identifies a repository.
 type URI string
 
-// IsGitHubRepository returns true iff this repository is hosted on GitHub.
-func IsGitHubRepository(repoURI string) bool {
+// IsGitHubRepo returns true iff this repository is hosted on GitHub.
+func IsGitHubRepo(repoURI string) bool {
 	return strings.HasPrefix(strings.ToLower(repoURI), "github.com/")
 }
 
-// IsGoogleCodeRepository returns true iff this repository is hosted on Google
+// IsGoogleCodeRepo returns true iff this repository is hosted on Google
 // Code (code.google.com).
-func IsGoogleCodeRepository(repoURI string) bool {
+func IsGoogleCodeRepo(repoURI string) bool {
 	return strings.HasPrefix(strings.ToLower(repoURI), "code.google.com/p/")
 }
 

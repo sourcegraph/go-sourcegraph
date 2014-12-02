@@ -164,10 +164,10 @@ type DefListOptions struct {
 	Query string `url:",omitempty" json:",omitempty"`
 
 	// Filters
-	RepositoryURI string   `url:",omitempty" json:",omitempty"`
-	CommitID      string   `url:",omitempty" json:",omitempty"`
-	UnitTypes     []string `url:",omitempty,comma" json:",omitempty"`
-	Unit          string   `url:",omitempty" json:",omitempty"`
+	RepoURI   string   `url:",omitempty" json:",omitempty"`
+	CommitID  string   `url:",omitempty" json:",omitempty"`
+	UnitTypes []string `url:",omitempty,comma" json:",omitempty"`
+	Unit      string   `url:",omitempty" json:",omitempty"`
 
 	Path string `url:",omitempty" json:",omitempty"`
 
@@ -292,7 +292,7 @@ func (vs Examples) Less(i, j int) bool { return vs[i].sortKey() < vs[j].sortKey(
 type DefListExamplesOptions struct {
 	Formatted bool
 
-	// Filter by a specific Repository URI
+	// Filter by a specific Repo URI
 	Repo string
 
 	ListOptions

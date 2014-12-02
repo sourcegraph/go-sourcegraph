@@ -67,23 +67,23 @@ func TestBuildsService_List(t *testing.T) {
 	}
 }
 
-func TestRepositoryBuildsService_ListByRepository(t *testing.T) {
+func TestRepoBuildsService_ListByRepo(t *testing.T) {
 	setup()
 	defer teardown()
 
 	want := []*Build{{BID: 1}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryBuilds, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoBuilds, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	builds, _, err := client.Builds.ListByRepository(RepoSpec{URI: "r.com/x"}, nil)
+	builds, _, err := client.Builds.ListByRepo(RepoSpec{URI: "r.com/x"}, nil)
 	if err != nil {
-		t.Errorf("Builds.ListByRepository returned error: %v", err)
+		t.Errorf("Builds.ListByRepo returned error: %v", err)
 	}
 
 	if !called {
@@ -93,7 +93,7 @@ func TestRepositoryBuildsService_ListByRepository(t *testing.T) {
 	normalizeBuildTime(builds...)
 	normalizeBuildTime(want...)
 	if !reflect.DeepEqual(builds, want) {
-		t.Errorf("Builds.ListByRepository returned %+v, want %+v", builds, want)
+		t.Errorf("Builds.ListByRepo returned %+v, want %+v", builds, want)
 	}
 }
 
@@ -105,7 +105,7 @@ func TestBuildsService_Create(t *testing.T) {
 	want := &Build{BID: 123, Repo: 456}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepositoryBuildsCreate, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoBuildsCreate, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "POST")
 		testBody(t, r, `{"Import":true,"Queue":true,"UseCache":false,"Priority":0,"CommitID":"c","Force":true}`+"\n")

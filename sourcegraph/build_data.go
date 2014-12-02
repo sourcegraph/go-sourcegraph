@@ -58,7 +58,7 @@ type BuildDataListOptions struct {
 func (s *buildDataService) List(repo RepoRevSpec, opt *BuildDataListOptions) ([]*buildstore.BuildDataFileInfo, Response, error) {
 	v := repo.RouteVars()
 	v["Path"] = "."
-	url, err := s.client.url(router.RepositoryBuildDataEntry, v, opt)
+	url, err := s.client.url(router.RepoBuildDataEntry, v, opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -79,7 +79,7 @@ func (s *buildDataService) List(repo RepoRevSpec, opt *BuildDataListOptions) ([]
 }
 
 func (s *buildDataService) Get(file BuildDataFileSpec) (io.ReadCloser, Response, error) {
-	url, err := s.client.url(router.RepositoryBuildDataEntry, file.RouteVars(), nil)
+	url, err := s.client.url(router.RepoBuildDataEntry, file.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -99,7 +99,7 @@ func (s *buildDataService) Get(file BuildDataFileSpec) (io.ReadCloser, Response,
 }
 
 func (s *buildDataService) Upload(file BuildDataFileSpec, body io.ReadCloser) (Response, error) {
-	url, err := s.client.url(router.RepositoryBuildDataEntry, file.RouteVars(), nil)
+	url, err := s.client.url(router.RepoBuildDataEntry, file.RouteVars(), nil)
 	if err != nil {
 		return nil, err
 	}
