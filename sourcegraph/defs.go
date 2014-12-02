@@ -239,7 +239,7 @@ func (vs Refs) Less(i, j int) bool { return vs[i].sortKey() < vs[j].sortKey() }
 
 type DefListRefsOptions struct {
 	Authorship bool   `url:",omitempty"` // whether to fetch authorship info about the refs
-	Repository string `url:",omitempty"` // only fetch refs from this repository URI
+	Repo       string `url:",omitempty"` // only fetch refs from this repository URI
 	ListOptions
 }
 
@@ -293,7 +293,7 @@ type DefListExamplesOptions struct {
 	Formatted bool
 
 	// Filter by a specific Repository URI
-	Repository string
+	Repo string
 
 	ListOptions
 }
@@ -425,7 +425,7 @@ type DefDependent struct {
 }
 
 type AugmentedDefDependent struct {
-	Repo *Repository
+	Repo *Repo
 	*DefDependent
 }
 

@@ -22,22 +22,22 @@ func TestMatch(t *testing.T) {
 		// Repository
 		{
 			path:          "/repos/repohost.com/foo",
-			wantRouteName: Repository,
+			wantRouteName: Repo,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo"},
 		},
 		{
 			path:          "/repos/a/b/c",
-			wantRouteName: Repository,
+			wantRouteName: Repo,
 			wantVars:      map[string]string{"RepoSpec": "a/b/c"},
 		},
 		{
 			path:          "/repos/a.com/b",
-			wantRouteName: Repository,
+			wantRouteName: Repo,
 			wantVars:      map[string]string{"RepoSpec": "a.com/b"},
 		},
 		{
 			path:          "/repos/R$123",
-			wantRouteName: Repository,
+			wantRouteName: Repo,
 			wantVars:      map[string]string{"RepoSpec": "R$123"},
 		},
 		{

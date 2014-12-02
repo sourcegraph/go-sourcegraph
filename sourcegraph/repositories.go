@@ -20,7 +20,7 @@ import (
 // Sourcegraph API.
 type RepositoriesService interface {
 	// Get fetches a repository.
-	Get(repo RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error)
+	Get(repo RepoSpec, opt *RepositoryGetOptions) (*Repo, Response, error)
 
 	// GetStats gets statistics about a repository at a specific
 	// commit. Some statistics are per-commit and some are global to
@@ -33,7 +33,7 @@ type RepositoriesService interface {
 	// with the URI, and the URI refers to a recognized repository host (such as
 	// github.com), the repository's information is fetched from the external
 	// host and the repository is created.
-	GetOrCreate(repo RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error)
+	GetOrCreate(repo RepoSpec, opt *RepositoryGetOptions) (*Repo, Response, error)
 
 	// GetSettings fetches a repository's configuration settings.
 	GetSettings(repo RepoSpec) (*RepositorySettings, Response, error)
@@ -74,13 +74,13 @@ type RepositoriesService interface {
 	// the repository that can be inferred from the URL (or, for GitHub
 	// repositories, fetched from the GitHub API). If a repository with the
 	// specified clone URL, or the same URI, already exists, it is returned.
-	Create(newRepoSpec NewRepositorySpec) (*Repository, Response, error)
+	Create(newRepoSpec NewRepositorySpec) (*Repo, Response, error)
 
 	// GetReadme fetches the formatted README file for a repository.
 	GetReadme(repo RepoRevSpec) (*vcsclient.TreeEntry, Response, error)
 
 	// List repositories.
-	List(opt *RepositoryListOptions) ([]*Repository, Response, error)
+	List(opt *RepositoryListOptions) ([]*Repo, Response, error)
 
 	// List commits.
 	ListCommits(repo RepoSpec, opt *RepositoryListCommitsOptions) ([]*Commit, Response, error)
@@ -284,8 +284,8 @@ type RepositoryGetOptions struct {
 	Stats bool `url:",omitempty" json:",omitempty"` // whether to fetch and include stats in the returned repository
 }
 
-func (s *repositoriesService) Get(repo RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error) {
-	url, err := s.client.url(router.Repository, repo.RouteVars(), opt)
+func (s *repositoriesService) Get(repo RepoSpec, opt *RepositoryGetOptions) (*Repo, Response, error) {
+	url, err := s.client.url(router.Repo, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -295,7 +295,7 @@ func (s *repositoriesService) Get(repo RepoSpec, opt *RepositoryGetOptions) (*Re
 		return nil, nil, err
 	}
 
-	var repo_ *Repository
+	var repo_ *Repo
 	resp, err := s.client.Do(req, &repo_)
 	if err != nil {
 		return nil, resp, err
@@ -324,7 +324,7 @@ func (s *repositoriesService) GetStats(repoRev RepoRevSpec) (RepoStats, Response
 	return stats, resp, nil
 }
 
-func (s *repositoriesService) GetOrCreate(repo_ RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error) {
+func (s *repositoriesService) GetOrCreate(repo_ RepoSpec, opt *RepositoryGetOptions) (*Repo, Response, error) {
 	url, err := s.client.url(router.RepositoriesGetOrCreate, repo_.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
@@ -335,7 +335,7 @@ func (s *repositoriesService) GetOrCreate(repo_ RepoSpec, opt *RepositoryGetOpti
 		return nil, nil, err
 	}
 
-	var repo__ *Repository
+	var repo__ *Repo
 	resp, err := s.client.Do(req, &repo__)
 	if err != nil {
 		return nil, resp, err
@@ -515,7 +515,7 @@ type NewRepositorySpec struct {
 	CloneURLStr string `json:"CloneURL"`
 }
 
-func (s *repositoriesService) Create(newRepoSpec NewRepositorySpec) (*Repository, Response, error) {
+func (s *repositoriesService) Create(newRepoSpec NewRepositorySpec) (*Repo, Response, error) {
 	url, err := s.client.url(router.RepositoriesCreate, nil, nil)
 	if err != nil {
 		return nil, nil, err
@@ -526,7 +526,7 @@ func (s *repositoriesService) Create(newRepoSpec NewRepositorySpec) (*Repository
 		return nil, nil, err
 	}
 
-	var repo_ *Repository
+	var repo_ *Repo
 	resp, err := s.client.Do(req, &repo_)
 	if err != nil {
 		return nil, resp, err
@@ -581,7 +581,7 @@ type RepositoryListOptions struct {
 	ListOptions
 }
 
-func (s *repositoriesService) List(opt *RepositoryListOptions) ([]*Repository, Response, error) {
+func (s *repositoriesService) List(opt *RepositoryListOptions) ([]*Repo, Response, error) {
 	url, err := s.client.url(router.Repositories, nil, opt)
 	if err != nil {
 		return nil, nil, err
@@ -592,7 +592,7 @@ func (s *repositoriesService) List(opt *RepositoryListOptions) ([]*Repository, R
 		return nil, nil, err
 	}
 
-	var repos []*Repository
+	var repos []*Repo
 	resp, err := s.client.Do(req, &repos)
 	if err != nil {
 		return nil, resp, err
@@ -863,7 +863,7 @@ type RepoDependency struct {
 }
 
 type AugmentedRepoDependency struct {
-	Repo *Repository
+	Repo *Repo
 	*RepoDependency
 }
 
@@ -896,7 +896,7 @@ type RepoDependent struct {
 }
 
 type AugmentedRepoDependent struct {
-	Repo *Repository
+	Repo *Repo
 	*RepoDependent
 }
 
@@ -947,7 +947,7 @@ type RepoContribution struct {
 }
 
 type AugmentedRepoContribution struct {
-	Repo *Repository
+	Repo *Repo
 	*RepoContribution
 }
 
@@ -993,7 +993,7 @@ type RepoUsageByClient struct {
 // AugmentedRepoUsageByClient is a RepoUsageByClient with the full Repository
 // struct embedded.
 type AugmentedRepoUsageByClient struct {
-	DefRepo            *Repository
+	DefRepo            *Repo
 	*RepoUsageByClient `json:"RepoUsageByClient"`
 }
 
@@ -1032,7 +1032,7 @@ type RepoUsageOfAuthor struct {
 // AugmentedRepoUsageOfAuthor is a RepoUsageOfAuthor with the full
 // Repository struct embedded.
 type AugmentedRepoUsageOfAuthor struct {
-	Repo               *Repository
+	Repo               *Repo
 	*RepoUsageOfAuthor `json:"RepoUsageOfAuthor"`
 }
 
@@ -1061,18 +1061,18 @@ func (s *repositoriesService) ListByRefdAuthor(person PersonSpec, opt *Repositor
 }
 
 type MockRepositoriesService struct {
-	Get_               func(spec RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error)
+	Get_               func(spec RepoSpec, opt *RepositoryGetOptions) (*Repo, Response, error)
 	GetStats_          func(repo RepoRevSpec) (RepoStats, Response, error)
-	GetOrCreate_       func(repo RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error)
+	GetOrCreate_       func(repo RepoSpec, opt *RepositoryGetOptions) (*Repo, Response, error)
 	GetSettings_       func(repo RepoSpec) (*RepositorySettings, Response, error)
 	UpdateSettings_    func(repo RepoSpec, settings RepositorySettings) (Response, error)
 	RefreshProfile_    func(repo RepoSpec) (Response, error)
 	RefreshVCSData_    func(repo RepoSpec) (Response, error)
 	ComputeStats_      func(repo RepoRevSpec) (Response, error)
 	GetBuild_          func(repo RepoRevSpec, opt *RepoGetBuildOptions) (*RepoBuildInfo, Response, error)
-	Create_            func(newRepoSpec NewRepositorySpec) (*Repository, Response, error)
+	Create_            func(newRepoSpec NewRepositorySpec) (*Repo, Response, error)
 	GetReadme_         func(repo RepoRevSpec) (*vcsclient.TreeEntry, Response, error)
-	List_              func(opt *RepositoryListOptions) ([]*Repository, Response, error)
+	List_              func(opt *RepositoryListOptions) ([]*Repo, Response, error)
 	ListCommits_       func(repo RepoSpec, opt *RepositoryListCommitsOptions) ([]*Commit, Response, error)
 	GetCommit_         func(rev RepoRevSpec, opt *RepositoryGetCommitOptions) (*Commit, Response, error)
 	ListBranches_      func(repo RepoSpec, opt *RepositoryListBranchesOptions) ([]*vcs.Branch, Response, error)
@@ -1090,7 +1090,7 @@ type MockRepositoriesService struct {
 
 var _ RepositoriesService = MockRepositoriesService{}
 
-func (s MockRepositoriesService) Get(repo RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error) {
+func (s MockRepositoriesService) Get(repo RepoSpec, opt *RepositoryGetOptions) (*Repo, Response, error) {
 	if s.Get_ == nil {
 		return nil, &HTTPResponse{}, nil
 	}
@@ -1104,7 +1104,7 @@ func (s MockRepositoriesService) GetStats(repo RepoRevSpec) (RepoStats, Response
 	return s.GetStats_(repo)
 }
 
-func (s MockRepositoriesService) GetOrCreate(repo RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error) {
+func (s MockRepositoriesService) GetOrCreate(repo RepoSpec, opt *RepositoryGetOptions) (*Repo, Response, error) {
 	if s.GetOrCreate_ == nil {
 		return nil, &HTTPResponse{}, nil
 	}
@@ -1153,7 +1153,7 @@ func (s MockRepositoriesService) GetBuild(repo RepoRevSpec, opt *RepoGetBuildOpt
 	return s.GetBuild_(repo, opt)
 }
 
-func (s MockRepositoriesService) Create(newRepoSpec NewRepositorySpec) (*Repository, Response, error) {
+func (s MockRepositoriesService) Create(newRepoSpec NewRepositorySpec) (*Repo, Response, error) {
 	if s.Create_ == nil {
 		return nil, nil, nil
 	}
@@ -1167,7 +1167,7 @@ func (s MockRepositoriesService) GetReadme(repo RepoRevSpec) (*vcsclient.TreeEnt
 	return s.GetReadme_(repo)
 }
 
-func (s MockRepositoriesService) List(opt *RepositoryListOptions) ([]*Repository, Response, error) {
+func (s MockRepositoriesService) List(opt *RepositoryListOptions) ([]*Repo, Response, error) {
 	if s.List_ == nil {
 		return nil, &HTTPResponse{}, nil
 	}

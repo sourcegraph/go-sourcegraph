@@ -15,7 +15,7 @@ type SearchService interface {
 type SearchResults struct {
 	Defs         []*Def
 	People       []*person.User
-	Repositories []*Repository
+	Repositories []*Repo
 }
 
 func (r *SearchResults) Empty() bool {

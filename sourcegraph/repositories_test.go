@@ -82,10 +82,10 @@ func TestRepositoriesService_Get(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := &Repository{RID: 1}
+	want := &Repo{RID: 1}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.Repository, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.Repo, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -138,7 +138,7 @@ func TestRepositoriesService_GetOrCreate(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := &Repository{RID: 1}
+	want := &Repo{RID: 1}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.RepositoriesGetOrCreate, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
@@ -319,7 +319,7 @@ func TestRepositoriesService_Create(t *testing.T) {
 	defer teardown()
 
 	newRepo := NewRepositorySpec{Type: "git", CloneURLStr: "http://r.com/x"}
-	want := &Repository{RID: 1}
+	want := &Repo{RID: 1}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.RepositoriesCreate, nil), func(w http.ResponseWriter, r *http.Request) {
@@ -377,7 +377,7 @@ func TestRepositoriesService_List(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*Repository{&Repository{RID: 1}}
+	want := []*Repo{&Repo{RID: 1}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.Repositories, nil), func(w http.ResponseWriter, r *http.Request) {
@@ -650,7 +650,7 @@ func TestRepositoriesService_ListDependents(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedRepoDependent{{Repo: &Repository{URI: "r2"}}}
+	want := []*AugmentedRepoDependent{{Repo: &Repo{URI: "r2"}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.RepositoryDependents, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
@@ -678,7 +678,7 @@ func TestRepositoriesService_ListDependencies(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedRepoDependency{{Repo: &Repository{URI: "r2"}}}
+	want := []*AugmentedRepoDependency{{Repo: &Repo{URI: "r2"}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.RepositoryDependencies, map[string]string{"RepoSpec": "r.com/x", "Rev": "c"}), func(w http.ResponseWriter, r *http.Request) {
@@ -706,7 +706,7 @@ func TestRepositoriesService_ListByContributor(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedRepoContribution{{Repo: &Repository{URI: "r.com/x"}}}
+	want := []*AugmentedRepoContribution{{Repo: &Repo{URI: "r.com/x"}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.PersonRepositoryContributions, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
@@ -735,7 +735,7 @@ func TestRepositoriesService_ListByClient(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedRepoUsageByClient{{DefRepo: &Repository{URI: "r.com/x"}}}
+	want := []*AugmentedRepoUsageByClient{{DefRepo: &Repo{URI: "r.com/x"}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.PersonRepositoryDependencies, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
@@ -763,7 +763,7 @@ func TestRepositoriesService_ListByRefdAuthor(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedRepoUsageOfAuthor{{Repo: &Repository{URI: "r.com/x"}}}
+	want := []*AugmentedRepoUsageOfAuthor{{Repo: &Repo{URI: "r.com/x"}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.PersonRepositoryDependents, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {

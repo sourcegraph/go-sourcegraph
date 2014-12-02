@@ -204,7 +204,7 @@ func TestDefsService_ListDependents(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedDefDependent{{Repo: &Repository{URI: "r2"}}}
+	want := []*AugmentedDefDependent{{Repo: &Repo{URI: "r2"}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.DefDependents, map[string]string{"RepoSpec": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {

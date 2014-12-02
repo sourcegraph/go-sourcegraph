@@ -16,8 +16,8 @@ import (
 // RID is the numeric primary key for a repository.
 type RID int
 
-// Repository is a code repository returned by the Sourcegraph API.
-type Repository struct {
+// Repo is a code repository returned by the Sourcegraph API.
+type Repo struct {
 	// RID is the numeric primary key for a repository.
 	RID RID
 
@@ -89,7 +89,7 @@ type Repository struct {
 }
 
 // IsGitHubRepository returns true iff this repository is hosted on GitHub.
-func (r *Repository) IsGitHubRepository() bool {
+func (r *Repo) IsGitHubRepository() bool {
 	cloneURLStr := r.GetActualCloneURL()
 	if cloneURLStr == "" {
 		return strings.HasPrefix(strings.ToLower(string(r.URI)), "github.com/")
@@ -104,7 +104,7 @@ func (r *Repository) IsGitHubRepository() bool {
 }
 
 // Returns the most direct URL used to clone the repository, following any redirects
-func (r *Repository) GetActualCloneURL() string {
+func (r *Repo) GetActualCloneURL() string {
 	if r.ActualCloneURL == "" {
 		return r.CloneURL
 	}
@@ -116,15 +116,15 @@ const (
 	Hg  = "hg"
 )
 
-func MapByURI(repos []*Repository) map[URI]*Repository {
-	repoMap := make(map[URI]*Repository, len(repos))
+func MapByURI(repos []*Repo) map[URI]*Repo {
+	repoMap := make(map[URI]*Repo, len(repos))
 	for _, repo := range repos {
 		repoMap[URI(repo.URI)] = repo
 	}
 	return repoMap
 }
 
-type Repositories []*Repository
+type Repositories []*Repo
 
 func (rs Repositories) URIs() (uris []URI) {
 	uris = make([]URI, len(rs))
@@ -178,7 +178,7 @@ func (us URIs) Strings() []string {
 }
 
 // RepoSpec returns the RepoSpec that specifies r.
-func (r *Repository) RepoSpec() RepoSpec {
+func (r *Repo) RepoSpec() RepoSpec {
 	return RepoSpec{URI: string(r.URI), RID: int(r.RID)}
 }
 
