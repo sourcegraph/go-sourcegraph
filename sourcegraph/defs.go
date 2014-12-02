@@ -85,7 +85,7 @@ func (s *DefSpec) DefKey() graph.DefKey {
 // def as the given key.
 func NewDefSpecFromDefKey(key graph.DefKey) DefSpec {
 	return DefSpec{
-		Repo:     string(key.Repo),
+		Repo:     key.Repo,
 		CommitID: key.CommitID,
 		UnitType: key.UnitType,
 		Unit:     key.Unit,

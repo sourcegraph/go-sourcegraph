@@ -251,7 +251,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 }
 
 func URIToDef(key graph.DefKey) *url.URL {
-	return URITo(Def, "RepoSpec", string(key.Repo), "UnitType", key.UnitType, "Unit", key.Unit, "Path", string(key.Path))
+	return URITo(Def, "RepoSpec", key.Repo, "UnitType", key.UnitType, "Unit", key.Unit, "Path", string(key.Path))
 }
 
 func URITo(routeName string, params ...string) *url.URL {
