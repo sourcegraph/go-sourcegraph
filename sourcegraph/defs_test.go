@@ -8,7 +8,6 @@ import (
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/graph"
 	"sourcegraph.com/sourcegraph/srclib/person"
-	"sourcegraph.com/sourcegraph/srclib/repo"
 )
 
 func TestDefsService_Get(t *testing.T) {
@@ -205,7 +204,7 @@ func TestDefsService_ListDependents(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedDefDependent{{Repo: &repo.Repository{URI: "r2"}}}
+	want := []*AugmentedDefDependent{{Repo: &Repository{URI: "r2"}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.DefDependents, map[string]string{"RepoSpec": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {

@@ -14,7 +14,6 @@ import (
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/person"
-	"sourcegraph.com/sourcegraph/srclib/repo"
 )
 
 // RepositoriesService communicates with the repository-related endpoints in the
@@ -28,7 +27,7 @@ type RepositoriesService interface {
 	// the repository. If you only care about global repository
 	// statistics, pass an empty Rev to the RepoRevSpec (which will be
 	// resolved to the repository's default branch).
-	GetStats(repo RepoRevSpec) (repo.Stats, Response, error)
+	GetStats(repo RepoRevSpec) (RepoStats, Response, error)
 
 	// GetOrCreate fetches a repository using Get. If no such repository exists
 	// with the URI, and the URI refers to a recognized repository host (such as
@@ -75,7 +74,7 @@ type RepositoriesService interface {
 	// the repository that can be inferred from the URL (or, for GitHub
 	// repositories, fetched from the GitHub API). If a repository with the
 	// specified clone URL, or the same URI, already exists, it is returned.
-	Create(newRepoSpec NewRepositorySpec) (*repo.Repository, Response, error)
+	Create(newRepoSpec NewRepositorySpec) (*Repository, Response, error)
 
 	// GetReadme fetches the formatted README file for a repository.
 	GetReadme(repo RepoRevSpec) (*vcsclient.TreeEntry, Response, error)
@@ -280,19 +279,6 @@ func UnmarshalRepoRevSpec(routeVars map[string]string) (RepoRevSpec, error) {
 	return repoRevSpec, nil
 }
 
-// Repository is a code repository returned by the Sourcegraph API.
-type Repository struct {
-	*repo.Repository
-
-	// Stat holds repository statistics. It's only filled in if Repository{Get,List}Options has Stats == true.
-	Stat repo.Stats
-}
-
-// RepoSpec returns the RepoSpec that specifies r.
-func (r *Repository) RepoSpec() RepoSpec {
-	return RepoSpec{URI: string(r.Repository.URI), RID: int(r.Repository.RID)}
-}
-
 // RepositoryGetOptions specifies options for getting a repository.
 type RepositoryGetOptions struct {
 	Stats bool `url:",omitempty" json:",omitempty"` // whether to fetch and include stats in the returned repository
@@ -318,7 +304,7 @@ func (s *repositoriesService) Get(repo RepoSpec, opt *RepositoryGetOptions) (*Re
 	return repo_, resp, nil
 }
 
-func (s *repositoriesService) GetStats(repoRev RepoRevSpec) (repo.Stats, Response, error) {
+func (s *repositoriesService) GetStats(repoRev RepoRevSpec) (RepoStats, Response, error) {
 	url, err := s.client.url(router.RepositoryStats, repoRev.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
@@ -329,7 +315,7 @@ func (s *repositoriesService) GetStats(repoRev RepoRevSpec) (repo.Stats, Respons
 		return nil, nil, err
 	}
 
-	var stats repo.Stats
+	var stats RepoStats
 	resp, err := s.client.Do(req, &stats)
 	if err != nil {
 		return nil, resp, err
@@ -525,11 +511,11 @@ func (s *repositoriesService) GetBuild(repo RepoRevSpec, opt *RepoGetBuildOption
 }
 
 type NewRepositorySpec struct {
-	Type        repo.VCS
+	Type        string
 	CloneURLStr string `json:"CloneURL"`
 }
 
-func (s *repositoriesService) Create(newRepoSpec NewRepositorySpec) (*repo.Repository, Response, error) {
+func (s *repositoriesService) Create(newRepoSpec NewRepositorySpec) (*Repository, Response, error) {
 	url, err := s.client.url(router.RepositoriesCreate, nil, nil)
 	if err != nil {
 		return nil, nil, err
@@ -540,7 +526,7 @@ func (s *repositoriesService) Create(newRepoSpec NewRepositorySpec) (*repo.Repos
 		return nil, nil, err
 	}
 
-	var repo_ *repo.Repository
+	var repo_ *Repository
 	resp, err := s.client.Do(req, &repo_)
 	if err != nil {
 		return nil, resp, err
@@ -827,7 +813,7 @@ type ClientStats struct {
 
 	// DefRepo is the repository that defines defs that this client
 	// referred to.
-	DefRepo repo.URI `db:"def_repo"`
+	DefRepo URI `db:"def_repo"`
 
 	// DefUnitType and DefUnit are the unit in DefRepo that defines
 	// defs that this client referred to. If DefUnitType == "" and
@@ -873,11 +859,11 @@ func (s *repositoriesService) ListClients(repo RepoSpec, opt *RepositoryListClie
 }
 
 type RepoDependency struct {
-	ToRepo repo.URI `db:"to_repo"`
+	ToRepo string `db:"to_repo"`
 }
 
 type AugmentedRepoDependency struct {
-	Repo *repo.Repository
+	Repo *Repository
 	*RepoDependency
 }
 
@@ -906,11 +892,11 @@ func (s *repositoriesService) ListDependencies(repo RepoRevSpec, opt *Repository
 }
 
 type RepoDependent struct {
-	FromRepo repo.URI `db:"from_repo"`
+	FromRepo string `db:"from_repo"`
 }
 
 type AugmentedRepoDependent struct {
-	Repo *repo.Repository
+	Repo *Repository
 	*RepoDependent
 }
 
@@ -956,12 +942,12 @@ type AuthorStats struct {
 }
 
 type RepoContribution struct {
-	RepoURI repo.URI `db:"repo"`
+	RepoURI string `db:"repo"`
 	AuthorStats
 }
 
 type AugmentedRepoContribution struct {
-	Repo *repo.Repository
+	Repo *Repository
 	*RepoContribution
 }
 
@@ -997,17 +983,17 @@ type RepoUsageByClient struct {
 	// It's called DefRepo because "Repo" usually refers to the repository
 	// whose analysis created this linkage (i.e., the repository that contains
 	// the reference).
-	DefRepo repo.URI `db:"def_repo"`
+	DefRepo string `db:"def_repo"`
 
 	RefCount int `db:"ref_count"`
 
 	AuthorshipInfo
 }
 
-// AugmentedRepoUsageByClient is a RepoUsageByClient with the full repo.Repository
+// AugmentedRepoUsageByClient is a RepoUsageByClient with the full Repository
 // struct embedded.
 type AugmentedRepoUsageByClient struct {
-	DefRepo            *repo.Repository
+	DefRepo            *Repository
 	*RepoUsageByClient `json:"RepoUsageByClient"`
 }
 
@@ -1038,15 +1024,15 @@ func (s *repositoriesService) ListByClient(person PersonSpec, opt *RepositoryLis
 // RepoUsageOfAuthor describes a repository referencing code committed by a
 // specific person.
 type RepoUsageOfAuthor struct {
-	Repo repo.URI
+	Repo string
 
 	RefCount int `db:"ref_count"`
 }
 
 // AugmentedRepoUsageOfAuthor is a RepoUsageOfAuthor with the full
-// repo.Repository struct embedded.
+// Repository struct embedded.
 type AugmentedRepoUsageOfAuthor struct {
-	Repo               *repo.Repository
+	Repo               *Repository
 	*RepoUsageOfAuthor `json:"RepoUsageOfAuthor"`
 }
 
@@ -1076,7 +1062,7 @@ func (s *repositoriesService) ListByRefdAuthor(person PersonSpec, opt *Repositor
 
 type MockRepositoriesService struct {
 	Get_               func(spec RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error)
-	GetStats_          func(repo RepoRevSpec) (repo.Stats, Response, error)
+	GetStats_          func(repo RepoRevSpec) (RepoStats, Response, error)
 	GetOrCreate_       func(repo RepoSpec, opt *RepositoryGetOptions) (*Repository, Response, error)
 	GetSettings_       func(repo RepoSpec) (*RepositorySettings, Response, error)
 	UpdateSettings_    func(repo RepoSpec, settings RepositorySettings) (Response, error)
@@ -1084,7 +1070,7 @@ type MockRepositoriesService struct {
 	RefreshVCSData_    func(repo RepoSpec) (Response, error)
 	ComputeStats_      func(repo RepoRevSpec) (Response, error)
 	GetBuild_          func(repo RepoRevSpec, opt *RepoGetBuildOptions) (*RepoBuildInfo, Response, error)
-	Create_            func(newRepoSpec NewRepositorySpec) (*repo.Repository, Response, error)
+	Create_            func(newRepoSpec NewRepositorySpec) (*Repository, Response, error)
 	GetReadme_         func(repo RepoRevSpec) (*vcsclient.TreeEntry, Response, error)
 	List_              func(opt *RepositoryListOptions) ([]*Repository, Response, error)
 	ListCommits_       func(repo RepoSpec, opt *RepositoryListCommitsOptions) ([]*Commit, Response, error)
@@ -1111,7 +1097,7 @@ func (s MockRepositoriesService) Get(repo RepoSpec, opt *RepositoryGetOptions) (
 	return s.Get_(repo, opt)
 }
 
-func (s MockRepositoriesService) GetStats(repo RepoRevSpec) (repo.Stats, Response, error) {
+func (s MockRepositoriesService) GetStats(repo RepoRevSpec) (RepoStats, Response, error) {
 	if s.GetStats_ == nil {
 		return nil, nil, nil
 	}
@@ -1167,7 +1153,7 @@ func (s MockRepositoriesService) GetBuild(repo RepoRevSpec, opt *RepoGetBuildOpt
 	return s.GetBuild_(repo, opt)
 }
 
-func (s MockRepositoriesService) Create(newRepoSpec NewRepositorySpec) (*repo.Repository, Response, error) {
+func (s MockRepositoriesService) Create(newRepoSpec NewRepositorySpec) (*Repository, Response, error) {
 	if s.Create_ == nil {
 		return nil, nil, nil
 	}

@@ -10,7 +10,6 @@ import (
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/graph"
 	"sourcegraph.com/sourcegraph/srclib/person"
-	"sourcegraph.com/sourcegraph/srclib/repo"
 )
 
 // DefsService communicates with the def- and graph-related endpoints in
@@ -74,7 +73,7 @@ func (s *DefSpec) DefKey() graph.DefKey {
 		panic("Unit is empty")
 	}
 	return graph.DefKey{
-		Repo:     repo.URI(s.Repo),
+		Repo:     s.Repo,
 		CommitID: s.CommitID,
 		UnitType: s.UnitType,
 		Unit:     s.Unit,
@@ -421,12 +420,12 @@ func (s *defsService) ListClients(def DefSpec, opt *DefListClientsOptions) ([]*A
 }
 
 type DefDependent struct {
-	FromRepo repo.URI `db:"from_repo"`
+	FromRepo string `db:"from_repo"`
 	Count    int
 }
 
 type AugmentedDefDependent struct {
-	Repo *repo.Repository
+	Repo *Repository
 	*DefDependent
 }
 

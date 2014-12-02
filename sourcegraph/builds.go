@@ -9,7 +9,6 @@ import (
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/db_common"
-	"sourcegraph.com/sourcegraph/srclib/repo"
 )
 
 // BuildsService communicates with the build-related endpoints in the
@@ -78,7 +77,7 @@ func (s *TaskSpec) RouteVars() map[string]string {
 // import job.
 type Build struct {
 	BID         int64 `json:",omitempty"`
-	Repo        repo.RID
+	Repo        int
 	CreatedAt   time.Time          `db:"created_at"`
 	StartedAt   db_common.NullTime `db:"started_at"`
 	EndedAt     db_common.NullTime `db:"ended_at"`
@@ -101,7 +100,7 @@ type Build struct {
 
 	// RepoURI is populated (as a convenience) in results by Get and List but
 	// should not be set when creating builds (it will be ignored).
-	RepoURI repo.URI `db:"repo_uri" json:",omitempty"`
+	RepoURI string `db:"repo_uri" json:",omitempty"`
 }
 
 func (b *Build) Spec() BuildSpec { return BuildSpec{BID: b.BID} }
