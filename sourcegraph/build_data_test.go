@@ -96,6 +96,26 @@ func TestBuildDataService_Upload(t *testing.T) {
 	}
 }
 
+func TestBuildDataService_Delete(t *testing.T) {
+	setup()
+	defer teardown()
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.RepoBuildDataEntry, map[string]string{"RepoSpec": "r.com/x", "Rev": "c", "Path": "a/b"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "DELETE")
+	})
+
+	_, err := client.BuildData.Delete(BuildDataFileSpec{RepoRev: RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"}, Path: "a/b"})
+	if err != nil {
+		t.Fatalf("BuildData.Delete returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+}
+
 func normalizeBuildDataTime(bs ...*buildstore.BuildDataFileInfo) {
 	for _, b := range bs {
 		normalizeTime(&b.ModTime)

@@ -18,6 +18,9 @@ type BuildDataService interface {
 
 	// Upload uploads a build data file.
 	Upload(spec BuildDataFileSpec, body io.ReadCloser) (Response, error)
+
+	// Delete deletes a build data file.
+	Delete(spec BuildDataFileSpec) (Response, error)
 }
 
 type buildDataService struct {
@@ -118,10 +121,30 @@ func (s *buildDataService) Upload(file BuildDataFileSpec, body io.ReadCloser) (R
 	return resp, nil
 }
 
+func (s *buildDataService) Delete(file BuildDataFileSpec) (Response, error) {
+	url, err := s.client.url(router.RepoBuildDataEntry, file.RouteVars(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := s.client.NewRequest("DELETE", url.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.client.Do(req, nil)
+	if err != nil {
+		return resp, err
+	}
+
+	return resp, nil
+}
+
 type MockBuildDataService struct {
 	List_   func(repo RepoRevSpec, opt *BuildDataListOptions) ([]*buildstore.BuildDataFileInfo, Response, error)
 	Get_    func(file BuildDataFileSpec) (io.ReadCloser, Response, error)
 	Upload_ func(spec BuildDataFileSpec, body io.ReadCloser) (Response, error)
+	Delete_ func(file BuildDataFileSpec) (Response, error)
 }
 
 var _ BuildDataService = MockBuildDataService{}
@@ -145,4 +168,8 @@ func (s MockBuildDataService) Upload(spec BuildDataFileSpec, body io.ReadCloser)
 		return nil, nil
 	}
 	return s.Upload_(spec, body)
+}
+
+func (s MockBuildDataService) Delete(file BuildDataFileSpec) (Response, error) {
+	return s.Delete_(file)
 }
