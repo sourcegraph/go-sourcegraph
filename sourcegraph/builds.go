@@ -163,6 +163,11 @@ type BuildTask struct {
 	Failure bool `json:",omitempty"`
 }
 
+// Build task ops.
+const (
+	ImportTaskOp = "import"
+)
+
 func (t *BuildTask) Spec() TaskSpec {
 	return TaskSpec{BuildSpec: BuildSpec{BID: t.BID}, TaskID: t.TaskID}
 }
