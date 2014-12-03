@@ -112,13 +112,20 @@ func buildIDString(bid int64) string { return "B" + strconv.FormatInt(bid, 36) }
 
 // A BuildTask represents an individual step of a build.
 type BuildTask struct {
+	// TaskID is the unique ID of this task. It is unique over all
+	// tasks, not just tasks in the same build.
 	TaskID int64 `json:",omitempty"`
 
 	// BID is the build that this task is a part of.
 	BID int64
 
-	UnitType string
-	Unit     string
+	// UnitType is the srclib source unit type of the source unit that
+	// this task is associated with.
+	UnitType string `db:"unit_type" json:",omitempty"`
+
+	// Unit is the srclib source unit name of the source unit that
+	// this task is associated with.
+	Unit string `json:",omitempty"`
 
 	// Op is the srclib toolchain operation (graph, depresolve, etc.) that this
 	// task performs.
@@ -129,12 +136,37 @@ type BuildTask struct {
 	// Multiple tasks may have the same order.
 	Order int `json:",omitempty"`
 
-	StartedAt db_common.NullTime `db:"started_at" json:",omitempty"`
-	EndedAt   db_common.NullTime `db:"ended_at" json:",omitempty"`
+	// CreatedAt is when this task was initially created.
+	CreatedAt time.Time `db:"created_at"`
 
+	// StartedAt is when this task's execution began.
+	StartedAt db_common.NullTime `db:"started_at" json:",omitempty"`
+
+	// EndedAt is when this task's execution ended (whether because it
+	// succeeded or failed).
+	EndedAt db_common.NullTime `db:"ended_at" json:",omitempty"`
+
+	// Queue is whether this task should be performed by queue task
+	// remote workers on the central server. If true, then it will be
+	// performed remotely. If false, it should be performed locally by
+	// the process that created this task.
+	//
+	// For example, import tasks are queued because they are performed
+	// by the remote server, not the local "src" process running on
+	// the builders.
+	Queue bool
+
+	// Success is whether this task's execution succeeded.
 	Success bool `json:",omitempty"`
+
+	// Failure is whether this task's execution failed.
 	Failure bool `json:",omitempty"`
 }
+
+// Build task ops.
+const (
+	ImportTaskOp = "import"
+)
 
 func (t *BuildTask) Spec() TaskSpec {
 	return TaskSpec{BuildSpec: BuildSpec{BID: t.BID}, TaskID: t.TaskID}

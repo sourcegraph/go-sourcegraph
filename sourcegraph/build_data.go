@@ -2,22 +2,18 @@ package sourcegraph
 
 import (
 	"io"
+	"os"
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
-	"sourcegraph.com/sourcegraph/srclib/buildstore"
+	"sourcegraph.com/sourcegraph/rwvfs"
 )
 
 // BuildDataService communicates with the build data-related endpoints in the
 // Sourcegraph API.
 type BuildDataService interface {
-	// List lists build data files and subdirectories.
-	List(repo RepoRevSpec, opt *BuildDataListOptions) ([]*buildstore.BuildDataFileInfo, Response, error)
-
-	// Get gets a build data file.
-	Get(file BuildDataFileSpec) (io.ReadCloser, Response, error)
-
-	// Upload uploads a build data file.
-	Upload(spec BuildDataFileSpec, body io.ReadCloser) (Response, error)
+	// FileSystem returns a virtual filesystem interface to the build
+	// data for a repo at a specific commit.
+	FileSystem(repo RepoRevSpec) (rwvfs.FileSystem, error)
 }
 
 type buildDataService struct {
@@ -25,6 +21,16 @@ type buildDataService struct {
 }
 
 var _ BuildDataService = &buildDataService{}
+
+func (s *buildDataService) FileSystem(repo RepoRevSpec) (rwvfs.FileSystem, error) {
+	v := repo.RouteVars()
+	v["Path"] = "."
+	baseURL, err := s.client.url(router.RepoBuildDataEntry, v, nil)
+	if err != nil {
+		return nil, err
+	}
+	return rwvfs.HTTP(s.client.BaseURL.ResolveReference(baseURL), s.client.httpClient), nil
+}
 
 // BuildDataFileSpec specifies a new or existing build data file in a
 // repository.
@@ -41,108 +47,31 @@ func (s *BuildDataFileSpec) RouteVars() map[string]string {
 	return m
 }
 
-const (
-	// MIME types to use in Accept request header for the server to
-	// know (without statting the path) what kind of resource (file or
-	// directory) the client wants to fetch.
-	BuildDataFileContentType = "application/vnd.sourcegraph.build-data-file"
-	BuildDataDirContentType  = "application/vnd.sourcegraph.build-data-dir"
-)
-
-// BuildDataListOptions specifies options for listing build data
-// files.
-type BuildDataListOptions struct {
-	ListOptions
-}
-
-func (s *buildDataService) List(repo RepoRevSpec, opt *BuildDataListOptions) ([]*buildstore.BuildDataFileInfo, Response, error) {
-	v := repo.RouteVars()
-	v["Path"] = "."
-	url, err := s.client.url(router.RepoBuildDataEntry, v, opt)
+// GetBuildDataFile is a helper function that calls Stat and Open on
+// the FileSystem returned for file's RepoRevSpec. Callers are
+// responsible for closing the file (unless an error is returned).
+func GetBuildDataFile(s BuildDataService, file BuildDataFileSpec) (io.ReadCloser, os.FileInfo, error) {
+	fs, err := s.FileSystem(file.RepoRev)
 	if err != nil {
 		return nil, nil, err
 	}
-
-	req, err := s.client.NewRequest("GET", url.String(), nil)
+	fi, err := fs.Stat(file.Path)
 	if err != nil {
 		return nil, nil, err
 	}
-	req.Header.Set("accept", BuildDataDirContentType)
-
-	var fileInfo []*buildstore.BuildDataFileInfo
-	resp, err := s.client.Do(req, &fileInfo)
+	f, err := fs.Open(file.Path)
 	if err != nil {
-		return nil, resp, err
+		return nil, fi, err
 	}
-
-	return fileInfo, resp, nil
-}
-
-func (s *buildDataService) Get(file BuildDataFileSpec) (io.ReadCloser, Response, error) {
-	url, err := s.client.url(router.RepoBuildDataEntry, file.RouteVars(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := s.client.NewRequest("GET", url.String(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.Header.Set("accept", BuildDataFileContentType)
-
-	resp, err := s.client.Do(req, preserveBody)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return resp.Body, resp, nil
-}
-
-func (s *buildDataService) Upload(file BuildDataFileSpec, body io.ReadCloser) (Response, error) {
-	url, err := s.client.url(router.RepoBuildDataEntry, file.RouteVars(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := s.client.NewRequest("PUT", url.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Body = body
-
-	resp, err := s.client.Do(req, nil)
-	if err != nil {
-		return resp, err
-	}
-
-	return resp, nil
+	return f, fi, err
 }
 
 type MockBuildDataService struct {
-	List_   func(repo RepoRevSpec, opt *BuildDataListOptions) ([]*buildstore.BuildDataFileInfo, Response, error)
-	Get_    func(file BuildDataFileSpec) (io.ReadCloser, Response, error)
-	Upload_ func(spec BuildDataFileSpec, body io.ReadCloser) (Response, error)
+	FileSystem_ func(repo RepoRevSpec) (rwvfs.FileSystem, error)
 }
 
 var _ BuildDataService = MockBuildDataService{}
 
-func (s MockBuildDataService) List(repo RepoRevSpec, opt *BuildDataListOptions) ([]*buildstore.BuildDataFileInfo, Response, error) {
-	if s.List_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
-	return s.List_(repo, opt)
-}
-
-func (s MockBuildDataService) Get(file BuildDataFileSpec) (io.ReadCloser, Response, error) {
-	if s.Get_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
-	return s.Get_(file)
-}
-
-func (s MockBuildDataService) Upload(spec BuildDataFileSpec, body io.ReadCloser) (Response, error) {
-	if s.Upload_ == nil {
-		return nil, nil
-	}
-	return s.Upload_(spec, body)
+func (s MockBuildDataService) FileSystem(repo RepoRevSpec) (rwvfs.FileSystem, error) {
+	return s.FileSystem_(repo)
 }

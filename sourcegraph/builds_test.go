@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"reflect"
 	"testing"
+	"time"
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 )
@@ -166,7 +167,7 @@ func TestBuildsService_UpdateTask(t *testing.T) {
 	defer teardown()
 
 	update := TaskUpdate{Success: Bool(true)}
-	want := &BuildTask{BID: 123, TaskID: 456}
+	want := &BuildTask{BID: 123, TaskID: 456, CreatedAt: time.Time{}.In(time.UTC)}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.BuildTaskUpdate, map[string]string{"BID": "123", "TaskID": "456"}), func(w http.ResponseWriter, r *http.Request) {
@@ -203,7 +204,7 @@ func TestBuildsService_CreateTasks(t *testing.T) {
 	mux.HandleFunc(urlPath(t, router.BuildTasksCreate, map[string]string{"BID": "123"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "POST")
-		testBody(t, r, `[{"BID":123,"UnitType":"t","Unit":"u","Op":"foo","StartedAt":null,"EndedAt":null},{"BID":123,"UnitType":"t","Unit":"u","Op":"bar","StartedAt":null,"EndedAt":null}]`+"\n")
+		testBody(t, r, `[{"BID":123,"UnitType":"t","Unit":"u","Op":"foo","CreatedAt":"0001-01-01T00:00:00Z","StartedAt":null,"EndedAt":null,"Queue":false},{"BID":123,"UnitType":"t","Unit":"u","Op":"bar","CreatedAt":"0001-01-01T00:00:00Z","StartedAt":null,"EndedAt":null,"Queue":false}]`+"\n")
 		writeJSON(w, create)
 	})
 

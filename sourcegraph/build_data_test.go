@@ -1,38 +1,43 @@
 package sourcegraph
 
 import (
-	"bytes"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"reflect"
 	"testing"
 
+	"sort"
+
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
-	"sourcegraph.com/sourcegraph/srclib/buildstore"
+	"sourcegraph.com/sourcegraph/rwvfs"
 )
 
-func TestBuildDataService_Get(t *testing.T) {
+func TestBuildDataService_GetBuildDataFile(t *testing.T) {
 	setup()
 	defer teardown()
 
 	want := []byte("hello")
 
-	var called bool
+	var called int
 	mux.HandleFunc(urlPath(t, router.RepoBuildDataEntry, map[string]string{"RepoSpec": "r.com/x", "Rev": "c", "Path": "a/b"}), func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		testMethod(t, r, "GET")
+		called++
 
-		w.Write(want)
+		switch r.Method {
+		case "GET":
+			w.Write(want)
+		case "HEAD":
+		}
 	})
 
-	file, _, err := client.BuildData.Get(BuildDataFileSpec{RepoRev: RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"}, Path: "a/b"})
+	file, _, err := GetBuildDataFile(client.BuildData, BuildDataFileSpec{RepoRev: RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"}, Path: "a/b"})
 	if err != nil {
-		t.Fatalf("BuildData.Get returned error: %v", err)
+		t.Fatalf("GetBuildDataFile returned error: %v", err)
 	}
 	defer file.Close()
 
-	if !called {
-		t.Fatal("!called")
+	if called != 2 {
+		t.Fatalf("got called == %d, want 2", called)
 	}
 
 	fileData, err := ioutil.ReadAll(file)
@@ -40,64 +45,45 @@ func TestBuildDataService_Get(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !reflect.DeepEqual(fileData, want) {
-		t.Errorf("BuildData.Get returned file data %+v, want %+v", fileData, want)
+		t.Errorf("GetBuildDataFile returned file data %+v, want %+v", fileData, want)
 	}
 }
 
-func TestBuildDataService_List(t *testing.T) {
+func TestBuildDataService_ListAll(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*buildstore.BuildDataFileInfo{{Path: "a/b", CommitID: "c"}}
-
-	var called bool
-	mux.HandleFunc(urlPath(t, router.RepoBuildDataEntry, map[string]string{"RepoSpec": "r.com/x", "Rev": "c", "Path": "."}), func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		testMethod(t, r, "GET")
-
-		writeJSON(w, want)
+	pathPrefix := urlPath(t, router.RepoBuildDataEntry, map[string]string{"RepoSpec": "r.com/x", "Rev": "c", "Path": "."})
+	fs := rwvfs.Map(map[string]string{
+		"a":     "a",
+		"b/c":   "c",
+		"b/d/e": "e",
 	})
+	mux.Handle(pathPrefix+"/", http.StripPrefix(pathPrefix, rwvfs.HTTPHandler(fs, nil)))
 
-	files, _, err := client.BuildData.List(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"}, nil)
+	fs, err := client.BuildData.FileSystem(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"})
 	if err != nil {
-		t.Errorf("BuildData.List returned error: %v", err)
+		t.Fatal(err)
 	}
 
-	if !called {
-		t.Fatal("!called")
+	entries, err := rwvfs.StatAllRecursive(".", rwvfs.Walkable(fs))
+	if err != nil {
+		t.Fatalf("StatAllRecursive returned error: %v", err)
 	}
 
-	normalizeBuildDataTime(files...)
-	normalizeBuildDataTime(want...)
-	if !reflect.DeepEqual(files, want) {
-		t.Errorf("BuildData.List returned %+v, want %+v", files, want)
+	names := fileInfoNames(entries)
+	wantNames := []string{".", "a", "b", "b/c", "b/d", "b/d/e"}
+	sort.Strings(names)
+	sort.Strings(wantNames)
+	if !reflect.DeepEqual(names, wantNames) {
+		t.Errorf("got entry names %v, want %v", names, wantNames)
 	}
 }
 
-func TestBuildDataService_Upload(t *testing.T) {
-	setup()
-	defer teardown()
-
-	want := []byte("hello")
-
-	var called bool
-	mux.HandleFunc(urlPath(t, router.RepoBuildDataEntry, map[string]string{"RepoSpec": "r.com/x", "Rev": "c", "Path": "a/b"}), func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		testMethod(t, r, "PUT")
-	})
-
-	_, err := client.BuildData.Upload(BuildDataFileSpec{RepoRev: RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"}, Path: "a/b"}, ioutil.NopCloser(bytes.NewReader(want)))
-	if err != nil {
-		t.Errorf("BuildData.Upload returned error: %v", err)
+func fileInfoNames(fis []os.FileInfo) []string {
+	names := make([]string, len(fis))
+	for i, fi := range fis {
+		names[i] = fi.Name()
 	}
-
-	if !called {
-		t.Fatal("!called")
-	}
-}
-
-func normalizeBuildDataTime(bs ...*buildstore.BuildDataFileInfo) {
-	for _, b := range bs {
-		normalizeTime(&b.ModTime)
-	}
+	return names
 }
