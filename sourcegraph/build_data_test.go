@@ -11,7 +11,6 @@ import (
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/rwvfs"
-	"sourcegraph.com/sourcegraph/srclib/buildstore"
 )
 
 func TestBuildDataService_GetBuildDataFile(t *testing.T) {
@@ -50,7 +49,7 @@ func TestBuildDataService_GetBuildDataFile(t *testing.T) {
 	}
 }
 
-func TestBuildDataService_ListAllBuildDataFiles(t *testing.T) {
+func TestBuildDataService_ListAll(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -62,9 +61,14 @@ func TestBuildDataService_ListAllBuildDataFiles(t *testing.T) {
 	})
 	mux.Handle(pathPrefix+"/", http.StripPrefix(pathPrefix, rwvfs.HTTPHandler(fs, nil)))
 
-	entries, err := ListAllBuildDataFiles(client.BuildData, RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"})
+	fs, err := client.BuildData.FileSystem(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"})
 	if err != nil {
-		t.Fatalf("ListAllBuildDataFiles returned error: %v", err)
+		t.Fatal(err)
+	}
+
+	entries, err := rwvfs.StatAllRecursive(".", rwvfs.Walkable(fs))
+	if err != nil {
+		t.Fatalf("StatAllRecursive returned error: %v", err)
 	}
 
 	names := fileInfoNames(entries)
@@ -82,10 +86,4 @@ func fileInfoNames(fis []os.FileInfo) []string {
 		names[i] = fi.Name()
 	}
 	return names
-}
-
-func normalizeBuildDataTime(bs ...*buildstore.BuildDataFileInfo) {
-	for _, b := range bs {
-		normalizeTime(&b.ModTime)
-	}
 }
