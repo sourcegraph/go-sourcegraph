@@ -148,7 +148,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	repoRev.Path("/.readme").Methods("GET").Name(RepoReadme)
 	repoRev.Path("/.build").Methods("GET").Name(RepoBuild)
 	repoRev.Path("/.dependencies").Methods("GET").Name(RepoDependencies)
-	repoRev.PathPrefix("/.build-data"+TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET", "PUT", "DELETE").Name(RepoBuildDataEntry)
+	repoRev.PathPrefix("/.build-data"+TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET", "HEAD", "PUT", "DELETE").Name(RepoBuildDataEntry)
 	repoRev.Path("/.docs/{Path:.*}").Methods("GET").Name(RepoDocPage)
 	repoRev.Path("/.badges/{Badge}.png").Methods("GET").Name(RepoBadge)
 
