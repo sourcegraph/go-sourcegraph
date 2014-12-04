@@ -76,8 +76,14 @@ func (s *TaskSpec) RouteVars() map[string]string {
 // A Build represents a scheduled, completed, or failed repository
 // analysis and import job.
 //
-// A build is composed of many tasks. The worker determines whether a
-// task failure causes the whole build to fail.
+// A build is composed of many tasks. The worker that is responsible
+// for a build or task determines whether a task failure causes the
+// whole build to fail. (Keep reading to see how we determine who is
+// responsible for a build or task.) There is no single kind of
+// worker; currently there are 3 things that could be considered
+// workers because they build builds or perform tasks: the builders on
+// Sourcegraph.com, the task workers that run import tasks, and anyone
+// who runs `src push` locally.
 //
 // Each task has logs associated with it, and each task can be
 // associated with a single source unit (or not).
