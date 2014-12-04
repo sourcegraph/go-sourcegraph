@@ -73,8 +73,43 @@ func (s *TaskSpec) RouteVars() map[string]string {
 	return v
 }
 
-// A Build represents a scheduled, completed, or failed repository analysis and
-// import job.
+// A Build represents a scheduled, completed, or failed repository
+// analysis and import job.
+//
+// A build is composed of many tasks. The worker determines whether a
+// task failure causes the whole build to fail.
+//
+// Each task has logs associated with it, and each task can be
+// associated with a single source unit (or not).
+//
+// Both builds and tasks have a Queue bool field. If a process creates
+// a build or task that has Queue=true, that means that it
+// relinquishes responsibility for it; some other queue workers (on
+// the server, for example) will dequeue and complete it. If
+// Queue=false, then the process that created it is responsible for
+// completing it. The only exception to this is that after a certain
+// timeout (on the order of 45 minutes), started but unfinished builds
+// are marked as failed.
+//
+// A build and its tasks may be queued (or not queued)
+// independently. A build may have Queue=true and its tasks may all
+// have Queue=false; this occurs when a build is enqueued by a user
+// and subsequently dequeued by a builder, which creates and performs
+// the tasks as a single process. Or a build may have Queue=false and
+// it may have a task with Queue=true; this occurs when someone builds
+// a project locally but wants the server to import the data (which
+// only the server, having direct DB access, can do).
+//
+// It probably wouldn't make sense to create a queued build and
+// immediately create a queued task, since then those would be run
+// independently (and potentially out of order) by two workers. But it
+// could make sense to create a queued build, and then for the builder
+// to do some work (such as analyzing a project) and then create a
+// queued task in the same build to import the build data it produced.
+//
+// Builds and tasks are simple "build"ing blocks (no pun intended)
+// with simple behavior. As we encounter new requirements for the
+// build system, they may evolve.
 type Build struct {
 	BID         int64 `json:",omitempty"`
 	Repo        int
@@ -88,7 +123,8 @@ type Build struct {
 	// Killed is true if this build's worker didn't exit on its own
 	// accord. It is generally set when no heartbeat has been received
 	// within a certain interval. If Killed is true, then Failure must
-	// also always be set to true.
+	// also always be set to true. Unqueued builds are never killed
+	// for lack of a heartbeat.
 	Killed bool `json:",omitempty"`
 
 	// Host is the hostname of the machine that is working on this build.
@@ -111,6 +147,9 @@ func (b BuildSpec) IDString() string { return buildIDString(b.BID) }
 func buildIDString(bid int64) string { return "B" + strconv.FormatInt(bid, 36) }
 
 // A BuildTask represents an individual step of a build.
+//
+// See the documentation for Build for more information about how
+// builds and tasks relate to each other.
 type BuildTask struct {
 	// TaskID is the unique ID of this task. It is unique over all
 	// tasks, not just tasks in the same build.
@@ -154,6 +193,9 @@ type BuildTask struct {
 	// For example, import tasks are queued because they are performed
 	// by the remote server, not the local "src" process running on
 	// the builders.
+	//
+	// See the documentation for Build for more discussion about
+	// queued builds and tasks (and how they relate).
 	Queue bool
 
 	// Success is whether this task's execution succeeded.
