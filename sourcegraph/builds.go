@@ -182,7 +182,7 @@ type BuildTask struct {
 	Order int `json:",omitempty"`
 
 	// CreatedAt is when this task was initially created.
-	CreatedAt time.Time `db:"created_at"`
+	CreatedAt db_common.NullTime `db:"created_at"`
 
 	// StartedAt is when this task's execution began.
 	StartedAt db_common.NullTime `db:"started_at" json:",omitempty"`

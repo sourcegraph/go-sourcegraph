@@ -52,7 +52,7 @@ type Repo struct {
 	HTTPCloneURL string `db:"http_clone_url"`
 
 	// SSHCloneURL is the SSH clone URL if the repository, if any.
-	SSHCloneURL string `db:"ssh_clone_url"`
+	SSHCloneURL nnz.String `db:"ssh_clone_url"`
 
 	// HomepageURL is the URL to the repository's homepage, if any.
 	HomepageURL nnz.String `db:"homepage_url"`
