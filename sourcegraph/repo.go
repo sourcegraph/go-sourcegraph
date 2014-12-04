@@ -22,6 +22,12 @@ type Repo struct {
 	// clone URL. E.g., "github.com/user/repo".
 	URI string
 
+	// URIAlias is another URI that, if accessed, will redirect to
+	// this repository's primary URI. It's used, for example, to
+	// redirect from GitHub repos to their canonical URI (such as Go
+	// repos on gopkg.in).
+	URIAlias nnz.String `db:"uri_alias"`
+
 	// Name is the base name (the final path component) of the repository,
 	// typically the name of the directory that the repository would be cloned
 	// into. (For example, for git://example.com/foo.git, the name is "foo".)
@@ -41,11 +47,12 @@ type Repo struct {
 	// or "hg".
 	VCS string `db:"vcs"`
 
-	// CloneURL is the URL used to clone the repository from its original host.
-	CloneURL string `db:"clone_url"`
+	// HTTPCloneURL is the HTTPS clone URL of the repository (or the
+	// HTTP clone URL, if no HTTPS clone URL is available).
+	HTTPCloneURL string `db:"http_clone_url"`
 
-	// If not empty, then CloneURL redirects to ActualCloneURL
-	ActualCloneURL nnz.String `db:"actual_clone_url"`
+	// SSHCloneURL is the SSH clone URL if the repository, if any.
+	SSHCloneURL string `db:"ssh_clone_url"`
 
 	// HomepageURL is the URL to the repository's homepage, if any.
 	HomepageURL nnz.String `db:"homepage_url"`
@@ -86,26 +93,22 @@ type Repo struct {
 }
 
 // IsGitHubRepo returns true iff this repository is hosted on GitHub.
-func (r *Repo) IsGitHubRepo() bool {
-	cloneURLStr := r.GetActualCloneURL()
-	if cloneURLStr == "" {
-		return strings.HasPrefix(strings.ToLower(r.URI), "github.com/")
-	}
+func (r *Repo) IsGitHubRepo() bool { return r.GitHubID != 0 }
 
-	cloneURL, err := url.Parse(cloneURLStr)
-	if err != nil {
-		return false
+// GitHubHTMLURL returns URL to the GitHub HTML page (e.g.,
+// https://github.com/foo/bar, not a clone URL) for this repo, if it's
+// a GitHub repo. Otherwise it returns the empty string.
+func (r *Repo) GitHubHTMLURL() string {
+	var ghuri string
+	if IsGitHubRepoURI(r.URI) {
+		ghuri = r.URI
+	} else if IsGitHubRepoURI(string(r.URIAlias)) {
+		ghuri = string(r.URIAlias)
 	}
-
-	return strings.ToLower(cloneURL.Host) == "github.com"
-}
-
-// Returns the most direct URL used to clone the repository, following any redirects
-func (r *Repo) GetActualCloneURL() string {
-	if r.ActualCloneURL == "" {
-		return r.CloneURL
+	if ghuri == "" {
+		return ""
 	}
-	return string(r.ActualCloneURL)
+	return (&url.URL{Scheme: "https", Host: "github.com", Path: "/" + ghuri}).String()
 }
 
 const (
@@ -131,14 +134,14 @@ func (rs Repos) URIs() (uris []string) {
 	return
 }
 
-// IsGitHubRepo returns true iff this repository is hosted on GitHub.
-func IsGitHubRepo(repoURI string) bool {
+// IsGitHubRepoURI returns true iff this repository is hosted on GitHub.
+func IsGitHubRepoURI(repoURI string) bool {
 	return strings.HasPrefix(strings.ToLower(repoURI), "github.com/")
 }
 
-// IsGoogleCodeRepo returns true iff this repository is hosted on Google
+// IsGoogleCodeRepoURI returns true iff this repository is hosted on Google
 // Code (code.google.com).
-func IsGoogleCodeRepo(repoURI string) bool {
+func IsGoogleCodeRepoURI(repoURI string) bool {
 	return strings.HasPrefix(strings.ToLower(repoURI), "code.google.com/p/")
 }
 
