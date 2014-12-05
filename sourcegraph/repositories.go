@@ -141,7 +141,7 @@ type RepoSpec struct {
 }
 
 // PathComponent returns the URL path component that specifies the person.
-func (s *RepoSpec) PathComponent() string {
+func (s RepoSpec) PathComponent() string {
 	if s.RID > 0 {
 		return "R$" + strconv.Itoa(s.RID)
 	}
