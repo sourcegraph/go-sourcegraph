@@ -221,35 +221,39 @@ const preserveBody doKey = iota // when passed as v to (*Client).Do, the resp bo
 // preserveBody, then the HTTP response body is not closed by Do; the
 // caller is responsible for closing it.
 func (c *Client) Do(req *http.Request, v interface{}) (*HTTPResponse, error) {
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, err
+	var resp *HTTPResponse
+	rawResp, err := c.httpClient.Do(req)
+	if rawResp != nil {
+		if v != preserveBody {
+			defer rawResp.Body.Close()
+		}
+		resp = newResponse(rawResp)
+		if err == nil {
+			// Don't clobber error from Do, if any (it could be, e.g.,
+			// a sentinel error returned by the HTTP client's
+			// CheckRedirect func).
+			if err := CheckResponse(rawResp); err != nil {
+				// even though there was an error, we still return the response
+				// in case the caller wants to inspect it further
+				return resp, err
+			}
+		}
 	}
-
-	if v != preserveBody {
-		defer resp.Body.Close()
-	}
-
-	response := newResponse(resp)
-
-	err = CheckResponse(resp)
 	if err != nil {
-		// even though there was an error, we still return the response
-		// in case the caller wants to inspect it further
-		return response, err
+		return resp, err
 	}
 
 	if v != nil {
 		if bp, ok := v.(*[]byte); ok {
-			*bp, err = ioutil.ReadAll(resp.Body)
+			*bp, err = ioutil.ReadAll(rawResp.Body)
 		} else if v != preserveBody {
-			err = json.NewDecoder(resp.Body).Decode(v)
+			err = json.NewDecoder(rawResp.Body).Decode(v)
 		}
 	}
 	if err != nil {
-		return response, fmt.Errorf("error reading response from %s %s: %s", req.Method, req.URL.RequestURI(), err)
+		return resp, fmt.Errorf("error reading response from %s %s: %s", req.Method, req.URL.RequestURI(), err)
 	}
-	return response, nil
+	return resp, nil
 }
 
 // addOptions adds the parameters in opt as URL query parameters to u. opt
