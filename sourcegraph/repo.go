@@ -108,7 +108,7 @@ func (r *Repo) GitHubHTMLURL() string {
 	if ghuri == "" {
 		return ""
 	}
-	return (&url.URL{Scheme: "https", Host: "github.com", Path: "/" + ghuri}).String()
+	return (&url.URL{Scheme: "https", Host: "github.com", Path: "/" + strings.TrimPrefix(ghuri, githubRepoURIPrefix)}).String()
 }
 
 const (
@@ -134,9 +134,11 @@ func (rs Repos) URIs() (uris []string) {
 	return
 }
 
+const githubRepoURIPrefix = "github.com/"
+
 // IsGitHubRepoURI returns true iff this repository is hosted on GitHub.
 func IsGitHubRepoURI(repoURI string) bool {
-	return strings.HasPrefix(strings.ToLower(repoURI), "github.com/")
+	return strings.HasPrefix(strings.ToLower(repoURI), githubRepoURIPrefix)
 }
 
 // IsGoogleCodeRepoURI returns true iff this repository is hosted on Google
