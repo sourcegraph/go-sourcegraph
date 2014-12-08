@@ -277,6 +277,35 @@ func TestBuildsService_GetTaskLog(t *testing.T) {
 	}
 }
 
+func TestBuildsService_DequeueNext(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := &Build{BID: 1}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.BuildDequeueNext, nil), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "POST")
+
+		writeJSON(w, want)
+	})
+
+	build, _, err := client.Builds.DequeueNext()
+	if err != nil {
+		t.Errorf("Builds.DequeueNext returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	normalizeBuildTime(build, want)
+	if !reflect.DeepEqual(build, want) {
+		t.Errorf("Builds.DequeueNext returned %+v, want %+v", build, want)
+	}
+}
+
 func normalizeBuildTime(bs ...*Build) {
 	for _, b := range bs {
 		if b != nil {
