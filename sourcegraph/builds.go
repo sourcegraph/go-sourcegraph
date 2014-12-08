@@ -294,7 +294,7 @@ func (s *buildsService) Get(build BuildSpec, opt *BuildGetOptions) (*Build, Resp
 		return nil, resp, err
 	}
 
-	return build_, nil, nil
+	return build_, resp, nil
 }
 
 type BuildListOptions struct {
@@ -554,7 +554,7 @@ func (s *buildsService) DequeueNext() (*Build, Response, error) {
 		return nil, resp, err
 	}
 
-	return build_, nil, nil
+	return build_, resp, nil
 }
 
 type MockBuildsService struct {
