@@ -108,6 +108,29 @@ type Def struct {
 
 	DocHTML  string           `json:",omitempty"`
 	DocPages []*graph.DocPage `json:",omitempty"`
+
+	FmtStrings *DefFormatStrings `json:",omitempty"`
+}
+
+// DefFormatStrings contains the various def format strings from the
+// srclib def formatter.
+type DefFormatStrings struct {
+	Name                 QualFormatStrings
+	Type                 QualFormatStrings
+	NameAndTypeSeparator string
+	Language             string `json:",omitempty"`
+	DefKeyword           string `json:",omitempty"`
+	Kind                 string `json:",omitempty"`
+}
+
+// QualFormatStrings holds the formatted string for each Qualification
+// for a def (for either Name or Type).
+type QualFormatStrings struct {
+	Unqualified             string `json:",omitempty"`
+	ScopeQualified          string `json:",omitempty"`
+	DepQualified            string `json:",omitempty"`
+	RepositoryWideQualified string `json:",omitempty"`
+	LanguageWideQualified   string `json:",omitempty"`
 }
 
 // DefSpec returns the DefSpec that specifies s.
