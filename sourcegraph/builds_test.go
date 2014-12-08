@@ -306,6 +306,31 @@ func TestBuildsService_DequeueNext(t *testing.T) {
 	}
 }
 
+func TestBuildsService_DequeueNext_emptyQueue(t *testing.T) {
+	setup()
+	defer teardown()
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.BuildDequeueNext, nil), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "POST")
+		w.WriteHeader(http.StatusNotFound)
+	})
+
+	build, _, err := client.Builds.DequeueNext()
+	if err != nil {
+		t.Errorf("Builds.DequeueNext returned error: %v", err)
+	}
+	if build != nil {
+		t.Errorf("got build %v, want nil (no builds in queue)", build)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+}
+
 func normalizeBuildTime(bs ...*Build) {
 	for _, b := range bs {
 		if b != nil {

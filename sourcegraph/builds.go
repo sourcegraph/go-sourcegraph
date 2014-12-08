@@ -3,6 +3,7 @@ package sourcegraph
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"strconv"
@@ -47,8 +48,10 @@ type BuildsService interface {
 	// GetTaskLog gets log entries associated with a task.
 	GetTaskLog(task TaskSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error)
 
-	// DequeueNext returns the next queued build and marks it as having started
-	// (atomically).
+	// DequeueNext returns the next queued build and marks it as
+	// having started (atomically). It is not considered an error if
+	// there are no builds in the queue; in that case, a nil build and
+	// error are returned.
 	//
 	// The HTTP response may contain tickets that grant the necessary
 	// permissions to build and upload build data for the build's
@@ -551,6 +554,9 @@ func (s *buildsService) DequeueNext() (*Build, Response, error) {
 	var build_ *Build
 	resp, err := s.client.Do(req, &build_)
 	if err != nil {
+		if resp.StatusCode == http.StatusNotFound {
+			return nil, resp, nil
+		}
 		return nil, resp, err
 	}
 
