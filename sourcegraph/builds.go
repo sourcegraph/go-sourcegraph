@@ -49,6 +49,11 @@ type BuildsService interface {
 
 	// DequeueNext returns the next queued build and marks it as having started
 	// (atomically).
+	//
+	// The HTTP response may contain tickets that grant the necessary
+	// permissions to build and upload build data for the build's
+	// repository. Call auth.SignedTicketStrings on the response's
+	// HTTP response field to obtain the tickets.
 	DequeueNext() (*Build, Response, error)
 }
 
