@@ -157,6 +157,9 @@ func (s *Def) TotalExamples() int { return s.TotalRefs() - 1 }
 type DefGetOptions struct {
 	Doc      bool `url:",omitempty"`
 	DocPages bool `url:",omitempty"`
+
+	// Stats is whether the Def response object should include statistics.
+	Stats bool `url:",omitempty"`
 }
 
 func (s *defsService) Get(def DefSpec, opt *DefGetOptions) (*Def, Response, error) {
