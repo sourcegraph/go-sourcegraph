@@ -253,7 +253,12 @@ func (s *deltasService) ListDependencies(ds DeltaSpec, opt *DeltaListDependencie
 
 // DeltaListFilesOptions specifies options for
 // ListFiles.
-type DeltaListFilesOptions struct{}
+type DeltaListFilesOptions struct {
+	// Formatted is whether the files should have their contents
+	// code-formatted (syntax-highlighted and reference-linked) if
+	// they contain code.
+	Formatted bool `url:",omitempty"`
+}
 
 // DeltaFiles describes files added/changed/deleted in a delta.
 type DeltaFiles struct {
