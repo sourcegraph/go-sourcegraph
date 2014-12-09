@@ -133,6 +133,12 @@ func (d *Delta) DeltaSpec() DeltaSpec {
 	}
 }
 
+// BaseAndHeadBuildsSuccessful returns true iff both the base and head
+// builds are present and ended successfully.
+func (d *Delta) BaseAndHeadBuildsSuccessful() bool {
+	return d.BaseBuild != nil && d.BaseBuild.Success && d.HeadBuild != nil && d.HeadBuild.Success
+}
+
 // DeltaGetOptions specifies options for getting a delta.
 type DeltaGetOptions struct{}
 
