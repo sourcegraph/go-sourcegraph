@@ -544,37 +544,22 @@ type MockBuildsService struct {
 var _ BuildsService = MockBuildsService{}
 
 func (s MockBuildsService) Get(build BuildSpec, opt *BuildGetOptions) (*Build, Response, error) {
-	if s.Get_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.Get_(build, opt)
 }
 
 func (s MockBuildsService) List(opt *BuildListOptions) ([]*Build, Response, error) {
-	if s.List_ == nil {
-		return nil, nil, nil
-	}
 	return s.List_(opt)
 }
 
 func (s MockBuildsService) ListByRepo(repo RepoSpec, opt *BuildListByRepoOptions) ([]*Build, Response, error) {
-	if s.ListByRepo_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.ListByRepo_(repo, opt)
 }
 
 func (s MockBuildsService) Create(repo RepoSpec, opt *BuildCreateOptions) (*Build, Response, error) {
-	if s.Create_ == nil {
-		return nil, nil, nil
-	}
 	return s.Create_(repo, opt)
 }
 
 func (s MockBuildsService) ListBuildTasks(build BuildSpec, opt *BuildTaskListOptions) ([]*BuildTask, Response, error) {
-	if s.ListBuildTasks_ == nil {
-		return nil, nil, nil
-	}
 	return s.ListBuildTasks_(build, opt)
 }
 
@@ -591,15 +576,9 @@ func (s MockBuildsService) UpdateTask(task TaskSpec, info TaskUpdate) (*BuildTas
 }
 
 func (s MockBuildsService) GetLog(build BuildSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error) {
-	if s.GetLog_ == nil {
-		return nil, nil, nil
-	}
 	return s.GetLog_(build, opt)
 }
 
 func (s MockBuildsService) GetTaskLog(task TaskSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error) {
-	if s.GetTaskLog_ == nil {
-		return nil, nil, nil
-	}
 	return s.GetTaskLog_(task, opt)
 }

@@ -168,29 +168,17 @@ type MockOrgsService struct {
 var _ OrgsService = MockOrgsService{}
 
 func (s MockOrgsService) Get(org OrgSpec) (*Org, Response, error) {
-	if s.Get_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.Get_(org)
 }
 
 func (s MockOrgsService) ListMembers(org OrgSpec, opt *OrgListMembersOptions) ([]*Person, Response, error) {
-	if s.ListMembers_ == nil {
-		return nil, nil, nil
-	}
 	return s.ListMembers_(org, opt)
 }
 
 func (s MockOrgsService) GetSettings(org OrgSpec) (*OrgSettings, Response, error) {
-	if s.GetSettings_ == nil {
-		return nil, nil, nil
-	}
 	return s.GetSettings_(org)
 }
 
 func (s MockOrgsService) UpdateSettings(org OrgSpec, settings OrgSettings) (Response, error) {
-	if s.UpdateSettings_ == nil {
-		return nil, nil
-	}
-	return s.UpdateSettings_(org, settings)
+		return s.UpdateSettings_(org, settings)
 }

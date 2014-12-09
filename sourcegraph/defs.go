@@ -515,16 +515,10 @@ type MockDefsService struct {
 var _ DefsService = MockDefsService{}
 
 func (s MockDefsService) Get(def DefSpec, opt *DefGetOptions) (*Def, Response, error) {
-	if s.Get_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.Get_(def, opt)
 }
 
 func (s MockDefsService) List(opt *DefListOptions) ([]*Def, Response, error) {
-	if s.List_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.List_(opt)
 }
 
@@ -533,36 +527,21 @@ func (s MockDefsService) ListRefs(def DefSpec, opt *DefListRefsOptions) ([]*Ref,
 }
 
 func (s MockDefsService) ListExamples(def DefSpec, opt *DefListExamplesOptions) ([]*Example, Response, error) {
-	if s.ListExamples_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.ListExamples_(def, opt)
 }
 
 func (s MockDefsService) ListAuthors(def DefSpec, opt *DefListAuthorsOptions) ([]*AugmentedDefAuthor, Response, error) {
-	if s.ListAuthors_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.ListAuthors_(def, opt)
 }
 
 func (s MockDefsService) ListClients(def DefSpec, opt *DefListClientsOptions) ([]*AugmentedDefClient, Response, error) {
-	if s.ListClients_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.ListClients_(def, opt)
 }
 
 func (s MockDefsService) ListDependents(def DefSpec, opt *DefListDependentsOptions) ([]*AugmentedDefDependent, Response, error) {
-	if s.ListDependents_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.ListDependents_(def, opt)
 }
 
 func (s MockDefsService) ListVersions(def DefSpec, opt *DefListVersionsOptions) ([]*Def, Response, error) {
-	if s.ListVersions_ == nil {
-		return nil, nil, nil
-	}
 	return s.ListVersions_(def, opt)
 }

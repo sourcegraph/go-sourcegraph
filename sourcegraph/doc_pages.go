@@ -58,8 +58,5 @@ type MockDocPagesService struct {
 var _ DocPagesService = MockDocPagesService{}
 
 func (s MockDocPagesService) Get(docPage DocPageSpec, opt *DocPageGetOptions) (*graph.DocPage, Response, error) {
-	if s.Get_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.Get_(docPage, opt)
 }

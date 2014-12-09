@@ -156,22 +156,13 @@ type MockIssuesService struct {
 var _ IssuesService = MockIssuesService{}
 
 func (s MockIssuesService) Get(issue IssueSpec, opt *IssueGetOptions) (*Issue, Response, error) {
-	if s.Get_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.Get_(issue, opt)
 }
 
 func (s MockIssuesService) ListByRepo(repo RepoSpec, opt *IssueListOptions) ([]*Issue, Response, error) {
-	if s.ListByRepo_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.ListByRepo_(repo, opt)
 }
 
 func (s MockIssuesService) ListComments(issue IssueSpec, opt *IssueListCommentsOptions) ([]*IssueComment, Response, error) {
-	if s.ListComments_ == nil {
-		return nil, nil, nil
-	}
 	return s.ListComments_(issue, opt)
 }

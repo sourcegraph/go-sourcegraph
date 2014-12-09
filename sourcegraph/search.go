@@ -66,8 +66,5 @@ type MockSearchService struct {
 var _ SearchService = MockSearchService{}
 
 func (s MockSearchService) Search(opt *SearchOptions) (*SearchResults, Response, error) {
-	if s.Search_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.Search_(opt)
 }

@@ -161,22 +161,13 @@ type MockPullRequestsService struct {
 var _ PullRequestsService = MockPullRequestsService{}
 
 func (s MockPullRequestsService) Get(pull PullRequestSpec, opt *PullRequestGetOptions) (*PullRequest, Response, error) {
-	if s.Get_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.Get_(pull, opt)
 }
 
 func (s MockPullRequestsService) ListByRepo(repo RepoSpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error) {
-	if s.ListByRepo_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.ListByRepo_(repo, opt)
 }
 
 func (s MockPullRequestsService) ListComments(pull PullRequestSpec, opt *PullRequestListCommentsOptions) ([]*PullRequestComment, Response, error) {
-	if s.ListComments_ == nil {
-		return nil, nil, nil
-	}
 	return s.ListComments_(pull, opt)
 }

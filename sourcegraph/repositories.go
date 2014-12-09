@@ -1091,176 +1091,101 @@ type MockReposService struct {
 var _ ReposService = MockReposService{}
 
 func (s MockReposService) Get(repo RepoSpec, opt *RepoGetOptions) (*Repo, Response, error) {
-	if s.Get_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.Get_(repo, opt)
 }
 
 func (s MockReposService) GetStats(repo RepoRevSpec) (RepoStats, Response, error) {
-	if s.GetStats_ == nil {
-		return nil, nil, nil
-	}
 	return s.GetStats_(repo)
 }
 
 func (s MockReposService) GetOrCreate(repo RepoSpec, opt *RepoGetOptions) (*Repo, Response, error) {
-	if s.GetOrCreate_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.GetOrCreate_(repo, opt)
 }
 
 func (s MockReposService) GetSettings(repo RepoSpec) (*RepoSettings, Response, error) {
-	if s.GetSettings_ == nil {
-		return nil, nil, nil
-	}
 	return s.GetSettings_(repo)
 }
 
 func (s MockReposService) UpdateSettings(repo RepoSpec, settings RepoSettings) (Response, error) {
-	if s.UpdateSettings_ == nil {
-		return nil, nil
-	}
-	return s.UpdateSettings_(repo, settings)
+		return s.UpdateSettings_(repo, settings)
 }
 
 func (s MockReposService) RefreshProfile(repo RepoSpec) (Response, error) {
-	if s.RefreshProfile_ == nil {
-		return nil, nil
-	}
-	return s.RefreshProfile_(repo)
+		return s.RefreshProfile_(repo)
 }
 
 func (s MockReposService) RefreshVCSData(repo RepoSpec) (Response, error) {
-	if s.RefreshVCSData_ == nil {
-		return nil, nil
-	}
-	return s.RefreshVCSData_(repo)
+		return s.RefreshVCSData_(repo)
 }
 
 func (s MockReposService) ComputeStats(repo RepoRevSpec) (Response, error) {
-	if s.ComputeStats_ == nil {
-		return nil, nil
-	}
-	return s.ComputeStats_(repo)
+		return s.ComputeStats_(repo)
 }
 
 func (s MockReposService) GetBuild(repo RepoRevSpec, opt *RepoGetBuildOptions) (*RepoBuildInfo, Response, error) {
-	if s.GetBuild_ == nil {
-		return nil, nil, nil
-	}
 	return s.GetBuild_(repo, opt)
 }
 
 func (s MockReposService) Create(newRepoSpec NewRepoSpec) (*Repo, Response, error) {
-	if s.Create_ == nil {
-		return nil, nil, nil
-	}
 	return s.Create_(newRepoSpec)
 }
 
 func (s MockReposService) GetReadme(repo RepoRevSpec) (*vcsclient.TreeEntry, Response, error) {
-	if s.GetReadme_ == nil {
-		return nil, nil, nil
-	}
 	return s.GetReadme_(repo)
 }
 
 func (s MockReposService) List(opt *RepoListOptions) ([]*Repo, Response, error) {
-	if s.List_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.List_(opt)
 }
 
 func (s MockReposService) ListBadges(repo RepoSpec) ([]*Badge, Response, error) {
-	if s.ListBadges_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.ListBadges_(repo)
 }
 
 func (s MockReposService) ListCounters(repo RepoSpec) ([]*Counter, Response, error) {
-	if s.ListCounters_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.ListCounters_(repo)
 }
 
 func (s MockReposService) ListAuthors(repo RepoRevSpec, opt *RepoListAuthorsOptions) ([]*AugmentedRepoAuthor, Response, error) {
-	if s.ListAuthors_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.ListAuthors_(repo, opt)
 }
 
 func (s MockReposService) ListClients(repo RepoSpec, opt *RepoListClientsOptions) ([]*AugmentedRepoClient, Response, error) {
-	if s.ListClients_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.ListClients_(repo, opt)
 }
 
 func (s MockReposService) ListDependencies(repo RepoRevSpec, opt *RepoListDependenciesOptions) ([]*AugmentedRepoDependency, Response, error) {
-	if s.ListDependencies_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.ListDependencies_(repo, opt)
 }
 
 func (s MockReposService) ListDependents(repo RepoSpec, opt *RepoListDependentsOptions) ([]*AugmentedRepoDependent, Response, error) {
-	if s.ListDependents_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.ListDependents_(repo, opt)
 }
 
 func (s MockReposService) ListByContributor(person PersonSpec, opt *RepoListByContributorOptions) ([]*AugmentedRepoContribution, Response, error) {
-	if s.ListByContributor_ == nil {
-		return nil, nil, nil
-	}
 	return s.ListByContributor_(person, opt)
 }
 
 func (s MockReposService) ListByClient(person PersonSpec, opt *RepoListByClientOptions) ([]*AugmentedRepoUsageByClient, Response, error) {
-	if s.ListByClient_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.ListByClient_(person, opt)
 }
 
 func (s MockReposService) ListByRefdAuthor(person PersonSpec, opt *RepoListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error) {
-	if s.ListByRefdAuthor_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.ListByRefdAuthor_(person, opt)
 }
 
 func (s MockReposService) ListCommits(repo RepoSpec, opt *RepoListCommitsOptions) ([]*Commit, Response, error) {
-	if s.ListCommits_ == nil {
-		return nil, nil, nil
-	}
 	return s.ListCommits_(repo, opt)
 }
 
 func (s MockReposService) GetCommit(rev RepoRevSpec, opt *RepoGetCommitOptions) (*Commit, Response, error) {
-	if s.GetCommit_ == nil {
-		return nil, nil, nil
-	}
 	return s.GetCommit_(rev, opt)
 }
 
 func (s MockReposService) ListBranches(repo RepoSpec, opt *RepoListBranchesOptions) ([]*vcs.Branch, Response, error) {
-	if s.ListBranches_ == nil {
-		return nil, nil, nil
-	}
 	return s.ListBranches_(repo, opt)
 }
 
 func (s MockReposService) ListTags(repo RepoSpec, opt *RepoListTagsOptions) ([]*vcs.Tag, Response, error) {
-	if s.ListTags_ == nil {
-		return nil, nil, nil
-	}
 	return s.ListTags_(repo, opt)
 }

@@ -115,8 +115,5 @@ type MockRepoTreeService struct {
 var _ RepoTreeService = MockRepoTreeService{}
 
 func (s MockRepoTreeService) Get(entry TreeEntrySpec, opt *RepoTreeGetOptions) (*TreeEntry, Response, error) {
-	if s.Get_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.Get_(entry, opt)
 }

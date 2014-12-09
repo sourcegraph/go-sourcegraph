@@ -440,78 +440,45 @@ type MockPeopleService struct {
 var _ PeopleService = MockPeopleService{}
 
 func (s MockPeopleService) Get(person PersonSpec, opt *PersonGetOptions) (*Person, Response, error) {
-	if s.Get_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.Get_(person, opt)
 }
 
 func (s MockPeopleService) ListEmails(person PersonSpec) ([]*EmailAddr, Response, error) {
-	if s.ListEmails_ == nil {
-		return nil, nil, nil
-	}
 	return s.ListEmails_(person)
 }
 
 func (s MockPeopleService) GetSettings(person PersonSpec) (*PersonSettings, Response, error) {
-	if s.GetSettings_ == nil {
-		return nil, nil, nil
-	}
 	return s.GetSettings_(person)
 }
 
 func (s MockPeopleService) UpdateSettings(person PersonSpec, settings PersonSettings) (Response, error) {
-	if s.UpdateSettings_ == nil {
-		return nil, nil
-	}
-	return s.UpdateSettings_(person, settings)
+		return s.UpdateSettings_(person, settings)
 }
 
 func (s MockPeopleService) GetOrCreateFromGitHub(user GitHubUserSpec, opt *PersonGetOptions) (*Person, Response, error) {
-	if s.GetOrCreateFromGitHub_ == nil {
-		return nil, nil, nil
-	}
 	return s.GetOrCreateFromGitHub_(user, opt)
 }
 
 func (s MockPeopleService) RefreshProfile(personSpec PersonSpec) (Response, error) {
-	if s.RefreshProfile_ == nil {
-		return nil, nil
-	}
-	return s.RefreshProfile_(personSpec)
+		return s.RefreshProfile_(personSpec)
 }
 
 func (s MockPeopleService) ComputeStats(personSpec PersonSpec) (Response, error) {
-	if s.ComputeStats_ == nil {
-		return nil, nil
-	}
-	return s.ComputeStats_(personSpec)
+		return s.ComputeStats_(personSpec)
 }
 
 func (s MockPeopleService) List(opt *PersonListOptions) ([]*person.User, Response, error) {
-	if s.List_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.List_(opt)
 }
 
 func (s MockPeopleService) ListAuthors(person PersonSpec, opt *PersonListAuthorsOptions) ([]*AugmentedPersonUsageByClient, Response, error) {
-	if s.ListAuthors_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.ListAuthors_(person, opt)
 }
 
 func (s MockPeopleService) ListClients(person PersonSpec, opt *PersonListClientsOptions) ([]*AugmentedPersonUsageOfAuthor, Response, error) {
-	if s.ListClients_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
 	return s.ListClients_(person, opt)
 }
 
 func (s MockPeopleService) ListOrgs(member PersonSpec, opt *PersonListOrgsOptions) ([]*Org, Response, error) {
-	if s.ListOrgs_ == nil {
-		return nil, nil, nil
-	}
 	return s.ListOrgs_(member, opt)
 }

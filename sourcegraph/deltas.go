@@ -479,64 +479,37 @@ type MockDeltasService struct {
 }
 
 func (s MockDeltasService) Get(ds DeltaSpec, opt *DeltaGetOptions) (*Delta, Response, error) {
-	if s.Get_ == nil {
-		return nil, nil, nil
-	}
 	return s.Get_(ds, opt)
 }
 
 func (s MockDeltasService) ListDefs(ds DeltaSpec, opt *DeltaListDefsOptions) (*DeltaDefs, Response, error) {
-	if s.ListDefs_ == nil {
-		return nil, nil, nil
-	}
 	return s.ListDefs_(ds, opt)
 }
 
 func (s MockDeltasService) ListDependencies(ds DeltaSpec, opt *DeltaListDependenciesOptions) (*DeltaDependencies, Response, error) {
-	if s.ListDependencies_ == nil {
-		return nil, nil, nil
-	}
 	return s.ListDependencies_(ds, opt)
 }
 
 func (s MockDeltasService) ListFiles(ds DeltaSpec, opt *DeltaListFilesOptions) (*DeltaFiles, Response, error) {
-	if s.ListFiles_ == nil {
-		return nil, nil, nil
-	}
 	return s.ListFiles_(ds, opt)
 }
 
 func (s MockDeltasService) ListAffectedAuthors(ds DeltaSpec, opt *DeltaListAffectedAuthorsOptions) ([]*DeltaAffectedPerson, Response, error) {
-	if s.ListAffectedAuthors_ == nil {
-		return nil, nil, nil
-	}
 	return s.ListAffectedAuthors_(ds, opt)
 }
 
 func (s MockDeltasService) ListAffectedClients(ds DeltaSpec, opt *DeltaListAffectedClientsOptions) ([]*DeltaAffectedPerson, Response, error) {
-	if s.ListAffectedClients_ == nil {
-		return nil, nil, nil
-	}
 	return s.ListAffectedClients_(ds, opt)
 }
 
 func (s MockDeltasService) ListAffectedDependents(ds DeltaSpec, opt *DeltaListAffectedDependentsOptions) ([]*DeltaAffectedRepo, Response, error) {
-	if s.ListAffectedDependents_ == nil {
-		return nil, nil, nil
-	}
 	return s.ListAffectedDependents_(ds, opt)
 }
 
 func (s MockDeltasService) ListReviewers(ds DeltaSpec, opt *DeltaListReviewersOptions) ([]*DeltaReviewer, Response, error) {
-	if s.ListReviewers_ == nil {
-		return nil, nil, nil
-	}
 	return s.ListReviewers_(ds, opt)
 }
 
 func (s MockDeltasService) ListIncoming(rr RepoRevSpec, opt *DeltaListIncomingOptions) ([]*Delta, Response, error) {
-	if s.ListIncoming_ == nil {
-		return nil, nil, nil
-	}
 	return s.ListIncoming_(rr, opt)
 }
