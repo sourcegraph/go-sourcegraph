@@ -46,10 +46,6 @@ type TreeEntry struct {
 
 	// FormatResult is only set if this TreeEntry is a file.
 	FormatResult *FormatResult `json:",omitempty"`
-
-	// EntryDefinitions is a list of defined defs for each entry in this
-	// directory. It is only populated if DirEntryDefinitions is true.
-	EntryDefinitions map[string]interface{}
 }
 
 // FormatResult contains information about and warnings from the formatting
@@ -74,14 +70,6 @@ type RepoTreeGetOptions struct {
 	// Formatted is whether the specified entry, if it's a file, should have its
 	// contents code-formatted.
 	Formatted bool
-
-	// DirEntryDefinitions is whether the specified entry, if it's a directory,
-	// should include a list of defined defs for each of its entries (in
-	// EntryDefinitions). For example, if the specified entry has a file "a" and
-	// a dir "b/", the result would include a list of defs defined in "a" and
-	// in any file underneath "b/". Not all defs defined in the entries are
-	// returned; only the top few are.
-	DirEntryDefinitions bool `url:",omitempty"`
 
 	ContentsAsString bool `url:",omitempty"`
 
