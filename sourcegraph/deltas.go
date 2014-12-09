@@ -122,8 +122,6 @@ type Delta struct {
 	BaseCommit, HeadCommit *Commit     // base/head commits
 	BaseRepo, HeadRepo     *Repo       // base/head repositories
 	BaseBuild, HeadBuild   *Build      // base/head builds (or nil)
-
-	// add summary fields
 }
 
 func (d *Delta) DeltaSpec() DeltaSpec {
