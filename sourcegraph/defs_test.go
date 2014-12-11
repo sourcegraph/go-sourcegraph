@@ -50,7 +50,7 @@ func TestDefsService_List(t *testing.T) {
 		called = true
 		testMethod(t, r, "GET")
 		testFormValues(t, r, values{
-			"RepoURI":   "r1",
+			"Repos":     "r1,r2",
 			"Sort":      "name",
 			"UnitTypes": "a,b",
 			"Direction": "asc",
@@ -65,7 +65,7 @@ func TestDefsService_List(t *testing.T) {
 	})
 
 	defs, _, err := client.Defs.List(&DefListOptions{
-		RepoURI:     "r1",
+		Repos:       []string{"r1", "r2"},
 		Sort:        "name",
 		UnitTypes:   []string{"a", "b"},
 		Direction:   "asc",
