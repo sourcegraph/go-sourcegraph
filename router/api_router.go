@@ -9,6 +9,7 @@ import (
 
 const (
 	Build            = "build"
+	BuildDequeueNext = "build.dequeue-next"
 	BuildUpdate      = "build.update"
 	BuildLog         = "build.log"
 	Builds           = "builds"
@@ -126,6 +127,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 
 	base.Path("/builds").Methods("GET").Name(Builds)
 	builds := base.PathPrefix("/builds").Subrouter()
+	builds.Path("/next").Methods("POST").Name(BuildDequeueNext)
 	buildPath := "/{BID}"
 	builds.Path(buildPath).Methods("GET").Name(Build)
 	builds.Path(buildPath).Methods("PUT").Name(BuildUpdate)

@@ -3,6 +3,7 @@ package sourcegraph
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"strconv"
@@ -46,6 +47,17 @@ type BuildsService interface {
 
 	// GetTaskLog gets log entries associated with a task.
 	GetTaskLog(task TaskSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error)
+
+	// DequeueNext returns the next queued build and marks it as
+	// having started (atomically). It is not considered an error if
+	// there are no builds in the queue; in that case, a nil build and
+	// error are returned.
+	//
+	// The HTTP response may contain tickets that grant the necessary
+	// permissions to build and upload build data for the build's
+	// repository. Call auth.SignedTicketStrings on the response's
+	// HTTP response field to obtain the tickets.
+	DequeueNext() (*Build, Response, error)
 }
 
 type buildsService struct {
@@ -285,7 +297,7 @@ func (s *buildsService) Get(build BuildSpec, opt *BuildGetOptions) (*Build, Resp
 		return nil, resp, err
 	}
 
-	return build_, nil, nil
+	return build_, resp, nil
 }
 
 type BuildListOptions struct {
@@ -528,6 +540,29 @@ func (s *buildsService) GetTaskLog(task TaskSpec, opt *BuildGetLogOptions) (*Log
 	return entries, resp, nil
 }
 
+func (s *buildsService) DequeueNext() (*Build, Response, error) {
+	url, err := s.client.url(router.BuildDequeueNext, nil, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("POST", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var build_ *Build
+	resp, err := s.client.Do(req, &build_)
+	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			return nil, resp, nil
+		}
+		return nil, resp, err
+	}
+
+	return build_, resp, nil
+}
+
 type MockBuildsService struct {
 	Get_            func(build BuildSpec, opt *BuildGetOptions) (*Build, Response, error)
 	List_           func(opt *BuildListOptions) ([]*Build, Response, error)
@@ -539,6 +574,7 @@ type MockBuildsService struct {
 	UpdateTask_     func(task TaskSpec, info TaskUpdate) (*BuildTask, Response, error)
 	GetLog_         func(build BuildSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error)
 	GetTaskLog_     func(task TaskSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error)
+	DequeueNext_    func() (*Build, Response, error)
 }
 
 var _ BuildsService = MockBuildsService{}
@@ -581,4 +617,8 @@ func (s MockBuildsService) GetLog(build BuildSpec, opt *BuildGetLogOptions) (*Lo
 
 func (s MockBuildsService) GetTaskLog(task TaskSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error) {
 	return s.GetTaskLog_(task, opt)
+}
+
+func (s MockBuildsService) DequeueNext() (*Build, Response, error) {
+	return s.DequeueNext_()
 }
