@@ -85,6 +85,11 @@ func TestMatch(t *testing.T) {
 			wantRouteName: RepoAuthors,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev/subrev==abcd"},
 		},
+		{
+			path:          "/repos/repohost.com/foo@releases/1.0rc/.authors",
+			wantRouteName: RepoAuthors,
+			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "releases/1.0rc"},
+		},
 
 		// Repo sub-routes that don't allow an "@REVSPEC" revision.
 		{
