@@ -375,7 +375,7 @@ func (v DefAuthorsByBytes) Swap(i, j int)      { v[i], v[j] = v[j], v[i] }
 func (v DefAuthorsByBytes) Less(i, j int) bool { return v[i].Bytes < v[j].Bytes }
 
 type AugmentedDefAuthor struct {
-	User *User
+	Person *Person
 	*DefAuthor
 }
 
@@ -415,7 +415,7 @@ type DefClient struct {
 }
 
 type AugmentedDefClient struct {
-	User *User
+	Person *Person
 	*DefClient
 }
 

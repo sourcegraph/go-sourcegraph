@@ -11,7 +11,7 @@ type SearchService interface {
 
 type SearchResults struct {
 	Defs   []*Def
-	People []*User
+	People []*Person
 	Repos  []*Repo
 }
 

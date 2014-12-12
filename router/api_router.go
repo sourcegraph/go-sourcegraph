@@ -23,20 +23,20 @@ const (
 	OrgSettings       = "org.settings"
 	OrgSettingsUpdate = "org.settings.update"
 
-	People                  = "people"
-	Person                  = "person"
-	PersonOrgs              = "person.orgs"
-	PersonAuthors           = "person.authors"
-	PersonClients           = "person.clients"
-	PersonEmails            = "person.emails"
-	PersonFromGitHub        = "person.from-github"
-	PersonRepoContributions = "person.repo-contributions"
-	PersonRepoDependencies  = "person.repo-dependencies"
-	PersonRepoDependents    = "person.repo-dependents"
-	PersonRefreshProfile    = "person.refresh-profile"
-	PersonSettings          = "person.settings"
-	PersonSettingsUpdate    = "person.settings.update"
-	PersonComputeStats      = "person.compute-stats"
+	Users                 = "users"
+	User                  = "user"
+	UserOrgs              = "user.orgs"
+	UserAuthors           = "user.authors"
+	UserClients           = "user.clients"
+	UserEmails            = "user.emails"
+	UserFromGitHub        = "user.from-github"
+	UserRepoContributions = "user.repo-contributions"
+	UserRepoDependencies  = "user.repo-dependencies"
+	UserRepoDependents    = "user.repo-dependents"
+	UserRefreshProfile    = "user.refresh-profile"
+	UserSettings          = "user.settings"
+	UserSettingsUpdate    = "user.settings.update"
+	UserComputeStats      = "user.compute-stats"
 
 	RepoPullRequests        = "repo.pull-requests"
 	RepoPullRequest         = "repo.pull-request"
@@ -203,22 +203,22 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	// entry routes.
 	repoRev.Path("/.tree" + TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET").Name(RepoTreeEntry)
 
-	base.Path("/people").Methods("GET").Name(People)
-	personPath := `/people/` + PersonSpecPattern
-	base.Path(personPath).Methods("GET").Name(Person)
-	person := base.PathPrefix(personPath).Subrouter()
-	person.Path("/orgs").Methods("GET").Name(PersonOrgs)
-	person.Path("/clients").Methods("GET").Name(PersonClients)
-	person.Path("/authors").Methods("GET").Name(PersonAuthors)
-	person.Path("/emails").Methods("GET").Name(PersonEmails)
-	person.Path("/repo-contributions").Methods("GET").Name(PersonRepoContributions)
-	person.Path("/repo-dependencies").Methods("GET").Name(PersonRepoDependencies)
-	person.Path("/repo-dependents").Methods("GET").Name(PersonRepoDependents)
-	person.Path("/external-profile").Methods("PUT").Name(PersonRefreshProfile)
-	person.Path("/stats").Methods("PUT").Name(PersonComputeStats)
-	person.Path("/settings").Methods("GET").Name(PersonSettings)
-	person.Path("/settings").Methods("PUT").Name(PersonSettingsUpdate)
-	base.Path("/external-users/github/{GitHubUserSpec}").Methods("GET").Name(PersonFromGitHub)
+	base.Path("/users").Methods("GET").Name(Users)
+	userPath := `/users/` + UserSpecPattern
+	base.Path(userPath).Methods("GET").Name(User)
+	user := base.PathPrefix(userPath).Subrouter()
+	user.Path("/orgs").Methods("GET").Name(UserOrgs)
+	user.Path("/clients").Methods("GET").Name(UserClients)
+	user.Path("/authors").Methods("GET").Name(UserAuthors)
+	user.Path("/emails").Methods("GET").Name(UserEmails)
+	user.Path("/repo-contributions").Methods("GET").Name(UserRepoContributions)
+	user.Path("/repo-dependencies").Methods("GET").Name(UserRepoDependencies)
+	user.Path("/repo-dependents").Methods("GET").Name(UserRepoDependents)
+	user.Path("/external-profile").Methods("PUT").Name(UserRefreshProfile)
+	user.Path("/stats").Methods("PUT").Name(UserComputeStats)
+	user.Path("/settings").Methods("GET").Name(UserSettings)
+	user.Path("/settings").Methods("PUT").Name(UserSettingsUpdate)
+	base.Path("/external-users/github/{GitHubUserSpec}").Methods("GET").Name(UserFromGitHub)
 
 	orgPath := "/orgs/{OrgSpec}"
 	base.Path(orgPath).Methods("GET").Name(Org)

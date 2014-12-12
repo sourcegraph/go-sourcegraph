@@ -113,17 +113,17 @@ type ReposService interface {
 	// ListDependents lists repositories that reference defs defined in repo.
 	ListDependents(repo RepoSpec, opt *RepoListDependentsOptions) ([]*AugmentedRepoDependent, Response, error)
 
-	// ListByContributor lists repositories that person has contributed (i.e.,
+	// ListByContributor lists repositories that user has contributed (i.e.,
 	// committed) code to.
-	ListByContributor(person PersonSpec, opt *RepoListByContributorOptions) ([]*AugmentedRepoContribution, Response, error)
+	ListByContributor(user UserSpec, opt *RepoListByContributorOptions) ([]*AugmentedRepoContribution, Response, error)
 
 	// ListByClient lists repositories that contain defs referenced by
-	// person.
-	ListByClient(person PersonSpec, opt *RepoListByClientOptions) ([]*AugmentedRepoUsageByClient, Response, error)
+	// user.
+	ListByClient(user UserSpec, opt *RepoListByClientOptions) ([]*AugmentedRepoUsageByClient, Response, error)
 
 	// ListByRefdAuthor lists repositories that reference code authored by
-	// person.
-	ListByRefdAuthor(person PersonSpec, opt *RepoListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error)
+	// user.
+	ListByRefdAuthor(user UserSpec, opt *RepoListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error)
 }
 
 // repositoriesService implements ReposService.
@@ -139,7 +139,8 @@ type RepoSpec struct {
 	RID int
 }
 
-// PathComponent returns the URL path component that specifies the person.
+// PathComponent returns the URL path component that specifies the
+// repository.
 func (s RepoSpec) PathComponent() string {
 	if s.RID > 0 {
 		return "R$" + strconv.Itoa(s.RID)
@@ -770,10 +771,10 @@ type RepoAuthor struct {
 	AuthorStats
 }
 
-// AugmentedRepoAuthor is a RepoAuthor with the full User and
+// AugmentedRepoAuthor is a RepoAuthor with the full Person and
 // graph.Def structs embedded.
 type AugmentedRepoAuthor struct {
-	User *User
+	Person *Person
 	*RepoAuthor
 }
 
@@ -826,10 +827,10 @@ type ClientStats struct {
 	RefCount int `db:"ref_count"`
 }
 
-// AugmentedRepoClient is a RepoClient with the full User and
+// AugmentedRepoClient is a RepoClient with the full Person and
 // graph.Def structs embedded.
 type AugmentedRepoClient struct {
-	User *User
+	Person *Person
 	*RepoClient
 }
 
@@ -955,8 +956,8 @@ type RepoListByContributorOptions struct {
 	ListOptions
 }
 
-func (s *repositoriesService) ListByContributor(person PersonSpec, opt *RepoListByContributorOptions) ([]*AugmentedRepoContribution, Response, error) {
-	url, err := s.client.url(router.PersonRepoContributions, person.RouteVars(), opt)
+func (s *repositoriesService) ListByContributor(user UserSpec, opt *RepoListByContributorOptions) ([]*AugmentedRepoContribution, Response, error) {
+	url, err := s.client.url(router.UserRepoContributions, user.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1000,8 +1001,8 @@ type RepoListByClientOptions struct {
 	ListOptions
 }
 
-func (s *repositoriesService) ListByClient(person PersonSpec, opt *RepoListByClientOptions) ([]*AugmentedRepoUsageByClient, Response, error) {
-	url, err := s.client.url(router.PersonRepoDependencies, person.RouteVars(), opt)
+func (s *repositoriesService) ListByClient(user UserSpec, opt *RepoListByClientOptions) ([]*AugmentedRepoUsageByClient, Response, error) {
+	url, err := s.client.url(router.UserRepoDependencies, user.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1039,8 +1040,8 @@ type RepoListByRefdAuthorOptions struct {
 	ListOptions
 }
 
-func (s *repositoriesService) ListByRefdAuthor(person PersonSpec, opt *RepoListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error) {
-	url, err := s.client.url(router.PersonRepoDependents, person.RouteVars(), opt)
+func (s *repositoriesService) ListByRefdAuthor(user UserSpec, opt *RepoListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error) {
+	url, err := s.client.url(router.UserRepoDependents, user.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1082,9 +1083,9 @@ type MockReposService struct {
 	ListClients_       func(repo RepoSpec, opt *RepoListClientsOptions) ([]*AugmentedRepoClient, Response, error)
 	ListDependencies_  func(repo RepoRevSpec, opt *RepoListDependenciesOptions) ([]*AugmentedRepoDependency, Response, error)
 	ListDependents_    func(repo RepoSpec, opt *RepoListDependentsOptions) ([]*AugmentedRepoDependent, Response, error)
-	ListByContributor_ func(person PersonSpec, opt *RepoListByContributorOptions) ([]*AugmentedRepoContribution, Response, error)
-	ListByClient_      func(person PersonSpec, opt *RepoListByClientOptions) ([]*AugmentedRepoUsageByClient, Response, error)
-	ListByRefdAuthor_  func(person PersonSpec, opt *RepoListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error)
+	ListByContributor_ func(user UserSpec, opt *RepoListByContributorOptions) ([]*AugmentedRepoContribution, Response, error)
+	ListByClient_      func(user UserSpec, opt *RepoListByClientOptions) ([]*AugmentedRepoUsageByClient, Response, error)
+	ListByRefdAuthor_  func(user UserSpec, opt *RepoListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error)
 }
 
 var _ ReposService = MockReposService{}
@@ -1161,16 +1162,16 @@ func (s MockReposService) ListDependents(repo RepoSpec, opt *RepoListDependentsO
 	return s.ListDependents_(repo, opt)
 }
 
-func (s MockReposService) ListByContributor(person PersonSpec, opt *RepoListByContributorOptions) ([]*AugmentedRepoContribution, Response, error) {
-	return s.ListByContributor_(person, opt)
+func (s MockReposService) ListByContributor(user UserSpec, opt *RepoListByContributorOptions) ([]*AugmentedRepoContribution, Response, error) {
+	return s.ListByContributor_(user, opt)
 }
 
-func (s MockReposService) ListByClient(person PersonSpec, opt *RepoListByClientOptions) ([]*AugmentedRepoUsageByClient, Response, error) {
-	return s.ListByClient_(person, opt)
+func (s MockReposService) ListByClient(user UserSpec, opt *RepoListByClientOptions) ([]*AugmentedRepoUsageByClient, Response, error) {
+	return s.ListByClient_(user, opt)
 }
 
-func (s MockReposService) ListByRefdAuthor(person PersonSpec, opt *RepoListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error) {
-	return s.ListByRefdAuthor_(person, opt)
+func (s MockReposService) ListByRefdAuthor(user UserSpec, opt *RepoListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error) {
+	return s.ListByRefdAuthor_(user, opt)
 }
 
 func (s MockReposService) ListCommits(repo RepoSpec, opt *RepoListCommitsOptions) ([]*Commit, Response, error) {

@@ -234,21 +234,24 @@ func TestMatch(t *testing.T) {
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "branch1", "DeltaHeadRev": "branch2===4739"},
 		},
 
-		// Person
+		// User
 		{
-			path:          "/people/alice",
-			wantRouteName: Person,
-			wantVars:      map[string]string{"PersonSpec": "alice"},
+			path:          "/users/alice",
+			wantRouteName: User,
+			wantVars:      map[string]string{"UserSpec": "alice"},
 		},
 		{
-			path:          "/people/alice@example.com",
-			wantRouteName: Person,
-			wantVars:      map[string]string{"PersonSpec": "alice@example.com"},
+			path:          "/users/$1",
+			wantRouteName: User,
+			wantVars:      map[string]string{"UserSpec": "$1"},
 		},
 		{
-			path:          "/people/alice@-x-yJAANTud-iAVVw==",
-			wantRouteName: Person,
-			wantVars:      map[string]string{"PersonSpec": "alice@-x-yJAANTud-iAVVw=="},
+			path:        "/users/alice@example.com",
+			wantNoMatch: true,
+		},
+		{
+			path:        "/users/alice@-x-yJAANTud-iAVVw==",
+			wantNoMatch: true,
 		},
 	}
 	for _, test := range tests {

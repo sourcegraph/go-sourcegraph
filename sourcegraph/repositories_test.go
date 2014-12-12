@@ -593,7 +593,7 @@ func TestReposService_ListAuthors(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedRepoAuthor{{User: &User{Login: "b"}}}
+	want := []*AugmentedRepoAuthor{{Person: &Person{FullName: "b"}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.RepoAuthors, map[string]string{"RepoSpec": "r.com/x", "Rev": "c"}), func(w http.ResponseWriter, r *http.Request) {
@@ -621,7 +621,7 @@ func TestReposService_ListClients(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedRepoClient{{User: &User{Login: "b"}}}
+	want := []*AugmentedRepoClient{{Person: &Person{FullName: "b"}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.RepoClients, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
@@ -708,7 +708,7 @@ func TestReposService_ListByContributor(t *testing.T) {
 	want := []*AugmentedRepoContribution{{Repo: &Repo{URI: "r.com/x"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.PersonRepoContributions, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.UserRepoContributions, map[string]string{"UserSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 		testFormValues(t, r, values{"NoFork": "true"})
@@ -716,7 +716,7 @@ func TestReposService_ListByContributor(t *testing.T) {
 		writeJSON(w, want)
 	})
 
-	repos, _, err := client.Repos.ListByContributor(PersonSpec{Login: "a"}, &RepoListByContributorOptions{NoFork: true})
+	repos, _, err := client.Repos.ListByContributor(UserSpec{Login: "a"}, &RepoListByContributorOptions{NoFork: true})
 	if err != nil {
 		t.Errorf("Repos.ListByContributor returned error: %v", err)
 	}
@@ -737,14 +737,14 @@ func TestReposService_ListByClient(t *testing.T) {
 	want := []*AugmentedRepoUsageByClient{{DefRepo: &Repo{URI: "r.com/x"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.PersonRepoDependencies, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.UserRepoDependencies, map[string]string{"UserSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	repos, _, err := client.Repos.ListByClient(PersonSpec{Login: "a"}, nil)
+	repos, _, err := client.Repos.ListByClient(UserSpec{Login: "a"}, nil)
 	if err != nil {
 		t.Errorf("Repos.ListByClient returned error: %v", err)
 	}
@@ -765,14 +765,14 @@ func TestReposService_ListByRefdAuthor(t *testing.T) {
 	want := []*AugmentedRepoUsageOfAuthor{{Repo: &Repo{URI: "r.com/x"}}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.PersonRepoDependents, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.UserRepoDependents, map[string]string{"UserSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	repos, _, err := client.Repos.ListByRefdAuthor(PersonSpec{Login: "a"}, nil)
+	repos, _, err := client.Repos.ListByRefdAuthor(UserSpec{Login: "a"}, nil)
 	if err != nil {
 		t.Errorf("Repos.ListByRefdAuthor returned error: %v", err)
 	}

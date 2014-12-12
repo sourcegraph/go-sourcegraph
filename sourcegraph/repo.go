@@ -33,7 +33,7 @@ type Repo struct {
 	Name string
 
 	// OwnerUserID is the account that owns this repository.
-	OwnerUserID UID `db:"owner_user_id"`
+	OwnerUserID int `db:"owner_user_id"`
 
 	// OwnerGitHubUserID is the GitHub user ID of this repository's owner, if this
 	// is a GitHub repository.

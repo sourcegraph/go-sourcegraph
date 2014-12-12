@@ -147,7 +147,7 @@ func TestDefsService_ListAuthors(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedDefAuthor{{User: &User{Login: "b"}}}
+	want := []*AugmentedDefAuthor{{Person: &Person{FullName: "b"}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.DefAuthors, map[string]string{"RepoSpec": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
@@ -175,7 +175,7 @@ func TestDefsService_ListClients(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedDefClient{{User: &User{Login: "b"}}}
+	want := []*AugmentedDefClient{{Person: &Person{FullName: "b"}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.DefClients, map[string]string{"RepoSpec": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {

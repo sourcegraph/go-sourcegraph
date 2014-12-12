@@ -68,7 +68,7 @@ func TestOrgsService_ListMembers(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*Person{{User: &User{UID: 1}}}
+	want := []*User{{UID: 1}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.OrgMembers, map[string]string{"OrgSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
