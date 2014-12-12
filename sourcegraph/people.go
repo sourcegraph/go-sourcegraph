@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/sourcegraph/go-nnz/nnz"
+	"sourcegraph.com/sourcegraph/go-nnz/nnz"
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/db_common"
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"

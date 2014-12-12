@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sourcegraph/go-nnz/nnz"
+	"sourcegraph.com/sourcegraph/go-nnz/nnz"
 )
 
 // Repo is a code repository returned by the Sourcegraph API.
