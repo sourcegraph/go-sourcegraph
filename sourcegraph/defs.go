@@ -105,8 +105,7 @@ type Def struct {
 
 	Stat graph.Stats `json:",omitempty"`
 
-	DocHTML  string           `json:",omitempty"`
-	DocPages []*graph.DocPage `json:",omitempty"`
+	DocHTML string `json:",omitempty"`
 
 	FmtStrings *DefFormatStrings `json:",omitempty"`
 }
@@ -154,8 +153,7 @@ func (s *Def) TotalExamples() int { return s.TotalRefs() - 1 }
 
 // DefGetOptions specifies options for DefsService.Get.
 type DefGetOptions struct {
-	Doc      bool `url:",omitempty"`
-	DocPages bool `url:",omitempty"`
+	Doc bool `url:",omitempty"`
 
 	// Stats is whether the Def response object should include statistics.
 	Stats bool `url:",omitempty"`

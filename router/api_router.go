@@ -62,7 +62,6 @@ const (
 	RepoBuilds         = "repo.builds"
 	RepoBuildsCreate   = "repo.builds.create"
 	RepoBuildDataEntry = "repo.build-data.entry"
-	RepoDocPage        = "repo.doc-page"
 	RepoTreeEntry      = "repo.tree.entry"
 	RepoRefreshProfile = "repo.refresh-profile"
 	RepoRefreshVCSData = "repo.refresh-vcs-data"
@@ -151,7 +150,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	repoRev.Path("/.build").Methods("GET").Name(RepoBuild)
 	repoRev.Path("/.dependencies").Methods("GET").Name(RepoDependencies)
 	repoRev.PathPrefix("/.build-data"+TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET", "HEAD", "PUT", "DELETE").Name(RepoBuildDataEntry)
-	repoRev.Path("/.docs/{Path:.*}").Methods("GET").Name(RepoDocPage)
 	repoRev.Path("/.badges/{Badge}.png").Methods("GET").Name(RepoBadge)
 
 	// repo contains routes that are NOT specific to a revision. In these routes, the URL may not contain a revspec after the repo (that is, no "github.com/foo/bar@myrevspec").
