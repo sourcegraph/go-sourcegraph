@@ -13,7 +13,6 @@ import (
 	"strings"
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
-	"sourcegraph.com/sourcegraph/srclib/person"
 )
 
 // ReposService communicates with the repository-related endpoints in the
@@ -771,10 +770,10 @@ type RepoAuthor struct {
 	AuthorStats
 }
 
-// AugmentedRepoAuthor is a RepoAuthor with the full person.User and
+// AugmentedRepoAuthor is a RepoAuthor with the full User and
 // graph.Def structs embedded.
 type AugmentedRepoAuthor struct {
-	User *person.User
+	User *User
 	*RepoAuthor
 }
 
@@ -827,10 +826,10 @@ type ClientStats struct {
 	RefCount int `db:"ref_count"`
 }
 
-// AugmentedRepoClient is a RepoClient with the full person.User and
+// AugmentedRepoClient is a RepoClient with the full User and
 // graph.Def structs embedded.
 type AugmentedRepoClient struct {
-	User *person.User
+	User *User
 	*RepoClient
 }
 
@@ -1107,19 +1106,19 @@ func (s MockReposService) GetSettings(repo RepoSpec) (*RepoSettings, Response, e
 }
 
 func (s MockReposService) UpdateSettings(repo RepoSpec, settings RepoSettings) (Response, error) {
-		return s.UpdateSettings_(repo, settings)
+	return s.UpdateSettings_(repo, settings)
 }
 
 func (s MockReposService) RefreshProfile(repo RepoSpec) (Response, error) {
-		return s.RefreshProfile_(repo)
+	return s.RefreshProfile_(repo)
 }
 
 func (s MockReposService) RefreshVCSData(repo RepoSpec) (Response, error) {
-		return s.RefreshVCSData_(repo)
+	return s.RefreshVCSData_(repo)
 }
 
 func (s MockReposService) ComputeStats(repo RepoRevSpec) (Response, error) {
-		return s.ComputeStats_(repo)
+	return s.ComputeStats_(repo)
 }
 
 func (s MockReposService) GetBuild(repo RepoRevSpec, opt *RepoGetBuildOptions) (*RepoBuildInfo, Response, error) {

@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
-	"sourcegraph.com/sourcegraph/srclib/person"
 )
 
 // OrgsService communicates with the organizations-related endpoints in the
@@ -54,7 +53,7 @@ func (s *OrgSpec) RouteVars() map[string]string {
 }
 
 type Org struct {
-	person.User
+	User
 }
 
 // OrgSpec returns the OrgSpec that specifies o.
@@ -180,5 +179,5 @@ func (s MockOrgsService) GetSettings(org OrgSpec) (*OrgSettings, Response, error
 }
 
 func (s MockOrgsService) UpdateSettings(org OrgSpec, settings OrgSettings) (Response, error) {
-		return s.UpdateSettings_(org, settings)
+	return s.UpdateSettings_(org, settings)
 }

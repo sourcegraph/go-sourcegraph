@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
-	"sourcegraph.com/sourcegraph/srclib/person"
 )
 
 func TestPersonSpec(t *testing.T) {
@@ -43,7 +42,7 @@ func TestPeopleService_Get(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := &Person{User: &person.User{UID: 1}}
+	want := &Person{User: &User{UID: 1}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.Person, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
@@ -163,7 +162,7 @@ func TestPeopleService_GetOrCreateFromGitHub(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := &Person{User: &person.User{UID: 1, Login: "a"}}
+	want := &Person{User: &User{UID: 1, Login: "a"}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.PersonFromGitHub, map[string]string{"GitHubUserSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
@@ -231,7 +230,7 @@ func TestPeopleService_List(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*person.User{{UID: 1}}
+	want := []*User{{UID: 1}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.People, nil), func(w http.ResponseWriter, r *http.Request) {
@@ -271,7 +270,7 @@ func TestPeopleService_ListAuthors(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedPersonUsageByClient{{Author: &person.User{UID: 1}}}
+	want := []*AugmentedPersonUsageByClient{{Author: &User{UID: 1}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.PersonAuthors, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
@@ -299,7 +298,7 @@ func TestPeopleService_ListClients(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedPersonUsageOfAuthor{{Client: &person.User{UID: 1}}}
+	want := []*AugmentedPersonUsageOfAuthor{{Client: &User{UID: 1}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.PersonClients, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
@@ -327,7 +326,7 @@ func TestPeopleService_ListOrgs(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*Org{{User: person.User{Login: "o"}}}
+	want := []*Org{{User: User{Login: "o"}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.PersonOrgs, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {

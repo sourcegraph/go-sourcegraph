@@ -9,7 +9,6 @@ import (
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/graph"
-	"sourcegraph.com/sourcegraph/srclib/person"
 )
 
 // DefsService communicates with the def- and graph-related endpoints in
@@ -378,7 +377,7 @@ func (v DefAuthorsByBytes) Swap(i, j int)      { v[i], v[j] = v[j], v[i] }
 func (v DefAuthorsByBytes) Less(i, j int) bool { return v[i].Bytes < v[j].Bytes }
 
 type AugmentedDefAuthor struct {
-	User *person.User
+	User *User
 	*DefAuthor
 }
 
@@ -418,7 +417,7 @@ type DefClient struct {
 }
 
 type AugmentedDefClient struct {
-	User *person.User
+	User *User
 	*DefClient
 }
 

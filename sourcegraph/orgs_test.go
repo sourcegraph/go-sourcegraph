@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
-	"sourcegraph.com/sourcegraph/srclib/person"
 )
 
 func TestOrgSpec(t *testing.T) {
@@ -41,7 +40,7 @@ func TestOrgsService_Get(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := &Org{User: person.User{UID: 1}}
+	want := &Org{User: User{UID: 1}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.Org, map[string]string{"OrgSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +68,7 @@ func TestOrgsService_ListMembers(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*Person{{User: &person.User{UID: 1}}}
+	want := []*Person{{User: &User{UID: 1}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.OrgMembers, map[string]string{"OrgSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {

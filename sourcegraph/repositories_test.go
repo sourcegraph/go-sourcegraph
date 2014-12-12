@@ -10,7 +10,6 @@ import (
 	"github.com/kr/pretty"
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/go-vcs/vcs"
-	"sourcegraph.com/sourcegraph/srclib/person"
 	"sourcegraph.com/sourcegraph/vcsstore/vcsclient"
 )
 
@@ -594,7 +593,7 @@ func TestReposService_ListAuthors(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedRepoAuthor{{User: &person.User{Login: "b"}}}
+	want := []*AugmentedRepoAuthor{{User: &User{Login: "b"}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.RepoAuthors, map[string]string{"RepoSpec": "r.com/x", "Rev": "c"}), func(w http.ResponseWriter, r *http.Request) {
@@ -622,7 +621,7 @@ func TestReposService_ListClients(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedRepoClient{{User: &person.User{Login: "b"}}}
+	want := []*AugmentedRepoClient{{User: &User{Login: "b"}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.RepoClients, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
