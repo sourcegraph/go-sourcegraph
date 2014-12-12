@@ -189,14 +189,10 @@ type DefListOptions struct {
 	// Specifies a search query for defs. If specified, then the Sort and Direction options are ignored
 	Query string `url:",omitempty" json:",omitempty"`
 
-	// Repos constrains the results to a set of repositories (given by
-	// their URIs).
-	Repos []string `url:",omitempty,comma" json:",omitempty"`
-
-	// CommitID constrains the results to a specific commit ID. It
-	// only makes sense when used with a single repository in Repos
-	// (or multiple repositories that share a commit).
-	CommitID string `url:",omitempty" json:",omitempty"`
+	// RepoRevs constrains the results to a set of repository
+	// revisions (given by their URIs plus an optional "@" and a
+	// revision specifier). For example, "repo.com/foo@revspec".
+	RepoRevs []string `url:",omitempty,comma" json:",omitempty"`
 
 	UnitTypes []string `url:",omitempty,comma" json:",omitempty"`
 	Unit      string   `url:",omitempty" json:",omitempty"`
