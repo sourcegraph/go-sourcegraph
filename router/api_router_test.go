@@ -253,6 +253,28 @@ func TestMatch(t *testing.T) {
 			path:        "/users/alice@-x-yJAANTud-iAVVw==",
 			wantNoMatch: true,
 		},
+
+		// Person
+		{
+			path:          "/people/alice",
+			wantRouteName: Person,
+			wantVars:      map[string]string{"PersonSpec": "alice"},
+		},
+		{
+			path:          "/people/$1",
+			wantRouteName: Person,
+			wantVars:      map[string]string{"PersonSpec": "$1"},
+		},
+		{
+			path:          "/people/alice@example.com",
+			wantRouteName: Person,
+			wantVars:      map[string]string{"PersonSpec": "alice@example.com"},
+		},
+		{
+			path:          "/people/alice@-x-yJAANTud-iAVVw==",
+			wantRouteName: Person,
+			wantVars:      map[string]string{"PersonSpec": "alice@-x-yJAANTud-iAVVw=="},
+		},
 	}
 	for _, test := range tests {
 		var routeMatch mux.RouteMatch

@@ -1,6 +1,12 @@
 package sourcegraph
 
-import "testing"
+import (
+	"net/http"
+	"reflect"
+	"testing"
+
+	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
+)
 
 func TestPersonShortName(t *testing.T) {
 	tests := []struct {
@@ -62,5 +68,33 @@ func TestPersonSpec(t *testing.T) {
 			t.Errorf("%+v: got str %q, want %q", test.spec, str, test.str)
 			continue
 		}
+	}
+}
+
+func TestPeopleService_Get(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := &Person{FullName: "n"}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.Person, map[string]string{"PersonSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+
+		writeJSON(w, want)
+	})
+
+	person_, _, err := client.People.Get(PersonSpec{Login: "a"})
+	if err != nil {
+		t.Errorf("People.Get returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(person_, want) {
+		t.Errorf("People.Get returned %+v, want %+v", person_, want)
 	}
 }

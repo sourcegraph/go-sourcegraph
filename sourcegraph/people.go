@@ -5,7 +5,25 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 )
+
+// PeopleService communicates with the people-related endpoints in the
+// Sourcegraph API.
+type PeopleService interface {
+	// Get gets a person. If an email is provided and it resolves to a
+	// registered user, information about that user is
+	// returned. Otherwise a transient person is created and returned.
+	Get(PersonSpec) (*Person, Response, error)
+}
+
+// peopleService implements PeopleService.
+type peopleService struct {
+	client *Client
+}
+
+var _ PeopleService = &peopleService{}
 
 // A Person represents either a registered user or a committer to a
 // repository (typically when their commit email can't be resolved to
@@ -96,6 +114,26 @@ func ParsePersonSpec(pathComponent string) (PersonSpec, error) {
 	return PersonSpec{Login: pathComponent}, nil
 }
 
+func (s *peopleService) Get(spec PersonSpec) (*Person, Response, error) {
+	url, err := s.client.url(router.Person, spec.RouteVars(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var person *Person
+	resp, err := s.client.Do(req, &person)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return person, resp, nil
+}
+
 type PersonStatType string
 
 type PersonStats map[PersonStatType]int
@@ -121,4 +159,14 @@ func (x *PersonStatType) Scan(v interface{}) error {
 		return nil
 	}
 	return fmt.Errorf("%T.Scan failed: %v", x, v)
+}
+
+type MockPeopleService struct {
+	Get_ func(person PersonSpec) (*Person, Response, error)
+}
+
+var _ PeopleService = MockPeopleService{}
+
+func (s MockPeopleService) Get(person PersonSpec) (*Person, Response, error) {
+	return s.Get_(person)
 }
