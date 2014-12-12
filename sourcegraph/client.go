@@ -199,7 +199,7 @@ func (o ListOptions) PerPageOrDefault() int {
 	return o.PerPage
 }
 
-// Limit implements api_common.ResultSlice.
+// Limit returns the number of items to fetch.
 func (o ListOptions) Limit() int { return o.PerPageOrDefault() }
 
 // Offset returns the 0-indexed offset of the first item that appears on this
