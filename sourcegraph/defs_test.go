@@ -7,7 +7,6 @@ import (
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/graph"
-	"sourcegraph.com/sourcegraph/srclib/person"
 )
 
 func TestDefsService_Get(t *testing.T) {
@@ -148,7 +147,7 @@ func TestDefsService_ListAuthors(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedDefAuthor{{User: &person.User{Login: "b"}}}
+	want := []*AugmentedDefAuthor{{Person: &Person{FullName: "b"}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.DefAuthors, map[string]string{"RepoSpec": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {
@@ -176,7 +175,7 @@ func TestDefsService_ListClients(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*AugmentedDefClient{{User: &person.User{Login: "b"}}}
+	want := []*AugmentedDefClient{{Person: &Person{FullName: "b"}}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.DefClients, map[string]string{"RepoSpec": "r.com/x", "UnitType": "t", "Unit": "u", "Path": "p"}), func(w http.ResponseWriter, r *http.Request) {

@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
-	"sourcegraph.com/sourcegraph/srclib/person"
 )
 
 // OrgsService communicates with the organizations-related endpoints in the
@@ -15,7 +14,7 @@ type OrgsService interface {
 	Get(org OrgSpec) (*Org, Response, error)
 
 	// ListMembers lists members of an organization.
-	ListMembers(org OrgSpec, opt *OrgListMembersOptions) ([]*Person, Response, error)
+	ListMembers(org OrgSpec, opt *OrgListMembersOptions) ([]*User, Response, error)
 
 	// GetSettings fetches an org's configuration settings.
 	GetSettings(org OrgSpec) (*OrgSettings, Response, error)
@@ -54,7 +53,7 @@ func (s *OrgSpec) RouteVars() map[string]string {
 }
 
 type Org struct {
-	person.User
+	User
 }
 
 // OrgSpec returns the OrgSpec that specifies o.
@@ -94,7 +93,7 @@ type OrgListMembersOptions struct {
 	ListOptions
 }
 
-func (s *orgsService) ListMembers(org OrgSpec, opt *OrgListMembersOptions) ([]*Person, Response, error) {
+func (s *orgsService) ListMembers(org OrgSpec, opt *OrgListMembersOptions) ([]*User, Response, error) {
 	url, err := s.client.url(router.OrgMembers, org.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
@@ -105,7 +104,7 @@ func (s *orgsService) ListMembers(org OrgSpec, opt *OrgListMembersOptions) ([]*P
 		return nil, nil, err
 	}
 
-	var members []*Person
+	var members []*User
 	resp, err := s.client.Do(req, &members)
 	if err != nil {
 		return nil, resp, err
@@ -160,7 +159,7 @@ func (s *orgsService) UpdateSettings(org OrgSpec, settings OrgSettings) (Respons
 
 type MockOrgsService struct {
 	Get_            func(org OrgSpec) (*Org, Response, error)
-	ListMembers_    func(org OrgSpec, opt *OrgListMembersOptions) ([]*Person, Response, error)
+	ListMembers_    func(org OrgSpec, opt *OrgListMembersOptions) ([]*User, Response, error)
 	GetSettings_    func(org OrgSpec) (*OrgSettings, Response, error)
 	UpdateSettings_ func(org OrgSpec, settings OrgSettings) (Response, error)
 }
@@ -171,7 +170,7 @@ func (s MockOrgsService) Get(org OrgSpec) (*Org, Response, error) {
 	return s.Get_(org)
 }
 
-func (s MockOrgsService) ListMembers(org OrgSpec, opt *OrgListMembersOptions) ([]*Person, Response, error) {
+func (s MockOrgsService) ListMembers(org OrgSpec, opt *OrgListMembersOptions) ([]*User, Response, error) {
 	return s.ListMembers_(org, opt)
 }
 
@@ -180,5 +179,5 @@ func (s MockOrgsService) GetSettings(org OrgSpec) (*OrgSettings, Response, error
 }
 
 func (s MockOrgsService) UpdateSettings(org OrgSpec, settings OrgSettings) (Response, error) {
-		return s.UpdateSettings_(org, settings)
+	return s.UpdateSettings_(org, settings)
 }

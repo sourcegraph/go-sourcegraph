@@ -5,11 +5,10 @@ import (
 	"html/template"
 	"time"
 
-	"github.com/sourcegraph/go-nnz/nnz"
+	"sourcegraph.com/sourcegraph/go-nnz/nnz"
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/graph"
-	"sourcegraph.com/sourcegraph/srclib/person"
 )
 
 // DefsService communicates with the def- and graph-related endpoints in
@@ -106,8 +105,7 @@ type Def struct {
 
 	Stat graph.Stats `json:",omitempty"`
 
-	DocHTML  string           `json:",omitempty"`
-	DocPages []*graph.DocPage `json:",omitempty"`
+	DocHTML string `json:",omitempty"`
 
 	FmtStrings *DefFormatStrings `json:",omitempty"`
 }
@@ -155,8 +153,7 @@ func (s *Def) TotalExamples() int { return s.TotalRefs() - 1 }
 
 // DefGetOptions specifies options for DefsService.Get.
 type DefGetOptions struct {
-	Doc      bool `url:",omitempty"`
-	DocPages bool `url:",omitempty"`
+	Doc bool `url:",omitempty"`
 
 	// Stats is whether the Def response object should include statistics.
 	Stats bool `url:",omitempty"`
@@ -378,7 +375,7 @@ func (v DefAuthorsByBytes) Swap(i, j int)      { v[i], v[j] = v[j], v[i] }
 func (v DefAuthorsByBytes) Less(i, j int) bool { return v[i].Bytes < v[j].Bytes }
 
 type AugmentedDefAuthor struct {
-	User *person.User
+	Person *Person
 	*DefAuthor
 }
 
@@ -418,7 +415,7 @@ type DefClient struct {
 }
 
 type AugmentedDefClient struct {
-	User *person.User
+	Person *Person
 	*DefClient
 }
 

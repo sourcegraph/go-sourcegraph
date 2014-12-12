@@ -1,9 +1,6 @@
 package sourcegraph
 
-import (
-	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
-	"sourcegraph.com/sourcegraph/srclib/person"
-)
+import "sourcegraph.com/sourcegraph/go-sourcegraph/router"
 
 // SearchService communicates with the search-related endpoints in
 // the Sourcegraph API.
@@ -14,7 +11,7 @@ type SearchService interface {
 
 type SearchResults struct {
 	Defs   []*Def
-	People []*person.User
+	People []*Person
 	Repos  []*Repo
 }
 

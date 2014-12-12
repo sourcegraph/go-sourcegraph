@@ -9,8 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sourcegraph/go-nnz/nnz"
-	"sourcegraph.com/sourcegraph/srclib/person"
+	"sourcegraph.com/sourcegraph/go-nnz/nnz"
 )
 
 // Repo is a code repository returned by the Sourcegraph API.
@@ -34,7 +33,7 @@ type Repo struct {
 	Name string
 
 	// OwnerUserID is the account that owns this repository.
-	OwnerUserID person.UID `db:"owner_user_id"`
+	OwnerUserID int `db:"owner_user_id"`
 
 	// OwnerGitHubUserID is the GitHub user ID of this repository's owner, if this
 	// is a GitHub repository.

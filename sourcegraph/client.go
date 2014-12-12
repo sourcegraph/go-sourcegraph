@@ -23,7 +23,6 @@ const (
 // A Client communicates with the Sourcegraph API.
 type Client struct {
 	// Services used to communicate with different parts of the Sourcegraph API.
-	DocPages     DocPagesService
 	BuildData    BuildDataService
 	Builds       BuildsService
 	Deltas       DeltasService
@@ -34,6 +33,7 @@ type Client struct {
 	Repos        ReposService
 	RepoTree     RepoTreeService
 	Search       SearchService
+	Users        UsersService
 	Defs         DefsService
 
 	// Base URL for API requests, which should have a trailing slash.
@@ -56,7 +56,6 @@ func NewClient(httpClient *http.Client) *Client {
 
 	c := new(Client)
 	c.httpClient = httpClient
-	c.DocPages = &docPagesService{c}
 	c.BuildData = &buildDataService{c}
 	c.Builds = &buildsService{c}
 	c.Deltas = &deltasService{c}
@@ -67,6 +66,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.Repos = &repositoriesService{c}
 	c.RepoTree = &repoTreeService{c}
 	c.Search = &searchService{c}
+	c.Users = &usersService{c}
 	c.Defs = &defsService{c}
 
 	c.BaseURL = &url.URL{Scheme: "https", Host: "sourcegraph.com", Path: "/api/"}
@@ -201,7 +201,7 @@ func (o ListOptions) PerPageOrDefault() int {
 	return o.PerPage
 }
 
-// Limit implements api_common.ResultSlice.
+// Limit returns the number of items to fetch.
 func (o ListOptions) Limit() int { return o.PerPageOrDefault() }
 
 // Offset returns the 0-indexed offset of the first item that appears on this
@@ -276,7 +276,6 @@ func addOptions(u *url.URL, opt interface{}) error {
 // NewMockClient returns a mockable Client for use in tests.
 func NewMockClient() *Client {
 	return &Client{
-		DocPages:     &MockDocPagesService{},
 		BuildData:    &MockBuildDataService{},
 		Builds:       &MockBuildsService{},
 		Deltas:       &MockDeltasService{},
@@ -287,6 +286,7 @@ func NewMockClient() *Client {
 		Repos:        &MockReposService{},
 		RepoTree:     &MockRepoTreeService{},
 		Search:       &MockSearchService{},
+		Users:        &MockUsersService{},
 		Defs:         &MockDefsService{},
 	}
 }
