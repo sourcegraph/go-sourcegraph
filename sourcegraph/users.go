@@ -139,6 +139,15 @@ func (u *User) CanAttributeCodeTo() bool {
 	return !u.IsOrganization()
 }
 
+// Person returns an equivalent Person.
+func (u *User) Person() *Person {
+	return &Person{
+		PersonSpec: PersonSpec{UID: u.UID, Login: u.Login},
+		FullName:   u.Name,
+		AvatarURL:  u.AvatarURL,
+	}
+}
+
 // UserSpec specifies a user. At least one of Login, and UID must be
 // nonempty.
 type UserSpec struct {
