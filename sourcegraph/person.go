@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"sourcegraph.com/sourcegraph/go-sourcegraph/db_common"
+
 	"github.com/sourcegraph/go-nnz/nnz"
-	"sourcegraph.com/sourcegraph/srclib/db_common"
 )
 
 // User represents a user.
