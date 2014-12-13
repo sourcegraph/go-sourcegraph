@@ -20,6 +20,9 @@ type PullRequestsService interface {
 
 	// ListComments lists comments on a pull request.
 	ListComments(pull PullRequestSpec, opt *PullRequestListCommentsOptions) ([]*PullRequestComment, Response, error)
+
+	// CreateComment creates a comment on a pull request.
+	CreateComment(pull PullRequestSpec, comment *PullRequestComment) (*PullRequestComment, Response, error)
 }
 
 // pullRequestsService implements PullRequestsService.
@@ -152,10 +155,31 @@ func (s *pullRequestsService) ListComments(pull PullRequestSpec, opt *PullReques
 	return comments, resp, nil
 }
 
+func (s *pullRequestsService) CreateComment(pull PullRequestSpec, comment *PullRequestComment) (*PullRequestComment, Response, error) {
+	url, err := s.client.url(router.RepoPullRequestCommentsCreate, pull.RouteVars(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("POST", url.String(), comment)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var createdComment PullRequestComment
+	resp, err := s.client.Do(req, &createdComment)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &createdComment, resp, nil
+}
+
 type MockPullRequestsService struct {
-	Get_          func(pull PullRequestSpec, opt *PullRequestGetOptions) (*PullRequest, Response, error)
-	ListByRepo_   func(repo RepoSpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error)
-	ListComments_ func(pull PullRequestSpec, opt *PullRequestListCommentsOptions) ([]*PullRequestComment, Response, error)
+	Get_           func(pull PullRequestSpec, opt *PullRequestGetOptions) (*PullRequest, Response, error)
+	ListByRepo_    func(repo RepoSpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error)
+	ListComments_  func(pull PullRequestSpec, opt *PullRequestListCommentsOptions) ([]*PullRequestComment, Response, error)
+	CreateComment_ func(pull PullRequestSpec, comment *PullRequestComment) (*PullRequestComment, Response, error)
 }
 
 var _ PullRequestsService = MockPullRequestsService{}
@@ -170,4 +194,8 @@ func (s MockPullRequestsService) ListByRepo(repo RepoSpec, opt *PullRequestListO
 
 func (s MockPullRequestsService) ListComments(pull PullRequestSpec, opt *PullRequestListCommentsOptions) ([]*PullRequestComment, Response, error) {
 	return s.ListComments_(pull, opt)
+}
+
+func (s MockPullRequestsService) CreateComment(pull PullRequestSpec, comment *PullRequestComment) (*PullRequestComment, Response, error) {
+	return s.CreateComment_(pull, comment)
 }
