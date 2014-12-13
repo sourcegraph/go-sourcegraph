@@ -27,6 +27,7 @@ func NewUnitSpecFromUnit(u *unit.RepoSourceUnit) UnitSpec {
 		RepoRevSpec: RepoRevSpec{
 			RepoSpec: RepoSpec{URI: u.Repo},
 			Rev:      u.CommitID,
+			CommitID: u.CommitID,
 		},
 		UnitType: u.UnitType,
 		Unit:     u.Unit,
@@ -61,11 +62,13 @@ var _ UnitsService = &unitsService{}
 
 // UnitListOptions specifies options for UnitsService.List.
 type UnitListOptions struct {
-	// Filters
-	RepositoryURI string `url:",omitempty"`
-	CommitID      string `url:",omitempty"`
-	UnitType      string `url:",omitempty"`
-	Unit          string `url:",omitempty"`
+	// RepoRevs constrains the results to a set of repository
+	// revisions (given by their URIs plus an optional "@" and a
+	// revision specifier). For example, "repo.com/foo@revspec".
+	RepoRevs []string `url:",omitempty,comma" json:",omitempty"`
+
+	UnitType string `url:",omitempty"`
+	Unit     string `url:",omitempty"`
 
 	// Paging
 	ListOptions

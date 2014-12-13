@@ -60,17 +60,17 @@ func TestUnitsService_List(t *testing.T) {
 		called = true
 		testMethod(t, r, "GET")
 		testFormValues(t, r, values{
-			"RepositoryURI": "r1",
-			"PerPage":       "1",
-			"Page":          "2",
+			"RepoRevs": "r1@x,r2",
+			"PerPage":  "1",
+			"Page":     "2",
 		})
 
 		writeJSON(w, want)
 	})
 
 	units, _, err := client.Units.List(&UnitListOptions{
-		RepositoryURI: "r1",
-		ListOptions:   ListOptions{PerPage: 1, Page: 2},
+		RepoRevs:    []string{"r1@x", "r2"},
+		ListOptions: ListOptions{PerPage: 1, Page: 2},
 	})
 	if err != nil {
 		t.Errorf("Units.List returned error: %v", err)
