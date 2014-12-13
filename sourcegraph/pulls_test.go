@@ -1,9 +1,12 @@
 package sourcegraph
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/sourcegraph/go-github/github"
 
@@ -115,4 +118,68 @@ func TestPullRequestsService_ListComments(t *testing.T) {
 	if !reflect.DeepEqual(comments, want) {
 		t.Errorf("PullRequests.List returned %+v, want %+v with diff: %s", comments, want, strings.Join(pretty.Diff(want, comments), "\n"))
 	}
+}
+
+func TestPullRequestsService_CreateComment(t *testing.T) {
+	setup()
+	defer teardown()
+
+	pullSpec := PullRequestSpec{Repo: RepoSpec{URI: "r.com/foo"}, Number: 22}
+	comment := PullRequestComment{github.PullRequestComment{
+		Body:      github.String("this is a comment"),
+		Path:      github.String("/"),
+		Position:  github.Int(2),
+		CommitID:  github.String("54be46135e45be9bd3318b8fd39a456ff1e2895e"),
+		User:      &github.User{},
+		CreatedAt: timePtr(time.Unix(100, 100).UTC()),
+		UpdatedAt: timePtr(time.Unix(200, 200).UTC()),
+	}}
+	wantComment := comment
+	wantComment.ID = github.Int(1)
+
+	called := false
+	mux.HandleFunc(urlPath(t, router.RepoPullRequestCommentsCreate, pullSpec.RouteVars()), func(w http.ResponseWriter, req *http.Request) {
+		called = true
+		testMethod(t, req, "POST")
+
+		var unmarshalled PullRequestComment
+		err := json.NewDecoder(req.Body).Decode(&unmarshalled)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !reflect.DeepEqual(unmarshalled, comment) {
+			t.Errorf("Got unmarshalled comment %+v, want %+v", unmarshalled, comment)
+		}
+
+		writeJSON(w, wantComment)
+	})
+
+	gotComment, _, err := client.PullRequests.CreateComment(pullSpec, &comment)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !called {
+		t.Errorf("!called")
+	}
+
+	if !jsonEqual(t, gotComment, wantComment) {
+		t.Errorf("Got %+v, want %+v", gotComment, wantComment)
+	}
+}
+
+func timePtr(t time.Time) *time.Time {
+	return &t
+}
+
+func jsonEqual(t *testing.T, u, v interface{}) bool {
+	uj, err := json.Marshal(u)
+	if err != nil {
+		t.Fatal(err)
+	}
+	vj, err := json.Marshal(v)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return bytes.Equal(uj, vj)
 }
