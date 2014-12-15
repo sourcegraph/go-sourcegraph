@@ -132,6 +132,7 @@ type PullRequestListCommentsOptions struct {
 }
 
 type PullRequestComment struct {
+	Published bool
 	github.PullRequestComment
 }
 

@@ -125,15 +125,17 @@ func TestPullRequestsService_CreateComment(t *testing.T) {
 	defer teardown()
 
 	pullSpec := PullRequestSpec{Repo: RepoSpec{URI: "r.com/foo"}, Number: 22}
-	comment := PullRequestComment{github.PullRequestComment{
-		Body:      github.String("this is a comment"),
-		Path:      github.String("/"),
-		Position:  github.Int(2),
-		CommitID:  github.String("54be46135e45be9bd3318b8fd39a456ff1e2895e"),
-		User:      &github.User{},
-		CreatedAt: timePtr(time.Unix(100, 100).UTC()),
-		UpdatedAt: timePtr(time.Unix(200, 200).UTC()),
-	}}
+	comment := PullRequestComment{
+		PullRequestComment: github.PullRequestComment{
+			Body:      github.String("this is a comment"),
+			Path:      github.String("/"),
+			Position:  github.Int(2),
+			CommitID:  github.String("54be46135e45be9bd3318b8fd39a456ff1e2895e"),
+			User:      &github.User{},
+			CreatedAt: timePtr(time.Unix(100, 100).UTC()),
+			UpdatedAt: timePtr(time.Unix(200, 200).UTC()),
+		},
+	}
 	wantComment := comment
 	wantComment.ID = github.Int(1)
 
