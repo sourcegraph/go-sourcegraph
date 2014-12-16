@@ -44,6 +44,8 @@ const (
 	RepoPullRequest               = "repo.pull-request"
 	RepoPullRequestComments       = "repo.pull-request.comments"
 	RepoPullRequestCommentsCreate = "repo.pull-request.comments.create"
+	RepoPullRequestCommentsEdit   = "repo.pull-request.comments.edit"
+	RepoPullRequestCommentsDelete = "repo.pull-request.comments.delete"
 
 	RepoIssues        = "repo.issues"
 	RepoIssue         = "repo.issue"
@@ -186,6 +188,8 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	pull := repo.PathPrefix(pullPath).Subrouter()
 	pull.Path("/comments").Methods("GET").Name(RepoPullRequestComments)
 	pull.Path("/comments").Methods("POST").Name(RepoPullRequestCommentsCreate)
+	pull.Path("/comments/{CommentID}").Methods("PATCH", "PUT").Name(RepoPullRequestCommentsEdit)
+	pull.Path("/comments/{CommentID}").Methods("DELETE").Name(RepoPullRequestCommentsDelete)
 
 	repo.Path("/.issues").Methods("GET").Name(RepoIssues)
 	issuePath := "/.issues/{Issue}"
