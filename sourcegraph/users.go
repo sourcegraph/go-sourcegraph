@@ -243,8 +243,6 @@ type EmailAddr struct {
 
 	Primary bool // indicates this is the user's primary email (only 1 email can be primary per user)
 
-	Public bool // true if the user is OK with publicly displaying this email
-
 	Guessed bool // whether Sourcegraph inferred via public data that this is an email for the user
 
 	Blacklisted bool // indicates that this email should not be associated with the user (even if guessed in the future)
