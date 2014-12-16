@@ -213,6 +213,7 @@ type DefListOptions struct {
 
 	Kinds    []string `url:",omitempty,comma" json:",omitempty"`
 	Exported bool     `url:",omitempty" json:",omitempty"`
+	Nonlocal bool     `url:",omitempty" json:",omitempty"`
 
 	// IncludeTest is whether the results should include definitions in test
 	// files.
