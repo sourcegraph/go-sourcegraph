@@ -279,3 +279,42 @@ func jsonEqual(t *testing.T, u, v interface{}) bool {
 	}
 	return bytes.Equal(uj, vj)
 }
+
+func TestPullRequestsService_Merge(t *testing.T) {
+	setup()
+	defer teardown()
+
+	pullSpec := PullRequestSpec{Repo: RepoSpec{URI: "r.com/foo"}, Number: 22}
+	mergeRequest := &PullRequestMergeRequest{CommitMessage: "message"}
+	wantMergeResult := &PullRequestMergeResult{github.PullRequestMergeResult{
+		SHA:     github.String("42c066aecc289359dcaaff61e9a85396ed7c376f"),
+		Merged:  github.Bool(true),
+		Message: github.String("Pull Request successfully merged"),
+	}}
+
+	called := false
+	mux.HandleFunc(urlPath(t, router.RepoPullRequestMerge, pullSpec.RouteVars()), func(w http.ResponseWriter, req *http.Request) {
+		called = true
+		testMethod(t, req, "PUT")
+
+		var unmarshalled PullRequestMergeRequest
+		err := json.NewDecoder(req.Body).Decode(&unmarshalled)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !reflect.DeepEqual(&unmarshalled, mergeRequest) {
+			t.Errorf("Got unmarshalled merge request %+v, want %+v", unmarshalled, mergeRequest)
+		}
+
+		writeJSON(w, wantMergeResult)
+	})
+
+	mergeResult, _, err := client.PullRequests.Merge(pullSpec, mergeRequest)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !reflect.DeepEqual(mergeResult, wantMergeResult) {
+		t.Errorf("got %+v, want %+v", mergeResult, wantMergeResult)
+	}
+}

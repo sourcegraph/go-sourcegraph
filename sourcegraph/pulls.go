@@ -31,6 +31,9 @@ type PullRequestsService interface {
 
 	// DeleteComment deletes a comment on a pull request.
 	DeleteComment(pull PullRequestSpec, commentID int) (Response, error)
+
+	// Merge merges a pull request
+	Merge(pull PullRequestSpec, mergeRequest *PullRequestMergeRequest) (*PullRequestMergeResult, Response, error)
 }
 
 // pullRequestsService implements PullRequestsService.
@@ -252,6 +255,34 @@ func (s *pullRequestsService) DeleteComment(pull PullRequestSpec, commentID int)
 	return resp, nil
 }
 
+type PullRequestMergeResult struct {
+	github.PullRequestMergeResult
+}
+
+type PullRequestMergeRequest struct {
+	CommitMessage string
+}
+
+func (s *pullRequestsService) Merge(pull PullRequestSpec, mergeRequest *PullRequestMergeRequest) (*PullRequestMergeResult, Response, error) {
+	url, err := s.client.url(router.RepoPullRequestMerge, pull.RouteVars(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("PUT", url.String(), mergeRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var result PullRequestMergeResult
+	resp, err := s.client.Do(req, &result)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &result, resp, nil
+}
+
 type MockPullRequestsService struct {
 	Get_           func(pull PullRequestSpec, opt *PullRequestGetOptions) (*PullRequest, Response, error)
 	ListByRepo_    func(repo RepoSpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error)
@@ -259,6 +290,7 @@ type MockPullRequestsService struct {
 	CreateComment_ func(pull PullRequestSpec, comment *PullRequestComment) (*PullRequestComment, Response, error)
 	EditComment_   func(pull PullRequestSpec, comment *PullRequestComment) (*PullRequestComment, Response, error)
 	DeleteComment_ func(pull PullRequestSpec, commentID int) (Response, error)
+	Merge_         func(pull PullRequestSpec, mergeRequest *PullRequestMergeRequest) (*PullRequestMergeResult, Response, error)
 }
 
 var _ PullRequestsService = MockPullRequestsService{}
@@ -285,4 +317,8 @@ func (s MockPullRequestsService) EditComment(pull PullRequestSpec, comment *Pull
 
 func (s MockPullRequestsService) DeleteComment(pull PullRequestSpec, commentID int) (Response, error) {
 	return s.DeleteComment_(pull, commentID)
+}
+
+func (s MockPullRequestsService) Merge(pull PullRequestSpec, mergeRequest *PullRequestMergeRequest) (*PullRequestMergeResult, Response, error) {
+	return s.Merge_(pull, mergeRequest)
 }
