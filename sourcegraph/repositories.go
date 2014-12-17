@@ -607,6 +607,7 @@ type Commit struct {
 
 type RepoListCommitsOptions struct {
 	Head string `url:",omitempty" json:",omitempty"`
+	Base string `url:",omitempty" json:",omitempty"`
 	ListOptions
 }
 
