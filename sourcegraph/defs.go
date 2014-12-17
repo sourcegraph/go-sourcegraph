@@ -222,6 +222,7 @@ type DefListOptions struct {
 	// Enhancements
 	Doc   bool `url:",omitempty" json:",omitempty"`
 	Stats bool `url:",omitempty" json:",omitempty"`
+	Fuzzy bool `url:",omitempty" json:",omitempty"`
 
 	// Sorting
 	Sort      string `url:",omitempty" json:",omitempty"`
