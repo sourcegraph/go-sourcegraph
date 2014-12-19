@@ -3,11 +3,9 @@ package sourcegraph
 import (
 	"net/http"
 	"reflect"
-	"strings"
 	"testing"
 	"time"
 
-	"github.com/kr/pretty"
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/go-vcs/vcs"
 	"sourcegraph.com/sourcegraph/vcsstore/vcsclient"
@@ -100,6 +98,7 @@ func TestReposService_Get(t *testing.T) {
 		t.Fatal("!called")
 	}
 
+	normRepo(want)
 	if !reflect.DeepEqual(repo_, want) {
 		t.Errorf("Repos.Get returned %+v, want %+v", repo_, want)
 	}
@@ -156,6 +155,7 @@ func TestReposService_GetOrCreate(t *testing.T) {
 		t.Fatal("!called")
 	}
 
+	normRepo(want)
 	if !reflect.DeepEqual(repo_, want) {
 		t.Errorf("Repos.GetOrCreate returned %+v, want %+v", repo_, want)
 	}
@@ -338,6 +338,7 @@ func TestReposService_Create(t *testing.T) {
 		t.Fatal("!called")
 	}
 
+	normRepo(want)
 	if !reflect.DeepEqual(repo_, want) {
 		t.Errorf("Repos.Create returned %+v, want %+v", repo_, want)
 	}
@@ -413,8 +414,9 @@ func TestReposService_List(t *testing.T) {
 		t.Fatal("!called")
 	}
 
+	normRepo(want...)
 	if !reflect.DeepEqual(repos, want) {
-		t.Errorf("Repos.List returned %+v, want %+v with diff: %s", repos, want, strings.Join(pretty.Diff(want, repos), "\n"))
+		t.Errorf("Repos.List: got %+v, want %+v", repos, want)
 	}
 }
 
@@ -668,6 +670,7 @@ func TestReposService_ListDependents(t *testing.T) {
 		t.Fatal("!called")
 	}
 
+	normRepo(want[0].Repo)
 	if !reflect.DeepEqual(dependents, want) {
 		t.Errorf("Repos.ListDependents returned %+v, want %+v", dependents, want)
 	}
@@ -696,6 +699,7 @@ func TestReposService_ListDependencies(t *testing.T) {
 		t.Fatal("!called")
 	}
 
+	normRepo(want[0].Repo)
 	if !reflect.DeepEqual(dependencies, want) {
 		t.Errorf("Repos.ListDependencies returned %+v, want %+v", dependencies, want)
 	}
@@ -725,6 +729,7 @@ func TestReposService_ListByContributor(t *testing.T) {
 		t.Fatal("!called")
 	}
 
+	normRepo(want[0].Repo)
 	if !reflect.DeepEqual(repos, want) {
 		t.Errorf("Repos.ListByContributor returned %+v, want %+v", repos, want)
 	}
@@ -753,6 +758,7 @@ func TestReposService_ListByClient(t *testing.T) {
 		t.Fatal("!called")
 	}
 
+	normRepo(want[0].DefRepo)
 	if !reflect.DeepEqual(repos, want) {
 		t.Errorf("Repos.ListByClient returned %+v, want %+v", repos, want)
 	}
@@ -781,6 +787,7 @@ func TestReposService_ListByRefdAuthor(t *testing.T) {
 		t.Fatal("!called")
 	}
 
+	normRepo(want[0].Repo)
 	if !reflect.DeepEqual(repos, want) {
 		t.Errorf("Repos.ListByRefdAuthor returned %+v, want %+v", repos, want)
 	}
@@ -790,5 +797,13 @@ func normTime(c *Commit) {
 	c.Author.Date = c.Author.Date.In(time.UTC)
 	if c.Committer != nil {
 		c.Committer.Date = c.Committer.Date.In(time.UTC)
+	}
+}
+
+func normRepo(r ...*Repo) {
+	for _, r := range r {
+		r.CreatedAt = r.CreatedAt.UTC()
+		r.UpdatedAt = r.UpdatedAt.UTC()
+		r.PushedAt = r.PushedAt.UTC()
 	}
 }

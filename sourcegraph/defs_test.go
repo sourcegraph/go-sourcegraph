@@ -222,6 +222,7 @@ func TestDefsService_ListDependents(t *testing.T) {
 		t.Fatal("!called")
 	}
 
+	normRepo(want[0].Repo)
 	if !reflect.DeepEqual(dependents, want) {
 		t.Errorf("Defs.ListDependents returned %+v, want %+v", dependents, want)
 	}

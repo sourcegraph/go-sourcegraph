@@ -87,6 +87,18 @@ type Repo struct {
 	// Private is whether this repository is private.
 	Private bool
 
+	// CreatedAt is when this repository was created. If it represents
+	// an externally hosted (e.g., GitHub) repository, the creation
+	// date is when it was created at that origin.
+	CreatedAt time.Time `db:"created_at"`
+
+	// UpdatedAt is when this repository's metadata was last updated
+	// (on its origin if it's an externally hosted repository).
+	UpdatedAt time.Time `db:"updated_at"`
+
+	// PushedAt is when this repository's was last (VCS-)pushed to.
+	PushedAt time.Time `db:"pushed_at"`
+
 	// Stat holds repository statistics. It's only filled in if Repo{Get,List}Options has Stats == true.
 	Stat RepoStats `db:"-" json:",omitempty"`
 }
