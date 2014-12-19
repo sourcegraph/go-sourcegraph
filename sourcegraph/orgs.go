@@ -70,7 +70,7 @@ func ParseOrgSpec(pathComponent string) (OrgSpec, error) {
 }
 
 func (s *orgsService) Get(org OrgSpec) (*Org, Response, error) {
-	url, err := s.client.url(router.Org, org.RouteVars(), nil)
+	url, err := s.client.URL(router.Org, org.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -94,7 +94,7 @@ type OrgListMembersOptions struct {
 }
 
 func (s *orgsService) ListMembers(org OrgSpec, opt *OrgListMembersOptions) ([]*User, Response, error) {
-	url, err := s.client.url(router.OrgMembers, org.RouteVars(), nil)
+	url, err := s.client.URL(router.OrgMembers, org.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -119,7 +119,7 @@ type OrgSettings struct {
 }
 
 func (s *orgsService) GetSettings(org OrgSpec) (*OrgSettings, Response, error) {
-	url, err := s.client.url(router.OrgSettings, org.RouteVars(), nil)
+	url, err := s.client.URL(router.OrgSettings, org.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -139,7 +139,7 @@ func (s *orgsService) GetSettings(org OrgSpec) (*OrgSettings, Response, error) {
 }
 
 func (s *orgsService) UpdateSettings(org OrgSpec, settings OrgSettings) (Response, error) {
-	url, err := s.client.url(router.OrgSettingsUpdate, org.RouteVars(), nil)
+	url, err := s.client.URL(router.OrgSettingsUpdate, org.RouteVars(), nil)
 	if err != nil {
 		return nil, err
 	}

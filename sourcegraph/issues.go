@@ -75,7 +75,7 @@ func (r *Issue) Spec() IssueSpec {
 type IssueGetOptions struct{}
 
 func (s *issuesService) Get(issue IssueSpec, opt *IssueGetOptions) (*Issue, Response, error) {
-	url, err := s.client.url(router.RepoIssue, issue.RouteVars(), opt)
+	url, err := s.client.URL(router.RepoIssue, issue.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -100,7 +100,7 @@ type IssueListOptions struct {
 }
 
 func (s *issuesService) ListByRepo(repo RepoSpec, opt *IssueListOptions) ([]*Issue, Response, error) {
-	url, err := s.client.url(router.RepoIssues, repo.RouteVars(), opt)
+	url, err := s.client.URL(router.RepoIssues, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -128,7 +128,7 @@ type IssueComment struct {
 }
 
 func (s *issuesService) ListComments(issue IssueSpec, opt *IssueListCommentsOptions) ([]*IssueComment, Response, error) {
-	url, err := s.client.url(router.RepoIssueComments, issue.RouteVars(), opt)
+	url, err := s.client.URL(router.RepoIssueComments, issue.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}

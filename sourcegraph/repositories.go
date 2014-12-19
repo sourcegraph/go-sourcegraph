@@ -285,7 +285,7 @@ type RepoGetOptions struct {
 }
 
 func (s *repositoriesService) Get(repo RepoSpec, opt *RepoGetOptions) (*Repo, Response, error) {
-	url, err := s.client.url(router.Repo, repo.RouteVars(), opt)
+	url, err := s.client.URL(router.Repo, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -305,7 +305,7 @@ func (s *repositoriesService) Get(repo RepoSpec, opt *RepoGetOptions) (*Repo, Re
 }
 
 func (s *repositoriesService) GetStats(repoRev RepoRevSpec) (RepoStats, Response, error) {
-	url, err := s.client.url(router.RepoStats, repoRev.RouteVars(), nil)
+	url, err := s.client.URL(router.RepoStats, repoRev.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -325,7 +325,7 @@ func (s *repositoriesService) GetStats(repoRev RepoRevSpec) (RepoStats, Response
 }
 
 func (s *repositoriesService) GetOrCreate(repo_ RepoSpec, opt *RepoGetOptions) (*Repo, Response, error) {
-	url, err := s.client.url(router.ReposGetOrCreate, repo_.RouteVars(), opt)
+	url, err := s.client.URL(router.ReposGetOrCreate, repo_.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -361,7 +361,7 @@ type RepoSettings struct {
 }
 
 func (s *repositoriesService) GetSettings(repo RepoSpec) (*RepoSettings, Response, error) {
-	url, err := s.client.url(router.RepoSettings, repo.RouteVars(), nil)
+	url, err := s.client.URL(router.RepoSettings, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -381,7 +381,7 @@ func (s *repositoriesService) GetSettings(repo RepoSpec) (*RepoSettings, Respons
 }
 
 func (s *repositoriesService) UpdateSettings(repo RepoSpec, settings RepoSettings) (Response, error) {
-	url, err := s.client.url(router.RepoSettingsUpdate, repo.RouteVars(), nil)
+	url, err := s.client.URL(router.RepoSettingsUpdate, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -400,7 +400,7 @@ func (s *repositoriesService) UpdateSettings(repo RepoSpec, settings RepoSetting
 }
 
 func (s *repositoriesService) RefreshProfile(repo RepoSpec) (Response, error) {
-	url, err := s.client.url(router.RepoRefreshProfile, repo.RouteVars(), nil)
+	url, err := s.client.URL(router.RepoRefreshProfile, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -419,7 +419,7 @@ func (s *repositoriesService) RefreshProfile(repo RepoSpec) (Response, error) {
 }
 
 func (s *repositoriesService) RefreshVCSData(repo RepoSpec) (Response, error) {
-	url, err := s.client.url(router.RepoRefreshVCSData, repo.RouteVars(), nil)
+	url, err := s.client.URL(router.RepoRefreshVCSData, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -438,7 +438,7 @@ func (s *repositoriesService) RefreshVCSData(repo RepoSpec) (Response, error) {
 }
 
 func (s *repositoriesService) ComputeStats(repo RepoRevSpec) (Response, error) {
-	url, err := s.client.url(router.RepoComputeStats, repo.RouteVars(), nil)
+	url, err := s.client.URL(router.RepoComputeStats, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -491,7 +491,7 @@ type RepoBuildInfo struct {
 }
 
 func (s *repositoriesService) GetBuild(repo RepoRevSpec, opt *RepoGetBuildOptions) (*RepoBuildInfo, Response, error) {
-	url, err := s.client.url(router.RepoBuild, repo.RouteVars(), opt)
+	url, err := s.client.URL(router.RepoBuild, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -516,7 +516,7 @@ type NewRepoSpec struct {
 }
 
 func (s *repositoriesService) Create(newRepoSpec NewRepoSpec) (*Repo, Response, error) {
-	url, err := s.client.url(router.ReposCreate, nil, nil)
+	url, err := s.client.URL(router.ReposCreate, nil, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -536,7 +536,7 @@ func (s *repositoriesService) Create(newRepoSpec NewRepoSpec) (*Repo, Response, 
 }
 
 func (s *repositoriesService) GetReadme(repo RepoRevSpec) (*vcsclient.TreeEntry, Response, error) {
-	url, err := s.client.url(router.RepoReadme, repo.RouteVars(), nil)
+	url, err := s.client.URL(router.RepoReadme, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -582,7 +582,7 @@ type RepoListOptions struct {
 }
 
 func (s *repositoriesService) List(opt *RepoListOptions) ([]*Repo, Response, error) {
-	url, err := s.client.url(router.Repos, nil, opt)
+	url, err := s.client.URL(router.Repos, nil, opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -612,7 +612,7 @@ type RepoListCommitsOptions struct {
 }
 
 func (s *repositoriesService) ListCommits(repo RepoSpec, opt *RepoListCommitsOptions) ([]*Commit, Response, error) {
-	url, err := s.client.url(router.RepoCommits, repo.RouteVars(), opt)
+	url, err := s.client.URL(router.RepoCommits, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -635,7 +635,7 @@ type RepoGetCommitOptions struct {
 }
 
 func (s *repositoriesService) GetCommit(rev RepoRevSpec, opt *RepoGetCommitOptions) (*Commit, Response, error) {
-	url, err := s.client.url(router.RepoCommit, rev.RouteVars(), opt)
+	url, err := s.client.URL(router.RepoCommit, rev.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -659,7 +659,7 @@ type RepoListBranchesOptions struct {
 }
 
 func (s *repositoriesService) ListBranches(repo RepoSpec, opt *RepoListBranchesOptions) ([]*vcs.Branch, Response, error) {
-	url, err := s.client.url(router.RepoBranches, repo.RouteVars(), opt)
+	url, err := s.client.URL(router.RepoBranches, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -683,7 +683,7 @@ type RepoListTagsOptions struct {
 }
 
 func (s *repositoriesService) ListTags(repo RepoSpec, opt *RepoListTagsOptions) ([]*vcs.Tag, Response, error) {
-	url, err := s.client.url(router.RepoTags, repo.RouteVars(), opt)
+	url, err := s.client.URL(router.RepoTags, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -715,7 +715,7 @@ func (b *Badge) HTML() string {
 }
 
 func (s *repositoriesService) ListBadges(repo RepoSpec) ([]*Badge, Response, error) {
-	url, err := s.client.url(router.RepoBadges, repo.RouteVars(), nil)
+	url, err := s.client.URL(router.RepoBadges, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -747,7 +747,7 @@ func (c *Counter) HTML() string {
 }
 
 func (s *repositoriesService) ListCounters(repo RepoSpec) ([]*Counter, Response, error) {
-	url, err := s.client.url(router.RepoCounters, repo.RouteVars(), nil)
+	url, err := s.client.URL(router.RepoCounters, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -784,7 +784,7 @@ type RepoListAuthorsOptions struct {
 }
 
 func (s *repositoriesService) ListAuthors(repo RepoRevSpec, opt *RepoListAuthorsOptions) ([]*AugmentedRepoAuthor, Response, error) {
-	url, err := s.client.url(router.RepoAuthors, repo.RouteVars(), opt)
+	url, err := s.client.URL(router.RepoAuthors, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -840,7 +840,7 @@ type RepoListClientsOptions struct {
 }
 
 func (s *repositoriesService) ListClients(repo RepoSpec, opt *RepoListClientsOptions) ([]*AugmentedRepoClient, Response, error) {
-	url, err := s.client.url(router.RepoClients, repo.RouteVars(), opt)
+	url, err := s.client.URL(router.RepoClients, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -873,7 +873,7 @@ type RepoListDependenciesOptions struct {
 }
 
 func (s *repositoriesService) ListDependencies(repo RepoRevSpec, opt *RepoListDependenciesOptions) ([]*AugmentedRepoDependency, Response, error) {
-	url, err := s.client.url(router.RepoDependencies, repo.RouteVars(), opt)
+	url, err := s.client.URL(router.RepoDependencies, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -904,7 +904,7 @@ type AugmentedRepoDependent struct {
 type RepoListDependentsOptions struct{ ListOptions }
 
 func (s *repositoriesService) ListDependents(repo RepoSpec, opt *RepoListDependentsOptions) ([]*AugmentedRepoDependent, Response, error) {
-	url, err := s.client.url(router.RepoDependents, repo.RouteVars(), opt)
+	url, err := s.client.URL(router.RepoDependents, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -958,7 +958,7 @@ type RepoListByContributorOptions struct {
 }
 
 func (s *repositoriesService) ListByContributor(user UserSpec, opt *RepoListByContributorOptions) ([]*AugmentedRepoContribution, Response, error) {
-	url, err := s.client.url(router.UserRepoContributions, user.RouteVars(), opt)
+	url, err := s.client.URL(router.UserRepoContributions, user.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1003,7 +1003,7 @@ type RepoListByClientOptions struct {
 }
 
 func (s *repositoriesService) ListByClient(user UserSpec, opt *RepoListByClientOptions) ([]*AugmentedRepoUsageByClient, Response, error) {
-	url, err := s.client.url(router.UserRepoDependencies, user.RouteVars(), opt)
+	url, err := s.client.URL(router.UserRepoDependencies, user.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1042,7 +1042,7 @@ type RepoListByRefdAuthorOptions struct {
 }
 
 func (s *repositoriesService) ListByRefdAuthor(user UserSpec, opt *RepoListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error) {
-	url, err := s.client.url(router.UserRepoDependents, user.RouteVars(), opt)
+	url, err := s.client.URL(router.UserRepoDependents, user.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -141,7 +141,7 @@ func (d *Delta) BaseAndHeadBuildsSuccessful() bool {
 type DeltaGetOptions struct{}
 
 func (s *deltasService) Get(ds DeltaSpec, opt *DeltaGetOptions) (*Delta, Response, error) {
-	url, err := s.client.url(router.Delta, ds.RouteVars(), opt)
+	url, err := s.client.URL(router.Delta, ds.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -196,7 +196,7 @@ func (dd DefDelta) Changed() bool { return dd.Base != nil && dd.Head != nil }
 func (dd DefDelta) Deleted() bool { return dd.Base != nil && dd.Head == nil }
 
 func (s *deltasService) ListDefs(ds DeltaSpec, opt *DeltaListDefsOptions) (*DeltaDefs, Response, error) {
-	url, err := s.client.url(router.DeltaDefs, ds.RouteVars(), opt)
+	url, err := s.client.URL(router.DeltaDefs, ds.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -232,7 +232,7 @@ type DeltaDependencies struct {
 }
 
 func (s *deltasService) ListDependencies(ds DeltaSpec, opt *DeltaListDependenciesOptions) (*DeltaDependencies, Response, error) {
-	url, err := s.client.url(router.DeltaDependencies, ds.RouteVars(), opt)
+	url, err := s.client.URL(router.DeltaDependencies, ds.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -279,7 +279,7 @@ func (d *DeltaFiles) DiffStat() diff.Stat {
 }
 
 func (s *deltasService) ListFiles(ds DeltaSpec, opt *DeltaListFilesOptions) (*DeltaFiles, Response, error) {
-	url, err := s.client.url(router.DeltaFiles, ds.RouteVars(), opt)
+	url, err := s.client.URL(router.DeltaFiles, ds.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -321,7 +321,7 @@ type DeltaListAffectedAuthorsOptions struct {
 }
 
 func (s *deltasService) ListAffectedAuthors(ds DeltaSpec, opt *DeltaListAffectedAuthorsOptions) ([]*DeltaAffectedPerson, Response, error) {
-	url, err := s.client.url(router.DeltaAffectedAuthors, ds.RouteVars(), opt)
+	url, err := s.client.URL(router.DeltaAffectedAuthors, ds.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -347,7 +347,7 @@ type DeltaListAffectedClientsOptions struct {
 }
 
 func (s *deltasService) ListAffectedClients(ds DeltaSpec, opt *DeltaListAffectedClientsOptions) ([]*DeltaAffectedPerson, Response, error) {
-	url, err := s.client.url(router.DeltaAffectedClients, ds.RouteVars(), opt)
+	url, err := s.client.URL(router.DeltaAffectedClients, ds.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -389,7 +389,7 @@ type DeltaListAffectedDependentsOptions struct {
 }
 
 func (s *deltasService) ListAffectedDependents(ds DeltaSpec, opt *DeltaListAffectedDependentsOptions) ([]*DeltaAffectedRepo, Response, error) {
-	url, err := s.client.url(router.DeltaAffectedDependents, ds.RouteVars(), opt)
+	url, err := s.client.URL(router.DeltaAffectedDependents, ds.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -424,7 +424,7 @@ type DeltaListReviewersOptions struct {
 }
 
 func (s *deltasService) ListReviewers(ds DeltaSpec, opt *DeltaListReviewersOptions) ([]*DeltaReviewer, Response, error) {
-	url, err := s.client.url(router.DeltaReviewers, ds.RouteVars(), opt)
+	url, err := s.client.URL(router.DeltaReviewers, ds.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -450,7 +450,7 @@ type DeltaListIncomingOptions struct {
 }
 
 func (s *deltasService) ListIncoming(rr RepoRevSpec, opt *DeltaListIncomingOptions) ([]*Delta, Response, error) {
-	url, err := s.client.url(router.DeltasIncoming, rr.RouteVars(), opt)
+	url, err := s.client.URL(router.DeltasIncoming, rr.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}

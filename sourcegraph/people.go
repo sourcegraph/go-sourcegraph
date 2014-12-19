@@ -115,7 +115,7 @@ func ParsePersonSpec(pathComponent string) (PersonSpec, error) {
 }
 
 func (s *peopleService) Get(spec PersonSpec) (*Person, Response, error) {
-	url, err := s.client.url(router.Person, spec.RouteVars(), nil)
+	url, err := s.client.URL(router.Person, spec.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}

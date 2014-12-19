@@ -81,9 +81,9 @@ func NewClient(httpClient *http.Client) *Client {
 // apiRouter is used to generate URLs for the Sourcegraph API.
 var apiRouter = router.NewAPIRouter(nil)
 
-// url generates the URL to the named Sourcegraph API endpoint, using the
+// URL generates the URL to the named Sourcegraph API endpoint, using the
 // specified route variables and query options.
-func (c *Client) url(apiRouteName string, routeVars map[string]string, opt interface{}) (*url.URL, error) {
+func (c *Client) URL(apiRouteName string, routeVars map[string]string, opt interface{}) (*url.URL, error) {
 	route := apiRouter.Get(apiRouteName)
 	if route == nil {
 		return nil, fmt.Errorf("no API route named %q", apiRouteName)
