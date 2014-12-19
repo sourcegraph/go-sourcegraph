@@ -48,7 +48,7 @@ func urlPath(t *testing.T, routeName string, routeVars map[string]string) string
 	if err != nil {
 		t.Fatalf("Error constructing URL path for route %q with vars %+v: %s", routeName, routeVars, err)
 	}
-	return "/" + url.Path
+	return url.Path
 }
 
 func writeJSON(w http.ResponseWriter, v interface{}) {
