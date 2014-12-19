@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/google/go-querystring/query"
-	muxpkg "github.com/sqs/mux"
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 )
 
@@ -79,22 +78,20 @@ func NewClient(httpClient *http.Client) *Client {
 	return c
 }
 
-// apiRouter is used to generate URLs for the Sourcegraph API.
-var apiRouter *muxpkg.Router
+// Router is used to generate URLs for the Sourcegraph API.
+var Router = router.NewAPIRouter(nil)
 
 // ResetRouter clears and reconstructs the preinitialized API
 // router. It should be called after setting an router.ExtraConfig
 // func but only during init time.
 func ResetRouter() {
-	apiRouter = router.NewAPIRouter(nil)
+	Router = router.NewAPIRouter(nil)
 }
-
-func init() { ResetRouter() }
 
 // URL generates the URL to the named Sourcegraph API endpoint, using the
 // specified route variables and query options.
 func (c *Client) URL(apiRouteName string, routeVars map[string]string, opt interface{}) (*url.URL, error) {
-	route := apiRouter.Get(apiRouteName)
+	route := Router.Get(apiRouteName)
 	if route == nil {
 		return nil, fmt.Errorf("no API route named %q", apiRouteName)
 	}
