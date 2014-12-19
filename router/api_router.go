@@ -1,11 +1,6 @@
 package router
 
-import (
-	"net/url"
-
-	"github.com/sqs/mux"
-	"sourcegraph.com/sourcegraph/srclib/graph"
-)
+import "github.com/sqs/mux"
 
 const (
 	Build            = "build"
@@ -117,8 +112,6 @@ const (
 	// Redirects for old routes.
 	RedirectOldRepoBadgesAndCounters = "repo.redirect-old-badges-and-counters"
 )
-
-var APIRouter = NewAPIRouter(mux.NewRouter().PathPrefix("/api").Subrouter())
 
 // NewAPIRouter creates a new API router with route URL pattern definitions but
 // no handlers attached to the routes.
@@ -278,11 +271,3 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 // returning it. It can be used by external packages that use this API
 // router and want to add additional routes to it.
 var ExtraConfig func(base, user *mux.Router)
-
-func URIToDef(key graph.DefKey) *url.URL {
-	return URITo(Def, "RepoSpec", key.Repo, "UnitType", key.UnitType, "Unit", key.Unit, "Path", string(key.Path))
-}
-
-func URITo(routeName string, params ...string) *url.URL {
-	return URLTo(APIRouter, routeName, params...)
-}
