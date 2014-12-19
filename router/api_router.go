@@ -266,8 +266,18 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 
 	base.Path("/ext/github/webhook").Methods("POST").Name(ExtGitHubReceiveWebhook)
 
+	if ExtraConfig != nil {
+		ExtraConfig(base, user)
+	}
+
 	return base
 }
+
+// ExtraConfig, if non-nil, is called by NewAPIRouter with the
+// *mux.Router after setting up routes in this package and before
+// returning it. It can be used by external packages that use this API
+// router and want to add additional routes to it.
+var ExtraConfig func(base, user *mux.Router)
 
 func URIToDef(key graph.DefKey) *url.URL {
 	return URITo(Def, "RepoSpec", key.Repo, "UnitType", key.UnitType, "Unit", key.Unit, "Path", string(key.Path))
