@@ -143,7 +143,8 @@ type PullRequestListCommentsOptions struct {
 }
 
 type PullRequestComment struct {
-	Published bool
+	Published    bool   // whether the comment is in a published state, currently always true
+	RenderedBody string // the body rendered to HTML (from raw markdown)
 	github.PullRequestComment
 }
 
