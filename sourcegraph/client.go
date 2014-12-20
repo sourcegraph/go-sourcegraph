@@ -88,8 +88,10 @@ func ResetRouter() {
 	Router = router.NewAPIRouter(nil)
 }
 
-// URL returns the (probably relative) URL generated for the given
-// route, route variables, and querystring options.
+// URL generates a URL for the given route, route variables, and
+// querystring options. Unless you explicitly set a Host, Scheme,
+// and/or Port on Router, the returned URL will contain only path and
+// querystring components (and will not be an absolute URL).
 func URL(route string, routeVars map[string]string, opt interface{}) (*url.URL, error) {
 	rt := Router.Get(route)
 	if rt == nil {
