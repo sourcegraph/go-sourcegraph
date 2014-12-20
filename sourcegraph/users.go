@@ -216,7 +216,7 @@ type UserGetOptions struct {
 }
 
 func (s *usersService) Get(user_ UserSpec, opt *UserGetOptions) (*User, Response, error) {
-	url, err := s.client.url(router.User, user_.RouteVars(), opt)
+	url, err := s.client.URL(router.User, user_.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -249,7 +249,7 @@ type EmailAddr struct {
 }
 
 func (s *usersService) ListEmails(user UserSpec) ([]*EmailAddr, Response, error) {
-	url, err := s.client.url(router.UserEmails, user.RouteVars(), nil)
+	url, err := s.client.URL(router.UserEmails, user.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -284,7 +284,7 @@ type PlanSettings struct {
 }
 
 func (s *usersService) GetSettings(user UserSpec) (*UserSettings, Response, error) {
-	url, err := s.client.url(router.UserSettings, user.RouteVars(), nil)
+	url, err := s.client.URL(router.UserSettings, user.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -304,7 +304,7 @@ func (s *usersService) GetSettings(user UserSpec) (*UserSettings, Response, erro
 }
 
 func (s *usersService) UpdateSettings(user UserSpec, settings UserSettings) (Response, error) {
-	url, err := s.client.url(router.UserSettingsUpdate, user.RouteVars(), nil)
+	url, err := s.client.URL(router.UserSettingsUpdate, user.RouteVars(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -339,7 +339,7 @@ func (s GitHubUserSpec) RouteVars() map[string]string {
 }
 
 func (s *usersService) GetOrCreateFromGitHub(user GitHubUserSpec, opt *UserGetOptions) (*User, Response, error) {
-	url, err := s.client.url(router.UserFromGitHub, user.RouteVars(), opt)
+	url, err := s.client.URL(router.UserFromGitHub, user.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -359,7 +359,7 @@ func (s *usersService) GetOrCreateFromGitHub(user GitHubUserSpec, opt *UserGetOp
 }
 
 func (s *usersService) RefreshProfile(user_ UserSpec) (Response, error) {
-	url, err := s.client.url(router.UserRefreshProfile, user_.RouteVars(), nil)
+	url, err := s.client.URL(router.UserRefreshProfile, user_.RouteVars(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -378,7 +378,7 @@ func (s *usersService) RefreshProfile(user_ UserSpec) (Response, error) {
 }
 
 func (s *usersService) ComputeStats(user_ UserSpec) (Response, error) {
-	url, err := s.client.url(router.UserComputeStats, user_.RouteVars(), nil)
+	url, err := s.client.URL(router.UserComputeStats, user_.RouteVars(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -410,7 +410,7 @@ type UsersListOptions struct {
 }
 
 func (s *usersService) List(opt *UsersListOptions) ([]*User, Response, error) {
-	url, err := s.client.url(router.Users, nil, opt)
+	url, err := s.client.URL(router.Users, nil, opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -445,7 +445,7 @@ type AugmentedPersonUsageByClient struct {
 type UsersListAuthorsOptions UsersListOptions
 
 func (s *usersService) ListAuthors(user UserSpec, opt *UsersListAuthorsOptions) ([]*AugmentedPersonUsageByClient, Response, error) {
-	url, err := s.client.url(router.UserAuthors, user.RouteVars(), opt)
+	url, err := s.client.URL(router.UserAuthors, user.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -480,7 +480,7 @@ type AugmentedPersonUsageOfAuthor struct {
 type UsersListClientsOptions UsersListOptions
 
 func (s *usersService) ListClients(user UserSpec, opt *UsersListClientsOptions) ([]*AugmentedPersonUsageOfAuthor, Response, error) {
-	url, err := s.client.url(router.UserClients, user.RouteVars(), opt)
+	url, err := s.client.URL(router.UserClients, user.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -503,7 +503,7 @@ type UsersListOrgsOptions struct {
 }
 
 func (s *usersService) ListOrgs(member UserSpec, opt *UsersListOrgsOptions) ([]*Org, Response, error) {
-	url, err := s.client.url(router.UserOrgs, member.RouteVars(), opt)
+	url, err := s.client.URL(router.UserOrgs, member.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}

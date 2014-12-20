@@ -78,15 +78,22 @@ func NewClient(httpClient *http.Client) *Client {
 	return c
 }
 
-// apiRouter is used to generate URLs for the Sourcegraph API.
-var apiRouter = router.NewAPIRouter(nil)
+// Router is used to generate URLs for the Sourcegraph API.
+var Router = router.NewAPIRouter(nil)
 
-// url generates the URL to the named Sourcegraph API endpoint, using the
-// specified route variables and query options.
-func (c *Client) url(apiRouteName string, routeVars map[string]string, opt interface{}) (*url.URL, error) {
-	route := apiRouter.Get(apiRouteName)
-	if route == nil {
-		return nil, fmt.Errorf("no API route named %q", apiRouteName)
+// ResetRouter clears and reconstructs the preinitialized API
+// router. It should be called after setting an router.ExtraConfig
+// func but only during init time.
+func ResetRouter() {
+	Router = router.NewAPIRouter(nil)
+}
+
+// URL returns the (probably relative) URL generated for the given
+// route, route variables, and querystring options.
+func URL(route string, routeVars map[string]string, opt interface{}) (*url.URL, error) {
+	rt := Router.Get(route)
+	if rt == nil {
+		return nil, fmt.Errorf("no Sourcegraph API route named %q", route)
 	}
 
 	routeVarsList := make([]string, 2*len(routeVars))
@@ -96,13 +103,10 @@ func (c *Client) url(apiRouteName string, routeVars map[string]string, opt inter
 		routeVarsList[i*2+1] = val
 		i++
 	}
-	url, err := route.URL(routeVarsList...)
+	url, err := rt.URL(routeVarsList...)
 	if err != nil {
 		return nil, err
 	}
-
-	// make the route URL path relative to BaseURL by trimming the leading "/"
-	url.Path = strings.TrimPrefix(url.Path, "/")
 
 	if opt != nil {
 		err = addOptions(url, opt)
@@ -114,17 +118,32 @@ func (c *Client) url(apiRouteName string, routeVars map[string]string, opt inter
 	return url, nil
 }
 
+// URL generates the absolute URL to the named Sourcegraph API endpoint, using the
+// specified route variables and query options.
+func (c *Client) URL(route string, routeVars map[string]string, opt interface{}) (*url.URL, error) {
+	url, err := URL(route, routeVars, opt)
+	if err != nil {
+		return nil, err
+	}
+
+	// make the route URL path relative to BaseURL by trimming the leading "/"
+	url.Path = strings.TrimPrefix(url.Path, "/")
+
+	// make the URL absolute
+	url = c.BaseURL.ResolveReference(url)
+
+	return url, nil
+}
+
 // NewRequest creates an API request. A relative URL can be provided in urlStr,
 // in which case it is resolved relative to the BaseURL of the Client. Relative
 // URLs should always be specified without a preceding slash. If specified, the
 // value pointed to by body is JSON encoded and included as the request body.
 func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Request, error) {
-	rel, err := url.Parse(urlStr)
+	url, err := url.Parse(urlStr)
 	if err != nil {
 		return nil, err
 	}
-
-	u := c.BaseURL.ResolveReference(rel)
 
 	buf := new(bytes.Buffer)
 	if body != nil {
@@ -134,7 +153,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 		}
 	}
 
-	req, err := http.NewRequest(method, u.String(), buf)
+	req, err := http.NewRequest(method, url.String(), buf)
 	if err != nil {
 		return nil, err
 	}

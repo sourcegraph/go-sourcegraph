@@ -77,7 +77,7 @@ type RepoTreeGetOptions struct {
 }
 
 func (s *repoTreeService) Get(entry TreeEntrySpec, opt *RepoTreeGetOptions) (*TreeEntry, Response, error) {
-	url, err := s.client.url(router.RepoTreeEntry, entry.RouteVars(), opt)
+	url, err := s.client.URL(router.RepoTreeEntry, entry.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}

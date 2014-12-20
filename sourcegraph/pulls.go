@@ -94,7 +94,7 @@ func (r *PullRequest) Spec() PullRequestSpec {
 type PullRequestGetOptions struct{}
 
 func (s *pullRequestsService) Get(pull PullRequestSpec, opt *PullRequestGetOptions) (*PullRequest, Response, error) {
-	url, err := s.client.url(router.RepoPullRequest, pull.RouteVars(), opt)
+	url, err := s.client.URL(router.RepoPullRequest, pull.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -119,7 +119,7 @@ type PullRequestListOptions struct {
 }
 
 func (s *pullRequestsService) ListByRepo(repo RepoSpec, opt *PullRequestListOptions) ([]*PullRequest, Response, error) {
-	url, err := s.client.url(router.RepoPullRequests, repo.RouteVars(), opt)
+	url, err := s.client.URL(router.RepoPullRequests, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -173,7 +173,7 @@ func (c PullRequestCommentSpec) RouteVars() map[string]string {
 }
 
 func (s *pullRequestsService) ListComments(pull PullRequestSpec, opt *PullRequestListCommentsOptions) ([]*PullRequestComment, Response, error) {
-	url, err := s.client.url(router.RepoPullRequestComments, pull.RouteVars(), opt)
+	url, err := s.client.URL(router.RepoPullRequestComments, pull.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -193,7 +193,7 @@ func (s *pullRequestsService) ListComments(pull PullRequestSpec, opt *PullReques
 }
 
 func (s *pullRequestsService) CreateComment(pull PullRequestSpec, comment *PullRequestComment) (*PullRequestComment, Response, error) {
-	url, err := s.client.url(router.RepoPullRequestCommentsCreate, pull.RouteVars(), nil)
+	url, err := s.client.URL(router.RepoPullRequestCommentsCreate, pull.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -217,7 +217,7 @@ func (s *pullRequestsService) EditComment(pull PullRequestSpec, comment *PullReq
 		return nil, nil, fmt.Errorf("comment ID not specified")
 	}
 
-	url, err := s.client.url(router.RepoPullRequestCommentsEdit, PullRequestCommentSpec{Pull: pull, Comment: *comment.ID}.RouteVars(), nil)
+	url, err := s.client.URL(router.RepoPullRequestCommentsEdit, PullRequestCommentSpec{Pull: pull, Comment: *comment.ID}.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -237,7 +237,7 @@ func (s *pullRequestsService) EditComment(pull PullRequestSpec, comment *PullReq
 }
 
 func (s *pullRequestsService) DeleteComment(pull PullRequestSpec, commentID int) (Response, error) {
-	url, err := s.client.url(router.RepoPullRequestCommentsDelete, PullRequestCommentSpec{Pull: pull, Comment: commentID}.RouteVars(), nil)
+	url, err := s.client.URL(router.RepoPullRequestCommentsDelete, PullRequestCommentSpec{Pull: pull, Comment: commentID}.RouteVars(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +264,7 @@ type PullRequestMergeRequest struct {
 }
 
 func (s *pullRequestsService) Merge(pull PullRequestSpec, mergeRequest *PullRequestMergeRequest) (*PullRequestMergeResult, Response, error) {
-	url, err := s.client.url(router.RepoPullRequestMerge, pull.RouteVars(), nil)
+	url, err := s.client.URL(router.RepoPullRequestMerge, pull.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}

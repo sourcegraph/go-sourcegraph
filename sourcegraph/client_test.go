@@ -44,11 +44,11 @@ func teardown() {
 }
 
 func urlPath(t *testing.T, routeName string, routeVars map[string]string) string {
-	url, err := client.url(routeName, routeVars, nil)
+	url, err := client.URL(routeName, routeVars, nil)
 	if err != nil {
 		t.Fatalf("Error constructing URL path for route %q with vars %+v: %s", routeName, routeVars, err)
 	}
-	return "/" + url.Path
+	return url.Path
 }
 
 func writeJSON(w http.ResponseWriter, v interface{}) {

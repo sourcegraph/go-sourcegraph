@@ -37,7 +37,7 @@ type SearchOptions struct {
 }
 
 func (s *searchService) Search(opt *SearchOptions) (*SearchResults, Response, error) {
-	url, err := s.client.url(router.Search, nil, opt)
+	url, err := s.client.URL(router.Search, nil, opt)
 	if err != nil {
 		return nil, nil, err
 	}

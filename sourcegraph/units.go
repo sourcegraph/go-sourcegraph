@@ -79,7 +79,7 @@ type UnitListOptions struct {
 }
 
 func (s *unitsService) Get(spec UnitSpec) (*unit.RepoSourceUnit, Response, error) {
-	url, err := s.client.url(router.Unit, spec.RouteVars(), nil)
+	url, err := s.client.URL(router.Unit, spec.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -99,7 +99,7 @@ func (s *unitsService) Get(spec UnitSpec) (*unit.RepoSourceUnit, Response, error
 }
 
 func (s *unitsService) List(opt *UnitListOptions) ([]*unit.RepoSourceUnit, Response, error) {
-	url, err := s.client.url(router.Units, nil, opt)
+	url, err := s.client.URL(router.Units, nil, opt)
 	if err != nil {
 		return nil, nil, err
 	}

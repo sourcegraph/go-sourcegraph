@@ -25,7 +25,7 @@ var _ BuildDataService = &buildDataService{}
 func (s *buildDataService) FileSystem(repo RepoRevSpec) (rwvfs.FileSystem, error) {
 	v := repo.RouteVars()
 	v["Path"] = "."
-	baseURL, err := s.client.url(router.RepoBuildDataEntry, v, nil)
+	baseURL, err := s.client.URL(router.RepoBuildDataEntry, v, nil)
 	if err != nil {
 		return nil, err
 	}

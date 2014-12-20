@@ -281,7 +281,7 @@ var ErrBuildNotFound = errors.New("build not found")
 type BuildGetOptions struct{}
 
 func (s *buildsService) Get(build BuildSpec, opt *BuildGetOptions) (*Build, Response, error) {
-	url, err := s.client.url(router.Build, build.RouteVars(), opt)
+	url, err := s.client.URL(router.Build, build.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -316,7 +316,7 @@ type BuildListOptions struct {
 }
 
 func (s *buildsService) List(opt *BuildListOptions) ([]*Build, Response, error) {
-	url, err := s.client.url(router.Builds, nil, opt)
+	url, err := s.client.URL(router.Builds, nil, opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -341,7 +341,7 @@ type BuildListByRepoOptions struct {
 }
 
 func (s *buildsService) ListByRepo(repo RepoSpec, opt *BuildListByRepoOptions) ([]*Build, Response, error) {
-	url, err := s.client.url(router.RepoBuilds, repo.RouteVars(), opt)
+	url, err := s.client.URL(router.RepoBuilds, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -361,7 +361,7 @@ func (s *buildsService) ListByRepo(repo RepoSpec, opt *BuildListByRepoOptions) (
 }
 
 func (s *buildsService) Create(repo RepoSpec, opt *BuildCreateOptions) (*Build, Response, error) {
-	url, err := s.client.url(router.RepoBuildsCreate, repo.RouteVars(), nil)
+	url, err := s.client.URL(router.RepoBuildsCreate, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -383,7 +383,7 @@ func (s *buildsService) Create(repo RepoSpec, opt *BuildCreateOptions) (*Build, 
 type BuildTaskListOptions struct{ ListOptions }
 
 func (s *buildsService) ListBuildTasks(build BuildSpec, opt *BuildTaskListOptions) ([]*BuildTask, Response, error) {
-	url, err := s.client.url(router.BuildTasks, build.RouteVars(), opt)
+	url, err := s.client.URL(router.BuildTasks, build.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -417,7 +417,7 @@ type BuildUpdate struct {
 }
 
 func (s *buildsService) Update(build BuildSpec, info BuildUpdate) (*Build, Response, error) {
-	url, err := s.client.url(router.BuildUpdate, build.RouteVars(), nil)
+	url, err := s.client.URL(router.BuildUpdate, build.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -437,7 +437,7 @@ func (s *buildsService) Update(build BuildSpec, info BuildUpdate) (*Build, Respo
 }
 
 func (s *buildsService) CreateTasks(build BuildSpec, tasks []*BuildTask) ([]*BuildTask, Response, error) {
-	url, err := s.client.url(router.BuildTasksCreate, build.RouteVars(), nil)
+	url, err := s.client.URL(router.BuildTasksCreate, build.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -466,7 +466,7 @@ type TaskUpdate struct {
 }
 
 func (s *buildsService) UpdateTask(task TaskSpec, info TaskUpdate) (*BuildTask, Response, error) {
-	url, err := s.client.url(router.BuildTaskUpdate, task.RouteVars(), nil)
+	url, err := s.client.URL(router.BuildTaskUpdate, task.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -501,7 +501,7 @@ type LogEntries struct {
 }
 
 func (s *buildsService) GetLog(build BuildSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error) {
-	url, err := s.client.url(router.BuildLog, build.RouteVars(), opt)
+	url, err := s.client.URL(router.BuildLog, build.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -521,7 +521,7 @@ func (s *buildsService) GetLog(build BuildSpec, opt *BuildGetLogOptions) (*LogEn
 }
 
 func (s *buildsService) GetTaskLog(task TaskSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error) {
-	url, err := s.client.url(router.BuildTaskLog, task.RouteVars(), opt)
+	url, err := s.client.URL(router.BuildTaskLog, task.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -541,7 +541,7 @@ func (s *buildsService) GetTaskLog(task TaskSpec, opt *BuildGetLogOptions) (*Log
 }
 
 func (s *buildsService) DequeueNext() (*Build, Response, error) {
-	url, err := s.client.url(router.BuildDequeueNext, nil, nil)
+	url, err := s.client.URL(router.BuildDequeueNext, nil, nil)
 	if err != nil {
 		return nil, nil, err
 	}

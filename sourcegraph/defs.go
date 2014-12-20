@@ -160,7 +160,7 @@ type DefGetOptions struct {
 }
 
 func (s *defsService) Get(def DefSpec, opt *DefGetOptions) (*Def, Response, error) {
-	url, err := s.client.url(router.Def, def.RouteVars(), opt)
+	url, err := s.client.URL(router.Def, def.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -233,7 +233,7 @@ type DefListOptions struct {
 }
 
 func (s *defsService) List(opt *DefListOptions) ([]*Def, Response, error) {
-	url, err := s.client.url(router.Defs, nil, opt)
+	url, err := s.client.URL(router.Defs, nil, opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -271,7 +271,7 @@ type DefListRefsOptions struct {
 }
 
 func (s *defsService) ListRefs(def DefSpec, opt *DefListRefsOptions) ([]*Ref, Response, error) {
-	url, err := s.client.url(router.DefRefs, def.RouteVars(), opt)
+	url, err := s.client.URL(router.DefRefs, def.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -326,7 +326,7 @@ type DefListExamplesOptions struct {
 }
 
 func (s *defsService) ListExamples(def DefSpec, opt *DefListExamplesOptions) ([]*Example, Response, error) {
-	url, err := s.client.url(router.DefExamples, def.RouteVars(), opt)
+	url, err := s.client.URL(router.DefExamples, def.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -387,7 +387,7 @@ type DefListAuthorsOptions struct {
 }
 
 func (s *defsService) ListAuthors(def DefSpec, opt *DefListAuthorsOptions) ([]*AugmentedDefAuthor, Response, error) {
-	url, err := s.client.url(router.DefAuthors, def.RouteVars(), opt)
+	url, err := s.client.URL(router.DefAuthors, def.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -427,7 +427,7 @@ type DefListClientsOptions struct {
 }
 
 func (s *defsService) ListClients(def DefSpec, opt *DefListClientsOptions) ([]*AugmentedDefClient, Response, error) {
-	url, err := s.client.url(router.DefClients, def.RouteVars(), opt)
+	url, err := s.client.URL(router.DefClients, def.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -462,7 +462,7 @@ type DefListDependentsOptions struct {
 }
 
 func (s *defsService) ListDependents(def DefSpec, opt *DefListDependentsOptions) ([]*AugmentedDefDependent, Response, error) {
-	url, err := s.client.url(router.DefDependents, def.RouteVars(), opt)
+	url, err := s.client.URL(router.DefDependents, def.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -486,7 +486,7 @@ type DefListVersionsOptions struct {
 }
 
 func (s *defsService) ListVersions(def DefSpec, opt *DefListVersionsOptions) ([]*Def, Response, error) {
-	url, err := s.client.url(router.DefVersions, def.RouteVars(), opt)
+	url, err := s.client.URL(router.DefVersions, def.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
