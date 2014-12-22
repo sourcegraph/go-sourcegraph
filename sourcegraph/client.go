@@ -36,6 +36,7 @@ type Client struct {
 	Units        UnitsService
 	Users        UsersService
 	Defs         DefsService
+	Markdown     MarkdownService
 
 	// Base URL for API requests, which should have a trailing slash.
 	BaseURL *url.URL
@@ -70,6 +71,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.Units = &unitsService{c}
 	c.Users = &usersService{c}
 	c.Defs = &defsService{c}
+	c.Markdown = &markdownService{c}
 
 	c.BaseURL = &url.URL{Scheme: "https", Host: "sourcegraph.com", Path: "/api/"}
 

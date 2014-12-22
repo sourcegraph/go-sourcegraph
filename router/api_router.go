@@ -107,6 +107,8 @@ const (
 	Unit  = "unit"
 	Units = "units"
 
+	Markdown = "markdown"
+
 	ExtGitHubReceiveWebhook = "ext.github.receive-webhook"
 
 	// Redirects for old routes.
@@ -256,6 +258,8 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	base.Path("/.units").Methods("GET").Name(Units)
 	unitPath := `/.units/{UnitType}/{Unit:.*}`
 	repoRev.Path(unitPath).Methods("GET").Name(Unit)
+
+	base.Path("/markdown").Methods("POST").Name(Markdown)
 
 	base.Path("/ext/github/webhook").Methods("POST").Name(ExtGitHubReceiveWebhook)
 
