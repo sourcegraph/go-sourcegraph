@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gorilla/schema"
 	"github.com/kr/pretty"
 	"github.com/sourcegraph/go-github/github"
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
@@ -19,16 +20,23 @@ func TestPullRequestsService_Get(t *testing.T) {
 	defer teardown()
 
 	want := &PullRequest{PullRequest: github.PullRequest{Number: github.Int(1)}}
+	opts := &PullRequestGetOptions{Checklist: true}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.RepoPullRequest, map[string]string{"RepoSpec": "r.com/x", "Pull": "1"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
+		var gotOpts PullRequestGetOptions
+		schema.NewDecoder().Decode(&gotOpts, r.URL.Query())
+		if !reflect.DeepEqual(&gotOpts, opts) {
+			t.Errorf("got requested opts %+v, but got %+v", &gotOpts, opts)
+		}
+
 		writeJSON(w, want)
 	})
 
-	pull, _, err := client.PullRequests.Get(PullRequestSpec{Repo: RepoSpec{URI: "r.com/x"}, Number: 1}, nil)
+	pull, _, err := client.PullRequests.Get(PullRequestSpec{Repo: RepoSpec{URI: "r.com/x"}, Number: 1}, opts)
 	if err != nil {
 		t.Errorf("PullRequests.Get returned error: %v", err)
 	}

@@ -79,6 +79,7 @@ func UnmarshalPullRequestSpec(v map[string]string) (PullRequestSpec, error) {
 // PullRequest is a pull request returned by the Sourcegraph API.
 type PullRequest struct {
 	github.PullRequest
+	Checklist *Checklist
 }
 
 // Spec returns the PullRequestSpec that specifies r.
@@ -91,7 +92,9 @@ func (r *PullRequest) Spec() PullRequestSpec {
 	}
 }
 
-type PullRequestGetOptions struct{}
+type PullRequestGetOptions struct {
+	Checklist bool
+}
 
 func (s *pullRequestsService) Get(pull PullRequestSpec, opt *PullRequestGetOptions) (*PullRequest, Response, error) {
 	url, err := s.client.URL(router.RepoPullRequest, pull.RouteVars(), opt)
@@ -145,6 +148,7 @@ type PullRequestListCommentsOptions struct {
 type PullRequestComment struct {
 	Published    bool   // whether the comment is in a published state, currently always true
 	RenderedBody string // the body rendered to HTML (from raw markdown)
+	Checklist    *Checklist
 	github.PullRequestComment
 }
 

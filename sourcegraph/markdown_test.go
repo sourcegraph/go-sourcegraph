@@ -17,7 +17,13 @@ func TestMarkdown(t *testing.T) {
 		Markdown:    []byte(`raw markdown`),
 		MarkdownOpt: MarkdownOpt{EnableCheckboxes: true},
 	}
-	want := []byte(`i am rendered`)
+	want := &MarkdownData{
+		Rendered: []byte(`i am rendered`),
+		Checklist: &Checklist{
+			Todo: 2,
+			Done: 1,
+		},
+	}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.Markdown, nil), func(w http.ResponseWriter, r *http.Request) {
@@ -32,9 +38,7 @@ func TestMarkdown(t *testing.T) {
 			t.Fatalf("got input %+v, expected %+v", m, input)
 		}
 
-		if _, err := w.Write(want); err != nil {
-			t.Fatal(err)
-		}
+		writeJSON(w, want)
 	})
 
 	got, _, err := client.Markdown.Render(input.Markdown, input.MarkdownOpt)
@@ -45,6 +49,6 @@ func TestMarkdown(t *testing.T) {
 		t.Errorf("!called")
 	}
 	if !reflect.DeepEqual(got, want) {
-		t.Errorf("got %+v, want %+v", string(got), string(want))
+		t.Errorf("got %+v, want %+v", got, want)
 	}
 }
