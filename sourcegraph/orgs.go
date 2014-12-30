@@ -94,7 +94,7 @@ type OrgListMembersOptions struct {
 }
 
 func (s *orgsService) ListMembers(org OrgSpec, opt *OrgListMembersOptions) ([]*User, Response, error) {
-	url, err := s.client.URL(router.OrgMembers, org.RouteVars(), nil)
+	url, err := s.client.URL(router.OrgMembers, org.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
