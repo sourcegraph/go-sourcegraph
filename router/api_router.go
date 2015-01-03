@@ -43,9 +43,12 @@ const (
 	RepoPullRequestCommentsEdit   = "repo.pull-request.comments.edit"
 	RepoPullRequestCommentsDelete = "repo.pull-request.comments.delete"
 
-	RepoIssues        = "repo.issues"
-	RepoIssue         = "repo.issue"
-	RepoIssueComments = "repo.issue.comments"
+	RepoIssues              = "repo.issues"
+	RepoIssue               = "repo.issue"
+	RepoIssueComments       = "repo.issue.comments"
+	RepoIssueCommentsCreate = "repo.issue.comments.create"
+	RepoIssueCommentsEdit   = "repo.issue.comments.edit"
+	RepoIssueCommentsDelete = "repo.issue.comments.delete"
 
 	Repos              = "repos"
 	ReposCreate        = "repos.create"
@@ -193,6 +196,9 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	repo.Path(issuePath).Methods("GET").Name(RepoIssue)
 	issue := repo.PathPrefix(issuePath).Subrouter()
 	issue.Path("/comments").Methods("GET").Name(RepoIssueComments)
+	issue.Path("/comments").Methods("POST").Name(RepoIssueCommentsCreate)
+	issue.Path("/comments/{CommentID}").Methods("PATCH", "PUT").Name(RepoIssueCommentsEdit)
+	issue.Path("/comments/{CommentID}").Methods("DELETE").Name(RepoIssueCommentsDelete)
 
 	deltaPath := "/.deltas/{Rev:.+}..{DeltaHeadRev:" + PathComponentNoLeadingDot + "}"
 	repo.Path(deltaPath).Methods("GET").Name(Delta)

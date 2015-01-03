@@ -22,6 +22,15 @@ type IssuesService interface {
 
 	// ListComments lists comments on a issue.
 	ListComments(issue IssueSpec, opt *IssueListCommentsOptions) ([]*IssueComment, Response, error)
+
+	// CreateComment creates a comment on an issue.
+	CreateComment(issue IssueSpec, comment *IssueComment) (*IssueComment, Response, error)
+
+	// EditComment updates a comment on an issue.
+	EditComment(issue IssueSpec, comment *IssueComment) (*IssueComment, Response, error)
+
+	// DeleteComment deletes a comment on an issue.
+	DeleteComment(issue IssueSpec, commentID int) (Response, error)
 }
 
 // issuesService implements IssuesService.
@@ -124,7 +133,20 @@ type IssueListCommentsOptions struct {
 }
 
 type IssueComment struct {
+	RenderedBody string // the body rendered to HTML (from raw markdown)
+	Checklist    *Checklist
 	github.IssueComment
+}
+
+type IssueCommentSpec struct {
+	Issue   IssueSpec
+	Comment int
+}
+
+func (s IssueCommentSpec) RouteVars() map[string]string {
+	rv := s.Issue.RouteVars()
+	rv["CommentID"] = strconv.Itoa(s.Comment)
+	return rv
 }
 
 func (s *issuesService) ListComments(issue IssueSpec, opt *IssueListCommentsOptions) ([]*IssueComment, Response, error) {
@@ -147,10 +169,76 @@ func (s *issuesService) ListComments(issue IssueSpec, opt *IssueListCommentsOpti
 	return comments, resp, nil
 }
 
+func (s *issuesService) CreateComment(issue IssueSpec, comment *IssueComment) (*IssueComment, Response, error) {
+	url, err := s.client.URL(router.RepoIssueCommentsCreate, issue.RouteVars(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("POST", url.String(), comment)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var createdComment IssueComment
+	resp, err := s.client.Do(req, &createdComment)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &createdComment, resp, nil
+}
+
+func (s *issuesService) EditComment(issue IssueSpec, comment *IssueComment) (*IssueComment, Response, error) {
+	if comment.ID == nil {
+		return nil, nil, fmt.Errorf("comment ID not specified")
+	}
+
+	url, err := s.client.URL(router.RepoIssueCommentsEdit, IssueCommentSpec{Issue: issue, Comment: *comment.ID}.RouteVars(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("PATCH", url.String(), comment)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var updatedComment IssueComment
+	resp, err := s.client.Do(req, &updatedComment)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &updatedComment, resp, nil
+}
+
+func (s *issuesService) DeleteComment(issue IssueSpec, commentID int) (Response, error) {
+	url, err := s.client.URL(router.RepoIssueCommentsDelete, IssueCommentSpec{Issue: issue, Comment: commentID}.RouteVars(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := s.client.NewRequest("DELETE", url.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.client.Do(req, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
 type MockIssuesService struct {
-	Get_          func(issue IssueSpec, opt *IssueGetOptions) (*Issue, Response, error)
-	ListByRepo_   func(repo RepoSpec, opt *IssueListOptions) ([]*Issue, Response, error)
-	ListComments_ func(issue IssueSpec, opt *IssueListCommentsOptions) ([]*IssueComment, Response, error)
+	Get_           func(issue IssueSpec, opt *IssueGetOptions) (*Issue, Response, error)
+	ListByRepo_    func(repo RepoSpec, opt *IssueListOptions) ([]*Issue, Response, error)
+	ListComments_  func(issue IssueSpec, opt *IssueListCommentsOptions) ([]*IssueComment, Response, error)
+	CreateComment_ func(issue IssueSpec, comment *IssueComment) (*IssueComment, Response, error)
+	EditComment_   func(issue IssueSpec, comment *IssueComment) (*IssueComment, Response, error)
+	DeleteComment_ func(issue IssueSpec, commentID int) (Response, error)
 }
 
 var _ IssuesService = MockIssuesService{}
@@ -165,4 +253,16 @@ func (s MockIssuesService) ListByRepo(repo RepoSpec, opt *IssueListOptions) ([]*
 
 func (s MockIssuesService) ListComments(issue IssueSpec, opt *IssueListCommentsOptions) ([]*IssueComment, Response, error) {
 	return s.ListComments_(issue, opt)
+}
+
+func (s MockIssuesService) CreateComment(issue IssueSpec, comment *IssueComment) (*IssueComment, Response, error) {
+	return s.CreateComment_(issue, comment)
+}
+
+func (s MockIssuesService) EditComment(issue IssueSpec, comment *IssueComment) (*IssueComment, Response, error) {
+	return s.EditComment_(issue, comment)
+}
+
+func (s MockIssuesService) DeleteComment(issue IssueSpec, commentID int) (Response, error) {
+	return s.DeleteComment(issue, commentID)
 }
