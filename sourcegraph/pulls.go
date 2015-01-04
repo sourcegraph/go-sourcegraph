@@ -79,7 +79,7 @@ func UnmarshalPullRequestSpec(v map[string]string) (PullRequestSpec, error) {
 // PullRequest is a pull request returned by the Sourcegraph API.
 type PullRequest struct {
 	github.PullRequest
-	Checklist *Checklist
+	Checklist *Checklist `json:",omitempty"`
 }
 
 // Spec returns the PullRequestSpec that specifies r.
