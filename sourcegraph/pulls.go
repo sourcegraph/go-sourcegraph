@@ -79,6 +79,8 @@ func UnmarshalPullRequestSpec(v map[string]string) (PullRequestSpec, error) {
 // PullRequest is a pull request returned by the Sourcegraph API.
 type PullRequest struct {
 	github.PullRequest
+
+	// Checklist is a summary of all the checkboxes in the pull request (number of checked and unchecked).
 	Checklist *Checklist `json:",omitempty"`
 }
 
@@ -93,6 +95,7 @@ func (r *PullRequest) Spec() PullRequestSpec {
 }
 
 type PullRequestGetOptions struct {
+	// Checklist is whether to populate the Checklist field on the returned PullRequest.
 	Checklist bool
 }
 
@@ -146,10 +149,16 @@ type PullRequestListCommentsOptions struct {
 }
 
 type PullRequestComment struct {
-	Published    bool   // whether the comment is in a published state, currently always true
-	RenderedBody string // the body rendered to HTML (from raw markdown)
-	Checklist    *Checklist
 	github.PullRequestComment
+
+	// Published is whether the comment is in a published state, currently always true.
+	Published bool
+
+	// RenderedBody is the comment body rendered as HTML (from raw markdown).
+	RenderedBody string
+
+	// Checklist is a summary of all the checkboxes in the comment (number of checked and unchecked).
+	Checklist *Checklist
 }
 
 type PullRequestCommentSpec struct {
