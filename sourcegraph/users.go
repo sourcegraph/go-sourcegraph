@@ -106,6 +106,10 @@ type User struct {
 	Stat PersonStats `db:"-" json:",omitempty"`
 }
 
+func (u *User) Spec() UserSpec {
+	return UserSpec{Login: u.Login, UID: u.UID}
+}
+
 // GitHubLogin returns the user's Login. They are the same for now, but callers
 // that intend to get the GitHub login should call GitHubLogin() so that we can
 // decouple the logins in the future if needed.
