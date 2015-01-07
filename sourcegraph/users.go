@@ -110,6 +110,9 @@ type User struct {
 // that intend to get the GitHub login should call GitHubLogin() so that we can
 // decouple the logins in the future if needed.
 func (u *User) GitHubLogin() string {
+	if u.GitHubID == 0 {
+		return ""
+	}
 	return u.Login
 }
 
