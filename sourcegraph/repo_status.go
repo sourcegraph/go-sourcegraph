@@ -9,8 +9,8 @@ type CombinedStatus struct {
 	github.CombinedStatus
 }
 
-func (s *repositoriesService) GetCombinedStatus(spec RepoRevSpec, opt *ListOptions) (*CombinedStatus, Response, error) {
-	url, err := s.client.URL(router.RepoCombinedStatus, spec.RouteVars(), opt)
+func (s *repositoriesService) GetCombinedStatus(spec RepoRevSpec) (*CombinedStatus, Response, error) {
+	url, err := s.client.URL(router.RepoCombinedStatus, spec.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
