@@ -85,7 +85,8 @@ const (
 	RepoTags           = "repo.tags"
 	RepoBranches       = "repo.branches"
 
-	Search = "search"
+	Search         = "search"
+	SearchComplete = "search.complete"
 
 	Snippet = "snippet"
 
@@ -246,6 +247,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	org.Path("/members").Methods("GET").Name(OrgMembers)
 
 	base.Path("/search").Methods("GET").Name(Search)
+	base.Path("/search/complete").Methods("GET").Name(SearchComplete)
 
 	base.Path("/snippet").Methods("GET", "POST", "ORIGIN").Name(Snippet)
 
