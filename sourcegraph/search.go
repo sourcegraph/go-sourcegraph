@@ -1,20 +1,42 @@
 package sourcegraph
 
-import "sourcegraph.com/sourcegraph/go-sourcegraph/router"
+import (
+	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
+)
 
 // SearchService communicates with the search-related endpoints in
 // the Sourcegraph API.
 type SearchService interface {
 	// Search searches the full index.
 	Search(opt *SearchOptions) (*SearchResults, Response, error)
+
+	// Complete completes the token at the RawQuery's InsertionPoint.
+	Complete(q RawQuery) (*Completions, Response, error)
 }
 
 type SearchResults struct {
-	Defs   []*Def
-	People []*Person
-	Repos  []*Repo
+	Defs   []*Def    `json:",omitempty"`
+	People []*Person `json:",omitempty"`
+	Repos  []*Repo   `json:",omitempty"`
+
+	// RawQuery is the raw query passed to search.
+	RawQuery RawQuery
+
+	// Tokens are the unresolved tokens.
+	Tokens Tokens `json:",omitempty"`
+
+	// Plan is the query plan used to fetch the results.
+	Plan *Plan `json:",omitempty"`
+
+	// ResolvedTokens holds the resolved tokens from the original query
+	// string.
+	ResolvedTokens Tokens
+
+	ResolveErrors   ResolveErrors `json:",omitempty"`
+	ResolutionFatal bool          `json:",omitempty"`
 }
 
+// Empty is whether there are no search results for any result type.
 func (r *SearchResults) Empty() bool {
 	return len(r.Defs) == 0 && len(r.People) == 0 && len(r.Repos) == 0
 }
@@ -56,12 +78,51 @@ func (s *searchService) Search(opt *SearchOptions) (*SearchResults, Response, er
 	return results, resp, nil
 }
 
+// Completions holds search query completions.
+type Completions struct {
+	// TokenCompletions are suggested completions for the token at the
+	// raw query's InsertionPoint.
+	TokenCompletions Tokens
+
+	// ResolvedTokens is the resolution of the original query's tokens
+	// used to produce the completions. It is useful for debugging.
+	ResolvedTokens Tokens
+
+	ResolveErrors   ResolveErrors `json:",omitempty"`
+	ResolutionFatal bool          `json:",omitempty"`
+}
+
+func (s *searchService) Complete(q RawQuery) (*Completions, Response, error) {
+	url, err := s.client.URL(router.SearchComplete, nil, q)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var comps *Completions
+	resp, err := s.client.Do(req, &comps)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return comps, resp, nil
+}
+
 type MockSearchService struct {
-	Search_ func(opt *SearchOptions) (*SearchResults, Response, error)
+	Search_   func(opt *SearchOptions) (*SearchResults, Response, error)
+	Complete_ func(q RawQuery) (*Completions, Response, error)
 }
 
 var _ SearchService = MockSearchService{}
 
 func (s MockSearchService) Search(opt *SearchOptions) (*SearchResults, Response, error) {
 	return s.Search_(opt)
+}
+
+func (s MockSearchService) Complete(q RawQuery) (*Completions, Response, error) {
+	return s.Complete_(q)
 }
