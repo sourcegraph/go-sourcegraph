@@ -132,7 +132,9 @@ func (d *Tokens) UnmarshalJSON(b []byte) error {
 
 func (d Tokens) RawQueryString() string { return Join(d).String }
 
-type jsonToken struct{ Token }
+type jsonToken struct {
+	Token `json:",omitempty"`
+}
 
 func (t jsonToken) MarshalJSON() ([]byte, error) {
 	b, err := json.Marshal(t.Token)
@@ -145,12 +147,14 @@ func (t jsonToken) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	tokType := TokenType(t.Token)
-	switch vv := v.(type) {
-	case string:
-		v = map[string]string{"Type": tokType, "String": vv}
-	case map[string]interface{}:
-		vv["Type"] = tokType
+	if t.Token != nil {
+		tokType := TokenType(t.Token)
+		switch vv := v.(type) {
+		case string:
+			v = map[string]string{"Type": tokType, "String": vv}
+		case map[string]interface{}:
+			vv["Type"] = tokType
+		}
 	}
 	return json.Marshal(v)
 }
@@ -169,6 +173,9 @@ func (t *jsonToken) UnmarshalJSON(b []byte) error {
 }
 
 func toTypedToken(tokJSON map[string]interface{}) (Token, error) {
+	if tokJSON == nil {
+		return nil, nil
+	}
 	typ, ok := tokJSON["Type"].(string)
 	if !ok {
 		return nil, errors.New("unmarshal Tokens: no 'Type' field in token")

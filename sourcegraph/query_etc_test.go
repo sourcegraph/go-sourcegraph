@@ -8,7 +8,9 @@ import (
 
 func TestResolveError_JSON(t *testing.T) {
 	rerr := ResolveErrors{
+		ResolveError{Reason: "a"},
 		ResolveError{Token: Term("t"), Reason: "a"},
+		ResolveError{Token: Term(""), Reason: "a"},
 		ResolveError{Token: RepoToken{URI: "r"}, Reason: "b"},
 	}
 
@@ -19,8 +21,19 @@ func TestResolveError_JSON(t *testing.T) {
 
 	want := `[
   {
+    "Token": null,
+    "Reason": "a"
+  },
+  {
     "Token": {
       "String": "t",
+      "Type": "Term"
+    },
+    "Reason": "a"
+  },
+  {
+    "Token": {
+      "String": "",
       "Type": "Term"
     },
     "Reason": "a"
