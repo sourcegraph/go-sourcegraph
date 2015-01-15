@@ -33,14 +33,14 @@ func (e ResolveErrors) Fatal() bool { return true }
 // A ResolveError is returned inside a ResolveErrors list by
 // Resolve and occurs when query validation fails.
 type ResolveError struct {
-	Token  Token  // the token that caused the error
+	Token  Token  `json:",omitempty"` // the token that caused the error
 	Reason string // the public, user-readable error message to display
 }
 
 func (e ResolveError) Error() string { return fmt.Sprintf("%s (%v)", e.Reason, e.Token) }
 
 type jsonResolveError struct {
-	Token  jsonToken
+	Token  jsonToken `json:",omitempty"`
 	Reason string
 }
 

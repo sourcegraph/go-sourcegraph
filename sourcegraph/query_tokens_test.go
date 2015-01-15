@@ -10,6 +10,7 @@ func TestTokens_JSON(t *testing.T) {
 	tokens := Tokens{
 		AnyToken("a"),
 		Term("b"),
+		Term(""),
 		RepoToken{URI: "r"},
 		RevToken{Rev: "v"},
 		FileToken{Path: "p"},
@@ -28,6 +29,10 @@ func TestTokens_JSON(t *testing.T) {
   },
   {
     "String": "b",
+    "Type": "Term"
+  },
+  {
+    "String": "",
     "Type": "Term"
   },
   {
