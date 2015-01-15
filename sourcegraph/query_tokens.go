@@ -115,56 +115,99 @@ func (d Tokens) MarshalJSON() ([]byte, error) {
 }
 
 func (d *Tokens) UnmarshalJSON(b []byte) error {
-	var tmpToks []map[string]interface{}
-	if err := json.Unmarshal(b, &tmpToks); err != nil {
+	var jtoks []jsonToken
+	if err := json.Unmarshal(b, &jtoks); err != nil {
 		return err
 	}
-
-	*d = Tokens{}
-	for _, tmpTok := range tmpToks {
-		typ, ok := tmpTok["Type"].(string)
-		if !ok {
-			return errors.New("unmarshal Tokens: no 'Type' field in token")
+	if jtoks == nil {
+		*d = nil
+	} else {
+		*d = make(Tokens, len(jtoks))
+		for i, jtok := range jtoks {
+			(*d)[i] = jtok.Token
 		}
-		delete(tmpTok, "Type")
-
-		var tok interface{}
-		switch typ {
-		case "Term", "AnyToken":
-			s, _ := tmpTok["String"].(string)
-			switch typ {
-			case "Term":
-				tok = Term(s)
-			case "AnyToken":
-				tok = AnyToken(s)
-			}
-			*d = append(*d, tok.(Token))
-			continue
-		case "RepoToken":
-			tok = &RepoToken{}
-		case "RevToken":
-			tok = &RevToken{}
-		case "FileToken":
-			tok = &FileToken{}
-		case "UserToken":
-			tok = &UserToken{}
-		default:
-			return fmt.Errorf("unmarshal Tokens: unrecognized Type %q", typ)
-		}
-		tmpJSON, err := json.Marshal(tmpTok)
-		if err != nil {
-			return err
-		}
-		if err := json.Unmarshal(tmpJSON, tok); err != nil {
-			return err
-		}
-		tok = reflect.ValueOf(tok).Elem().Interface() // deref
-		*d = append(*d, tok.(Token))
 	}
 	return nil
 }
 
 func (d Tokens) RawQueryString() string { return Join(d).String }
+
+type jsonToken struct{ Token }
+
+func (t jsonToken) MarshalJSON() ([]byte, error) {
+	b, err := json.Marshal(t.Token)
+	if err != nil {
+		return nil, err
+	}
+
+	var v interface{}
+	if err := json.Unmarshal(b, &v); err != nil {
+		return nil, err
+	}
+
+	tokType := TokenType(t.Token)
+	switch vv := v.(type) {
+	case string:
+		v = map[string]string{"Type": tokType, "String": vv}
+	case map[string]interface{}:
+		vv["Type"] = tokType
+	}
+	return json.Marshal(v)
+}
+
+func (t *jsonToken) UnmarshalJSON(b []byte) error {
+	var v map[string]interface{}
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	tok, err := toTypedToken(v)
+	if err != nil {
+		return err
+	}
+	*t = jsonToken{tok}
+	return nil
+}
+
+func toTypedToken(tokJSON map[string]interface{}) (Token, error) {
+	typ, ok := tokJSON["Type"].(string)
+	if !ok {
+		return nil, errors.New("unmarshal Tokens: no 'Type' field in token")
+	}
+	delete(tokJSON, "Type")
+
+	var tok interface{}
+	switch typ {
+	case "Term", "AnyToken":
+		s, _ := tokJSON["String"].(string)
+		switch typ {
+		case "Term":
+			tok = Term(s)
+		case "AnyToken":
+			tok = AnyToken(s)
+		}
+		return tok.(Token), nil
+
+	case "RepoToken":
+		tok = &RepoToken{}
+	case "RevToken":
+		tok = &RevToken{}
+	case "FileToken":
+		tok = &FileToken{}
+	case "UserToken":
+		tok = &UserToken{}
+	default:
+		return nil, fmt.Errorf("unmarshal Tokens: unrecognized Type %q", typ)
+	}
+	tmpJSON, err := json.Marshal(tokJSON)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(tmpJSON, tok); err != nil {
+		return nil, err
+	}
+	tok = reflect.ValueOf(tok).Elem().Interface() // deref
+	return tok.(Token), nil
+}
 
 func TokenType(tok Token) string {
 	return strings.Replace(strings.Replace(reflect.ValueOf(tok).Type().String(), "*", "", -1), "sourcegraph.", "", -1)
