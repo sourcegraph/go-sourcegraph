@@ -33,6 +33,12 @@ type SearchResults struct {
 	ResolvedTokens Tokens
 
 	ResolveErrors []TokenError `json:",omitempty"`
+
+	// Tips are helpful tips for the user about their query. They are
+	// not errors per se, but they use the TokenError type because it
+	// allows us to associate a message with a particular token (and
+	// JSON de/serialize that).
+	Tips []TokenError `json:",omitempty"`
 }
 
 // Empty is whether there are no search results for any result type.
