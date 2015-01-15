@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 
+	"sourcegraph.com/sourcegraph/srclib/unit"
 	"sourcegraph.com/sourcegraph/vcsstore/vcsclient"
 )
 
@@ -68,6 +69,20 @@ type RevToken struct {
 }
 
 func (t RevToken) String() string { return ":" + t.Rev }
+
+// A UnitToken represents a source unit in a repository.
+type UnitToken struct {
+	// Type is the type of the source unit (e.g., GoPackage).
+	Type string
+
+	// Name is the name of the source unit (e.g., mypkg).
+	Name string
+
+	// Unit is the source unit object.
+	Unit *unit.RepoSourceUnit
+}
+
+func (t UnitToken) String() string { return "~" + t.Name + "@" + t.Type }
 
 type FileToken struct {
 	Path string
@@ -198,6 +213,8 @@ func toTypedToken(tokJSON map[string]interface{}) (Token, error) {
 		tok = &RepoToken{}
 	case "RevToken":
 		tok = &RevToken{}
+	case "UnitToken":
+		tok = &UnitToken{}
 	case "FileToken":
 		tok = &FileToken{}
 	case "UserToken":
