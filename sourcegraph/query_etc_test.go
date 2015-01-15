@@ -10,8 +10,8 @@ func TestResolveError_JSON(t *testing.T) {
 	rerr := ResolveErrors{
 		ResolveError{Reason: "a"},
 		ResolveError{Token: Term("t"), Reason: "a"},
-		ResolveError{Token: Term(""), Reason: "a"},
-		ResolveError{Token: RepoToken{URI: "r"}, Reason: "b"},
+		ResolveError{Index: 1, Token: Term(""), Reason: "a"},
+		ResolveError{Index: 2, Token: RepoToken{URI: "r"}, Reason: "b"},
 	}
 
 	rerrJSON, err := json.MarshalIndent(rerr, "", "  ")
@@ -32,6 +32,7 @@ func TestResolveError_JSON(t *testing.T) {
     "Reason": "a"
   },
   {
+    "Index": 1,
     "Token": {
       "String": "",
       "Type": "Term"
@@ -39,6 +40,7 @@ func TestResolveError_JSON(t *testing.T) {
     "Reason": "a"
   },
   {
+    "Index": 2,
     "Token": {
       "Type": "RepoToken",
       "URI": "r"
