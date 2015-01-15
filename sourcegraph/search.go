@@ -32,8 +32,7 @@ type SearchResults struct {
 	// string.
 	ResolvedTokens Tokens
 
-	ResolveErrors   ResolveErrors `json:",omitempty"`
-	ResolutionFatal bool          `json:",omitempty"`
+	ResolveErrors ResolveErrors `json:",omitempty"`
 }
 
 // Empty is whether there are no search results for any result type.
