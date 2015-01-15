@@ -26,10 +26,6 @@ func (e ResolveErrors) Error() string {
 	return fmt.Sprintf("%d resolution errors: %v", len(e), ([]ResolveError)(e))
 }
 
-// Fatal is true if the query may not be processed or executed further
-// due to unrecoverable query resolution errors.
-func (e ResolveErrors) Fatal() bool { return true }
-
 // A ResolveError is returned inside a ResolveErrors list by
 // Resolve and occurs when query validation fails.
 type ResolveError struct {
