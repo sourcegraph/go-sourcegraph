@@ -32,7 +32,7 @@ type SearchResults struct {
 	// string.
 	ResolvedTokens Tokens
 
-	ResolveErrors ResolveErrors `json:",omitempty"`
+	ResolveErrors []TokenError `json:",omitempty"`
 }
 
 // Empty is whether there are no search results for any result type.
@@ -87,8 +87,8 @@ type Completions struct {
 	// used to produce the completions. It is useful for debugging.
 	ResolvedTokens Tokens
 
-	ResolveErrors   ResolveErrors `json:",omitempty"`
-	ResolutionFatal bool          `json:",omitempty"`
+	ResolveErrors   []TokenError `json:",omitempty"`
+	ResolutionFatal bool         `json:",omitempty"`
 }
 
 func (s *searchService) Complete(q RawQuery) (*Completions, Response, error) {

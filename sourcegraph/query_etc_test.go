@@ -6,12 +6,12 @@ import (
 	"testing"
 )
 
-func TestResolveError_JSON(t *testing.T) {
-	rerr := ResolveErrors{
-		ResolveError{Reason: "a"},
-		ResolveError{Token: Term("t"), Reason: "a"},
-		ResolveError{Index: 1, Token: Term(""), Reason: "a"},
-		ResolveError{Index: 2, Token: RepoToken{URI: "r"}, Reason: "b"},
+func TestTokenError_JSON(t *testing.T) {
+	rerr := []TokenError{
+		TokenError{Message: "a"},
+		TokenError{Token: Term("t"), Message: "a"},
+		TokenError{Index: 1, Token: Term(""), Message: "a"},
+		TokenError{Index: 2, Token: RepoToken{URI: "r"}, Message: "b"},
 	}
 
 	rerrJSON, err := json.MarshalIndent(rerr, "", "  ")
@@ -22,14 +22,14 @@ func TestResolveError_JSON(t *testing.T) {
 	want := `[
   {
     "Token": null,
-    "Reason": "a"
+    "Message": "a"
   },
   {
     "Token": {
       "String": "t",
       "Type": "Term"
     },
-    "Reason": "a"
+    "Message": "a"
   },
   {
     "Index": 1,
@@ -37,7 +37,7 @@ func TestResolveError_JSON(t *testing.T) {
       "String": "",
       "Type": "Term"
     },
-    "Reason": "a"
+    "Message": "a"
   },
   {
     "Index": 2,
@@ -45,14 +45,14 @@ func TestResolveError_JSON(t *testing.T) {
       "Type": "RepoToken",
       "URI": "r"
     },
-    "Reason": "b"
+    "Message": "b"
   }
 ]`
 	if string(rerrJSON) != want {
 		t.Errorf("got JSON\n%s\n\nwant JSON\n%s", rerrJSON, want)
 	}
 
-	var rerr2 ResolveErrors
+	var rerr2 []TokenError
 	if err := json.Unmarshal(rerrJSON, &rerr2); err != nil {
 		t.Fatal(err)
 	}
