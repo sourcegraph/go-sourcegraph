@@ -72,8 +72,8 @@ func (t RevToken) String() string { return ":" + t.Rev }
 
 // A UnitToken represents a source unit in a repository.
 type UnitToken struct {
-	// Type is the type of the source unit (e.g., GoPackage).
-	Type string
+	// UnitType is the type of the source unit (e.g., GoPackage).
+	UnitType string
 
 	// Name is the name of the source unit (e.g., mypkg).
 	Name string
@@ -82,7 +82,7 @@ type UnitToken struct {
 	Unit *unit.RepoSourceUnit
 }
 
-func (t UnitToken) String() string { return "~" + t.Name + "@" + t.Type }
+func (t UnitToken) String() string { return "~" + t.Name + "@" + t.UnitType }
 
 type FileToken struct {
 	Path string
