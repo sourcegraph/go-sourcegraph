@@ -70,6 +70,10 @@ type UnitListOptions struct {
 	UnitType string `url:",omitempty"`
 	Unit     string `url:",omitempty"`
 
+	// NameQuery specifies a full-text search query over the unit
+	// name.
+	NameQuery string `url:",omitempty" json:",omitempty"`
+
 	// Query specifies a full-text search query over the repo URI,
 	// unit name, and unit data.
 	Query string `url:",omitempty" json:",omitempty"`
