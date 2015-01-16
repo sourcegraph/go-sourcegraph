@@ -12,6 +12,11 @@ type SearchService interface {
 
 	// Complete completes the token at the RawQuery's InsertionPoint.
 	Complete(q RawQuery) (*Completions, Response, error)
+
+	// Suggest suggests queries given an existing query. It can be
+	// called with an empty query to get example queries that pertain
+	// to the current user's repositories, orgs, etc.
+	Suggest(q RawQuery) ([]*Suggestion, Response, error)
 }
 
 type SearchResults struct {
@@ -122,9 +127,30 @@ func (s *searchService) Complete(q RawQuery) (*Completions, Response, error) {
 	return comps, resp, nil
 }
 
+func (s *searchService) Suggest(q RawQuery) ([]*Suggestion, Response, error) {
+	url, err := s.client.URL(router.SearchSuggestions, nil, q)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var suggs []*Suggestion
+	resp, err := s.client.Do(req, &suggs)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return suggs, resp, nil
+}
+
 type MockSearchService struct {
 	Search_   func(opt *SearchOptions) (*SearchResults, Response, error)
 	Complete_ func(q RawQuery) (*Completions, Response, error)
+	Suggest_  func(q RawQuery) ([]*Suggestion, Response, error)
 }
 
 var _ SearchService = MockSearchService{}
@@ -135,4 +161,8 @@ func (s MockSearchService) Search(opt *SearchOptions) (*SearchResults, Response,
 
 func (s MockSearchService) Complete(q RawQuery) (*Completions, Response, error) {
 	return s.Complete_(q)
+}
+
+func (s MockSearchService) Suggest(q RawQuery) ([]*Suggestion, Response, error) {
+	return s.Suggest_(q)
 }
