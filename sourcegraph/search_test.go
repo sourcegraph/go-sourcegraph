@@ -85,6 +85,43 @@ func TestSearchService_Complete(t *testing.T) {
 	}
 }
 
+func TestSearchService_Suggest(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := []*Suggestion{
+		{
+			Query:       Tokens{Term("x")},
+			Description: "d",
+		},
+	}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.SearchSuggestions, nil), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+		testFormValues(t, r, values{
+			"String":         "abc",
+			"InsertionPoint": "2",
+		})
+
+		writeJSON(w, want)
+	})
+
+	suggs, _, err := client.Search.Suggest(RawQuery{String: "abc", InsertionPoint: 2})
+	if err != nil {
+		t.Errorf("Search.Suggest returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(suggs, want) {
+		t.Errorf("Search.Suggest returned %+v, want %+v", suggs, want)
+	}
+}
+
 func asJSON(v interface{}) string {
 	b, _ := json.Marshal(v)
 	return string(b)

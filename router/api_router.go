@@ -88,6 +88,8 @@ const (
 	Search         = "search"
 	SearchComplete = "search.complete"
 
+	SearchSuggestions = "search.suggestions"
+
 	Snippet = "snippet"
 
 	Defs          = "defs"
@@ -248,6 +250,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 
 	base.Path("/search").Methods("GET").Name(Search)
 	base.Path("/search/complete").Methods("GET").Name(SearchComplete)
+	base.Path("/search/suggestions").Methods("GET").Name(SearchSuggestions)
 
 	base.Path("/snippet").Methods("GET", "POST", "ORIGIN").Name(Snippet)
 
