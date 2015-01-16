@@ -39,6 +39,11 @@ type SearchResults struct {
 	// allows us to associate a message with a particular token (and
 	// JSON de/serialize that).
 	Tips []TokenError `json:",omitempty"`
+
+	// Canceled is true if the query was canceled. More information
+	// about how to correct the issue can be found in the
+	// ResolveErrors and Tips.
+	Canceled bool
 }
 
 // Empty is whether there are no search results for any result type.
