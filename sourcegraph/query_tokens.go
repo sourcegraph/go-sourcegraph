@@ -82,7 +82,13 @@ type UnitToken struct {
 	Unit *unit.RepoSourceUnit
 }
 
-func (t UnitToken) String() string { return "~" + t.Name + "@" + t.UnitType }
+func (t UnitToken) String() string {
+	s := "~" + t.Name
+	if t.UnitType != "" {
+		s += "@" + t.UnitType
+	}
+	return s
+}
 
 type FileToken struct {
 	Path string
