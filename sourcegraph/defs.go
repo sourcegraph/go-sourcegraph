@@ -76,7 +76,7 @@ func (s *DefSpec) DefKey() graph.DefKey {
 		CommitID: s.CommitID,
 		UnitType: s.UnitType,
 		Unit:     s.Unit,
-		Path:     graph.DefPath(s.Path),
+		Path:     s.Path,
 	}
 }
 
@@ -88,7 +88,7 @@ func NewDefSpecFromDefKey(key graph.DefKey) DefSpec {
 		CommitID: key.CommitID,
 		UnitType: key.UnitType,
 		Unit:     key.Unit,
-		Path:     string(key.Path),
+		Path:     key.Path,
 	}
 }
 
