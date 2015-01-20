@@ -3,12 +3,17 @@ package sourcegraph
 import (
 	"fmt"
 	"html/template"
+	"log"
+	"path"
 	"time"
+
+	"strings"
 
 	"sourcegraph.com/sourcegraph/go-nnz/nnz"
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/graph"
+	"sourcegraph.com/sourcegraph/srclib/store"
 )
 
 // DefsService communicates with the def- and graph-related endpoints in
@@ -191,17 +196,13 @@ type DefListOptions struct {
 	// revision specifier). For example, "repo.com/foo@revspec".
 	RepoRevs []string `url:",omitempty,comma" json:",omitempty"`
 
+	UnitType string `url:",omitempty" json:",omitempty"`
+	Unit     string `url:",omitempty" json:",omitempty"`
+
+	// UnitTypes is DEPRECATED.
 	UnitTypes []string `url:",omitempty,comma" json:",omitempty"`
-	Unit      string   `url:",omitempty" json:",omitempty"`
 
 	Path string `url:",omitempty" json:",omitempty"`
-
-	// If specified, will filter on descendants of ParentPath (up to ChildDepth)
-	ParentTreePath string `url:",omitempty" json:",omitempty"`
-	ChildDepth     int    `url:",omitempty" json:",omitempty"`
-
-	// If specified, will filter on ancestors of ChildPath
-	ChildTreePath string `url:",omitempty" json:",omitempty"`
 
 	// File, if specified, will restrict the results to only defs defined in
 	// the specified file.
@@ -230,6 +231,81 @@ type DefListOptions struct {
 
 	// Paging
 	ListOptions
+}
+
+func (o *DefListOptions) DefFilters() []store.DefFilter {
+	var fs []store.DefFilter
+	if o.Name != "" {
+		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
+			return def.Name == o.Name
+		}))
+	}
+	if o.Query != "" {
+		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
+			return strings.Contains(strings.ToLower(def.Name), strings.ToLower(o.Query))
+		}))
+	}
+	if len(o.RepoRevs) == 1 {
+		repo, commitID := ParseRepoAndCommitID(o.RepoRevs[0])
+		fs = append(fs, store.ByRepo(repo))
+		if commitID != "" {
+			fs = append(fs, store.ByCommitID(commitID))
+		}
+	} else if len(o.RepoRevs) > 1 {
+		// TODO(sqs): implement multi-repo/commit filters in srclib store
+		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
+			for _, repoRev := range o.RepoRevs {
+				repo, commitID := ParseRepoAndCommitID(repoRev)
+				if def.Repo == repo && (commitID == "" || def.CommitID == commitID) {
+					return true
+				}
+			}
+			return false
+		}))
+	}
+	if o.Unit != "" && o.UnitType != "" {
+		fs = append(fs, store.ByUnit(o.UnitType, o.Unit))
+	}
+	if (o.UnitType != "" && o.Name == "") || (o.UnitType == "" && o.Name != "") {
+		log.Println("WARNING: DefListOptions.DefFilter: must specify either both or neither of --type and --name (to filter by source unit)")
+	}
+	if o.File != "" {
+		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
+			return def.File == o.File
+		}))
+	}
+	if o.FilePathPrefix != "" {
+		filePathPrefix := path.Clean(o.FilePathPrefix)
+		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
+			return (def.File == filePathPrefix || strings.HasPrefix(def.File, filePathPrefix+"/"))
+		}))
+	}
+	if len(o.Kinds) > 0 {
+		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
+			for _, kind := range o.Kinds {
+				if def.Kind == kind {
+					return true
+				}
+			}
+			return false
+		}))
+	}
+	if o.Exported {
+		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
+			return def.Exported
+		}))
+	}
+	if o.Nonlocal {
+		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
+			return !def.Local
+		}))
+	}
+	if !o.IncludeTest {
+		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
+			return !def.Test
+		}))
+	}
+	return fs
 }
 
 func (s *defsService) List(opt *DefListOptions) ([]*Def, Response, error) {
