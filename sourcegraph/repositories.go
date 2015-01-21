@@ -1115,7 +1115,7 @@ type MockReposService struct {
 	ListByClient_      func(user UserSpec, opt *RepoListByClientOptions) ([]*AugmentedRepoUsageByClient, Response, error)
 	ListByRefdAuthor_  func(user UserSpec, opt *RepoListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error)
 
-	HashRepo_ func(repo RepoSpec) (string, Response, error)
+	Hash_ func(repo RepoSpec) (string, Response, error)
 }
 
 var _ ReposService = MockReposService{}
@@ -1224,6 +1224,6 @@ func (s MockReposService) ListTags(repo RepoSpec, opt *RepoListTagsOptions) ([]*
 	return s.ListTags_(repo, opt)
 }
 
-func (s MockReposService) HashRepo(repo RepoSpec) (string, Response, error) {
-	return s.HashRepo_(repo)
+func (s MockReposService) Hash(repo RepoSpec) (string, Response, error) {
+	return s.Hash_(repo)
 }
