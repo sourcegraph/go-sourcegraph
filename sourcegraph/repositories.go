@@ -126,6 +126,10 @@ type ReposService interface {
 	// ListByRefdAuthor lists repositories that reference code authored by
 	// user.
 	ListByRefdAuthor(user UserSpec, opt *RepoListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error)
+
+	// Hash returns a collision-resistant hash that identifies a repo. The
+	// hash for a repo stays the same, even if the repo is renamed.
+	Hash(repo RepoSpec) (string, Response, error)
 }
 
 // repositoriesService implements ReposService.
@@ -1063,6 +1067,26 @@ func (s *repositoriesService) ListByRefdAuthor(user UserSpec, opt *RepoListByRef
 	return repos, resp, nil
 }
 
+func (s *repositoriesService) Hash(repo RepoSpec) (string, Response, error) {
+	url, err := s.client.URL(router.RepoHash, repo.RouteVars(), nil)
+	if err != nil {
+		return "", nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return "", nil, err
+	}
+
+	var hash string
+	resp, err := s.client.Do(req, &hash)
+	if err != nil {
+		return "", resp, err
+	}
+
+	return hash, resp, nil
+}
+
 type MockReposService struct {
 	Get_               func(spec RepoSpec, opt *RepoGetOptions) (*Repo, Response, error)
 	GetStats_          func(repo RepoRevSpec) (RepoStats, Response, error)
@@ -1090,6 +1114,8 @@ type MockReposService struct {
 	ListByContributor_ func(user UserSpec, opt *RepoListByContributorOptions) ([]*AugmentedRepoContribution, Response, error)
 	ListByClient_      func(user UserSpec, opt *RepoListByClientOptions) ([]*AugmentedRepoUsageByClient, Response, error)
 	ListByRefdAuthor_  func(user UserSpec, opt *RepoListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error)
+
+	HashRepo_ func(repo RepoSpec) (string, Response, error)
 }
 
 var _ ReposService = MockReposService{}
@@ -1196,4 +1222,8 @@ func (s MockReposService) ListBranches(repo RepoSpec, opt *RepoListBranchesOptio
 
 func (s MockReposService) ListTags(repo RepoSpec, opt *RepoListTagsOptions) ([]*vcs.Tag, Response, error) {
 	return s.ListTags_(repo, opt)
+}
+
+func (s MockReposService) HashRepo(repo RepoSpec) (string, Response, error) {
+	return s.HashRepo_(repo)
 }
