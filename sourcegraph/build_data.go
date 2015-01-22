@@ -66,12 +66,4 @@ func GetBuildDataFile(s BuildDataService, file BuildDataFileSpec) (io.ReadCloser
 	return f, fi, err
 }
 
-type MockBuildDataService struct {
-	FileSystem_ func(repo RepoRevSpec) (rwvfs.FileSystem, error)
-}
-
-var _ BuildDataService = MockBuildDataService{}
-
-func (s MockBuildDataService) FileSystem(repo RepoRevSpec) (rwvfs.FileSystem, error) {
-	return s.FileSystem_(repo)
-}
+var _ BuildDataService = &MockBuildDataService{}

@@ -56,12 +56,4 @@ func (s *searchService) Search(opt *SearchOptions) (*SearchResults, Response, er
 	return results, resp, nil
 }
 
-type MockSearchService struct {
-	Search_ func(opt *SearchOptions) (*SearchResults, Response, error)
-}
-
-var _ SearchService = MockSearchService{}
-
-func (s MockSearchService) Search(opt *SearchOptions) (*SearchResults, Response, error) {
-	return s.Search_(opt)
-}
+var _ SearchService = &MockSearchService{}
