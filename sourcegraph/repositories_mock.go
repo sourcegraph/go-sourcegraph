@@ -32,7 +32,6 @@ type MockReposService struct {
 	ListByContributor_ func(user UserSpec, opt *RepoListByContributorOptions) ([]*AugmentedRepoContribution, Response, error)
 	ListByClient_      func(user UserSpec, opt *RepoListByClientOptions) ([]*AugmentedRepoUsageByClient, Response, error)
 	ListByRefdAuthor_  func(user UserSpec, opt *RepoListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error)
-	Hash_              func(repo RepoSpec) (string, Response, error)
 }
 
 func (s *MockReposService) Get(repo RepoSpec, opt *RepoGetOptions) (*Repo, Response, error) {
@@ -136,5 +135,3 @@ func (s *MockReposService) ListByClient(user UserSpec, opt *RepoListByClientOpti
 func (s *MockReposService) ListByRefdAuthor(user UserSpec, opt *RepoListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error) {
 	return s.ListByRefdAuthor_(user, opt)
 }
-
-func (s *MockReposService) Hash(repo RepoSpec) (string, Response, error) { return s.Hash_(repo) }
