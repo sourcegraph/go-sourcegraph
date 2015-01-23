@@ -14,6 +14,7 @@ import (
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/graph"
 	"sourcegraph.com/sourcegraph/srclib/store"
+	"sourcegraph.com/sourcegraph/srclib/unit"
 )
 
 // DefsService communicates with the def- and graph-related endpoints in
@@ -264,7 +265,7 @@ func (o *DefListOptions) DefFilters() []store.DefFilter {
 		}))
 	}
 	if o.Unit != "" && o.UnitType != "" {
-		fs = append(fs, store.ByUnit(o.UnitType, o.Unit))
+		fs = append(fs, store.ByUnits(unit.ID2{Type: o.UnitType, Name: o.Unit}))
 	}
 	if (o.UnitType != "" && o.Name == "") || (o.UnitType == "" && o.Name != "") {
 		log.Println("WARNING: DefListOptions.DefFilter: must specify either both or neither of --type and --name (to filter by source unit)")
