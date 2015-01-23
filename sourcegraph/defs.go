@@ -271,15 +271,10 @@ func (o *DefListOptions) DefFilters() []store.DefFilter {
 		log.Println("WARNING: DefListOptions.DefFilter: must specify either both or neither of --type and --name (to filter by source unit)")
 	}
 	if o.File != "" {
-		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
-			return def.File == o.File
-		}))
+		fs = append(fs, store.ByFiles(path.Clean(o.File)))
 	}
 	if o.FilePathPrefix != "" {
-		filePathPrefix := path.Clean(o.FilePathPrefix)
-		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
-			return (def.File == filePathPrefix || strings.HasPrefix(def.File, filePathPrefix+"/"))
-		}))
+		fs = append(fs, store.ByFiles(path.Clean(o.File)))
 	}
 	if len(o.Kinds) > 0 {
 		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
