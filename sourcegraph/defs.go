@@ -274,7 +274,7 @@ func (o *DefListOptions) DefFilters() []store.DefFilter {
 		fs = append(fs, store.ByFiles(path.Clean(o.File)))
 	}
 	if o.FilePathPrefix != "" {
-		fs = append(fs, store.ByFiles(path.Clean(o.File)))
+		fs = append(fs, store.ByFiles(path.Clean(o.FilePathPrefix)))
 	}
 	if len(o.Kinds) > 0 {
 		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
