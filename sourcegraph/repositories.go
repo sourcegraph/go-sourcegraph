@@ -28,6 +28,8 @@ type ReposService interface {
 	// resolved to the repository's default branch).
 	GetStats(repo RepoRevSpec) (RepoStats, Response, error)
 
+	GetCombinedStatus(spec RepoRevSpec) (*CombinedStatus, Response, error)
+
 	// GetOrCreate fetches a repository using Get. If no such repository exists
 	// with the URI, and the URI refers to a recognized repository host (such as
 	// github.com), the repository's information is fetched from the external
@@ -1064,6 +1066,7 @@ func (s *repositoriesService) ListByRefdAuthor(user UserSpec, opt *RepoListByRef
 type MockReposService struct {
 	Get_               func(spec RepoSpec, opt *RepoGetOptions) (*Repo, Response, error)
 	GetStats_          func(repo RepoRevSpec) (RepoStats, Response, error)
+	GetCombinedStatus_ func(spec RepoRevSpec) (*CombinedStatus, Response, error)
 	GetOrCreate_       func(repo RepoSpec, opt *RepoGetOptions) (*Repo, Response, error)
 	GetSettings_       func(repo RepoSpec) (*RepoSettings, Response, error)
 	UpdateSettings_    func(repo RepoSpec, settings RepoSettings) (Response, error)
@@ -1097,6 +1100,10 @@ func (s MockReposService) Get(repo RepoSpec, opt *RepoGetOptions) (*Repo, Respon
 
 func (s MockReposService) GetStats(repo RepoRevSpec) (RepoStats, Response, error) {
 	return s.GetStats_(repo)
+}
+
+func (s MockReposService) GetCombinedStatus(spec RepoRevSpec) (*CombinedStatus, Response, error) {
+	return s.GetCombinedStatus_(spec)
 }
 
 func (s MockReposService) GetOrCreate(repo RepoSpec, opt *RepoGetOptions) (*Repo, Response, error) {

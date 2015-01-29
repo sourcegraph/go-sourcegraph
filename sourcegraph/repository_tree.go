@@ -35,8 +35,6 @@ func (s TreeEntrySpec) String() string {
 	return fmt.Sprintf("%v: %s (rev %q)", s.RepoRev, s.Path, s.RepoRev.Rev)
 }
 
-type SourceCode struct{}
-
 // TreeEntry is a file or directory in a repository, with additional feedback
 // from the formatting operation (if Formatted is true in the options).
 type TreeEntry struct {

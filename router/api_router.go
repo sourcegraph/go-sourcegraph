@@ -74,7 +74,8 @@ const (
 	RepoSettings       = "repo.settings"
 	RepoSettingsUpdate = "repo.settings.update"
 
-	RepoStats = "repo.stats"
+	RepoStats          = "repo.stats"
+	RepoCombinedStatus = "repo.combined-status"
 
 	RepoBuild = "repo.build"
 
@@ -152,6 +153,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	repoRev := base.PathPrefix(`/repos/` + RepoRevSpecPattern).PostMatchFunc(FixRepoRevSpecVars).BuildVarsFunc(PrepareRepoRevSpecRouteVars).Subrouter()
 	repoRev.Path("/.stats").Methods("PUT").Name(RepoComputeStats)
 	repoRev.Path("/.stats").Methods("GET").Name(RepoStats)
+	repoRev.Path("/.status").Methods("GET").Name(RepoCombinedStatus)
 	repoRev.Path("/.authors").Methods("GET").Name(RepoAuthors)
 	repoRev.Path("/.readme").Methods("GET").Name(RepoReadme)
 	repoRev.Path("/.build").Methods("GET").Name(RepoBuild)
