@@ -258,6 +258,9 @@ type DeltaListFilesOptions struct {
 	// code-formatted (syntax-highlighted and reference-linked) if
 	// they contain code.
 	Formatted bool `url:",omitempty"`
+
+	// Filter filters the list of returned files to those whose name matches Filter.
+	Filter string `url:",omitempty"`
 }
 
 // DeltaFiles describes files added/changed/deleted in a delta.
