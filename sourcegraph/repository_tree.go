@@ -57,10 +57,10 @@ type SourceCode struct {
 	// Lines contains all the lines of the contained code snippet.
 	Lines []*SourceCodeLine `json:"lines,omitempty"`
 
-	NumRefs              int
-	TooManyRefs          bool
-	LastLinkedLine       int
-	LineStartByteOffsets []int
+	NumRefs              int   `json:"refs"`
+	TooManyRefs          bool  `json:"max"`
+	LastLinkedLine       int   `json:"lastLine"`
+	LineStartByteOffsets []int `json:"lineOffsets"`
 }
 
 // SourceCodeLine contains all tokens on this line along with other information
