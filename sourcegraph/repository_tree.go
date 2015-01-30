@@ -59,7 +59,6 @@ type SourceCode struct {
 
 	NumRefs              int   `json:"refs"`
 	TooManyRefs          bool  `json:"max"`
-	LastLinkedLine       int   `json:"lastLine"`
 	LineStartByteOffsets []int `json:"lineOffsets"`
 }
 
