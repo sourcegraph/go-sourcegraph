@@ -71,7 +71,7 @@ type SourceCodeLine struct {
 	// Tokens contains any tokens that may be on this line, including whitespace. Whitespace
 	// is stored as an HTML encoded "string" and token information is stored as
 	// "SourceCodeToken". New lines ('\n') are not present.
-	Tokens []interface{} `json:"t",omitempty`
+	Tokens []interface{} `json:"t,omitempty"`
 }
 
 // SourceCodeToken contains information about a code token.
