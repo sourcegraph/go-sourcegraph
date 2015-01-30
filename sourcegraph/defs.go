@@ -319,6 +319,8 @@ func (vs Examples) Less(i, j int) bool { return vs[i].sortKey() < vs[j].sortKey(
 type DefListExamplesOptions struct {
 	Formatted bool
 
+	SourceAsJSON bool
+
 	// Filter by a specific Repo URI
 	Repo string
 
