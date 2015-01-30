@@ -57,8 +57,10 @@ type SourceCode struct {
 	// Lines contains all the lines of the contained code snippet.
 	Lines []*SourceCodeLine `json:"lines,omitempty"`
 
-	// Error contains any error that might have occured during the operation.
-	Error error `json:"error,omitempty"`
+	NumRefs              int
+	TooManyRefs          bool
+	LastLinkedLine       int
+	LineStartByteOffsets []int
 }
 
 // SourceCodeLine contains all tokens on this line along with other information
