@@ -76,6 +76,10 @@ type SourceCodeLine struct {
 
 // SourceCodeToken contains information about a code token.
 type SourceCodeToken struct {
+	// Start and end byte offsets in original file.
+	StartByte int `json:"-"`
+	EndByte   int `json:"-"`
+
 	// URL specifies that the token is a reference or a definition,  based on the
 	// IsDef property.
 	URL string `json:"u,omitempty"`
