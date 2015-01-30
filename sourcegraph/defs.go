@@ -296,7 +296,11 @@ type Example struct {
 
 	// SrcHTML is the formatted HTML source code of the example, with links to
 	// definitions.
-	SrcHTML template.HTML
+	SrcHTML template.HTML `json:",omitempty"`
+
+	// SourceCode contains the parsed source for this example, if requested via
+	// DefListExamplesOptions.
+	SourceCode *SourceCode `json:",omitempty"`
 
 	// The line that the given example starts on
 	StartLine int
