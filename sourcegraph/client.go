@@ -1,3 +1,4 @@
+//go:generate gen-mocks -p sourcegraph.com/sourcegraph/go-sourcegraph/sourcegraph -n sourcegraph -o . -w
 package sourcegraph
 
 import (
