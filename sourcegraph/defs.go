@@ -7,8 +7,6 @@ import (
 	"path"
 	"time"
 
-	"strings"
-
 	"sourcegraph.com/sourcegraph/go-nnz/nnz"
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
@@ -242,9 +240,7 @@ func (o *DefListOptions) DefFilters() []store.DefFilter {
 		}))
 	}
 	if o.Query != "" {
-		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
-			return strings.Contains(strings.ToLower(def.Name), strings.ToLower(o.Query))
-		}))
+		fs = append(fs, store.ByDefQuery(o.Query))
 	}
 	if len(o.RepoRevs) == 1 {
 		repo, commitID := ParseRepoAndCommitID(o.RepoRevs[0])
