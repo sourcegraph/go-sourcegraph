@@ -297,6 +297,10 @@ func (o *DefListOptions) DefFilters() []store.DefFilter {
 			return !def.Test
 		}))
 	}
+	switch o.Sort {
+	case "name":
+		fs = append(fs, store.DefsSortByName{})
+	}
 	return fs
 }
 
