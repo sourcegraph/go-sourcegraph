@@ -198,9 +198,6 @@ type DefListOptions struct {
 	UnitType string `url:",omitempty" json:",omitempty"`
 	Unit     string `url:",omitempty" json:",omitempty"`
 
-	// UnitTypes is DEPRECATED.
-	UnitTypes []string `url:",omitempty,comma" json:",omitempty"`
-
 	Path string `url:",omitempty" json:",omitempty"`
 
 	// File, if specified, will restrict the results to only defs defined in
