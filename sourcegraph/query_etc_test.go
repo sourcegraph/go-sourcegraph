@@ -42,8 +42,8 @@ func TestTokenError_JSON(t *testing.T) {
   {
     "Index": 2,
     "Token": {
-      "Type": "RepoToken",
-      "URI": "r"
+      "URI": "r",
+      "Type": "RepoToken"
     },
     "Message": "b"
   }
@@ -57,6 +57,6 @@ func TestTokenError_JSON(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !reflect.DeepEqual(rerr2, rerr) {
-		t.Errorf("got\n%+v\n\nwant\n%+v", rerr2, rerr)
+		t.Errorf("got\n%#v\n\nwant\n%#v", rerr2, rerr)
 	}
 }
