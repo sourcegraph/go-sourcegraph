@@ -243,7 +243,7 @@ func (o *DefListOptions) DefFilters() []store.DefFilter {
 		vs := make([]store.Version, len(o.RepoRevs))
 		for i, repoRev := range o.RepoRevs {
 			repo, commitID := ParseRepoAndCommitID(repoRev)
-			if commitID == "" {
+			if len(commitID) != 40 {
 				log.Printf("WARNING: In DefListOptions.DefFilters, o.RepoRevs[%d]==%q has no commit ID or a non-absolute commit ID. No defs will match it.", i, repoRev)
 			}
 			vs[i] = store.Version{Repo: repo, CommitID: commitID}
