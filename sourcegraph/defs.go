@@ -239,23 +239,16 @@ func (o *DefListOptions) DefFilters() []store.DefFilter {
 	if o.Query != "" {
 		fs = append(fs, store.ByDefQuery(o.Query))
 	}
-	if len(o.RepoRevs) == 1 {
-		repo, commitID := ParseRepoAndCommitID(o.RepoRevs[0])
-		fs = append(fs, store.ByRepo(repo))
-		if commitID != "" {
-			fs = append(fs, store.ByCommitID(commitID))
-		}
-	} else if len(o.RepoRevs) > 1 {
-		// TODO(sqs): implement multi-repo/commit filters in srclib store
-		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
-			for _, repoRev := range o.RepoRevs {
-				repo, commitID := ParseRepoAndCommitID(repoRev)
-				if def.Repo == repo && (commitID == "" || def.CommitID == commitID) {
-					return true
-				}
+	if len(o.RepoRevs) > 0 {
+		vs := make([]store.Version, len(o.RepoRevs))
+		for i, repoRev := range o.RepoRevs {
+			repo, commitID := ParseRepoAndCommitID(repoRev)
+			if commitID == "" {
+				log.Printf("WARNING: In DefListOptions.DefFilters, o.RepoRevs[%d]==%q has no commit ID or a non-absolute commit ID. No defs will match it.", i, repoRev)
 			}
-			return false
-		}))
+			vs[i] = store.Version{Repo: repo, CommitID: commitID}
+		}
+		fs = append(fs, store.ByRepoCommitIDs(vs...))
 	}
 	if o.Unit != "" && o.UnitType != "" {
 		fs = append(fs, store.ByUnits(unit.ID2{Type: o.UnitType, Name: o.Unit}))
@@ -295,6 +288,8 @@ func (o *DefListOptions) DefFilters() []store.DefFilter {
 		}))
 	}
 	switch o.Sort {
+	case "key":
+		fs = append(fs, store.DefsSortByKey{})
 	case "name":
 		fs = append(fs, store.DefsSortByName{})
 	}
