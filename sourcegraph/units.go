@@ -122,23 +122,4 @@ func (s *unitsService) List(opt *UnitListOptions) ([]*unit.RepoSourceUnit, Respo
 	return units, resp, nil
 }
 
-type MockUnitsService struct {
-	List_ func(opt *UnitListOptions) ([]*unit.RepoSourceUnit, Response, error)
-	Get_  func(spec UnitSpec) (*unit.RepoSourceUnit, Response, error)
-}
-
-var _ UnitsService = MockUnitsService{}
-
-func (s MockUnitsService) List(opt *UnitListOptions) ([]*unit.RepoSourceUnit, Response, error) {
-	if s.List_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
-	return s.List_(opt)
-}
-
-func (s MockUnitsService) Get(spec UnitSpec) (*unit.RepoSourceUnit, Response, error) {
-	if s.Get_ == nil {
-		return nil, &HTTPResponse{}, nil
-	}
-	return s.Get_(spec)
-}
+var _ UnitsService = &MockUnitsService{}
