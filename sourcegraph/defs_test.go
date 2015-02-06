@@ -51,7 +51,6 @@ func TestDefsService_List(t *testing.T) {
 		testFormValues(t, r, values{
 			"RepoRevs":  "r1,r2@x",
 			"Sort":      "name",
-			"UnitTypes": "a,b",
 			"Direction": "asc",
 			"Kinds":     "a,b",
 			"Exported":  "true",
@@ -66,7 +65,6 @@ func TestDefsService_List(t *testing.T) {
 	defs, _, err := client.Defs.List(&DefListOptions{
 		RepoRevs:    []string{"r1", "r2@x"},
 		Sort:        "name",
-		UnitTypes:   []string{"a", "b"},
 		Direction:   "asc",
 		Kinds:       []string{"a", "b"},
 		Exported:    true,

@@ -3,12 +3,16 @@ package sourcegraph
 import (
 	"fmt"
 	"html/template"
+	"log"
+	"path"
 	"time"
 
 	"sourcegraph.com/sourcegraph/go-nnz/nnz"
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/graph"
+	"sourcegraph.com/sourcegraph/srclib/store"
+	"sourcegraph.com/sourcegraph/srclib/unit"
 )
 
 // DefsService communicates with the def- and graph-related endpoints in
@@ -76,7 +80,7 @@ func (s *DefSpec) DefKey() graph.DefKey {
 		CommitID: s.CommitID,
 		UnitType: s.UnitType,
 		Unit:     s.Unit,
-		Path:     graph.DefPath(s.Path),
+		Path:     s.Path,
 	}
 }
 
@@ -88,7 +92,7 @@ func NewDefSpecFromDefKey(key graph.DefKey) DefSpec {
 		CommitID: key.CommitID,
 		UnitType: key.UnitType,
 		Unit:     key.Unit,
-		Path:     string(key.Path),
+		Path:     key.Path,
 	}
 }
 
@@ -191,17 +195,10 @@ type DefListOptions struct {
 	// revision specifier). For example, "repo.com/foo@revspec".
 	RepoRevs []string `url:",omitempty,comma" json:",omitempty"`
 
-	UnitTypes []string `url:",omitempty,comma" json:",omitempty"`
-	Unit      string   `url:",omitempty" json:",omitempty"`
+	UnitType string `url:",omitempty" json:",omitempty"`
+	Unit     string `url:",omitempty" json:",omitempty"`
 
 	Path string `url:",omitempty" json:",omitempty"`
-
-	// If specified, will filter on descendants of ParentPath (up to ChildDepth)
-	ParentTreePath string `url:",omitempty" json:",omitempty"`
-	ChildDepth     int    `url:",omitempty" json:",omitempty"`
-
-	// If specified, will filter on ancestors of ChildPath
-	ChildTreePath string `url:",omitempty" json:",omitempty"`
 
 	// File, if specified, will restrict the results to only defs defined in
 	// the specified file.
@@ -230,6 +227,73 @@ type DefListOptions struct {
 
 	// Paging
 	ListOptions
+}
+
+func (o *DefListOptions) DefFilters() []store.DefFilter {
+	var fs []store.DefFilter
+	if o.Name != "" {
+		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
+			return def.Name == o.Name
+		}))
+	}
+	if o.Query != "" {
+		fs = append(fs, store.ByDefQuery(o.Query))
+	}
+	if len(o.RepoRevs) > 0 {
+		vs := make([]store.Version, len(o.RepoRevs))
+		for i, repoRev := range o.RepoRevs {
+			repo, commitID := ParseRepoAndCommitID(repoRev)
+			if len(commitID) != 40 {
+				log.Printf("WARNING: In DefListOptions.DefFilters, o.RepoRevs[%d]==%q has no commit ID or a non-absolute commit ID. No defs will match it.", i, repoRev)
+			}
+			vs[i] = store.Version{Repo: repo, CommitID: commitID}
+		}
+		fs = append(fs, store.ByRepoCommitIDs(vs...))
+	}
+	if o.Unit != "" && o.UnitType != "" {
+		fs = append(fs, store.ByUnits(unit.ID2{Type: o.UnitType, Name: o.Unit}))
+	}
+	if (o.UnitType != "" && o.Name == "") || (o.UnitType == "" && o.Name != "") {
+		log.Println("WARNING: DefListOptions.DefFilter: must specify either both or neither of --type and --name (to filter by source unit)")
+	}
+	if o.File != "" {
+		fs = append(fs, store.ByFiles(path.Clean(o.File)))
+	}
+	if o.FilePathPrefix != "" {
+		fs = append(fs, store.ByFiles(path.Clean(o.FilePathPrefix)))
+	}
+	if len(o.Kinds) > 0 {
+		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
+			for _, kind := range o.Kinds {
+				if def.Kind == kind {
+					return true
+				}
+			}
+			return false
+		}))
+	}
+	if o.Exported {
+		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
+			return def.Exported
+		}))
+	}
+	if o.Nonlocal {
+		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
+			return !def.Local
+		}))
+	}
+	if !o.IncludeTest {
+		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
+			return !def.Test
+		}))
+	}
+	switch o.Sort {
+	case "key":
+		fs = append(fs, store.DefsSortByKey{})
+	case "name":
+		fs = append(fs, store.DefsSortByName{})
+	}
+	return fs
 }
 
 func (s *defsService) List(opt *DefListOptions) ([]*Def, Response, error) {

@@ -250,7 +250,7 @@ func (c *Client) Do(req *http.Request, v interface{}) (*HTTPResponse, error) {
 	var resp *HTTPResponse
 	rawResp, err := c.httpClient.Do(req)
 	if rawResp != nil {
-		if v != preserveBody {
+		if v != preserveBody && rawResp.Body != nil {
 			defer rawResp.Body.Close()
 		}
 		resp = newResponse(rawResp)
