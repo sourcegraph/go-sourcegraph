@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/sqs/mux"
+	"github.com/sourcegraph/mux"
 )
 
 // RepoSpecPattern is the path pattern for encoding RepoSpec.

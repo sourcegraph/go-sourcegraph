@@ -1,6 +1,6 @@
 package router
 
-import "github.com/sqs/mux"
+import "github.com/sourcegraph/mux"
 
 const (
 	Build            = "build"

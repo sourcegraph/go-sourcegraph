@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/sqs/mux"
+	"github.com/sourcegraph/mux"
 )
 
 // DefPathPattern is the path pattern for defs.
