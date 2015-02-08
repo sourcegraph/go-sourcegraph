@@ -66,8 +66,8 @@ type SourceCode struct {
 // such as byte offsets in original source.
 type SourceCodeLine struct {
 	// StartByte and EndByte are the start and end offsets in bytes, in the original file.
-	StartByte uint32 `json:"s"`
-	EndByte   uint32 `json:"e"`
+	StartByte int `json:"s"`
+	EndByte   int `json:"e"`
 
 	// Tokens contains any tokens that may be on this line, including whitespace. Whitespace
 	// is stored as an HTML encoded "string" and token information is stored as
@@ -78,8 +78,8 @@ type SourceCodeLine struct {
 // SourceCodeToken contains information about a code token.
 type SourceCodeToken struct {
 	// Start and end byte offsets in original file.
-	StartByte uint32 `json:"-"`
-	EndByte   uint32 `json:"-"`
+	StartByte int `json:"-"`
+	EndByte   int `json:"-"`
 
 	// URL specifies that the token is a reference or a definition,  based on the
 	// IsDef property.
