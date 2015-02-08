@@ -151,7 +151,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	base.Path("/repos").Methods("GET").Name(Repos)
 	base.Path("/repos").Methods("POST").Name(ReposCreate)
 
-	base.Path("/repos/github.com/{owner:[^/]+}/{repo:[^/]+}/{what:(?:badges|counters)}/{which}.png").Methods("GET").Name(RedirectOldRepoBadgesAndCounters)
+	base.Path("/repos/github.com/{owner:[^/]+}/{repo:[^/]+}/{what:(?:badges|counters)}/{which}.{Format}").Methods("GET").Name(RedirectOldRepoBadgesAndCounters)
 
 	repoRev := base.PathPrefix(`/repos/` + RepoRevSpecPattern).PostMatchFunc(FixRepoRevSpecVars).BuildVarsFunc(PrepareRepoRevSpecRouteVars).Subrouter()
 	repoRev.Path("/.stats").Methods("PUT").Name(RepoComputeStats)
@@ -162,7 +162,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	repoRev.Path("/.build").Methods("GET").Name(RepoBuild)
 	repoRev.Path("/.dependencies").Methods("GET").Name(RepoDependencies)
 	repoRev.PathPrefix("/.build-data"+TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET", "HEAD", "PUT", "DELETE").Name(RepoBuildDataEntry)
-	repoRev.Path("/.badges/{Badge}.png").Methods("GET").Name(RepoBadge)
+	repoRev.Path("/.badges/{Badge}.{Format}").Methods("GET").Name(RepoBadge)
 
 	// repo contains routes that are NOT specific to a revision. In these routes, the URL may not contain a revspec after the repo (that is, no "github.com/foo/bar@myrevspec").
 	repoPath := `/repos/` + RepoSpecPathPattern
@@ -182,7 +182,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	repo.Path("/.tags").Methods("GET").Name(RepoTags)
 	repo.Path("/.badges").Methods("GET").Name(RepoBadges)
 	repo.Path("/.counters").Methods("GET").Name(RepoCounters)
-	repo.Path("/.counters/{Counter}.png").Methods("GET").Name(RepoCounter)
+	repo.Path("/.counters/{Counter}.{Format}").Methods("GET").Name(RepoCounter)
 	repo.Path("/.builds").Methods("GET").Name(RepoBuilds)
 	repo.Path("/.builds").Methods("POST").Name(RepoBuildsCreate)
 
