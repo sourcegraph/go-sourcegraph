@@ -12,38 +12,38 @@ type MockDeltasService struct {
 	ListIncoming_           func(rr RepoRevSpec, opt *DeltaListIncomingOptions) ([]*Delta, Response, error)
 }
 
-func (s *MockDeltasService) Get(ds DeltaSpec, opt *DeltaGetOptions) (*Delta, Response, error) {
+func (s MockDeltasService) Get(ds DeltaSpec, opt *DeltaGetOptions) (*Delta, Response, error) {
 	return s.Get_(ds, opt)
 }
 
-func (s *MockDeltasService) ListDefs(ds DeltaSpec, opt *DeltaListDefsOptions) (*DeltaDefs, Response, error) {
+func (s MockDeltasService) ListDefs(ds DeltaSpec, opt *DeltaListDefsOptions) (*DeltaDefs, Response, error) {
 	return s.ListDefs_(ds, opt)
 }
 
-func (s *MockDeltasService) ListDependencies(ds DeltaSpec, opt *DeltaListDependenciesOptions) (*DeltaDependencies, Response, error) {
+func (s MockDeltasService) ListDependencies(ds DeltaSpec, opt *DeltaListDependenciesOptions) (*DeltaDependencies, Response, error) {
 	return s.ListDependencies_(ds, opt)
 }
 
-func (s *MockDeltasService) ListFiles(ds DeltaSpec, opt *DeltaListFilesOptions) (*DeltaFiles, Response, error) {
+func (s MockDeltasService) ListFiles(ds DeltaSpec, opt *DeltaListFilesOptions) (*DeltaFiles, Response, error) {
 	return s.ListFiles_(ds, opt)
 }
 
-func (s *MockDeltasService) ListAffectedAuthors(ds DeltaSpec, opt *DeltaListAffectedAuthorsOptions) ([]*DeltaAffectedPerson, Response, error) {
+func (s MockDeltasService) ListAffectedAuthors(ds DeltaSpec, opt *DeltaListAffectedAuthorsOptions) ([]*DeltaAffectedPerson, Response, error) {
 	return s.ListAffectedAuthors_(ds, opt)
 }
 
-func (s *MockDeltasService) ListAffectedClients(ds DeltaSpec, opt *DeltaListAffectedClientsOptions) ([]*DeltaAffectedPerson, Response, error) {
+func (s MockDeltasService) ListAffectedClients(ds DeltaSpec, opt *DeltaListAffectedClientsOptions) ([]*DeltaAffectedPerson, Response, error) {
 	return s.ListAffectedClients_(ds, opt)
 }
 
-func (s *MockDeltasService) ListAffectedDependents(ds DeltaSpec, opt *DeltaListAffectedDependentsOptions) ([]*DeltaAffectedRepo, Response, error) {
+func (s MockDeltasService) ListAffectedDependents(ds DeltaSpec, opt *DeltaListAffectedDependentsOptions) ([]*DeltaAffectedRepo, Response, error) {
 	return s.ListAffectedDependents_(ds, opt)
 }
 
-func (s *MockDeltasService) ListReviewers(ds DeltaSpec, opt *DeltaListReviewersOptions) ([]*DeltaReviewer, Response, error) {
+func (s MockDeltasService) ListReviewers(ds DeltaSpec, opt *DeltaListReviewersOptions) ([]*DeltaReviewer, Response, error) {
 	return s.ListReviewers_(ds, opt)
 }
 
-func (s *MockDeltasService) ListIncoming(rr RepoRevSpec, opt *DeltaListIncomingOptions) ([]*Delta, Response, error) {
+func (s MockDeltasService) ListIncoming(rr RepoRevSpec, opt *DeltaListIncomingOptions) ([]*Delta, Response, error) {
 	return s.ListIncoming_(rr, opt)
 }

@@ -9,26 +9,26 @@ type MockIssuesService struct {
 	DeleteComment_ func(issue IssueSpec, commentID int) (Response, error)
 }
 
-func (s *MockIssuesService) Get(issue IssueSpec, opt *IssueGetOptions) (*Issue, Response, error) {
+func (s MockIssuesService) Get(issue IssueSpec, opt *IssueGetOptions) (*Issue, Response, error) {
 	return s.Get_(issue, opt)
 }
 
-func (s *MockIssuesService) ListByRepo(repo RepoSpec, opt *IssueListOptions) ([]*Issue, Response, error) {
+func (s MockIssuesService) ListByRepo(repo RepoSpec, opt *IssueListOptions) ([]*Issue, Response, error) {
 	return s.ListByRepo_(repo, opt)
 }
 
-func (s *MockIssuesService) ListComments(issue IssueSpec, opt *IssueListCommentsOptions) ([]*IssueComment, Response, error) {
+func (s MockIssuesService) ListComments(issue IssueSpec, opt *IssueListCommentsOptions) ([]*IssueComment, Response, error) {
 	return s.ListComments_(issue, opt)
 }
 
-func (s *MockIssuesService) CreateComment(issue IssueSpec, comment *IssueComment) (*IssueComment, Response, error) {
+func (s MockIssuesService) CreateComment(issue IssueSpec, comment *IssueComment) (*IssueComment, Response, error) {
 	return s.CreateComment_(issue, comment)
 }
 
-func (s *MockIssuesService) EditComment(issue IssueSpec, comment *IssueComment) (*IssueComment, Response, error) {
+func (s MockIssuesService) EditComment(issue IssueSpec, comment *IssueComment) (*IssueComment, Response, error) {
 	return s.EditComment_(issue, comment)
 }
 
-func (s *MockIssuesService) DeleteComment(issue IssueSpec, commentID int) (Response, error) {
+func (s MockIssuesService) DeleteComment(issue IssueSpec, commentID int) (Response, error) {
 	return s.DeleteComment_(issue, commentID)
 }

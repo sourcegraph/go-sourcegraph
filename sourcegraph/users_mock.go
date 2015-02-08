@@ -14,44 +14,44 @@ type MockUsersService struct {
 	ListOrgs_              func(member UserSpec, opt *UsersListOrgsOptions) ([]*Org, Response, error)
 }
 
-func (s *MockUsersService) Get(user UserSpec, opt *UserGetOptions) (*User, Response, error) {
+func (s MockUsersService) Get(user UserSpec, opt *UserGetOptions) (*User, Response, error) {
 	return s.Get_(user, opt)
 }
 
-func (s *MockUsersService) GetSettings(user UserSpec) (*UserSettings, Response, error) {
+func (s MockUsersService) GetSettings(user UserSpec) (*UserSettings, Response, error) {
 	return s.GetSettings_(user)
 }
 
-func (s *MockUsersService) UpdateSettings(user UserSpec, settings UserSettings) (Response, error) {
+func (s MockUsersService) UpdateSettings(user UserSpec, settings UserSettings) (Response, error) {
 	return s.UpdateSettings_(user, settings)
 }
 
-func (s *MockUsersService) ListEmails(user UserSpec) ([]*EmailAddr, Response, error) {
+func (s MockUsersService) ListEmails(user UserSpec) ([]*EmailAddr, Response, error) {
 	return s.ListEmails_(user)
 }
 
-func (s *MockUsersService) GetOrCreateFromGitHub(user GitHubUserSpec, opt *UserGetOptions) (*User, Response, error) {
+func (s MockUsersService) GetOrCreateFromGitHub(user GitHubUserSpec, opt *UserGetOptions) (*User, Response, error) {
 	return s.GetOrCreateFromGitHub_(user, opt)
 }
 
-func (s *MockUsersService) RefreshProfile(userSpec UserSpec) (Response, error) {
+func (s MockUsersService) RefreshProfile(userSpec UserSpec) (Response, error) {
 	return s.RefreshProfile_(userSpec)
 }
 
-func (s *MockUsersService) ComputeStats(userSpec UserSpec) (Response, error) {
+func (s MockUsersService) ComputeStats(userSpec UserSpec) (Response, error) {
 	return s.ComputeStats_(userSpec)
 }
 
-func (s *MockUsersService) List(opt *UsersListOptions) ([]*User, Response, error) { return s.List_(opt) }
+func (s MockUsersService) List(opt *UsersListOptions) ([]*User, Response, error) { return s.List_(opt) }
 
-func (s *MockUsersService) ListAuthors(user UserSpec, opt *UsersListAuthorsOptions) ([]*AugmentedPersonUsageByClient, Response, error) {
+func (s MockUsersService) ListAuthors(user UserSpec, opt *UsersListAuthorsOptions) ([]*AugmentedPersonUsageByClient, Response, error) {
 	return s.ListAuthors_(user, opt)
 }
 
-func (s *MockUsersService) ListClients(user UserSpec, opt *UsersListClientsOptions) ([]*AugmentedPersonUsageOfAuthor, Response, error) {
+func (s MockUsersService) ListClients(user UserSpec, opt *UsersListClientsOptions) ([]*AugmentedPersonUsageOfAuthor, Response, error) {
 	return s.ListClients_(user, opt)
 }
 
-func (s *MockUsersService) ListOrgs(member UserSpec, opt *UsersListOrgsOptions) ([]*Org, Response, error) {
+func (s MockUsersService) ListOrgs(member UserSpec, opt *UsersListOrgsOptions) ([]*Org, Response, error) {
 	return s.ListOrgs_(member, opt)
 }

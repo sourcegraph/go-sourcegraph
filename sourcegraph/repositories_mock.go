@@ -34,104 +34,104 @@ type MockReposService struct {
 	ListByRefdAuthor_  func(user UserSpec, opt *RepoListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error)
 }
 
-func (s *MockReposService) Get(repo RepoSpec, opt *RepoGetOptions) (*Repo, Response, error) {
+func (s MockReposService) Get(repo RepoSpec, opt *RepoGetOptions) (*Repo, Response, error) {
 	return s.Get_(repo, opt)
 }
 
-func (s *MockReposService) GetStats(repo RepoRevSpec) (RepoStats, Response, error) {
+func (s MockReposService) GetStats(repo RepoRevSpec) (RepoStats, Response, error) {
 	return s.GetStats_(repo)
 }
 
-func (s *MockReposService) GetCombinedStatus(spec RepoRevSpec) (*CombinedStatus, Response, error) {
+func (s MockReposService) GetCombinedStatus(spec RepoRevSpec) (*CombinedStatus, Response, error) {
 	return s.GetCombinedStatus_(spec)
 }
 
-func (s *MockReposService) GetOrCreate(repo RepoSpec, opt *RepoGetOptions) (*Repo, Response, error) {
+func (s MockReposService) GetOrCreate(repo RepoSpec, opt *RepoGetOptions) (*Repo, Response, error) {
 	return s.GetOrCreate_(repo, opt)
 }
 
-func (s *MockReposService) GetSettings(repo RepoSpec) (*RepoSettings, Response, error) {
+func (s MockReposService) GetSettings(repo RepoSpec) (*RepoSettings, Response, error) {
 	return s.GetSettings_(repo)
 }
 
-func (s *MockReposService) UpdateSettings(repo RepoSpec, settings RepoSettings) (Response, error) {
+func (s MockReposService) UpdateSettings(repo RepoSpec, settings RepoSettings) (Response, error) {
 	return s.UpdateSettings_(repo, settings)
 }
 
-func (s *MockReposService) RefreshProfile(repo RepoSpec) (Response, error) {
+func (s MockReposService) RefreshProfile(repo RepoSpec) (Response, error) {
 	return s.RefreshProfile_(repo)
 }
 
-func (s *MockReposService) RefreshVCSData(repo RepoSpec) (Response, error) {
+func (s MockReposService) RefreshVCSData(repo RepoSpec) (Response, error) {
 	return s.RefreshVCSData_(repo)
 }
 
-func (s *MockReposService) ComputeStats(repo RepoRevSpec) (Response, error) {
+func (s MockReposService) ComputeStats(repo RepoRevSpec) (Response, error) {
 	return s.ComputeStats_(repo)
 }
 
-func (s *MockReposService) GetBuild(repo RepoRevSpec, opt *RepoGetBuildOptions) (*RepoBuildInfo, Response, error) {
+func (s MockReposService) GetBuild(repo RepoRevSpec, opt *RepoGetBuildOptions) (*RepoBuildInfo, Response, error) {
 	return s.GetBuild_(repo, opt)
 }
 
-func (s *MockReposService) Create(newRepoSpec NewRepoSpec) (*Repo, Response, error) {
+func (s MockReposService) Create(newRepoSpec NewRepoSpec) (*Repo, Response, error) {
 	return s.Create_(newRepoSpec)
 }
 
-func (s *MockReposService) GetReadme(repo RepoRevSpec) (*vcsclient.TreeEntry, Response, error) {
+func (s MockReposService) GetReadme(repo RepoRevSpec) (*vcsclient.TreeEntry, Response, error) {
 	return s.GetReadme_(repo)
 }
 
-func (s *MockReposService) List(opt *RepoListOptions) ([]*Repo, Response, error) { return s.List_(opt) }
+func (s MockReposService) List(opt *RepoListOptions) ([]*Repo, Response, error) { return s.List_(opt) }
 
-func (s *MockReposService) ListCommits(repo RepoSpec, opt *RepoListCommitsOptions) ([]*Commit, Response, error) {
+func (s MockReposService) ListCommits(repo RepoSpec, opt *RepoListCommitsOptions) ([]*Commit, Response, error) {
 	return s.ListCommits_(repo, opt)
 }
 
-func (s *MockReposService) GetCommit(rev RepoRevSpec, opt *RepoGetCommitOptions) (*Commit, Response, error) {
+func (s MockReposService) GetCommit(rev RepoRevSpec, opt *RepoGetCommitOptions) (*Commit, Response, error) {
 	return s.GetCommit_(rev, opt)
 }
 
-func (s *MockReposService) ListBranches(repo RepoSpec, opt *RepoListBranchesOptions) ([]*vcs.Branch, Response, error) {
+func (s MockReposService) ListBranches(repo RepoSpec, opt *RepoListBranchesOptions) ([]*vcs.Branch, Response, error) {
 	return s.ListBranches_(repo, opt)
 }
 
-func (s *MockReposService) ListTags(repo RepoSpec, opt *RepoListTagsOptions) ([]*vcs.Tag, Response, error) {
+func (s MockReposService) ListTags(repo RepoSpec, opt *RepoListTagsOptions) ([]*vcs.Tag, Response, error) {
 	return s.ListTags_(repo, opt)
 }
 
-func (s *MockReposService) ListBadges(repo RepoSpec) ([]*Badge, Response, error) {
+func (s MockReposService) ListBadges(repo RepoSpec) ([]*Badge, Response, error) {
 	return s.ListBadges_(repo)
 }
 
-func (s *MockReposService) ListCounters(repo RepoSpec) ([]*Counter, Response, error) {
+func (s MockReposService) ListCounters(repo RepoSpec) ([]*Counter, Response, error) {
 	return s.ListCounters_(repo)
 }
 
-func (s *MockReposService) ListAuthors(repo RepoRevSpec, opt *RepoListAuthorsOptions) ([]*AugmentedRepoAuthor, Response, error) {
+func (s MockReposService) ListAuthors(repo RepoRevSpec, opt *RepoListAuthorsOptions) ([]*AugmentedRepoAuthor, Response, error) {
 	return s.ListAuthors_(repo, opt)
 }
 
-func (s *MockReposService) ListClients(repo RepoSpec, opt *RepoListClientsOptions) ([]*AugmentedRepoClient, Response, error) {
+func (s MockReposService) ListClients(repo RepoSpec, opt *RepoListClientsOptions) ([]*AugmentedRepoClient, Response, error) {
 	return s.ListClients_(repo, opt)
 }
 
-func (s *MockReposService) ListDependencies(repo RepoRevSpec, opt *RepoListDependenciesOptions) ([]*AugmentedRepoDependency, Response, error) {
+func (s MockReposService) ListDependencies(repo RepoRevSpec, opt *RepoListDependenciesOptions) ([]*AugmentedRepoDependency, Response, error) {
 	return s.ListDependencies_(repo, opt)
 }
 
-func (s *MockReposService) ListDependents(repo RepoSpec, opt *RepoListDependentsOptions) ([]*AugmentedRepoDependent, Response, error) {
+func (s MockReposService) ListDependents(repo RepoSpec, opt *RepoListDependentsOptions) ([]*AugmentedRepoDependent, Response, error) {
 	return s.ListDependents_(repo, opt)
 }
 
-func (s *MockReposService) ListByContributor(user UserSpec, opt *RepoListByContributorOptions) ([]*AugmentedRepoContribution, Response, error) {
+func (s MockReposService) ListByContributor(user UserSpec, opt *RepoListByContributorOptions) ([]*AugmentedRepoContribution, Response, error) {
 	return s.ListByContributor_(user, opt)
 }
 
-func (s *MockReposService) ListByClient(user UserSpec, opt *RepoListByClientOptions) ([]*AugmentedRepoUsageByClient, Response, error) {
+func (s MockReposService) ListByClient(user UserSpec, opt *RepoListByClientOptions) ([]*AugmentedRepoUsageByClient, Response, error) {
 	return s.ListByClient_(user, opt)
 }
 
-func (s *MockReposService) ListByRefdAuthor(user UserSpec, opt *RepoListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error) {
+func (s MockReposService) ListByRefdAuthor(user UserSpec, opt *RepoListByRefdAuthorOptions) ([]*AugmentedRepoUsageOfAuthor, Response, error) {
 	return s.ListByRefdAuthor_(user, opt)
 }

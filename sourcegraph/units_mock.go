@@ -7,10 +7,10 @@ type MockUnitsService struct {
 	List_ func(opt *UnitListOptions) ([]*unit.RepoSourceUnit, Response, error)
 }
 
-func (s *MockUnitsService) Get(spec UnitSpec) (*unit.RepoSourceUnit, Response, error) {
+func (s MockUnitsService) Get(spec UnitSpec) (*unit.RepoSourceUnit, Response, error) {
 	return s.Get_(spec)
 }
 
-func (s *MockUnitsService) List(opt *UnitListOptions) ([]*unit.RepoSourceUnit, Response, error) {
+func (s MockUnitsService) List(opt *UnitListOptions) ([]*unit.RepoSourceUnit, Response, error) {
 	return s.List_(opt)
 }
