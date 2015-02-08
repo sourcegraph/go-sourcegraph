@@ -44,7 +44,8 @@ type TreeEntry struct {
 
 	ContentsString string `json:",omitempty"`
 
-	SourceAsJSON bool `json:",omitempty"`
+	// SourceCode is set when SourceAsJSON is enabled in RepoTreeGetOptions.
+	SourceCode *SourceCode `json:",omitempty"`
 
 	// FormatResult is only set if this TreeEntry is a file.
 	FormatResult *FormatResult `json:",omitempty"`
