@@ -112,11 +112,15 @@ func TestDeltasService_ListDefs(t *testing.T) {
 	mux.HandleFunc(urlPath(t, router.DeltaDefs, ds.RouteVars()), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
+		testFormValues(t, r, values{
+			"UnitType": "t",
+			"Unit":     "u",
+		})
 
 		writeJSON(w, want)
 	})
 
-	defs, _, err := client.Deltas.ListDefs(ds, nil)
+	defs, _, err := client.Deltas.ListDefs(ds, &DeltaListDefsOptions{DeltaFilter: DeltaFilter{UnitType: "t", Unit: "u"}})
 	if err != nil {
 		t.Errorf("Deltas.ListDefs returned error: %v", err)
 	}
@@ -144,11 +148,15 @@ func TestDeltasService_ListDependencies(t *testing.T) {
 	mux.HandleFunc(urlPath(t, router.DeltaDependencies, ds.RouteVars()), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
+		testFormValues(t, r, values{
+			"UnitType": "t",
+			"Unit":     "u",
+		})
 
 		writeJSON(w, want)
 	})
 
-	dependencies, _, err := client.Deltas.ListDependencies(ds, nil)
+	dependencies, _, err := client.Deltas.ListDependencies(ds, &DeltaListDependenciesOptions{DeltaFilter: DeltaFilter{UnitType: "t", Unit: "u"}})
 	if err != nil {
 		t.Errorf("Deltas.ListDependencies returned error: %v", err)
 	}
@@ -176,11 +184,15 @@ func TestDeltasService_ListFiles(t *testing.T) {
 	mux.HandleFunc(urlPath(t, router.DeltaFiles, ds.RouteVars()), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
+		testFormValues(t, r, values{
+			"UnitType": "t",
+			"Unit":     "u",
+		})
 
 		writeJSON(w, want)
 	})
 
-	files, _, err := client.Deltas.ListFiles(ds, nil)
+	files, _, err := client.Deltas.ListFiles(ds, &DeltaListFilesOptions{DeltaFilter: DeltaFilter{UnitType: "t", Unit: "u"}})
 	if err != nil {
 		t.Errorf("Deltas.ListFiles returned error: %v", err)
 	}
@@ -208,11 +220,15 @@ func TestDeltasService_ListAffectedAuthors(t *testing.T) {
 	mux.HandleFunc(urlPath(t, router.DeltaAffectedAuthors, ds.RouteVars()), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
+		testFormValues(t, r, values{
+			"UnitType": "t",
+			"Unit":     "u",
+		})
 
 		writeJSON(w, want)
 	})
 
-	affectedAuthors, _, err := client.Deltas.ListAffectedAuthors(ds, nil)
+	affectedAuthors, _, err := client.Deltas.ListAffectedAuthors(ds, &DeltaListAffectedAuthorsOptions{DeltaFilter: DeltaFilter{UnitType: "t", Unit: "u"}})
 	if err != nil {
 		t.Errorf("Deltas.ListAffectedAuthors returned error: %v", err)
 	}
@@ -240,11 +256,15 @@ func TestDeltasService_ListAffectedClients(t *testing.T) {
 	mux.HandleFunc(urlPath(t, router.DeltaAffectedClients, ds.RouteVars()), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
+		testFormValues(t, r, values{
+			"UnitType": "t",
+			"Unit":     "u",
+		})
 
 		writeJSON(w, want)
 	})
 
-	affectedClients, _, err := client.Deltas.ListAffectedClients(ds, nil)
+	affectedClients, _, err := client.Deltas.ListAffectedClients(ds, &DeltaListAffectedClientsOptions{DeltaFilter: DeltaFilter{UnitType: "t", Unit: "u"}})
 	if err != nil {
 		t.Errorf("Deltas.ListAffectedClients returned error: %v", err)
 	}
@@ -272,11 +292,15 @@ func TestDeltasService_ListAffectedDependents(t *testing.T) {
 	mux.HandleFunc(urlPath(t, router.DeltaAffectedDependents, ds.RouteVars()), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
+		testFormValues(t, r, values{
+			"UnitType": "t",
+			"Unit":     "u",
+		})
 
 		writeJSON(w, want)
 	})
 
-	affectedDependents, _, err := client.Deltas.ListAffectedDependents(ds, nil)
+	affectedDependents, _, err := client.Deltas.ListAffectedDependents(ds, &DeltaListAffectedDependentsOptions{DeltaFilter: DeltaFilter{UnitType: "t", Unit: "u"}})
 	if err != nil {
 		t.Errorf("Deltas.ListAffectedDependents returned error: %v", err)
 	}
@@ -304,11 +328,15 @@ func TestDeltasService_ListReviewers(t *testing.T) {
 	mux.HandleFunc(urlPath(t, router.DeltaReviewers, ds.RouteVars()), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
+		testFormValues(t, r, values{
+			"UnitType": "t",
+			"Unit":     "u",
+		})
 
 		writeJSON(w, want)
 	})
 
-	reviewers, _, err := client.Deltas.ListReviewers(ds, nil)
+	reviewers, _, err := client.Deltas.ListReviewers(ds, &DeltaListReviewersOptions{DeltaFilter: DeltaFilter{UnitType: "t", Unit: "u"}})
 	if err != nil {
 		t.Errorf("Deltas.ListReviewers returned error: %v", err)
 	}
@@ -333,11 +361,15 @@ func TestDeltasService_ListIncoming(t *testing.T) {
 	mux.HandleFunc(urlPath(t, router.DeltasIncoming, rr.RouteVars()), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
+		testFormValues(t, r, values{
+			"UnitType": "t",
+			"Unit":     "u",
+		})
 
 		writeJSON(w, want)
 	})
 
-	incoming, _, err := client.Deltas.ListIncoming(rr, nil)
+	incoming, _, err := client.Deltas.ListIncoming(rr, &DeltaListIncomingOptions{DeltaFilter: DeltaFilter{UnitType: "t", Unit: "u"}})
 	if err != nil {
 		t.Errorf("Deltas.ListIncoming returned error: %v", err)
 	}

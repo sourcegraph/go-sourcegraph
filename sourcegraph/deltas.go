@@ -6,6 +6,8 @@ import (
 
 	"sourcegraph.com/sourcegraph/go-diff/diff"
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
+	"sourcegraph.com/sourcegraph/srclib/store"
+	"sourcegraph.com/sourcegraph/srclib/unit"
 )
 
 // DeltasService interacts with the delta-related endpoints of the
@@ -160,8 +162,23 @@ func (s *deltasService) Get(ds DeltaSpec, opt *DeltaGetOptions) (*Delta, Respons
 	return delta, resp, nil
 }
 
+// DeltaFilter specifies criteria by which to filter results from
+// DeltaListXxx methods.
+type DeltaFilter struct {
+	Unit     string `url:",omitempty"`
+	UnitType string `url:",omitempty"`
+}
+
+func (f DeltaFilter) DefFilters() []store.DefFilter {
+	if f.UnitType != "" && f.Unit != "" {
+		return []store.DefFilter{store.ByUnits(unit.ID2{Type: f.UnitType, Name: f.Unit})}
+	}
+	return nil
+}
+
 // DeltaListDefsOptions specifies options for ListDefs.
 type DeltaListDefsOptions struct {
+	DeltaFilter
 	ListOptions
 }
 
@@ -218,6 +235,7 @@ func (s *deltasService) ListDefs(ds DeltaSpec, opt *DeltaListDefsOptions) (*Delt
 // DeltaListDependenciesOptions specifies options for
 // ListDependencies.
 type DeltaListDependenciesOptions struct {
+	DeltaFilter
 	ListOptions
 }
 
@@ -261,6 +279,8 @@ type DeltaListFilesOptions struct {
 
 	// Filter filters the list of returned files to those whose name matches Filter.
 	Filter string `url:",omitempty"`
+
+	DeltaFilter
 }
 
 // DeltaFiles describes files added/changed/deleted in a delta.
@@ -320,6 +340,7 @@ type DeltaAffectedPerson struct {
 // DeltaListAffectedAuthorsOptions specifies options for
 // ListAffectedAuthors.
 type DeltaListAffectedAuthorsOptions struct {
+	DeltaFilter
 	ListOptions
 }
 
@@ -346,6 +367,7 @@ func (s *deltasService) ListAffectedAuthors(ds DeltaSpec, opt *DeltaListAffected
 // DeltaListAffectedClientsOptions specifies options for
 // ListAffectedClients.
 type DeltaListAffectedClientsOptions struct {
+	DeltaFilter
 	ListOptions
 }
 
@@ -388,6 +410,8 @@ type DeltaDefRefs struct {
 // ListAffectedDependents.
 type DeltaListAffectedDependentsOptions struct {
 	NotFormatted bool
+
+	DeltaFilter
 	ListOptions
 }
 
@@ -423,6 +447,7 @@ type DeltaReviewer struct {
 }
 
 type DeltaListReviewersOptions struct {
+	DeltaFilter
 	ListOptions
 }
 
@@ -449,6 +474,7 @@ func (s *deltasService) ListReviewers(ds DeltaSpec, opt *DeltaListReviewersOptio
 // DeltaListIncomingOptions specifies options for
 // ListIncoming.
 type DeltaListIncomingOptions struct {
+	DeltaFilter
 	ListOptions
 }
 
