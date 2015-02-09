@@ -2,6 +2,7 @@ package sourcegraph
 
 type MockDeltasService struct {
 	Get_                    func(ds DeltaSpec, opt *DeltaGetOptions) (*Delta, Response, error)
+	ListUnits_              func(ds DeltaSpec, opt *DeltaListUnitsOptions) ([]*UnitDelta, Response, error)
 	ListDefs_               func(ds DeltaSpec, opt *DeltaListDefsOptions) (*DeltaDefs, Response, error)
 	ListDependencies_       func(ds DeltaSpec, opt *DeltaListDependenciesOptions) (*DeltaDependencies, Response, error)
 	ListFiles_              func(ds DeltaSpec, opt *DeltaListFilesOptions) (*DeltaFiles, Response, error)
@@ -14,6 +15,10 @@ type MockDeltasService struct {
 
 func (s MockDeltasService) Get(ds DeltaSpec, opt *DeltaGetOptions) (*Delta, Response, error) {
 	return s.Get_(ds, opt)
+}
+
+func (s MockDeltasService) ListUnits(ds DeltaSpec, opt *DeltaListUnitsOptions) ([]*UnitDelta, Response, error) {
+	return s.ListUnits_(ds, opt)
 }
 
 func (s MockDeltasService) ListDefs(ds DeltaSpec, opt *DeltaListDefsOptions) (*DeltaDefs, Response, error) {

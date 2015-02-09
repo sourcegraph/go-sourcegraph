@@ -19,6 +19,9 @@ type DeltasService interface {
 	// Get fetches a summary of a delta.
 	Get(ds DeltaSpec, opt *DeltaGetOptions) (*Delta, Response, error)
 
+	// ListUnits lists units added/changed/deleted in a delta.
+	ListUnits(ds DeltaSpec, opt *DeltaListUnitsOptions) ([]*UnitDelta, Response, error)
+
 	// ListDefs lists definitions added/changed/deleted in a delta.
 	ListDefs(ds DeltaSpec, opt *DeltaListDefsOptions) (*DeltaDefs, Response, error)
 
@@ -160,6 +163,65 @@ func (s *deltasService) Get(ds DeltaSpec, opt *DeltaGetOptions) (*Delta, Respons
 	}
 
 	return delta, resp, nil
+}
+
+// A UnitDelta represents a single source unit that was changed. It
+// has fields for the before (Base) and after (Head) versions. If both
+// Base and Head are non-nil, then the unit was changed from base to
+// head. Otherwise, one of the fields being nil means that the unit
+// did not exist in that revision (e.g., it was added or deleted from
+// base to head).
+type UnitDelta struct {
+	Base *unit.SourceUnit // the unit in the base commit (if nil, this unit was added in the head)
+	Head *unit.SourceUnit // the unit in the head commit (if nil, this unit was deleted in the head)
+}
+
+// Added is whether this represents an added source unit (not present
+// in base, present in head).
+func (ud UnitDelta) Added() bool { return ud.Base == nil && ud.Head != nil }
+
+// Changed is whether this represents a changed source unit (present
+// in base, present in head).
+func (ud UnitDelta) Changed() bool { return ud.Base != nil && ud.Head != nil }
+
+// Deleted is whether this represents a deleted source unit (present
+// in base, not present in head).
+func (ud UnitDelta) Deleted() bool { return ud.Base != nil && ud.Head == nil }
+
+type UnitDeltas []*UnitDelta
+
+func (v UnitDeltas) Len() int      { return len(v) }
+func (v UnitDeltas) Swap(i, j int) { v[i], v[j] = v[j], v[i] }
+func (v UnitDeltas) Less(i, j int) bool {
+	a, b := v[i], v[j]
+	return (a.Added() && b.Added() && deltaUnitLess(a.Head, b.Head)) || (a.Changed() && b.Changed() && deltaUnitLess(a.Head, b.Head)) || (a.Deleted() && b.Deleted() && deltaUnitLess(a.Base, b.Base)) || (a.Added() && !b.Added()) || (a.Changed() && !b.Added() && !b.Changed())
+}
+
+func deltaUnitLess(a, b *unit.SourceUnit) bool {
+	return a.Type < b.Type || (a.Type == b.Type && a.Name < b.Name)
+}
+
+// DeltaListUnitsOptions specifies options for ListUnits.
+type DeltaListUnitsOptions struct{}
+
+func (s *deltasService) ListUnits(ds DeltaSpec, opt *DeltaListUnitsOptions) ([]*UnitDelta, Response, error) {
+	url, err := s.client.URL(router.DeltaUnits, ds.RouteVars(), opt)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var units []*UnitDelta
+	resp, err := s.client.Do(req, &units)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return units, resp, nil
 }
 
 // DeltaFilter specifies criteria by which to filter results from
@@ -420,7 +482,7 @@ type DeltaDefRefs struct {
 // DeltaListAffectedDependentsOptions specifies options for
 // ListAffectedDependents.
 type DeltaListAffectedDependentsOptions struct {
-	NotFormatted bool
+	NotFormatted bool `url:",omitempty"`
 
 	DeltaFilter
 	ListOptions

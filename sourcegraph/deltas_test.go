@@ -9,6 +9,7 @@ import (
 	"sourcegraph.com/sourcegraph/go-diff/diff"
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 	"sourcegraph.com/sourcegraph/srclib/graph"
+	"sourcegraph.com/sourcegraph/srclib/unit"
 
 	"github.com/kr/pretty"
 )
@@ -95,6 +96,38 @@ func TestDeltasService_Get(t *testing.T) {
 
 	if !reflect.DeepEqual(delta, want) {
 		t.Errorf("Deltas.Get returned %+v, want %+v", delta, want)
+	}
+}
+func TestDeltasService_ListUnits(t *testing.T) {
+	setup()
+	defer teardown()
+
+	ds := DeltaSpec{
+		Base: baseRev,
+		Head: headRev,
+	}
+	want := []*UnitDelta{{Head: &unit.SourceUnit{Type: "t", Name: "u"}}}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.DeltaUnits, ds.RouteVars()), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+		testFormValues(t, r, values{})
+
+		writeJSON(w, want)
+	})
+
+	units, _, err := client.Deltas.ListUnits(ds, &DeltaListUnitsOptions{})
+	if err != nil {
+		t.Errorf("Deltas.ListUnits returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(units, want) {
+		t.Errorf("Deltas.ListUnits returned %+v, want %+v", units, want)
 	}
 }
 

@@ -102,6 +102,7 @@ const (
 	DefVersions   = "def.versions"
 
 	Delta                   = "delta"
+	DeltaUnits              = "delta.units"
 	DeltaDefs               = "delta.defs"
 	DeltaDependencies       = "delta.dependencies"
 	DeltaFiles              = "delta.files"
@@ -208,6 +209,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	deltaPath := "/.deltas/{Rev:.+}..{DeltaHeadRev:" + PathComponentNoLeadingDot + "}"
 	repo.Path(deltaPath).Methods("GET").Name(Delta)
 	deltas := repo.PathPrefix(deltaPath).Subrouter()
+	deltas.Path("/.units").Methods("GET").Name(DeltaUnits)
 	deltas.Path("/.defs").Methods("GET").Name(DeltaDefs)
 	deltas.Path("/.dependencies").Methods("GET").Name(DeltaDependencies)
 	deltas.Path("/.files").Methods("GET").Name(DeltaFiles)
