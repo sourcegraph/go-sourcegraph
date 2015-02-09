@@ -212,6 +212,17 @@ func (dd DefDelta) Changed() bool { return dd.Base != nil && dd.Head != nil }
 // not present in head).
 func (dd DefDelta) Deleted() bool { return dd.Base != nil && dd.Head == nil }
 
+func (v DeltaDefs) Len() int      { return len(v.Defs) }
+func (v DeltaDefs) Swap(i, j int) { v.Defs[i], v.Defs[j] = v.Defs[j], v.Defs[i] }
+func (v DeltaDefs) Less(i, j int) bool {
+	a, b := v.Defs[i], v.Defs[j]
+	return (a.Added() && b.Added() && deltaDefLess(a.Head, b.Head)) || (a.Changed() && b.Changed() && deltaDefLess(a.Head, b.Head)) || (a.Deleted() && b.Deleted() && deltaDefLess(a.Base, b.Base)) || (a.Added() && !b.Added()) || (a.Changed() && !b.Added() && !b.Changed())
+}
+
+func deltaDefLess(a, b *Def) bool {
+	return a.UnitType < b.UnitType || (a.UnitType == b.UnitType && a.Unit < b.Unit) || (a.UnitType == b.UnitType && a.Unit == b.Unit && a.Path < b.Path)
+}
+
 func (s *deltasService) ListDefs(ds DeltaSpec, opt *DeltaListDefsOptions) (*DeltaDefs, Response, error) {
 	url, err := s.client.URL(router.DeltaDefs, ds.RouteVars(), opt)
 	if err != nil {
