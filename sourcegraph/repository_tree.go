@@ -61,19 +61,18 @@ type TreeEntry struct {
 // RepoTreeGetOptions.
 type SourceCode struct {
 	// Lines contains all the lines of the contained code snippet.
-	Lines []*SourceCodeLine `json:"lines,omitempty"`
+	Lines []*SourceCodeLine `json:",omitempty"`
 
-	NumRefs              int   `json:"refs"`
-	TooManyRefs          bool  `json:"max"`
-	LineStartByteOffsets []int `json:"lineOffsets"`
+	NumRefs     int  `json:"refs"`
+	TooManyRefs bool `json:"max"`
 }
 
 // SourceCodeLine contains all tokens on this line along with other information
 // such as byte offsets in original source.
 type SourceCodeLine struct {
 	// StartByte and EndByte are the start and end offsets in bytes, in the original file.
-	StartByte int `json:"-"`
-	EndByte   int `json:"-"`
+	StartByte int
+	EndByte   int
 
 	// Tokens contains any tokens that may be on this line, including whitespace. Whitespace
 	// is stored as an HTML encoded "string" and token information is stored as
