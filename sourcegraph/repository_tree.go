@@ -78,7 +78,7 @@ type SourceCodeLine struct {
 	// Tokens contains any tokens that may be on this line, including whitespace. Whitespace
 	// is stored as an HTML encoded "string" and token information is stored as
 	// "SourceCodeToken". New lines ('\n') are not present.
-	Tokens []interface{}
+	Tokens []interface{} `json:",omitempty"`
 }
 
 // SourceCodeToken contains information about a code token.
@@ -89,10 +89,10 @@ type SourceCodeToken struct {
 
 	// URL specifies that the token is a reference or a definition,  based on the
 	// IsDef property.
-	URL string
+	URL string `json:",omitempty"`
 
 	// IsDef specifies whether the token is a definition.
-	IsDef bool
+	IsDef bool `json:",omitempty"`
 
 	// Class specifies the token type as per
 	// [google-code-prettify](https://code.google.com/p/google-code-prettify/).
