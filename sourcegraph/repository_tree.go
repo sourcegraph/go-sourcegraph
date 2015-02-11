@@ -53,6 +53,12 @@ type TreeEntry struct {
 
 // SourceCode contains a snippet of code with linked and classed tokens,
 // along with other information about the contents.
+//
+// This data structure is useful when one desires to take full control of
+// rendering and manipulating the contents of the requested TreeEntry or snippet,
+// rather than dealing with an (annotated) string or parsing text. To obtain
+// this strcture in the TreeEntry, TokenizedSource must be set to "true" in the
+// RepoTreeGetOptions.
 type SourceCode struct {
 	// Lines contains all the lines of the contained code snippet.
 	Lines []*SourceCodeLine `json:"lines,omitempty"`
