@@ -385,12 +385,15 @@ func (vs Examples) Less(i, j int) bool { return vs[i].sortKey() < vs[j].sortKey(
 
 // DefListExamplesOptions specifies options for DefsService.ListExamples.
 type DefListExamplesOptions struct {
-	Formatted bool
+	Formatted bool `url:",omitempty"`
 
 	// Filter by a specific Repo URI
-	Repo string
+	Repo string `url:",omitempty"`
 
-	SourceAsJSON bool
+	// TokenizedSource requests that the source code be returned as a data structure,
+	// rather than an (annotated) string. This is useful when full control of rendering
+	// and traversal of source code is desired on the client.
+	TokenizedSource bool `url:",omitempty"`
 
 	ListOptions
 }

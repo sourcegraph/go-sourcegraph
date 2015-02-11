@@ -44,7 +44,8 @@ type TreeEntry struct {
 
 	ContentsString string `json:",omitempty"`
 
-	// SourceCode is set when SourceAsJSON is enabled in RepoTreeGetOptions.
+	// SourceCode contains the tokenized source code. This structure is only filled in
+	// when "TokenizedSource" is set to "true" in RepoTreeGetOptions.
 	SourceCode *SourceCode `json:",omitempty"`
 
 	// FormatResult is only set if this TreeEntry is a file.
@@ -119,8 +120,10 @@ type RepoTreeGetOptions struct {
 	// Contents code-formatted using HTML.
 	Formatted bool
 
-	// SourceAsJSON requests the contents of the file tokenized in JSON format
-	SourceAsJSON bool `url:",omitempty"`
+	// TokenizedSource requests that the source code be returned as a data structure,
+	// rather than an (annotated) string. This is useful when full control of rendering
+	// and traversal of source code is desired on the client.
+	TokenizedSource bool `url:",omitempty"`
 
 	ContentsAsString bool `url:",omitempty"`
 
