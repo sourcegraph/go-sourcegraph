@@ -15,7 +15,7 @@ type PeopleService interface {
 	// Get gets a person. If an email is provided and it resolves to a
 	// registered user, information about that user is
 	// returned. Otherwise a transient person is created and returned.
-	Get(PersonSpec) (*Person, Response, error)
+	Get(person PersonSpec) (*Person, Response, error)
 }
 
 // peopleService implements PeopleService.
@@ -161,12 +161,4 @@ func (x *PersonStatType) Scan(v interface{}) error {
 	return fmt.Errorf("%T.Scan failed: %v", x, v)
 }
 
-type MockPeopleService struct {
-	Get_ func(person PersonSpec) (*Person, Response, error)
-}
-
-var _ PeopleService = MockPeopleService{}
-
-func (s MockPeopleService) Get(person PersonSpec) (*Person, Response, error) {
-	return s.Get_(person)
-}
+var _ PeopleService = &MockPeopleService{}

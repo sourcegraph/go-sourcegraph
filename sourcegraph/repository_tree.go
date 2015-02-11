@@ -44,8 +44,7 @@ type TreeEntry struct {
 
 	ContentsString string `json:",omitempty"`
 
-	// SourceCode contains the tokenized source code. This structure is only filled in
-	// when "TokenizedSource" is set to "true" in RepoTreeGetOptions.
+	// SourceCode is set when SourceAsJSON is enabled in RepoTreeGetOptions.
 	SourceCode *SourceCode `json:",omitempty"`
 
 	// FormatResult is only set if this TreeEntry is a file.
@@ -120,10 +119,8 @@ type RepoTreeGetOptions struct {
 	// Contents code-formatted using HTML.
 	Formatted bool
 
-	// TokenizedSource requests that the source code be returned as a data structure,
-	// rather than an (annotated) string. This is useful when full control of rendering
-	// and traversal of source code is desired on the client.
-	TokenizedSource bool `url:",omitempty"`
+	// SourceAsJSON requests the contents of the file tokenized in JSON format
+	SourceAsJSON bool `url:",omitempty"`
 
 	ContentsAsString bool `url:",omitempty"`
 
@@ -150,12 +147,4 @@ func (s *repoTreeService) Get(entry TreeEntrySpec, opt *RepoTreeGetOptions) (*Tr
 	return entry_, resp, nil
 }
 
-type MockRepoTreeService struct {
-	Get_ func(entry TreeEntrySpec, opt *RepoTreeGetOptions) (*TreeEntry, Response, error)
-}
-
-var _ RepoTreeService = MockRepoTreeService{}
-
-func (s MockRepoTreeService) Get(entry TreeEntrySpec, opt *RepoTreeGetOptions) (*TreeEntry, Response, error) {
-	return s.Get_(entry, opt)
-}
+var _ RepoTreeService = &MockRepoTreeService{}

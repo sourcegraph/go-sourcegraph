@@ -6,6 +6,8 @@ import (
 
 	"sourcegraph.com/sourcegraph/go-diff/diff"
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
+	"sourcegraph.com/sourcegraph/srclib/store"
+	"sourcegraph.com/sourcegraph/srclib/unit"
 )
 
 // DeltasService interacts with the delta-related endpoints of the
@@ -16,6 +18,9 @@ import (
 type DeltasService interface {
 	// Get fetches a summary of a delta.
 	Get(ds DeltaSpec, opt *DeltaGetOptions) (*Delta, Response, error)
+
+	// ListUnits lists units added/changed/deleted in a delta.
+	ListUnits(ds DeltaSpec, opt *DeltaListUnitsOptions) ([]*UnitDelta, Response, error)
 
 	// ListDefs lists definitions added/changed/deleted in a delta.
 	ListDefs(ds DeltaSpec, opt *DeltaListDefsOptions) (*DeltaDefs, Response, error)
@@ -160,8 +165,82 @@ func (s *deltasService) Get(ds DeltaSpec, opt *DeltaGetOptions) (*Delta, Respons
 	return delta, resp, nil
 }
 
+// A UnitDelta represents a single source unit that was changed. It
+// has fields for the before (Base) and after (Head) versions. If both
+// Base and Head are non-nil, then the unit was changed from base to
+// head. Otherwise, one of the fields being nil means that the unit
+// did not exist in that revision (e.g., it was added or deleted from
+// base to head).
+type UnitDelta struct {
+	Base *unit.SourceUnit // the unit in the base commit (if nil, this unit was added in the head)
+	Head *unit.SourceUnit // the unit in the head commit (if nil, this unit was deleted in the head)
+}
+
+// Added is whether this represents an added source unit (not present
+// in base, present in head).
+func (ud UnitDelta) Added() bool { return ud.Base == nil && ud.Head != nil }
+
+// Changed is whether this represents a changed source unit (present
+// in base, present in head).
+func (ud UnitDelta) Changed() bool { return ud.Base != nil && ud.Head != nil }
+
+// Deleted is whether this represents a deleted source unit (present
+// in base, not present in head).
+func (ud UnitDelta) Deleted() bool { return ud.Base != nil && ud.Head == nil }
+
+type UnitDeltas []*UnitDelta
+
+func (v UnitDeltas) Len() int      { return len(v) }
+func (v UnitDeltas) Swap(i, j int) { v[i], v[j] = v[j], v[i] }
+func (v UnitDeltas) Less(i, j int) bool {
+	a, b := v[i], v[j]
+	return (a.Added() && b.Added() && deltaUnitLess(a.Head, b.Head)) || (a.Changed() && b.Changed() && deltaUnitLess(a.Head, b.Head)) || (a.Deleted() && b.Deleted() && deltaUnitLess(a.Base, b.Base)) || (a.Added() && !b.Added()) || (a.Changed() && !b.Added() && !b.Changed())
+}
+
+func deltaUnitLess(a, b *unit.SourceUnit) bool {
+	return a.Type < b.Type || (a.Type == b.Type && a.Name < b.Name)
+}
+
+// DeltaListUnitsOptions specifies options for ListUnits.
+type DeltaListUnitsOptions struct{}
+
+func (s *deltasService) ListUnits(ds DeltaSpec, opt *DeltaListUnitsOptions) ([]*UnitDelta, Response, error) {
+	url, err := s.client.URL(router.DeltaUnits, ds.RouteVars(), opt)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var units []*UnitDelta
+	resp, err := s.client.Do(req, &units)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return units, resp, nil
+}
+
+// DeltaFilter specifies criteria by which to filter results from
+// DeltaListXxx methods.
+type DeltaFilter struct {
+	Unit     string `url:",omitempty"`
+	UnitType string `url:",omitempty"`
+}
+
+func (f DeltaFilter) DefFilters() []store.DefFilter {
+	if f.UnitType != "" && f.Unit != "" {
+		return []store.DefFilter{store.ByUnits(unit.ID2{Type: f.UnitType, Name: f.Unit})}
+	}
+	return nil
+}
+
 // DeltaListDefsOptions specifies options for ListDefs.
 type DeltaListDefsOptions struct {
+	DeltaFilter
 	ListOptions
 }
 
@@ -195,6 +274,17 @@ func (dd DefDelta) Changed() bool { return dd.Base != nil && dd.Head != nil }
 // not present in head).
 func (dd DefDelta) Deleted() bool { return dd.Base != nil && dd.Head == nil }
 
+func (v DeltaDefs) Len() int      { return len(v.Defs) }
+func (v DeltaDefs) Swap(i, j int) { v.Defs[i], v.Defs[j] = v.Defs[j], v.Defs[i] }
+func (v DeltaDefs) Less(i, j int) bool {
+	a, b := v.Defs[i], v.Defs[j]
+	return (a.Added() && b.Added() && deltaDefLess(a.Head, b.Head)) || (a.Changed() && b.Changed() && deltaDefLess(a.Head, b.Head)) || (a.Deleted() && b.Deleted() && deltaDefLess(a.Base, b.Base)) || (a.Added() && !b.Added()) || (a.Changed() && !b.Added() && !b.Changed())
+}
+
+func deltaDefLess(a, b *Def) bool {
+	return a.UnitType < b.UnitType || (a.UnitType == b.UnitType && a.Unit < b.Unit) || (a.UnitType == b.UnitType && a.Unit == b.Unit && a.Path < b.Path)
+}
+
 func (s *deltasService) ListDefs(ds DeltaSpec, opt *DeltaListDefsOptions) (*DeltaDefs, Response, error) {
 	url, err := s.client.URL(router.DeltaDefs, ds.RouteVars(), opt)
 	if err != nil {
@@ -218,6 +308,7 @@ func (s *deltasService) ListDefs(ds DeltaSpec, opt *DeltaListDefsOptions) (*Delt
 // DeltaListDependenciesOptions specifies options for
 // ListDependencies.
 type DeltaListDependenciesOptions struct {
+	DeltaFilter
 	ListOptions
 }
 
@@ -261,6 +352,8 @@ type DeltaListFilesOptions struct {
 
 	// Filter filters the list of returned files to those whose name matches Filter.
 	Filter string `url:",omitempty"`
+
+	DeltaFilter
 }
 
 // DeltaFiles describes files added/changed/deleted in a delta.
@@ -320,6 +413,7 @@ type DeltaAffectedPerson struct {
 // DeltaListAffectedAuthorsOptions specifies options for
 // ListAffectedAuthors.
 type DeltaListAffectedAuthorsOptions struct {
+	DeltaFilter
 	ListOptions
 }
 
@@ -346,6 +440,7 @@ func (s *deltasService) ListAffectedAuthors(ds DeltaSpec, opt *DeltaListAffected
 // DeltaListAffectedClientsOptions specifies options for
 // ListAffectedClients.
 type DeltaListAffectedClientsOptions struct {
+	DeltaFilter
 	ListOptions
 }
 
@@ -387,7 +482,9 @@ type DeltaDefRefs struct {
 // DeltaListAffectedDependentsOptions specifies options for
 // ListAffectedDependents.
 type DeltaListAffectedDependentsOptions struct {
-	NotFormatted bool
+	NotFormatted bool `url:",omitempty"`
+
+	DeltaFilter
 	ListOptions
 }
 
@@ -423,6 +520,7 @@ type DeltaReviewer struct {
 }
 
 type DeltaListReviewersOptions struct {
+	DeltaFilter
 	ListOptions
 }
 
@@ -449,6 +547,7 @@ func (s *deltasService) ListReviewers(ds DeltaSpec, opt *DeltaListReviewersOptio
 // DeltaListIncomingOptions specifies options for
 // ListIncoming.
 type DeltaListIncomingOptions struct {
+	DeltaFilter
 	ListOptions
 }
 
@@ -472,50 +571,4 @@ func (s *deltasService) ListIncoming(rr RepoRevSpec, opt *DeltaListIncomingOptio
 	return deltas, resp, nil
 }
 
-type MockDeltasService struct {
-	Get_                    func(ds DeltaSpec, opt *DeltaGetOptions) (*Delta, Response, error)
-	ListDefs_               func(ds DeltaSpec, opt *DeltaListDefsOptions) (*DeltaDefs, Response, error)
-	ListDependencies_       func(ds DeltaSpec, opt *DeltaListDependenciesOptions) (*DeltaDependencies, Response, error)
-	ListFiles_              func(ds DeltaSpec, opt *DeltaListFilesOptions) (*DeltaFiles, Response, error)
-	ListAffectedAuthors_    func(ds DeltaSpec, opt *DeltaListAffectedAuthorsOptions) ([]*DeltaAffectedPerson, Response, error)
-	ListAffectedClients_    func(ds DeltaSpec, opt *DeltaListAffectedClientsOptions) ([]*DeltaAffectedPerson, Response, error)
-	ListAffectedDependents_ func(ds DeltaSpec, opt *DeltaListAffectedDependentsOptions) ([]*DeltaAffectedRepo, Response, error)
-	ListReviewers_          func(ds DeltaSpec, opt *DeltaListReviewersOptions) ([]*DeltaReviewer, Response, error)
-	ListIncoming_           func(rr RepoRevSpec, opt *DeltaListIncomingOptions) ([]*Delta, Response, error)
-}
-
-func (s MockDeltasService) Get(ds DeltaSpec, opt *DeltaGetOptions) (*Delta, Response, error) {
-	return s.Get_(ds, opt)
-}
-
-func (s MockDeltasService) ListDefs(ds DeltaSpec, opt *DeltaListDefsOptions) (*DeltaDefs, Response, error) {
-	return s.ListDefs_(ds, opt)
-}
-
-func (s MockDeltasService) ListDependencies(ds DeltaSpec, opt *DeltaListDependenciesOptions) (*DeltaDependencies, Response, error) {
-	return s.ListDependencies_(ds, opt)
-}
-
-func (s MockDeltasService) ListFiles(ds DeltaSpec, opt *DeltaListFilesOptions) (*DeltaFiles, Response, error) {
-	return s.ListFiles_(ds, opt)
-}
-
-func (s MockDeltasService) ListAffectedAuthors(ds DeltaSpec, opt *DeltaListAffectedAuthorsOptions) ([]*DeltaAffectedPerson, Response, error) {
-	return s.ListAffectedAuthors_(ds, opt)
-}
-
-func (s MockDeltasService) ListAffectedClients(ds DeltaSpec, opt *DeltaListAffectedClientsOptions) ([]*DeltaAffectedPerson, Response, error) {
-	return s.ListAffectedClients_(ds, opt)
-}
-
-func (s MockDeltasService) ListAffectedDependents(ds DeltaSpec, opt *DeltaListAffectedDependentsOptions) ([]*DeltaAffectedRepo, Response, error) {
-	return s.ListAffectedDependents_(ds, opt)
-}
-
-func (s MockDeltasService) ListReviewers(ds DeltaSpec, opt *DeltaListReviewersOptions) ([]*DeltaReviewer, Response, error) {
-	return s.ListReviewers_(ds, opt)
-}
-
-func (s MockDeltasService) ListIncoming(rr RepoRevSpec, opt *DeltaListIncomingOptions) ([]*Delta, Response, error) {
-	return s.ListIncoming_(rr, opt)
-}
+var _ DeltasService = &MockDeltasService{}

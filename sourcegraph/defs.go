@@ -385,15 +385,12 @@ func (vs Examples) Less(i, j int) bool { return vs[i].sortKey() < vs[j].sortKey(
 
 // DefListExamplesOptions specifies options for DefsService.ListExamples.
 type DefListExamplesOptions struct {
-	Formatted bool `url:",omitempty"`
+	Formatted bool
 
 	// Filter by a specific Repo URI
-	Repo string `url:",omitempty"`
+	Repo string
 
-	// TokenizedSource requests that the source code be returned as a data structure,
-	// rather than an (annotated) string. This is useful when full control of rendering
-	// and traversal of source code is desired on the client.
-	TokenizedSource bool `url:",omitempty"`
+	SourceAsJSON bool
 
 	ListOptions
 }
@@ -578,47 +575,4 @@ func (s *defsService) ListVersions(def DefSpec, opt *DefListVersionsOptions) ([]
 	return defVersions, resp, nil
 }
 
-type MockDefsService struct {
-	Get_            func(def DefSpec, opt *DefGetOptions) (*Def, Response, error)
-	List_           func(opt *DefListOptions) ([]*Def, Response, error)
-	ListRefs_       func(def DefSpec, opt *DefListRefsOptions) ([]*Ref, Response, error)
-	ListExamples_   func(def DefSpec, opt *DefListExamplesOptions) ([]*Example, Response, error)
-	ListAuthors_    func(def DefSpec, opt *DefListAuthorsOptions) ([]*AugmentedDefAuthor, Response, error)
-	ListClients_    func(def DefSpec, opt *DefListClientsOptions) ([]*AugmentedDefClient, Response, error)
-	ListDependents_ func(def DefSpec, opt *DefListDependentsOptions) ([]*AugmentedDefDependent, Response, error)
-	ListVersions_   func(def DefSpec, opt *DefListVersionsOptions) ([]*Def, Response, error)
-}
-
-var _ DefsService = MockDefsService{}
-
-func (s MockDefsService) Get(def DefSpec, opt *DefGetOptions) (*Def, Response, error) {
-	return s.Get_(def, opt)
-}
-
-func (s MockDefsService) List(opt *DefListOptions) ([]*Def, Response, error) {
-	return s.List_(opt)
-}
-
-func (s MockDefsService) ListRefs(def DefSpec, opt *DefListRefsOptions) ([]*Ref, Response, error) {
-	return s.ListRefs_(def, opt)
-}
-
-func (s MockDefsService) ListExamples(def DefSpec, opt *DefListExamplesOptions) ([]*Example, Response, error) {
-	return s.ListExamples_(def, opt)
-}
-
-func (s MockDefsService) ListAuthors(def DefSpec, opt *DefListAuthorsOptions) ([]*AugmentedDefAuthor, Response, error) {
-	return s.ListAuthors_(def, opt)
-}
-
-func (s MockDefsService) ListClients(def DefSpec, opt *DefListClientsOptions) ([]*AugmentedDefClient, Response, error) {
-	return s.ListClients_(def, opt)
-}
-
-func (s MockDefsService) ListDependents(def DefSpec, opt *DefListDependentsOptions) ([]*AugmentedDefDependent, Response, error) {
-	return s.ListDependents_(def, opt)
-}
-
-func (s MockDefsService) ListVersions(def DefSpec, opt *DefListVersionsOptions) ([]*Def, Response, error) {
-	return s.ListVersions_(def, opt)
-}
+var _ DefsService = &MockDefsService{}
