@@ -72,13 +72,13 @@ type SourceCode struct {
 // such as byte offsets in original source.
 type SourceCodeLine struct {
 	// StartByte and EndByte are the start and end offsets in bytes, in the original file.
-	StartByte int `json:"s"`
-	EndByte   int `json:"e"`
+	StartByte int `json:"-"`
+	EndByte   int `json:"-"`
 
 	// Tokens contains any tokens that may be on this line, including whitespace. Whitespace
 	// is stored as an HTML encoded "string" and token information is stored as
 	// "SourceCodeToken". New lines ('\n') are not present.
-	Tokens []interface{} `json:"t,omitempty"`
+	Tokens []interface{}
 }
 
 // SourceCodeToken contains information about a code token.
@@ -89,17 +89,17 @@ type SourceCodeToken struct {
 
 	// URL specifies that the token is a reference or a definition,  based on the
 	// IsDef property.
-	URL string `json:"u,omitempty"`
+	URL string
 
 	// IsDef specifies whether the token is a definition.
-	IsDef bool `json:"d,omitempty"`
+	IsDef bool
 
 	// Class specifies the token type as per
 	// [google-code-prettify](https://code.google.com/p/google-code-prettify/).
-	Class string `json:"s"`
+	Class string
 
 	// Label is non-whitespace HTML encoded source code.
-	Label string `json:"h"`
+	Label string
 }
 
 // FormatResult contains information about and warnings from the formatting
