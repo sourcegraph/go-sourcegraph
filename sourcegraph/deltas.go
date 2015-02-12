@@ -240,12 +240,18 @@ func (f DeltaFilter) DefFilters() []store.DefFilter {
 	if f.Path != "" {
 		fs = append(fs, store.ByDefPath(f.Path))
 	}
-	return nil
+	return fs
 }
 
 // DeltaListDefsOptions specifies options for ListDefs.
 type DeltaListDefsOptions struct {
 	DeltaFilter
+
+	// Author filters the list of defs to only those authored by
+	// the given author. It can be specified either as a login or a
+	// (potentially obfuscated) VCS commit email address.
+	Author string `url:",omitempty"`
+
 	ListOptions
 }
 
