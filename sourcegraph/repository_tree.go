@@ -42,10 +42,63 @@ type TreeEntry struct {
 
 	*vcsclient.FileRange // only set for files
 
-	ContentsString string
+	ContentsString string `json:",omitempty"`
+
+	// SourceCode is set when TokenizedSource is enabled in RepoTreeGetOptions.
+	SourceCode *SourceCode `json:",omitempty"`
 
 	// FormatResult is only set if this TreeEntry is a file.
 	FormatResult *FormatResult `json:",omitempty"`
+}
+
+// SourceCode contains a snippet of code with linked and classed tokens,
+// along with other information about the contents.
+//
+// This data structure is useful when one desires to take full control of
+// rendering and manipulating the contents of the requested TreeEntry or snippet,
+// rather than dealing with an (annotated) string or parsing text. To obtain
+// this strcture in the TreeEntry, TokenizedSource must be set to "true" in the
+// RepoTreeGetOptions.
+type SourceCode struct {
+	// Lines contains all the lines of the contained code snippet.
+	Lines []*SourceCodeLine `json:",omitempty"`
+
+	NumRefs     int
+	TooManyRefs bool
+}
+
+// SourceCodeLine contains all tokens on this line along with other information
+// such as byte offsets in original source.
+type SourceCodeLine struct {
+	// StartByte and EndByte are the start and end offsets in bytes, in the original file.
+	StartByte int
+	EndByte   int
+
+	// Tokens contains any tokens that may be on this line, including whitespace. Whitespace
+	// is stored as an HTML encoded "string" and token information is stored as
+	// "SourceCodeToken". New lines ('\n') are not present.
+	Tokens []interface{} `json:",omitempty"`
+}
+
+// SourceCodeToken contains information about a code token.
+type SourceCodeToken struct {
+	// Start and end byte offsets in original file.
+	StartByte int `json:"-"`
+	EndByte   int `json:"-"`
+
+	// URL specifies that the token is a reference or a definition,  based on the
+	// IsDef property.
+	URL string `json:",omitempty"`
+
+	// IsDef specifies whether the token is a definition.
+	IsDef bool `json:",omitempty"`
+
+	// Class specifies the token type as per
+	// [google-code-prettify](https://code.google.com/p/google-code-prettify/).
+	Class string
+
+	// Label is non-whitespace HTML encoded source code.
+	Label string
 }
 
 // FormatResult contains information about and warnings from the formatting
@@ -68,8 +121,15 @@ type FormatResult struct {
 // RepoTreeGetOptions specifies options for (RepoTreeService).Get.
 type RepoTreeGetOptions struct {
 	// Formatted is whether the specified entry, if it's a file, should have its
-	// contents code-formatted.
+	// Contents code-formatted using HTML.
 	Formatted bool
+
+	// TokenizedSource requests that the source code be returned as a tokenized data
+	// structure rather than an (annotated) string.
+	//
+	// This is useful when the client wants to take full control of rendering and manipulating
+	// the contents.
+	TokenizedSource bool `url:",omitempty"`
 
 	ContentsAsString bool `url:",omitempty"`
 

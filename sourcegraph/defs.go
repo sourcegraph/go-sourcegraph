@@ -360,7 +360,11 @@ type Example struct {
 
 	// SrcHTML is the formatted HTML source code of the example, with links to
 	// definitions.
-	SrcHTML template.HTML
+	SrcHTML template.HTML `json:",omitempty"`
+
+	// SourceCode contains the parsed source for this example, if requested via
+	// DefListExamplesOptions.
+	SourceCode *SourceCode `json:",omitempty"`
 
 	// The line that the given example starts on
 	StartLine int
@@ -381,10 +385,17 @@ func (vs Examples) Less(i, j int) bool { return vs[i].sortKey() < vs[j].sortKey(
 
 // DefListExamplesOptions specifies options for DefsService.ListExamples.
 type DefListExamplesOptions struct {
-	Formatted bool
+	Formatted bool `url:",omitempty"`
 
 	// Filter by a specific Repo URI
-	Repo string
+	Repo string `url:",omitempty"`
+
+	// TokenizedSource requests that the source code be returned as a tokenized data
+	// structure rather than an (annotated) string.
+	//
+	// This is useful when the client wants to take full control of rendering and manipulating
+	// the contents.
+	TokenizedSource bool `url:",omitempty"`
 
 	ListOptions
 }
