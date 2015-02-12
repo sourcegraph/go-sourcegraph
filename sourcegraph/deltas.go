@@ -39,13 +39,9 @@ type DeltasService interface {
 	// ListAffectedClients lists clients whose code is affected by a delta.
 	ListAffectedClients(ds DeltaSpec, opt *DeltaListAffectedClientsOptions) ([]*DeltaAffectedPerson, Response, error)
 
-	// ListAffectedDependents lists dependent repositories that are affected
+	// ListAffectedRepos lists dependent repositories that are affected
 	// by a delta.
-	ListAffectedDependents(ds DeltaSpec, opt *DeltaListAffectedDependentsOptions) ([]*DeltaAffectedRepo, Response, error)
-
-	// ListReviewers lists people who are reviewing or are suggested
-	// reviewers for this delta.
-	ListReviewers(ds DeltaSpec, opt *DeltaListReviewersOptions) ([]*DeltaReviewer, Response, error)
+	ListAffectedRepos(ds DeltaSpec, opt *DeltaListAffectedReposOptions) ([]*DeltaAffectedRepo, Response, error)
 
 	// ListIncoming lists deltas that affect the given repo.
 	ListIncoming(rr RepoRevSpec, opt *DeltaListIncomingOptions) ([]*Delta, Response, error)
@@ -469,27 +465,20 @@ func (s *deltasService) ListAffectedClients(ds DeltaSpec, opt *DeltaListAffected
 type DeltaAffectedRepo struct {
 	Repo // the affected repository
 
-	DefRefs []*DeltaDefRefs // refs to defs that were changed/deleted
+	Defs []*Def // defs that the repo uses (the reason why it's affected)
 }
 
-// DeltaDefRefs is used in DeltaAffectedRepo to store a single
-// changed/deleted def and all of the repository's refs to that def.
-type DeltaDefRefs struct {
-	Def  *Def       // the changed/deleted def
-	Refs []*Example // all of the parent DeltaAffectedRepo.Repo's refs to Def
-}
-
-// DeltaListAffectedDependentsOptions specifies options for
-// ListAffectedDependents.
-type DeltaListAffectedDependentsOptions struct {
+// DeltaListAffectedReposOptions specifies options for
+// ListAffectedRepos.
+type DeltaListAffectedReposOptions struct {
 	NotFormatted bool `url:",omitempty"`
 
 	DeltaFilter
 	ListOptions
 }
 
-func (s *deltasService) ListAffectedDependents(ds DeltaSpec, opt *DeltaListAffectedDependentsOptions) ([]*DeltaAffectedRepo, Response, error) {
-	url, err := s.client.URL(router.DeltaAffectedDependents, ds.RouteVars(), opt)
+func (s *deltasService) ListAffectedRepos(ds DeltaSpec, opt *DeltaListAffectedReposOptions) ([]*DeltaAffectedRepo, Response, error) {
+	url, err := s.client.URL(router.DeltaAffectedRepos, ds.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -499,49 +488,13 @@ func (s *deltasService) ListAffectedDependents(ds DeltaSpec, opt *DeltaListAffec
 		return nil, nil, err
 	}
 
-	var dependents []*DeltaAffectedRepo
-	resp, err := s.client.Do(req, &dependents)
+	var repos []*DeltaAffectedRepo
+	resp, err := s.client.Do(req, &repos)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return dependents, resp, nil
-}
-
-// A DeltaReviewer is a person who is reviewing, or is suggested as a
-// reviewer for, a delta.
-type DeltaReviewer struct {
-	Person
-
-	Suggested       bool   `json:",omitempty"` // whether this reviewer is just suggested as a possible reviewer (and not actually assigned)
-	ReasonSuggested string `json:",omitempty"` // if Suggested, this is why (e.g., because the person wrote code this delta touches)
-
-	Defs []*Def `json:",omitempty"` // defs that this reviewer committed to and that were changed in or affected by the delta
-}
-
-type DeltaListReviewersOptions struct {
-	DeltaFilter
-	ListOptions
-}
-
-func (s *deltasService) ListReviewers(ds DeltaSpec, opt *DeltaListReviewersOptions) ([]*DeltaReviewer, Response, error) {
-	url, err := s.client.URL(router.DeltaReviewers, ds.RouteVars(), opt)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := s.client.NewRequest("GET", url.String(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var reviewers []*DeltaReviewer
-	resp, err := s.client.Do(req, &reviewers)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return reviewers, resp, nil
+	return repos, resp, nil
 }
 
 // DeltaListIncomingOptions specifies options for

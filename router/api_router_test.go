@@ -236,13 +236,13 @@ func TestMatch(t *testing.T) {
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "a/b/c", "DeltaHeadRev": "x/y/z"},
 		},
 		{
-			path:          "/repos/repohost.com/foo/.deltas/branch1..branch2/.reviewers",
-			wantRouteName: DeltaReviewers,
+			path:          "/repos/repohost.com/foo/.deltas/branch1..branch2/.affected-clients",
+			wantRouteName: DeltaAffectedClients,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "branch1", "DeltaHeadRev": "branch2"},
 		},
 		{
-			path:          "/repos/repohost.com/foo/.deltas/branch1..branch2===4739/.reviewers",
-			wantRouteName: DeltaReviewers,
+			path:          "/repos/repohost.com/foo/.deltas/branch1..branch2===4739/.affected-clients",
+			wantRouteName: DeltaAffectedClients,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "branch1", "DeltaHeadRev": "branch2===4739"},
 		},
 

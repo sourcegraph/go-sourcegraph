@@ -101,16 +101,15 @@ const (
 	DefDependents = "def.dependents"
 	DefVersions   = "def.versions"
 
-	Delta                   = "delta"
-	DeltaUnits              = "delta.units"
-	DeltaDefs               = "delta.defs"
-	DeltaDependencies       = "delta.dependencies"
-	DeltaFiles              = "delta.files"
-	DeltaAffectedAuthors    = "delta.affected-authors"
-	DeltaAffectedClients    = "delta.affected-clients"
-	DeltaAffectedDependents = "delta.affected-dependents"
-	DeltaReviewers          = "delta.reviewers"
-	DeltasIncoming          = "deltas.incoming"
+	Delta                = "delta"
+	DeltaUnits           = "delta.units"
+	DeltaDefs            = "delta.defs"
+	DeltaDependencies    = "delta.dependencies"
+	DeltaFiles           = "delta.files"
+	DeltaAffectedAuthors = "delta.affected-authors"
+	DeltaAffectedClients = "delta.affected-clients"
+	DeltaAffectedRepos   = "delta.affected-repos"
+	DeltasIncoming       = "deltas.incoming"
 
 	Unit  = "unit"
 	Units = "units"
@@ -215,8 +214,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	deltas.Path("/.files").Methods("GET").Name(DeltaFiles)
 	deltas.Path("/.affected-authors").Methods("GET").Name(DeltaAffectedAuthors)
 	deltas.Path("/.affected-clients").Methods("GET").Name(DeltaAffectedClients)
-	deltas.Path("/.affected-dependents").Methods("GET").Name(DeltaAffectedDependents)
-	deltas.Path("/.reviewers").Methods("GET").Name(DeltaReviewers)
+	deltas.Path("/.affected-repos").Methods("GET").Name(DeltaAffectedRepos)
 
 	repo.Path("/.deltas-incoming").Methods("GET").Name(DeltasIncoming)
 

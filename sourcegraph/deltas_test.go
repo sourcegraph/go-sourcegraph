@@ -311,7 +311,7 @@ func TestDeltasService_ListAffectedClients(t *testing.T) {
 	}
 }
 
-func TestDeltasService_ListAffectedDependents(t *testing.T) {
+func TestDeltasService_ListAffectedRepos(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -322,7 +322,7 @@ func TestDeltasService_ListAffectedDependents(t *testing.T) {
 	want := []*DeltaAffectedRepo{}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.DeltaAffectedDependents, ds.RouteVars()), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.DeltaAffectedRepos, ds.RouteVars()), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 		testFormValues(t, r, values{
@@ -333,9 +333,9 @@ func TestDeltasService_ListAffectedDependents(t *testing.T) {
 		writeJSON(w, want)
 	})
 
-	affectedDependents, _, err := client.Deltas.ListAffectedDependents(ds, &DeltaListAffectedDependentsOptions{DeltaFilter: DeltaFilter{UnitType: "t", Unit: "u"}})
+	affectedDependents, _, err := client.Deltas.ListAffectedRepos(ds, &DeltaListAffectedReposOptions{DeltaFilter: DeltaFilter{UnitType: "t", Unit: "u"}})
 	if err != nil {
-		t.Errorf("Deltas.ListAffectedDependents returned error: %v", err)
+		t.Errorf("Deltas.ListAffectedRepos returned error: %v", err)
 	}
 
 	if !called {
@@ -343,43 +343,7 @@ func TestDeltasService_ListAffectedDependents(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(affectedDependents, want) {
-		t.Errorf("Deltas.ListAffectedDependents returned %+v, want %+v", affectedDependents, want)
-	}
-}
-
-func TestDeltasService_ListReviewers(t *testing.T) {
-	setup()
-	defer teardown()
-
-	ds := DeltaSpec{
-		Base: baseRev,
-		Head: headRev,
-	}
-	want := []*DeltaReviewer{}
-
-	var called bool
-	mux.HandleFunc(urlPath(t, router.DeltaReviewers, ds.RouteVars()), func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		testMethod(t, r, "GET")
-		testFormValues(t, r, values{
-			"UnitType": "t",
-			"Unit":     "u",
-		})
-
-		writeJSON(w, want)
-	})
-
-	reviewers, _, err := client.Deltas.ListReviewers(ds, &DeltaListReviewersOptions{DeltaFilter: DeltaFilter{UnitType: "t", Unit: "u"}})
-	if err != nil {
-		t.Errorf("Deltas.ListReviewers returned error: %v", err)
-	}
-
-	if !called {
-		t.Fatal("!called")
-	}
-
-	if !reflect.DeepEqual(reviewers, want) {
-		t.Errorf("Deltas.ListReviewers returned %+v, want %+v", reviewers, want)
+		t.Errorf("Deltas.ListAffectedRepos returned %+v, want %+v", affectedDependents, want)
 	}
 }
 

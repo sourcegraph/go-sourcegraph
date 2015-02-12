@@ -1,16 +1,15 @@
 package sourcegraph
 
 type MockDeltasService struct {
-	Get_                    func(ds DeltaSpec, opt *DeltaGetOptions) (*Delta, Response, error)
-	ListUnits_              func(ds DeltaSpec, opt *DeltaListUnitsOptions) ([]*UnitDelta, Response, error)
-	ListDefs_               func(ds DeltaSpec, opt *DeltaListDefsOptions) (*DeltaDefs, Response, error)
-	ListDependencies_       func(ds DeltaSpec, opt *DeltaListDependenciesOptions) (*DeltaDependencies, Response, error)
-	ListFiles_              func(ds DeltaSpec, opt *DeltaListFilesOptions) (*DeltaFiles, Response, error)
-	ListAffectedAuthors_    func(ds DeltaSpec, opt *DeltaListAffectedAuthorsOptions) ([]*DeltaAffectedPerson, Response, error)
-	ListAffectedClients_    func(ds DeltaSpec, opt *DeltaListAffectedClientsOptions) ([]*DeltaAffectedPerson, Response, error)
-	ListAffectedDependents_ func(ds DeltaSpec, opt *DeltaListAffectedDependentsOptions) ([]*DeltaAffectedRepo, Response, error)
-	ListReviewers_          func(ds DeltaSpec, opt *DeltaListReviewersOptions) ([]*DeltaReviewer, Response, error)
-	ListIncoming_           func(rr RepoRevSpec, opt *DeltaListIncomingOptions) ([]*Delta, Response, error)
+	Get_                 func(ds DeltaSpec, opt *DeltaGetOptions) (*Delta, Response, error)
+	ListUnits_           func(ds DeltaSpec, opt *DeltaListUnitsOptions) ([]*UnitDelta, Response, error)
+	ListDefs_            func(ds DeltaSpec, opt *DeltaListDefsOptions) (*DeltaDefs, Response, error)
+	ListDependencies_    func(ds DeltaSpec, opt *DeltaListDependenciesOptions) (*DeltaDependencies, Response, error)
+	ListFiles_           func(ds DeltaSpec, opt *DeltaListFilesOptions) (*DeltaFiles, Response, error)
+	ListAffectedAuthors_ func(ds DeltaSpec, opt *DeltaListAffectedAuthorsOptions) ([]*DeltaAffectedPerson, Response, error)
+	ListAffectedClients_ func(ds DeltaSpec, opt *DeltaListAffectedClientsOptions) ([]*DeltaAffectedPerson, Response, error)
+	ListAffectedRepos_   func(ds DeltaSpec, opt *DeltaListAffectedReposOptions) ([]*DeltaAffectedRepo, Response, error)
+	ListIncoming_        func(rr RepoRevSpec, opt *DeltaListIncomingOptions) ([]*Delta, Response, error)
 }
 
 func (s MockDeltasService) Get(ds DeltaSpec, opt *DeltaGetOptions) (*Delta, Response, error) {
@@ -41,12 +40,8 @@ func (s MockDeltasService) ListAffectedClients(ds DeltaSpec, opt *DeltaListAffec
 	return s.ListAffectedClients_(ds, opt)
 }
 
-func (s MockDeltasService) ListAffectedDependents(ds DeltaSpec, opt *DeltaListAffectedDependentsOptions) ([]*DeltaAffectedRepo, Response, error) {
-	return s.ListAffectedDependents_(ds, opt)
-}
-
-func (s MockDeltasService) ListReviewers(ds DeltaSpec, opt *DeltaListReviewersOptions) ([]*DeltaReviewer, Response, error) {
-	return s.ListReviewers_(ds, opt)
+func (s MockDeltasService) ListAffectedRepos(ds DeltaSpec, opt *DeltaListAffectedReposOptions) ([]*DeltaAffectedRepo, Response, error) {
+	return s.ListAffectedRepos_(ds, opt)
 }
 
 func (s MockDeltasService) ListIncoming(rr RepoRevSpec, opt *DeltaListIncomingOptions) ([]*Delta, Response, error) {
