@@ -106,9 +106,11 @@ const (
 	DeltaDefs            = "delta.defs"
 	DeltaDependencies    = "delta.dependencies"
 	DeltaFiles           = "delta.files"
+	DeltaAffectedRefs    = "delta.affected-refs"
 	DeltaAffectedAuthors = "delta.affected-authors"
 	DeltaAffectedClients = "delta.affected-clients"
 	DeltaAffectedRepos   = "delta.affected-repos"
+	DeltaReviewers       = "delta.reviewers"
 	DeltasIncoming       = "deltas.incoming"
 
 	Unit  = "unit"
@@ -212,9 +214,11 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	deltas.Path("/.defs").Methods("GET").Name(DeltaDefs)
 	deltas.Path("/.dependencies").Methods("GET").Name(DeltaDependencies)
 	deltas.Path("/.files").Methods("GET").Name(DeltaFiles)
+	deltas.Path("/.affected-refs").Methods("GET").Name(DeltaAffectedRefs)
 	deltas.Path("/.affected-authors").Methods("GET").Name(DeltaAffectedAuthors)
 	deltas.Path("/.affected-clients").Methods("GET").Name(DeltaAffectedClients)
 	deltas.Path("/.affected-repos").Methods("GET").Name(DeltaAffectedRepos)
+	deltas.Path("/.reviewers").Methods("GET").Name(DeltaReviewers)
 
 	repo.Path("/.deltas-incoming").Methods("GET").Name(DeltasIncoming)
 

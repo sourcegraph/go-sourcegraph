@@ -239,6 +239,47 @@ func TestDeltasService_ListFiles(t *testing.T) {
 	}
 }
 
+func TestDeltasService_ListRefs(t *testing.T) {
+	setup()
+	defer teardown()
+
+	ds := DeltaSpec{
+		Base: baseRev,
+		Head: headRev,
+	}
+	want := []*DeltaAffectedRef{
+		{
+			Def: &DefDelta{Base: &Def{}},
+			Ref: &Ref{},
+		},
+	}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.DeltaAffectedRefs, ds.RouteVars()), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+		testFormValues(t, r, values{
+			"UnitType": "t",
+			"Unit":     "u",
+		})
+
+		writeJSON(w, want)
+	})
+
+	refs, _, err := client.Deltas.ListAffectedRefs(ds, &DeltaListAffectedRefsOptions{DeltaFilter: DeltaFilter{UnitType: "t", Unit: "u"}})
+	if err != nil {
+		t.Errorf("Deltas.ListAffectedRefs returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(refs, want) {
+		t.Errorf("Deltas.ListAffectedRefs returned %+v, want %+v", refs, want)
+	}
+}
+
 func TestDeltasService_ListAffectedAuthors(t *testing.T) {
 	setup()
 	defer teardown()

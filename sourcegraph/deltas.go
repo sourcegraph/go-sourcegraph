@@ -32,6 +32,10 @@ type DeltasService interface {
 	// ListFiles fetches the file diff for a delta.
 	ListFiles(ds DeltaSpec, opt *DeltaListFilesOptions) (*DeltaFiles, Response, error)
 
+	// ListAffectedRefs lists refs that refer to defs that were
+	// changed/deleted in a delta.
+	ListAffectedRefs(ds DeltaSpec, opt *DeltaListAffectedRefsOptions) ([]*DeltaAffectedRef, Response, error)
+
 	// ListAffectedAuthors lists authors whose code is added/deleted/changed
 	// in a delta.
 	ListAffectedAuthors(ds DeltaSpec, opt *DeltaListAffectedAuthorsOptions) ([]*DeltaAffectedPerson, Response, error)
@@ -223,13 +227,18 @@ func (s *deltasService) ListUnits(ds DeltaSpec, opt *DeltaListUnitsOptions) ([]*
 // DeltaFilter specifies criteria by which to filter results from
 // DeltaListXxx methods.
 type DeltaFilter struct {
-	Unit     string `url:",omitempty"`
-	UnitType string `url:",omitempty"`
+	Unit     string `url:",omitempty"` // Def source unit name
+	UnitType string `url:",omitempty"` // Def source unit type
+	Path     string `url:",omitempty"` // Def path
 }
 
 func (f DeltaFilter) DefFilters() []store.DefFilter {
+	var fs []store.DefFilter
 	if f.UnitType != "" && f.Unit != "" {
-		return []store.DefFilter{store.ByUnits(unit.ID2{Type: f.UnitType, Name: f.Unit})}
+		fs = append(fs, store.ByUnits(unit.ID2{Type: f.UnitType, Name: f.Unit}))
+	}
+	if f.Path != "" {
+		fs = append(fs, store.ByDefPath(f.Path))
 	}
 	return nil
 }
@@ -388,6 +397,69 @@ func (s *deltasService) ListFiles(ds DeltaSpec, opt *DeltaListFilesOptions) (*De
 	}
 
 	return files, resp, nil
+}
+
+// DeltaListAffectedRefsOptions specifies options for
+// Deltas.ListAffectedRefs.
+type DeltaListAffectedRefsOptions struct {
+	DeltaFilter
+
+	// RefAuthor filters the list of refs to only those authored by
+	// the given author. It can be specified either as a login or a
+	// (potentially obfuscated) VCS commit email address.
+	RefAuthor string `url:",omitempty"`
+
+	// RefRepo filters the list of refs to only those that are in the
+	// given repository.
+	RefRepo string `url:",omitempty"`
+
+	// RefUnit filters the list of refs to only those that are in a
+	// source unit with the given name. RefUnitType must also be
+	// specified.
+	RefUnit string `url:",omitempty"`
+
+	// RefUnitType filters the list of refs to only those that are in
+	// a source unit with the given type. RefUnit must also be
+	// specified.
+	RefUnitType string `url:",omitempty"`
+
+	// Authorship is a boolean value indicating whether VCS blame
+	// information should be fetched to determine the author of each
+	// affected ref.
+	Authorship bool `url:",omitempty"`
+
+	ListOptions
+}
+
+// A DeltaAffectedRef is a ref that points to a def that is
+// changed/deleted in the delta.
+type DeltaAffectedRef struct {
+	// Def is a def that was changed/deleted in the delta.
+	Def *DefDelta
+
+	// Ref is the ref that points to Def, which is a def that was
+	// changed/deleted in the delta.
+	Ref *Ref
+}
+
+func (s *deltasService) ListAffectedRefs(ds DeltaSpec, opt *DeltaListAffectedRefsOptions) ([]*DeltaAffectedRef, Response, error) {
+	url, err := s.client.URL(router.DeltaAffectedRefs, ds.RouteVars(), opt)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var refs []*DeltaAffectedRef
+	resp, err := s.client.Do(req, &refs)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return refs, resp, nil
 }
 
 // DeltaAffectedPerson describes a person (registered user or
