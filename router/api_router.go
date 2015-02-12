@@ -85,6 +85,10 @@ const (
 	RepoTags           = "repo.tags"
 	RepoBranches       = "repo.branches"
 
+	ReviewTasks     = "review.tasks"
+	RepoReviewTasks = "repo.review-tasks"
+	UserReviewTasks = "user.review-tasks"
+
 	Search         = "search"
 	SearchComplete = "search.complete"
 
@@ -188,6 +192,11 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	repo.Path("/.counters").Methods("GET").Name(RepoCounters)
 	repo.Path("/.counters/{Counter}.{Format}").Methods("GET").Name(RepoCounter)
 
+	reviewPath := "/.reviews/{Review}"
+	review := repo.PathPrefix(reviewPath).Subrouter()
+	review.Path("/tasks").Methods("GET").Name(ReviewTasks)
+	repo.Path("/.review-tasks").Methods("GET").Name(RepoReviewTasks)
+
 	repo.Path("/.pulls").Methods("GET").Name(RepoPullRequests)
 	pullPath := "/.pulls/{Pull}"
 	repo.Path(pullPath).Methods("GET").Name(RepoPullRequest)
@@ -243,6 +252,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	user.Path("/stats").Methods("PUT").Name(UserComputeStats)
 	user.Path("/settings").Methods("GET").Name(UserSettings)
 	user.Path("/settings").Methods("PUT").Name(UserSettingsUpdate)
+	user.Path("/review-tasks").Methods("GET").Name(UserReviewTasks)
 	base.Path("/external-users/github/{GitHubUserSpec}").Methods("GET").Name(UserFromGitHub)
 
 	orgPath := "/orgs/{OrgSpec}"

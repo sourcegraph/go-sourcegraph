@@ -33,6 +33,7 @@ type Client struct {
 	PullRequests PullRequestsService
 	Repos        ReposService
 	RepoTree     RepoTreeService
+	Reviews      ReviewsService
 	Search       SearchService
 	Units        UnitsService
 	Users        UsersService
@@ -68,6 +69,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.PullRequests = &pullRequestsService{c}
 	c.Repos = &repositoriesService{c}
 	c.RepoTree = &repoTreeService{c}
+	c.Reviews = &reviewsService{c}
 	c.Search = &searchService{c}
 	c.Units = &unitsService{c}
 	c.Users = &usersService{c}
@@ -311,6 +313,7 @@ func NewMockClient() *Client {
 		PullRequests: &MockPullRequestsService{},
 		Repos:        &MockReposService{},
 		RepoTree:     &MockRepoTreeService{},
+		Reviews:      &MockReviewsService{},
 		Search:       &MockSearchService{},
 		Units:        &MockUnitsService{},
 		Users:        &MockUsersService{},
