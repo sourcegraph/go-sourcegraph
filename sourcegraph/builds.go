@@ -26,7 +26,7 @@ type BuildsService interface {
 
 	// Create a new build. The build will run asynchronously (Create does not
 	// wait for it to return. To monitor the build's status, use Get.)
-	Create(repo RepoSpec, opt *BuildCreateOptions) (*Build, Response, error)
+	Create(repoRev RepoRevSpec, opt *BuildCreateOptions) (*Build, Response, error)
 
 	// Update updates information about a build and returns the build
 	// after the update has been applied.
@@ -129,8 +129,12 @@ func (s *TaskSpec) RouteVars() map[string]string {
 // with simple behavior. As we encounter new requirements for the
 // build system, they may evolve.
 type Build struct {
-	BID         int64 `json:",omitempty"`
-	Repo        int
+	BID  int64 `json:",omitempty"`
+	Repo int
+
+	// CommitID is the full resolved commit ID to build.
+	CommitID string `db:"commit_id"`
+
 	CreatedAt   time.Time          `db:"created_at"`
 	StartedAt   db_common.NullTime `db:"started_at"`
 	EndedAt     db_common.NullTime `db:"ended_at"`
@@ -262,9 +266,6 @@ type BuildConfig struct {
 	// Priority of the build in the queue (higher numbers mean the build is
 	// dequeued sooner).
 	Priority int
-
-	// CommitID is the full resolved commit ID to build.
-	CommitID string `db:"commit_id"`
 }
 
 // BuildMeta holds additional metadata about the build that is not
@@ -392,8 +393,8 @@ func (s *buildsService) ListByRepo(repo RepoSpec, opt *BuildListByRepoOptions) (
 	return builds, resp, nil
 }
 
-func (s *buildsService) Create(repo RepoSpec, opt *BuildCreateOptions) (*Build, Response, error) {
-	url, err := s.client.URL(router.RepoBuildsCreate, repo.RouteVars(), nil)
+func (s *buildsService) Create(repoRev RepoRevSpec, opt *BuildCreateOptions) (*Build, Response, error) {
+	url, err := s.client.URL(router.RepoBuildsCreate, repoRev.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}
