@@ -263,18 +263,6 @@ type BuildConfig struct {
 
 	// CommitID is the full resolved commit ID to build.
 	CommitID string `db:"commit_id"`
-
-	// ContextRepo is the RID of the repo that should determine the
-	// context and configuration of the build environment. If
-	// ContextRepo == 0, the build's Repo value is used.
-	//
-	// ContextRepo is used to build pull request fork repo builds
-	// using the configuration of the repo from which they were
-	// forked. This means that the effective URI is that of the origin
-	// repo, not the fork. It also makes it possible to record the
-	// status of this build on the origin repo (for GitHub commit
-	// statuses).
-	ContextRepo int `db:"context_repo" json:",omitempty"`
 }
 
 type BuildCreateOptions struct {
