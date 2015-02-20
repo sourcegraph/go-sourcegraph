@@ -63,7 +63,6 @@ const (
 	RepoCounter        = "repo.counter"
 	RepoCounters       = "repo.counters"
 	RepoReadme         = "repo.readme"
-	RepoBuilds         = "repo.builds"
 	RepoBuildsCreate   = "repo.builds.create"
 	RepoBuildDataEntry = "repo.build-data.entry"
 	RepoTreeEntry      = "repo.tree.entry"
@@ -187,7 +186,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	repo.Path("/.badges").Methods("GET").Name(RepoBadges)
 	repo.Path("/.counters").Methods("GET").Name(RepoCounters)
 	repo.Path("/.counters/{Counter}.{Format}").Methods("GET").Name(RepoCounter)
-	repo.Path("/.builds").Methods("GET").Name(RepoBuilds)
 
 	repo.Path("/.pulls").Methods("GET").Name(RepoPullRequests)
 	pullPath := "/.pulls/{Pull}"

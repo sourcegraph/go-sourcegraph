@@ -3,7 +3,6 @@ package sourcegraph
 type MockBuildsService struct {
 	Get_            func(build BuildSpec, opt *BuildGetOptions) (*Build, Response, error)
 	List_           func(opt *BuildListOptions) ([]*Build, Response, error)
-	ListByRepo_     func(repo RepoSpec, opt *BuildListByRepoOptions) ([]*Build, Response, error)
 	Create_         func(repoRev RepoRevSpec, opt *BuildCreateOptions) (*Build, Response, error)
 	Update_         func(build BuildSpec, info BuildUpdate) (*Build, Response, error)
 	ListBuildTasks_ func(build BuildSpec, opt *BuildTaskListOptions) ([]*BuildTask, Response, error)
@@ -20,10 +19,6 @@ func (s MockBuildsService) Get(build BuildSpec, opt *BuildGetOptions) (*Build, R
 
 func (s MockBuildsService) List(opt *BuildListOptions) ([]*Build, Response, error) {
 	return s.List_(opt)
-}
-
-func (s MockBuildsService) ListByRepo(repo RepoSpec, opt *BuildListByRepoOptions) ([]*Build, Response, error) {
-	return s.ListByRepo_(repo, opt)
 }
 
 func (s MockBuildsService) Create(repoRev RepoRevSpec, opt *BuildCreateOptions) (*Build, Response, error) {

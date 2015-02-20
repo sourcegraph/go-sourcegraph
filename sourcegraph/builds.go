@@ -21,9 +21,6 @@ type BuildsService interface {
 	// List builds.
 	List(opt *BuildListOptions) ([]*Build, Response, error)
 
-	// ListByRepo lists builds for a repository.
-	ListByRepo(repo RepoSpec, opt *BuildListByRepoOptions) ([]*Build, Response, error)
-
 	// Create a new build. The build will run asynchronously (Create does not
 	// wait for it to return. To monitor the build's status, use Get.)
 	Create(repoRev RepoRevSpec, opt *BuildCreateOptions) (*Build, Response, error)
@@ -342,6 +339,9 @@ type BuildListOptions struct {
 
 	Purged bool `url:",omitempty"`
 
+	Repo     string `url:",omitempty"`
+	CommitID string `url:",omitempty"`
+
 	Sort      string `url:",omitempty"`
 	Direction string `url:",omitempty"`
 
@@ -350,31 +350,6 @@ type BuildListOptions struct {
 
 func (s *buildsService) List(opt *BuildListOptions) ([]*Build, Response, error) {
 	url, err := s.client.URL(router.Builds, nil, opt)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := s.client.NewRequest("GET", url.String(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var builds []*Build
-	resp, err := s.client.Do(req, &builds)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return builds, resp, nil
-}
-
-type BuildListByRepoOptions struct {
-	BuildListOptions
-	Rev string `url:",omitempty"`
-}
-
-func (s *buildsService) ListByRepo(repo RepoSpec, opt *BuildListByRepoOptions) ([]*Build, Response, error) {
-	url, err := s.client.URL(router.RepoBuilds, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}

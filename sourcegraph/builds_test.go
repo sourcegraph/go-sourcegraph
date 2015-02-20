@@ -68,36 +68,6 @@ func TestBuildsService_List(t *testing.T) {
 	}
 }
 
-func TestRepoBuildsService_ListByRepo(t *testing.T) {
-	setup()
-	defer teardown()
-
-	want := []*Build{{BID: 1}}
-
-	var called bool
-	mux.HandleFunc(urlPath(t, router.RepoBuilds, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		testMethod(t, r, "GET")
-
-		writeJSON(w, want)
-	})
-
-	builds, _, err := client.Builds.ListByRepo(RepoSpec{URI: "r.com/x"}, nil)
-	if err != nil {
-		t.Errorf("Builds.ListByRepo returned error: %v", err)
-	}
-
-	if !called {
-		t.Fatal("!called")
-	}
-
-	normalizeBuildTime(builds...)
-	normalizeBuildTime(want...)
-	if !reflect.DeepEqual(builds, want) {
-		t.Errorf("Builds.ListByRepo returned %+v, want %+v", builds, want)
-	}
-}
-
 func TestBuildsService_Create(t *testing.T) {
 	setup()
 	defer teardown()
