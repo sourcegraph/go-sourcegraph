@@ -263,6 +263,23 @@ type BuildConfig struct {
 
 	// CommitID is the full resolved commit ID to build.
 	CommitID string `db:"commit_id"`
+
+	// PullRepo is the RID of the repo associated with the pull
+	// request that caused this build to be created. If this build was
+	// not created due to a pull request, it is 0. If this build is
+	// for the head commit of a PR against a different base repo,
+	// PullRepo is the RID of that base repo (and PullRepo != the
+	// build's Repo).
+	//
+	// If PullRepo is set, PullNumber must also be set.
+	PullRepo int `db:"pull_repo" json:",omitempty"`
+
+	// PullNumber is the pull number (e.g., #123) of the pull request
+	// (on PullRepo) that caused this build to be created. If this
+	// build was not created due to a pull request, it is 0.
+	//
+	// If PullNumber is set, PullRepo must also be set.
+	PullNumber int `db:"pull_number" json:",omitempty"`
 }
 
 type BuildCreateOptions struct {
