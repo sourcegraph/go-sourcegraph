@@ -1,6 +1,7 @@
 package sourcegraph
 
 import (
+	"encoding/json"
 	"net/http"
 	"reflect"
 	"testing"
@@ -47,6 +48,14 @@ func TestReposService_CreateStatus(t *testing.T) {
 	mux.HandleFunc(urlPath(t, router.RepoStatusCreate, map[string]string{"RepoSpec": "r.com/x", "Rev": "r"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "POST")
+
+		var st RepoStatus
+		if err := json.NewDecoder(r.Body).Decode(&st); err != nil {
+			t.Error(err)
+		}
+		if !reflect.DeepEqual(st, want) {
+			t.Errorf("got status %+v, want %+v", st, want)
+		}
 
 		writeJSON(w, want)
 	})
