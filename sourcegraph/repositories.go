@@ -28,6 +28,11 @@ type ReposService interface {
 	// resolved to the repository's default branch).
 	GetStats(repo RepoRevSpec) (RepoStats, Response, error)
 
+	// CreateStatus creates a repository status for the given commit.
+	CreateStatus(spec RepoRevSpec, st RepoStatus) (*RepoStatus, Response, error)
+
+	// GetCombinedStatus fetches the combined repository status for
+	// the given commit.
 	GetCombinedStatus(spec RepoRevSpec) (*CombinedStatus, Response, error)
 
 	// GetOrCreate fetches a repository using Get. If no such repository exists
