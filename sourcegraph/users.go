@@ -281,8 +281,6 @@ type UserSettings struct {
 	RequestedUpgradeAt db_common.NullTime `json:",omitempty"`
 
 	PlanSettings `json:",omitempty"`
-
-	BuildEmails *bool `json:",omitempty"`
 }
 
 // PlanSettings describes the pricing plan that the user or org has selected.
