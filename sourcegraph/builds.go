@@ -29,6 +29,12 @@ type BuildsService interface {
 	// after the update has been applied.
 	Update(build BuildSpec, info BuildUpdate) (*Build, Response, error)
 
+	// Rebuild creates a new build based on an existing (typically
+	// failed) build to reattempt it. In addition to creating a new
+	// build, Rebuild updates the existing build's RebuildBID field to
+	// be the BID of the newly created build.
+	Rebuild(build BuildSpec) (*Build, Response, error)
+
 	// ListBuildTasks lists the tasks associated with a build.
 	ListBuildTasks(build BuildSpec, opt *BuildTaskListOptions) ([]*BuildTask, Response, error)
 
@@ -150,6 +156,10 @@ type Build struct {
 	Host string `json:",omitempty"`
 
 	Purged bool // whether the build's data (defs/refs/etc.) has been purged
+
+	// RebuildBID, if nonzero, is the BID of the newer build created
+	// to rebuild this build (typically because it failed).
+	RebuildBID int64 `db:"rebuild_bid" json:",omitempty"`
 
 	BuildConfig
 
@@ -442,6 +452,26 @@ func (s *buildsService) Update(build BuildSpec, info BuildUpdate) (*Build, Respo
 	}
 
 	return updated, resp, nil
+}
+
+func (s *buildsService) Rebuild(build BuildSpec) (*Build, Response, error) {
+	url, err := s.client.URL(router.BuildRebuild, build.RouteVars(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("POST", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var newBuild *Build
+	resp, err := s.client.Do(req, &newBuild)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return newBuild, resp, nil
 }
 
 func (s *buildsService) CreateTasks(build BuildSpec, tasks []*BuildTask) ([]*BuildTask, Response, error) {

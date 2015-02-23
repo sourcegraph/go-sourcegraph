@@ -5,6 +5,7 @@ type MockBuildsService struct {
 	List_           func(opt *BuildListOptions) ([]*Build, Response, error)
 	Create_         func(repoRev RepoRevSpec, opt *BuildCreateOptions) (*Build, Response, error)
 	Update_         func(build BuildSpec, info BuildUpdate) (*Build, Response, error)
+	Rebuild_        func(build BuildSpec) (*Build, Response, error)
 	ListBuildTasks_ func(build BuildSpec, opt *BuildTaskListOptions) ([]*BuildTask, Response, error)
 	CreateTasks_    func(build BuildSpec, tasks []*BuildTask) ([]*BuildTask, Response, error)
 	UpdateTask_     func(task TaskSpec, info TaskUpdate) (*BuildTask, Response, error)
@@ -27,6 +28,10 @@ func (s MockBuildsService) Create(repoRev RepoRevSpec, opt *BuildCreateOptions) 
 
 func (s MockBuildsService) Update(build BuildSpec, info BuildUpdate) (*Build, Response, error) {
 	return s.Update_(build, info)
+}
+
+func (s MockBuildsService) Rebuild(build BuildSpec) (*Build, Response, error) {
+	return s.Rebuild_(build)
 }
 
 func (s MockBuildsService) ListBuildTasks(build BuildSpec, opt *BuildTaskListOptions) ([]*BuildTask, Response, error) {

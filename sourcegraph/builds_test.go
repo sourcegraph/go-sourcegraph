@@ -132,6 +132,36 @@ func TestBuildsService_Update(t *testing.T) {
 	}
 }
 
+func TestBuildsService_Rebuild(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := &Build{BID: 123, Repo: 456}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.BuildRebuild, map[string]string{"BID": "123"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "POST")
+
+		writeJSON(w, want)
+	})
+
+	build, _, err := client.Builds.Rebuild(BuildSpec{BID: 123})
+	if err != nil {
+		t.Errorf("Builds.Rebuild returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	normalizeBuildTime(build)
+	normalizeBuildTime(want)
+	if !reflect.DeepEqual(build, want) {
+		t.Errorf("Builds.Rebuild returned %+v, want %+v", build, want)
+	}
+}
+
 func TestBuildsService_UpdateTask(t *testing.T) {
 	setup()
 	defer teardown()

@@ -6,6 +6,7 @@ const (
 	Build            = "build"
 	BuildDequeueNext = "build.dequeue-next"
 	BuildUpdate      = "build.update"
+	BuildRebuild     = "build.rebuild"
 	BuildLog         = "build.log"
 	Builds           = "builds"
 	BuildTasks       = "build.tasks"
@@ -143,6 +144,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	builds.Path(buildPath).Methods("GET").Name(Build)
 	builds.Path(buildPath).Methods("PUT").Name(BuildUpdate)
 	build := builds.PathPrefix(buildPath).Subrouter()
+	build.Path("/rebuild").Methods("POST").Name(BuildRebuild)
 	build.Path("/log").Methods("GET").Name(BuildLog)
 	build.Path("/tasks").Methods("GET").Name(BuildTasks)
 	build.Path("/tasks").Methods("POST").Name(BuildTasksCreate)
