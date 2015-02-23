@@ -63,7 +63,6 @@ const (
 	RepoCounter        = "repo.counter"
 	RepoCounters       = "repo.counters"
 	RepoReadme         = "repo.readme"
-	RepoBuilds         = "repo.builds"
 	RepoBuildsCreate   = "repo.builds.create"
 	RepoBuildDataEntry = "repo.build-data.entry"
 	RepoTreeEntry      = "repo.tree.entry"
@@ -163,6 +162,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	repoRev.Path("/.authors").Methods("GET").Name(RepoAuthors)
 	repoRev.Path("/.readme").Methods("GET").Name(RepoReadme)
 	repoRev.Path("/.build").Methods("GET").Name(RepoBuild)
+	repoRev.Path("/.builds").Methods("POST").Name(RepoBuildsCreate)
 	repoRev.Path("/.dependencies").Methods("GET").Name(RepoDependencies)
 	repoRev.PathPrefix("/.build-data"+TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET", "HEAD", "PUT", "DELETE").Name(RepoBuildDataEntry)
 	repoRev.Path("/.badges/{Badge}.{Format}").Methods("GET").Name(RepoBadge)
@@ -186,8 +186,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	repo.Path("/.badges").Methods("GET").Name(RepoBadges)
 	repo.Path("/.counters").Methods("GET").Name(RepoCounters)
 	repo.Path("/.counters/{Counter}.{Format}").Methods("GET").Name(RepoCounter)
-	repo.Path("/.builds").Methods("GET").Name(RepoBuilds)
-	repo.Path("/.builds").Methods("POST").Name(RepoBuildsCreate)
 
 	repo.Path("/.pulls").Methods("GET").Name(RepoPullRequests)
 	pullPath := "/.pulls/{Pull}"

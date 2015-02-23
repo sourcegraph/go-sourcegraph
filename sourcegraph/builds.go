@@ -21,12 +21,9 @@ type BuildsService interface {
 	// List builds.
 	List(opt *BuildListOptions) ([]*Build, Response, error)
 
-	// ListByRepo lists builds for a repository.
-	ListByRepo(repo RepoSpec, opt *BuildListByRepoOptions) ([]*Build, Response, error)
-
 	// Create a new build. The build will run asynchronously (Create does not
 	// wait for it to return. To monitor the build's status, use Get.)
-	Create(repo RepoSpec, opt *BuildCreateOptions) (*Build, Response, error)
+	Create(repoRev RepoRevSpec, opt *BuildCreateOptions) (*Build, Response, error)
 
 	// Update updates information about a build and returns the build
 	// after the update has been applied.
@@ -129,8 +126,12 @@ func (s *TaskSpec) RouteVars() map[string]string {
 // with simple behavior. As we encounter new requirements for the
 // build system, they may evolve.
 type Build struct {
-	BID         int64 `json:",omitempty"`
-	Repo        int
+	BID  int64 `json:",omitempty"`
+	Repo int
+
+	// CommitID is the full resolved commit ID to build.
+	CommitID string `db:"commit_id"`
+
 	CreatedAt   time.Time          `db:"created_at"`
 	StartedAt   db_common.NullTime `db:"started_at"`
 	EndedAt     db_common.NullTime `db:"ended_at"`
@@ -151,6 +152,8 @@ type Build struct {
 	Purged bool // whether the build's data (defs/refs/etc.) has been purged
 
 	BuildConfig
+
+	BuildMeta
 
 	// RepoURI is populated (as a convenience) in results by Get and List but
 	// should not be set when creating builds (it will be ignored).
@@ -260,29 +263,44 @@ type BuildConfig struct {
 	// Priority of the build in the queue (higher numbers mean the build is
 	// dequeued sooner).
 	Priority int
+}
 
-	// CommitID is the full resolved commit ID to build.
-	CommitID string `db:"commit_id"`
-
-	// ContextRepo is the RID of the repo that should determine the
-	// context and configuration of the build environment. If
-	// ContextRepo == 0, the build's Repo value is used.
+// BuildMeta holds additional metadata about the build that is not
+// considered by BuildCreateOptions.Force when deciding whether an
+// existing equivalent build exists.
+type BuildMeta struct {
+	// PullRepo is the RID of the repo associated with the pull
+	// request that caused this build to be created. If this build was
+	// not created due to a pull request, it is 0. If this build is
+	// for the head commit of a PR against a different base repo,
+	// PullRepo is the RID of that base repo (and PullRepo != the
+	// build's Repo).
 	//
-	// ContextRepo is used to build pull request fork repo builds
-	// using the configuration of the repo from which they were
-	// forked. This means that the effective URI is that of the origin
-	// repo, not the fork. It also makes it possible to record the
-	// status of this build on the origin repo (for GitHub commit
-	// statuses).
-	ContextRepo int `db:"context_repo" json:",omitempty"`
+	// If PullRepo is set, PullNumber must also be set.
+	//
+	// TODO(sqs): This assumes that a given commit is only the head
+	// commit for a single PR, which is not true in general.
+	PullRepo int `db:"pull_repo" json:",omitempty"`
+
+	// PullNumber is the pull number (e.g., #123) of the pull request
+	// (on PullRepo) that caused this build to be created. If this
+	// build was not created due to a pull request, it is 0.
+	//
+	// If PullNumber is set, PullRepo must also be set.
+	//
+	// TODO(sqs): This assumes that a given commit is only the head
+	// commit for a single PR, which is not true in general.
+	PullNumber int `db:"pull_number" json:",omitempty"`
 }
 
 type BuildCreateOptions struct {
 	BuildConfig
+	BuildMeta
 
-	// Force creation of build (if false, the build will not be
-	// created if a build for the same repository and commit ID
-	// exists).
+	// Force creation of build. If false, the build will not be
+	// created if a build for the same repository and with the same
+	// BuildConfig exists. In all cases, the BuildMeta information is
+	// merged with the data that is already persisted.
 	//
 	// TODO(bliu): test this
 	Force bool
@@ -321,6 +339,9 @@ type BuildListOptions struct {
 
 	Purged bool `url:",omitempty"`
 
+	Repo     string `url:",omitempty"`
+	CommitID string `url:",omitempty"`
+
 	Sort      string `url:",omitempty"`
 	Direction string `url:",omitempty"`
 
@@ -347,33 +368,8 @@ func (s *buildsService) List(opt *BuildListOptions) ([]*Build, Response, error) 
 	return builds, resp, nil
 }
 
-type BuildListByRepoOptions struct {
-	BuildListOptions
-	Rev string `url:",omitempty"`
-}
-
-func (s *buildsService) ListByRepo(repo RepoSpec, opt *BuildListByRepoOptions) ([]*Build, Response, error) {
-	url, err := s.client.URL(router.RepoBuilds, repo.RouteVars(), opt)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := s.client.NewRequest("GET", url.String(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var builds []*Build
-	resp, err := s.client.Do(req, &builds)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return builds, resp, nil
-}
-
-func (s *buildsService) Create(repo RepoSpec, opt *BuildCreateOptions) (*Build, Response, error) {
-	url, err := s.client.URL(router.RepoBuildsCreate, repo.RouteVars(), nil)
+func (s *buildsService) Create(repoRev RepoRevSpec, opt *BuildCreateOptions) (*Build, Response, error) {
+	url, err := s.client.URL(router.RepoBuildsCreate, repoRev.RouteVars(), nil)
 	if err != nil {
 		return nil, nil, err
 	}

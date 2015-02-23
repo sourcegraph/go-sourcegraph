@@ -357,7 +357,27 @@ type RepoSettings struct {
 	// should be automatically built.
 	BuildPushes *bool `db:"build_pushes" json:",omitempty"`
 
-	SrcbotEnabled *bool `json:",omitempty"`
+	// ExternalCommitStatuses is whether the build status
+	// (pending/failure/success) of each commit should be published to
+	// GitHub using the repo status API
+	// (https://developer.github.com/v3/repos/statuses/).
+	//
+	// This behavior is also subject to the
+	// UnsuccessfulExternalCommitStatuses setting value.
+	ExternalCommitStatuses *bool `db:"external_commit_statuses" json:",omitempty"`
+
+	// UnsuccessfulExternalCommitStatuses, if true, indicates that
+	// pending/failure commit statuses should be published to
+	// GitHub. If false (default), only successful commit status are
+	// published. The default of false avoids bothersome warning
+	// messages and UI pollution in case the Sourcegraph build
+	// fails. Until our builds are highly reliable, a Sourcegraph
+	// build failure is not necessarily an indication of a problem
+	// with the repository.
+	//
+	// This setting is only meaningful if ExternalCommitStatuses is
+	// true.
+	UnsuccessfulExternalCommitStatuses *bool `db:"unsuccessful_external_commit_statuses" json:",omitempty"`
 
 	// UseSSHPrivateKey is whether Sourcegraph should clone and update
 	// the repository using an SSH key, and whether it should copy the
