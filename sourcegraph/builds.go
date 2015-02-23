@@ -355,6 +355,11 @@ type BuildListOptions struct {
 	Sort      string `url:",omitempty"`
 	Direction string `url:",omitempty"`
 
+	// RebuildBID filters the result set to only those builds whose
+	// RebuildBID equals the given BID (i.e., only those builds that
+	// are rebuilds of the given BID).
+	RebuildBID int64 `url:",omitempty"`
+
 	ListOptions
 }
 
