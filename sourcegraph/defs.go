@@ -112,6 +112,10 @@ type Def struct {
 	DocHTML string `json:",omitempty"`
 
 	FmtStrings *DefFormatStrings `json:",omitempty"`
+
+	// Adjacent contains any adjacent definitions that overlap with this one.
+	// By default, this value is null, unless requested via DefGetOptions.
+	Adjacent []*Def
 }
 
 // DefFormatStrings contains the various def format strings from the
@@ -161,6 +165,9 @@ type DefGetOptions struct {
 
 	// Stats is whether the Def response object should include statistics.
 	Stats bool `url:",omitempty"`
+
+	// AdjacentDefinitions additionally requests all overlapping definitions as well.
+	AdjacentDefinitions bool `url:",omitempty"`
 }
 
 func (s *defsService) Get(def DefSpec, opt *DefGetOptions) (*Def, Response, error) {
