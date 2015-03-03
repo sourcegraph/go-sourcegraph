@@ -115,7 +115,7 @@ type Def struct {
 
 	// Adjacent contains any adjacent definitions that overlap with this one.
 	// By default, this value is null, unless requested via DefGetOptions.
-	Adjacent []*Def
+	Adjacent []*graph.Def
 }
 
 // DefFormatStrings contains the various def format strings from the
