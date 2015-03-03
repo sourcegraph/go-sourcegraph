@@ -196,6 +196,10 @@ var ErrNotPersisted = errors.New("repository is not persisted locally, but it mi
 // ErrNotPersisted.
 var ErrNonStandardURI = errors.New("cannot infer repository clone URL because repository host is not standard; try adding it explicitly")
 
+// ErrNoRepoBuild indicates that no build could be found for a repo
+// revspec.
+var ErrNoRepoBuild = errors.New("no suitable repo build found for revspec")
+
 type ErrRedirect struct {
 	RedirectURI string
 }
