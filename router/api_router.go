@@ -66,6 +66,7 @@ const (
 	RepoBuildsCreate   = "repo.builds.create"
 	RepoBuildDataEntry = "repo.build-data.entry"
 	RepoTreeEntry      = "repo.tree.entry"
+	RepoTreeSearch     = "repo.tree.search"
 	RepoRefreshProfile = "repo.refresh-profile"
 	RepoRefreshVCSData = "repo.refresh-vcs-data"
 	RepoComputeStats   = "repo.compute-stats"
@@ -223,6 +224,8 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	// See router_util/tree_route.go for an explanation of how we match tree
 	// entry routes.
 	repoRev.Path("/.tree" + TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET").Name(RepoTreeEntry)
+
+	repoRev.Path("/.tree-search").Methods("GET").Name(RepoTreeSearch)
 
 	base.Path(`/people/` + PersonSpecPattern).Methods("GET").Name(Person)
 

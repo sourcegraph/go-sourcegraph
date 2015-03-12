@@ -6,12 +6,14 @@ import (
 	"sourcegraph.com/sourcegraph/vcsstore/vcsclient"
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
+	"sourcegraph.com/sourcegraph/go-vcs/vcs"
 )
 
 // RepoTreeService communicates with the Sourcegraph API endpoints that
 // fetch file and directory entries in repositories.
 type RepoTreeService interface {
 	Get(entry TreeEntrySpec, opt *RepoTreeGetOptions) (*TreeEntry, Response, error)
+	Search(RepoRevSpec, *RepoTreeSearchOptions) ([]*vcs.SearchResult, Response, error)
 }
 
 type repoTreeService struct {
@@ -154,6 +156,31 @@ func (s *repoTreeService) Get(entry TreeEntrySpec, opt *RepoTreeGetOptions) (*Tr
 	}
 
 	return entry_, resp, nil
+}
+
+type RepoTreeSearchOptions struct {
+	vcs.SearchOptions
+	Formatted bool
+}
+
+func (s *repoTreeService) Search(repoRev RepoRevSpec, opt *RepoTreeSearchOptions) ([]*vcs.SearchResult, Response, error) {
+	url, err := s.client.URL(router.RepoTreeSearch, repoRev.RouteVars(), opt)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var res []*vcs.SearchResult
+	resp, err := s.client.Do(req, &res)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return res, resp, nil
 }
 
 var _ RepoTreeService = &MockRepoTreeService{}
