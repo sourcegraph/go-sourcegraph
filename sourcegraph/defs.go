@@ -240,7 +240,7 @@ func (o *DefListOptions) DefFilters() []store.DefFilter {
 			return def.Name == o.Name
 		}))
 	}
-	if o.ByteOffset != nil {
+	if o.ByteOffset[1] != 0 {
 		fs = append(fs, store.DefFilterFunc(func(d *graph.Def) bool {
 			return d.DefStart == o.ByteOffset[0] && d.DefEnd == o.ByteOffset[1]
 		}))
