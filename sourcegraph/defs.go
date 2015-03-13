@@ -240,6 +240,21 @@ func (o *DefListOptions) DefFilters() []store.DefFilter {
 			return def.Name == o.Name
 		}))
 	}
+	if o.OverlapsWith != nil {
+		f := []store.DefFilter{
+			store.ByCommitIDs(def.CommitID),
+			store.ByRepos(def.Repo),
+			store.DefFilterFunc(func(d *graph.Def) bool {
+				// We already know that Repo & CommitID are the same from above, so we only
+				// check Unit, UnitType & Path equality.
+				sameDef := (d.UnitType == "" || d.UnitType == def.UnitType) &&
+					(d.Unit == "" || d.Unit == def.Unit) && d.Path == def.Path
+				return d.DefStart == def.DefStart && d.DefEnd == def.DefEnd &&
+					d.File == def.File && def.Name == d.Name && !sameDef
+			}),
+		}
+		fs = append(fs, f...)
+	}
 	if o.Query != "" {
 		fs = append(fs, store.ByDefQuery(o.Query))
 	}
