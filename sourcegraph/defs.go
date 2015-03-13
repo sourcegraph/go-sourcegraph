@@ -242,16 +242,7 @@ func (o *DefListOptions) DefFilters() []store.DefFilter {
 	}
 	if o.ByteOffset != nil {
 		fs = append(fs, store.DefFilterFunc(func(d *graph.Def) bool {
-			//
-			// We also match by Def.Name because it is possible to have multiple
-			// distinct definitions on the same offset. For example, in Go:
-			//
-			//	var a, b int
-			//
-			// Here, a & b cover the same byte offsets, even though they are distinct.
-			//
-			return d.DefStart == o.ByteOffset[0] && d.DefEnd == o.ByteOffset[1] &&
-				d.File == def.File && def.Name == d.Name
+			return d.DefStart == o.ByteOffset[0] && d.DefEnd == o.ByteOffset[1]
 		}))
 	}
 	if o.Query != "" {
