@@ -242,7 +242,7 @@ func (o *DefListOptions) DefFilters() []store.DefFilter {
 	}
 	if o.ByteEnd != 0 {
 		fs = append(fs, store.DefFilterFunc(func(d *graph.Def) bool {
-			return d.DefStart == o.ByteOffset[0] && d.DefEnd == o.ByteOffset[1]
+			return d.DefStart == o.ByteStart && d.DefEnd == o.ByteEnd
 		}))
 	}
 	if o.Query != "" {
