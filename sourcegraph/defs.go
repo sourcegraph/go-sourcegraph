@@ -241,6 +241,7 @@ func (o *DefListOptions) DefFilters() []store.DefFilter {
 		}))
 	}
 	if o.OverlapsWith != nil {
+		def := o.OverlapsWith
 		f := []store.DefFilter{
 			store.ByCommitIDs(def.CommitID),
 			store.ByRepos(def.Repo),
