@@ -26,6 +26,7 @@ func TestSearchService_Search(t *testing.T) {
 			"People":  "false",
 			"Repos":   "false",
 			"Defs":    "false",
+			"Tree":    "false",
 			"PerPage": "1",
 			"Page":    "2",
 		})

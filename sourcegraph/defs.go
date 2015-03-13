@@ -112,6 +112,10 @@ type Def struct {
 	DocHTML string `json:",omitempty"`
 
 	FmtStrings *DefFormatStrings `json:",omitempty"`
+
+	// Adjacent contains any adjacent definitions that overlap with this one.
+	// By default, this value is null, unless requested via DefGetOptions.
+	Adjacent []*Def
 }
 
 // DefFormatStrings contains the various def format strings from the
@@ -161,6 +165,9 @@ type DefGetOptions struct {
 
 	// Stats is whether the Def response object should include statistics.
 	Stats bool `url:",omitempty"`
+
+	// AdjacentDefinitions additionally requests all overlapping definitions as well.
+	AdjacentDefinitions bool `url:",omitempty"`
 }
 
 func (s *defsService) Get(def DefSpec, opt *DefGetOptions) (*Def, Response, error) {
@@ -189,10 +196,6 @@ type DefListOptions struct {
 
 	// Specifies a search query for defs. If specified, then the Sort and Direction options are ignored
 	Query string `url:",omitempty" json:",omitempty"`
-
-	// DefKeys specifies that the list should return only the definitions in this slice. All
-	// other filters will be ignored if this is non-nil.
-	DefKeys []*graph.DefKey
 
 	// RepoRevs constrains the results to a set of repository
 	// revisions (given by their URIs plus an optional "@" and a
@@ -235,18 +238,6 @@ type DefListOptions struct {
 
 func (o *DefListOptions) DefFilters() []store.DefFilter {
 	var fs []store.DefFilter
-	if o.DefKeys != nil {
-		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
-			for _, k := range o.DefKeys {
-				if (def.Repo == "" || def.Repo == k.Repo) && (def.CommitID == "" || def.CommitID == k.CommitID) &&
-					(def.UnitType == "" || def.UnitType == k.UnitType) && (def.Unit == "" || def.Unit == k.Unit) &&
-					def.Path == k.Path {
-					return true
-				}
-			}
-			return false
-		}))
-	}
 	if o.Name != "" {
 		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
 			return def.Name == o.Name

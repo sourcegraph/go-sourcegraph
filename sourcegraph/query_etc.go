@@ -11,6 +11,17 @@ type Plan struct {
 	Repos *RepoListOptions
 	Defs  *DefListOptions
 	Users *UsersListOptions
+
+	Tree *RepoTreeSearchOptions
+
+	// TreeRepoRevs constrains the Tree search results to a set of
+	// repository revisions (given by their URIs plus an optional "@"
+	// and a revision specifier). For example, "repo.com/foo@revspec".
+	//
+	// TODO(sqs): gorilla/schema does not respect ",comma" and it has
+	// no similar option, so specifying multiple repo revs here does
+	// NOT work.
+	TreeRepoRevs []string `url:",omitempty,comma" json:",omitempty"`
 }
 
 // A Suggestion is a possible completion of a query (returned by

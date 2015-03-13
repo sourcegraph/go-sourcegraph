@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
+	"sourcegraph.com/sourcegraph/go-vcs/vcs"
 	"sourcegraph.com/sourcegraph/vcsstore/vcsclient"
 )
 
@@ -59,5 +60,52 @@ func TestRepoTreeService_Get(t *testing.T) {
 
 	if !reflect.DeepEqual(data, want) {
 		t.Errorf("RepoTree.Get returned %+v, want %+v", data, want)
+	}
+}
+
+func TestRepoTreeService_Search(t *testing.T) {
+	setup()
+	defer teardown()
+
+	want := []*vcs.SearchResult{
+		{
+			File:      "f",
+			Match:     []byte("abc"),
+			StartLine: 1,
+			EndLine:   2,
+		},
+	}
+
+	var called bool
+	mux.HandleFunc(urlPath(t, router.RepoTreeSearch, map[string]string{"RepoSpec": "r.com/x", "Rev": "v", "CommitID": "c"}), func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		testMethod(t, r, "GET")
+		testFormValues(t, r, values{
+			"Query":        "q",
+			"QueryType":    "t",
+			"ContextLines": "1",
+			"N":            "3",
+			"Offset":       "0",
+			"Formatted":    "true",
+		})
+
+		writeJSON(w, want)
+	})
+
+	opt := RepoTreeSearchOptions{
+		Formatted:     true,
+		SearchOptions: vcs.SearchOptions{Query: "q", QueryType: "t", N: 3, ContextLines: 1},
+	}
+	data, _, err := client.RepoTree.Search(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "v"}, &opt)
+	if err != nil {
+		t.Errorf("RepoTree.Search returned error: %v", err)
+	}
+
+	if !called {
+		t.Fatal("!called")
+	}
+
+	if !reflect.DeepEqual(data, want) {
+		t.Errorf("RepoTree.Search returned %+v, want %+v", data, want)
 	}
 }

@@ -2,6 +2,7 @@ package sourcegraph
 
 import (
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
+	"sourcegraph.com/sourcegraph/go-vcs/vcs"
 )
 
 // SearchService communicates with the search-related endpoints in
@@ -20,9 +21,10 @@ type SearchService interface {
 }
 
 type SearchResults struct {
-	Defs   []*Def    `json:",omitempty"`
-	People []*Person `json:",omitempty"`
-	Repos  []*Repo   `json:",omitempty"`
+	Defs   []*Def                  `json:",omitempty"`
+	People []*Person               `json:",omitempty"`
+	Repos  []*Repo                 `json:",omitempty"`
+	Tree   []*RepoTreeSearchResult `json:",omitempty"`
 
 	// RawQuery is the raw query passed to search.
 	RawQuery RawQuery
@@ -53,7 +55,14 @@ type SearchResults struct {
 
 // Empty is whether there are no search results for any result type.
 func (r *SearchResults) Empty() bool {
-	return len(r.Defs) == 0 && len(r.People) == 0 && len(r.Repos) == 0
+	return len(r.Defs) == 0 && len(r.People) == 0 && len(r.Repos) == 0 && len(r.Tree) == 0
+}
+
+// A RepoTreeSearchResult is a tree search result that includes the repo
+// and rev it came from.
+type RepoTreeSearchResult struct {
+	vcs.SearchResult
+	RepoRev RepoRevSpec
 }
 
 // searchService implements SearchService.
@@ -69,6 +78,7 @@ type SearchOptions struct {
 	Defs   bool
 	Repos  bool
 	People bool
+	Tree   bool
 
 	ListOptions
 }
