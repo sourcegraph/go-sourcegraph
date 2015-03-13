@@ -190,9 +190,9 @@ type DefListOptions struct {
 	// Specifies a search query for defs. If specified, then the Sort and Direction options are ignored
 	Query string `url:",omitempty" json:",omitempty"`
 
-	// ByteOffset will restrict the results to only definitions that overlap with the specified
-	// start and end byte offsets.
-	ByteOffset [2]uint32
+	// ByteStart and ByteEnd will restrict the results to only definitions that overlap with the specified
+	// start and end byte offsets. This filter is only applied if both values are set.
+	ByteStart, ByteEnd uint32
 
 	// RepoRevs constrains the results to a set of repository
 	// revisions (given by their URIs plus an optional "@" and a
@@ -240,7 +240,7 @@ func (o *DefListOptions) DefFilters() []store.DefFilter {
 			return def.Name == o.Name
 		}))
 	}
-	if o.ByteOffset[1] != 0 {
+	if o.ByteEnd != 0 {
 		fs = append(fs, store.DefFilterFunc(func(d *graph.Def) bool {
 			return d.DefStart == o.ByteOffset[0] && d.DefEnd == o.ByteOffset[1]
 		}))
