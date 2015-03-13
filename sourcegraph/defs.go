@@ -190,9 +190,9 @@ type DefListOptions struct {
 	// Specifies a search query for defs. If specified, then the Sort and Direction options are ignored
 	Query string `url:",omitempty" json:",omitempty"`
 
-	// OverlapsWith specifies that a list of definitions should be returned that overlap the given
-	// definition.
-	OverlapsWith *Def
+	// ByteOffset will restrict the results to only definitions that overlap with the specified
+	// start and end byte offsets.
+	ByteOffset [2]uint32
 
 	// RepoRevs constrains the results to a set of repository
 	// revisions (given by their URIs plus an optional "@" and a
@@ -240,21 +240,19 @@ func (o *DefListOptions) DefFilters() []store.DefFilter {
 			return def.Name == o.Name
 		}))
 	}
-	if o.OverlapsWith != nil {
-		def := o.OverlapsWith
-		f := []store.DefFilter{
-			store.ByCommitIDs(def.CommitID),
-			store.ByRepos(def.Repo),
-			store.DefFilterFunc(func(d *graph.Def) bool {
-				// We already know that Repo & CommitID are the same from above, so we only
-				// check Unit, UnitType & Path equality.
-				sameDef := (d.UnitType == "" || d.UnitType == def.UnitType) &&
-					(d.Unit == "" || d.Unit == def.Unit) && d.Path == def.Path
-				return d.DefStart == def.DefStart && d.DefEnd == def.DefEnd &&
-					d.File == def.File && def.Name == d.Name && !sameDef
-			}),
-		}
-		fs = append(fs, f...)
+	if o.ByteOffset != nil {
+		fs = append(fs, store.DefFilterFunc(func(d *graph.Def) bool {
+			//
+			// We also match by Def.Name because it is possible to have multiple
+			// distinct definitions on the same offset. For example, in Go:
+			//
+			//	var a, b int
+			//
+			// Here, a & b cover the same byte offsets, even though they are distinct.
+			//
+			return d.DefStart == o.ByteOffset[0] && d.DefEnd == o.ByteOffset[1] &&
+				d.File == def.File && def.Name == d.Name
+		}))
 	}
 	if o.Query != "" {
 		fs = append(fs, store.ByDefQuery(o.Query))
