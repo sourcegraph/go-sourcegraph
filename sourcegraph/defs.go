@@ -190,6 +190,10 @@ type DefListOptions struct {
 	// Specifies a search query for defs. If specified, then the Sort and Direction options are ignored
 	Query string `url:",omitempty" json:",omitempty"`
 
+	// DefKey constrains the results to a set of definitions that overlap at the byte offset
+	// positions of the given DefKey
+	DefKey *graph.DefKey
+
 	// RepoRevs constrains the results to a set of repository
 	// revisions (given by their URIs plus an optional "@" and a
 	// revision specifier). For example, "repo.com/foo@revspec".
