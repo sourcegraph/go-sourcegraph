@@ -381,10 +381,6 @@ type Example struct {
 	// The line that the given example ends on
 	EndLine int
 
-	// StartByte and EndByte represent the byte offsets of this example
-	// in the containing file.
-	StartByte, EndByte int
-
 	// Error is whether an error occurred while fetching this example.
 	Error bool
 }
