@@ -262,7 +262,7 @@ func (o *DefListOptions) DefFilters() []store.DefFilter {
 	if o.Unit != "" && o.UnitType != "" {
 		fs = append(fs, store.ByUnits(unit.ID2{Type: o.UnitType, Name: o.Unit}))
 	}
-	if (o.UnitType != "" && o.Name == "") || (o.UnitType == "" && o.Name != "") {
+	if (o.UnitType != "" && o.Unit == "") || (o.UnitType == "" && o.Unit != "") {
 		log.Println("WARNING: DefListOptions.DefFilter: must specify either both or neither of --type and --name (to filter by source unit)")
 	}
 	if o.File != "" {
