@@ -126,6 +126,11 @@ type RepoTreeGetOptions struct {
 	// Contents code-formatted using HTML.
 	Formatted bool
 
+	// HighlightStrings is a list of fixed strings that should be
+	// wrapped in a <span class="highlight"> in the returned HTML. It
+	// only takes effect if Formatted is true.
+	HighlightStrings []string
+
 	// TokenizedSource requests that the source code be returned as a tokenized data
 	// structure rather than an (annotated) string.
 	//
