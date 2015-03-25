@@ -57,6 +57,8 @@ func TestDefsService_List(t *testing.T) {
 			"Doc":       "true",
 			"PerPage":   "1",
 			"Page":      "2",
+			"ByteStart": "0",
+			"ByteEnd":   "0",
 		})
 
 		writeJSON(w, want)
