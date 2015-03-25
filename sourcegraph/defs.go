@@ -190,6 +190,13 @@ type DefListOptions struct {
 	// Specifies a search query for defs. If specified, then the Sort and Direction options are ignored
 	Query string `url:",omitempty" json:",omitempty"`
 
+	// ByteStart and ByteEnd will restrict the results to only definitions that overlap with the specified
+	// start and end byte offsets. This filter is only applied if both values are set.
+	ByteStart, ByteEnd uint32
+
+	// DefKeys, if set, will return the definitions that match the given DefKey
+	DefKeys []*graph.DefKey
+
 	// RepoRevs constrains the results to a set of repository
 	// revisions (given by their URIs plus an optional "@" and a
 	// revision specifier). For example, "repo.com/foo@revspec".
@@ -231,9 +238,26 @@ type DefListOptions struct {
 
 func (o *DefListOptions) DefFilters() []store.DefFilter {
 	var fs []store.DefFilter
+	if o.DefKeys != nil {
+		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
+			for _, dk := range o.DefKeys {
+				if (def.Repo == "" || def.Repo == dk.Repo) && (def.CommitID == "" || def.CommitID == dk.CommitID) &&
+					(def.UnitType == "" || def.UnitType == dk.UnitType) && (def.Unit == "" || def.Unit == dk.Unit) &&
+					def.Path == dk.Path {
+					return true
+				}
+			}
+			return false
+		}))
+	}
 	if o.Name != "" {
 		fs = append(fs, store.DefFilterFunc(func(def *graph.Def) bool {
 			return def.Name == o.Name
+		}))
+	}
+	if o.ByteEnd != 0 {
+		fs = append(fs, store.DefFilterFunc(func(d *graph.Def) bool {
+			return d.DefStart == o.ByteStart && d.DefEnd == o.ByteEnd
 		}))
 	}
 	if o.Query != "" {
@@ -253,7 +277,7 @@ func (o *DefListOptions) DefFilters() []store.DefFilter {
 	if o.Unit != "" && o.UnitType != "" {
 		fs = append(fs, store.ByUnits(unit.ID2{Type: o.UnitType, Name: o.Unit}))
 	}
-	if (o.UnitType != "" && o.Name == "") || (o.UnitType == "" && o.Name != "") {
+	if (o.UnitType != "" && o.Unit == "") || (o.UnitType == "" && o.Unit != "") {
 		log.Println("WARNING: DefListOptions.DefFilter: must specify either both or neither of --type and --name (to filter by source unit)")
 	}
 	if o.File != "" {
