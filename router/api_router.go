@@ -113,6 +113,9 @@ const (
 	DeltaReviewers          = "delta.reviewers"
 	DeltasIncoming          = "deltas.incoming"
 
+	Notes       = "notes"
+	NotesCreate = "notes.create"
+
 	Unit  = "unit"
 	Units = "units"
 
@@ -152,6 +155,9 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 
 	base.Path("/repos").Methods("GET").Name(Repos)
 	base.Path("/repos").Methods("POST").Name(ReposCreate)
+
+	base.Path("/notes").Methods("GET").Name(Notes)
+	base.Path("/notes").Methods("POST").Name(NotesCreate)
 
 	base.Path("/repos/github.com/{owner:[^/]+}/{repo:[^/]+}/{what:(?:badges|counters)}/{which}.{Format}").Methods("GET").Name(RedirectOldRepoBadgesAndCounters)
 
