@@ -353,6 +353,10 @@ func (s *repositoriesService) GetOrCreate(repo_ RepoSpec, opt *RepoGetOptions) (
 
 // RepoSettings describes a repository's configuration settings.
 type RepoSettings struct {
+	// Enabled is whether this repository has been enabled for use on
+	// Sourcegraph by a repository owner or a site admin.
+	Enabled *bool `db:"enabled" json:",omitempty"`
+
 	// BuildPushes is whether head commits on newly pushed branches
 	// should be automatically built.
 	BuildPushes *bool `db:"build_pushes" json:",omitempty"`
