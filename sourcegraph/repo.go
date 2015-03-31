@@ -101,6 +101,11 @@ type Repo struct {
 
 	// Stat holds repository statistics. It's only filled in if Repo{Get,List}Options has Stats == true.
 	Stat RepoStats `db:"-" json:",omitempty"`
+
+	// Permissions describes the permissions that the current user (or
+	// anonymous users, if there is no current user) is granted to
+	// this repository.
+	Permissions RepoPermissions `db:"-"`
 }
 
 // IsGitHubRepo returns true iff this repository is hosted on GitHub.
@@ -161,6 +166,14 @@ func IsGoogleCodeRepoURI(repoURI string) bool {
 // RepoSpec returns the RepoSpec that specifies r.
 func (r *Repo) RepoSpec() RepoSpec {
 	return RepoSpec{URI: r.URI, RID: r.RID}
+}
+
+// RepoPermissions describes the possible permissions that a user (or
+// an anonymous user) can be granted to a repository.
+type RepoPermissions struct {
+	Read  bool
+	Write bool
+	Admin bool
 }
 
 // ErrRenamed is an error type that indicates that a repository was renamed from
