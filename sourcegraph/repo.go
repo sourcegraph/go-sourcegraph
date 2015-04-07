@@ -103,7 +103,8 @@ type Repo struct {
 	Stat RepoStats `db:"-" json:",omitempty"`
 
 	// Permissions describes the permissions that the current user (or
-	// anonymous users, if there is no current user) is granted to this repository.
+	// anonymous users, if there is no current user) is granted to
+	// this repository.
 	Permissions RepoPermissions `db:"-"`
 }
 
