@@ -1,6 +1,7 @@
 package sourcegraph
 
 import (
+	"encoding/json"
 	"net/http"
 	"reflect"
 	"testing"
@@ -288,14 +289,15 @@ func TestReposService_Create(t *testing.T) {
 	setup()
 	defer teardown()
 
-	newRepo := NewRepoSpec{Type: "git", CloneURLStr: "http://r.com/x"}
-	want := &Repo{RID: 1}
+	newRepo := &Repo{URI: "r.com/x", VCS: "git"}
+	want := &Repo{RID: 1, URI: "r.com/x", VCS: "git"}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.ReposCreate, nil), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "POST")
-		testBody(t, r, `{"Type":"git","CloneURL":"http://r.com/x"}`+"\n")
+		b, _ := json.Marshal(newRepo)
+		testBody(t, r, string(b)+"\n")
 
 		writeJSON(w, want)
 	})

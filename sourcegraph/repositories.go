@@ -70,11 +70,8 @@ type ReposService interface {
 	// revspec. The opt param controls what is returned in this case.
 	GetBuild(repo RepoRevSpec, opt *RepoGetBuildOptions) (*RepoBuildInfo, Response, error)
 
-	// Create adds the repository at cloneURL, filling in all information about
-	// the repository that can be inferred from the URL (or, for GitHub
-	// repositories, fetched from the GitHub API). If a repository with the
-	// specified clone URL, or the same URI, already exists, it is returned.
-	Create(newRepoSpec NewRepoSpec) (*Repo, Response, error)
+	// Create adds a repository.
+	Create(newRepo *Repo) (*Repo, Response, error)
 
 	// GetReadme fetches the formatted README file for a repository.
 	GetReadme(repo RepoRevSpec) (*vcsclient.TreeEntry, Response, error)
@@ -515,29 +512,24 @@ func (s *repositoriesService) GetBuild(repo RepoRevSpec, opt *RepoGetBuildOption
 	return info, resp, nil
 }
 
-type NewRepoSpec struct {
-	Type        string
-	CloneURLStr string `json:"CloneURL"`
-}
-
-func (s *repositoriesService) Create(newRepoSpec NewRepoSpec) (*Repo, Response, error) {
+func (s *repositoriesService) Create(newRepo *Repo) (*Repo, Response, error) {
 	url, err := s.client.URL(router.ReposCreate, nil, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	req, err := s.client.NewRequest("POST", url.String(), newRepoSpec)
+	req, err := s.client.NewRequest("POST", url.String(), newRepo)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	var repo_ *Repo
-	resp, err := s.client.Do(req, &repo_)
+	var createdRepo *Repo
+	resp, err := s.client.Do(req, &createdRepo)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return repo_, resp, nil
+	return createdRepo, resp, nil
 }
 
 func (s *repositoriesService) GetReadme(repo RepoRevSpec) (*vcsclient.TreeEntry, Response, error) {
