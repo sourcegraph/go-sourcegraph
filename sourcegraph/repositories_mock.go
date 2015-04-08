@@ -10,7 +10,6 @@ type MockReposService struct {
 	GetStats_          func(repo RepoRevSpec) (RepoStats, Response, error)
 	GetCombinedStatus_ func(spec RepoRevSpec) (*CombinedStatus, Response, error)
 	CreateStatus_      func(spec RepoRevSpec, st RepoStatus) (*RepoStatus, Response, error)
-	GetOrCreate_       func(repo RepoSpec, opt *RepoGetOptions) (*Repo, Response, error)
 	GetSettings_       func(repo RepoSpec) (*RepoSettings, Response, error)
 	UpdateSettings_    func(repo RepoSpec, settings RepoSettings) (Response, error)
 	RefreshProfile_    func(repo RepoSpec) (Response, error)
@@ -49,10 +48,6 @@ func (s MockReposService) GetCombinedStatus(spec RepoRevSpec) (*CombinedStatus, 
 
 func (s MockReposService) CreateStatus(spec RepoRevSpec, st RepoStatus) (*RepoStatus, Response, error) {
 	return s.CreateStatus_(spec, st)
-}
-
-func (s MockReposService) GetOrCreate(repo RepoSpec, opt *RepoGetOptions) (*Repo, Response, error) {
-	return s.GetOrCreate_(repo, opt)
 }
 
 func (s MockReposService) GetSettings(repo RepoSpec) (*RepoSettings, Response, error) {

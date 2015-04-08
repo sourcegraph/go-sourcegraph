@@ -35,12 +35,6 @@ type ReposService interface {
 	// the given commit.
 	GetCombinedStatus(spec RepoRevSpec) (*CombinedStatus, Response, error)
 
-	// GetOrCreate fetches a repository using Get. If no such repository exists
-	// with the URI, and the URI refers to a recognized repository host (such as
-	// github.com), the repository's information is fetched from the external
-	// host and the repository is created.
-	GetOrCreate(repo RepoSpec, opt *RepoGetOptions) (*Repo, Response, error)
-
 	// GetSettings fetches a repository's configuration settings.
 	GetSettings(repo RepoSpec) (*RepoSettings, Response, error)
 
@@ -329,26 +323,6 @@ func (s *repositoriesService) GetStats(repoRev RepoRevSpec) (RepoStats, Response
 	}
 
 	return stats, resp, nil
-}
-
-func (s *repositoriesService) GetOrCreate(repo_ RepoSpec, opt *RepoGetOptions) (*Repo, Response, error) {
-	url, err := s.client.URL(router.ReposGetOrCreate, repo_.RouteVars(), opt)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := s.client.NewRequest("PUT", url.String(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var repo__ *Repo
-	resp, err := s.client.Do(req, &repo__)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return repo__, resp, nil
 }
 
 // RepoSettings describes a repository's configuration settings.

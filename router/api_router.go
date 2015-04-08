@@ -37,7 +37,6 @@ const (
 
 	Repos              = "repos"
 	ReposCreate        = "repos.create"
-	ReposGetOrCreate   = "repos.get-or-create"
 	Repo               = "repo"
 	RepoAuthors        = "repo.authors"
 	RepoClients        = "repo.clients"
@@ -156,7 +155,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	// repo contains routes that are NOT specific to a revision. In these routes, the URL may not contain a revspec after the repo (that is, no "github.com/foo/bar@myrevspec").
 	repoPath := `/repos/` + RepoSpecPathPattern
 	base.Path(repoPath).Methods("GET").Name(Repo)
-	base.Path(repoPath).Methods("PUT").Name(ReposGetOrCreate)
 	repo := base.PathPrefix(repoPath).Subrouter()
 	repo.Path("/.clients").Methods("GET").Name(RepoClients)
 	repo.Path("/.dependents").Methods("GET").Name(RepoDependents)

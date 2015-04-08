@@ -132,35 +132,6 @@ func TestReposService_GetStats(t *testing.T) {
 	}
 }
 
-func TestReposService_GetOrCreate(t *testing.T) {
-	setup()
-	defer teardown()
-
-	want := &Repo{RID: 1}
-
-	var called bool
-	mux.HandleFunc(urlPath(t, router.ReposGetOrCreate, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		testMethod(t, r, "PUT")
-
-		writeJSON(w, want)
-	})
-
-	repo_, _, err := client.Repos.GetOrCreate(RepoSpec{URI: "r.com/x"}, nil)
-	if err != nil {
-		t.Errorf("Repos.GetOrCreate returned error: %v", err)
-	}
-
-	if !called {
-		t.Fatal("!called")
-	}
-
-	normRepo(want)
-	if !reflect.DeepEqual(repo_, want) {
-		t.Errorf("Repos.GetOrCreate returned %+v, want %+v", repo_, want)
-	}
-}
-
 func TestReposService_GetSettings(t *testing.T) {
 	setup()
 	defer teardown()
