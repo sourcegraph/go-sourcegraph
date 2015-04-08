@@ -32,18 +32,6 @@ type DefsService interface {
 
 	// ListExamples lists people who committed parts of def's definition.
 	ListAuthors(def DefSpec, opt *DefListAuthorsOptions) ([]*AugmentedDefAuthor, Response, error)
-
-	// ListClients lists people who use def in their code.
-	ListClients(def DefSpec, opt *DefListClientsOptions) ([]*AugmentedDefClient, Response, error)
-
-	// ListDependents lists repositories that use def in their code.
-	ListDependents(def DefSpec, opt *DefListDependentsOptions) ([]*AugmentedDefDependent, Response, error)
-
-	// ListVersions lists all available versions of a definition in
-	// the various repository commits in which it has appeared.
-	//
-	// TODO(sqs): how to deal with renames, etc.?
-	ListVersions(def DefSpec, opt *DefListVersionsOptions) ([]*Def, Response, error)
 }
 
 // DefSpec specifies a def.
@@ -503,105 +491,6 @@ func (s *defsService) ListAuthors(def DefSpec, opt *DefListAuthorsOptions) ([]*A
 	}
 
 	return authors, resp, nil
-}
-
-type DefClient struct {
-	UID   nnz.Int
-	Email nnz.String
-
-	AuthorshipInfo
-
-	// UseCount is the number of times this person referred to the def.
-	UseCount int `db:"use_count"`
-}
-
-type AugmentedDefClient struct {
-	Person *Person
-	*DefClient
-}
-
-// DefListClientsOptions specifies options for DefsService.ListClients.
-type DefListClientsOptions struct {
-	ListOptions
-}
-
-func (s *defsService) ListClients(def DefSpec, opt *DefListClientsOptions) ([]*AugmentedDefClient, Response, error) {
-	url, err := s.client.URL(router.DefClients, def.RouteVars(), opt)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := s.client.NewRequest("GET", url.String(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var clients []*AugmentedDefClient
-	resp, err := s.client.Do(req, &clients)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return clients, resp, nil
-}
-
-type DefDependent struct {
-	FromRepo string `db:"from_repo"`
-	Count    int
-}
-
-type AugmentedDefDependent struct {
-	Repo *Repo
-	*DefDependent
-}
-
-// DefListDependentsOptions specifies options for DefsService.ListDependents.
-type DefListDependentsOptions struct {
-	ListOptions
-}
-
-func (s *defsService) ListDependents(def DefSpec, opt *DefListDependentsOptions) ([]*AugmentedDefDependent, Response, error) {
-	url, err := s.client.URL(router.DefDependents, def.RouteVars(), opt)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := s.client.NewRequest("GET", url.String(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var dependents []*AugmentedDefDependent
-	resp, err := s.client.Do(req, &dependents)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return dependents, resp, nil
-}
-
-type DefListVersionsOptions struct {
-	ListOptions
-}
-
-func (s *defsService) ListVersions(def DefSpec, opt *DefListVersionsOptions) ([]*Def, Response, error) {
-	url, err := s.client.URL(router.DefVersions, def.RouteVars(), opt)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := s.client.NewRequest("GET", url.String(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var defVersions []*Def
-	resp, err := s.client.Do(req, &defVersions)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return defVersions, resp, nil
 }
 
 var _ DefsService = &MockDefsService{}

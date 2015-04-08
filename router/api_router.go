@@ -18,20 +18,15 @@ const (
 	OrgSettings       = "org.settings"
 	OrgSettingsUpdate = "org.settings.update"
 
-	Users                 = "users"
-	User                  = "user"
-	UserOrgs              = "user.orgs"
-	UserAuthors           = "user.authors"
-	UserClients           = "user.clients"
-	UserEmails            = "user.emails"
-	UserFromGitHub        = "user.from-github"
-	UserRepoContributions = "user.repo-contributions"
-	UserRepoDependencies  = "user.repo-dependencies"
-	UserRepoDependents    = "user.repo-dependents"
-	UserRefreshProfile    = "user.refresh-profile"
-	UserSettings          = "user.settings"
-	UserSettingsUpdate    = "user.settings.update"
-	UserComputeStats      = "user.compute-stats"
+	Users              = "users"
+	User               = "user"
+	UserOrgs           = "user.orgs"
+	UserEmails         = "user.emails"
+	UserFromGitHub     = "user.from-github"
+	UserRefreshProfile = "user.refresh-profile"
+	UserSettings       = "user.settings"
+	UserSettingsUpdate = "user.settings.update"
+	UserComputeStats   = "user.compute-stats"
 
 	Person = "person"
 
@@ -54,10 +49,6 @@ const (
 	ReposCreate        = "repos.create"
 	ReposGetOrCreate   = "repos.get-or-create"
 	Repo               = "repo"
-	RepoAuthors        = "repo.authors"
-	RepoClients        = "repo.clients"
-	RepoDependents     = "repo.dependents"
-	RepoDependencies   = "repo.dependencies"
 	RepoBadge          = "repo.badge"
 	RepoBadges         = "repo.badges"
 	RepoCounter        = "repo.counter"
@@ -93,14 +84,11 @@ const (
 
 	Snippet = "snippet"
 
-	Defs          = "defs"
-	Def           = "def"
-	DefRefs       = "def.refs"
-	DefExamples   = "def.examples"
-	DefAuthors    = "def.authors"
-	DefClients    = "def.clients"
-	DefDependents = "def.dependents"
-	DefVersions   = "def.versions"
+	Defs        = "defs"
+	Def         = "def"
+	DefRefs     = "def.refs"
+	DefExamples = "def.examples"
+	DefAuthors  = "def.authors"
 
 	Delta                   = "delta"
 	DeltaUnits              = "delta.units"
@@ -160,11 +148,9 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	repoRev.Path("/.stats").Methods("GET").Name(RepoStats)
 	repoRev.Path("/.status").Methods("GET").Name(RepoCombinedStatus)
 	repoRev.Path("/.status").Methods("POST").Name(RepoStatusCreate)
-	repoRev.Path("/.authors").Methods("GET").Name(RepoAuthors)
 	repoRev.Path("/.readme").Methods("GET").Name(RepoReadme)
 	repoRev.Path("/.build").Methods("GET").Name(RepoBuild)
 	repoRev.Path("/.builds").Methods("POST").Name(RepoBuildsCreate)
-	repoRev.Path("/.dependencies").Methods("GET").Name(RepoDependencies)
 	repoRev.PathPrefix("/.build-data"+TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET", "HEAD", "PUT", "DELETE").Name(RepoBuildDataEntry)
 	repoRev.Path("/.badges/{Badge}.{Format}").Methods("GET").Name(RepoBadge)
 
@@ -173,8 +159,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	base.Path(repoPath).Methods("GET").Name(Repo)
 	base.Path(repoPath).Methods("PUT").Name(ReposGetOrCreate)
 	repo := base.PathPrefix(repoPath).Subrouter()
-	repo.Path("/.clients").Methods("GET").Name(RepoClients)
-	repo.Path("/.dependents").Methods("GET").Name(RepoDependents)
 	repo.Path("/.external-profile").Methods("PUT").Name(RepoRefreshProfile)
 	repo.Path("/.vcs-data").Methods("PUT").Name(RepoRefreshVCSData)
 	repo.Path("/.settings").Methods("GET").Name(RepoSettings)
@@ -234,12 +218,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	base.Path(userPath).Methods("GET").Name(User)
 	user := base.PathPrefix(userPath).Subrouter()
 	user.Path("/orgs").Methods("GET").Name(UserOrgs)
-	user.Path("/clients").Methods("GET").Name(UserClients)
-	user.Path("/authors").Methods("GET").Name(UserAuthors)
 	user.Path("/emails").Methods("GET").Name(UserEmails)
-	user.Path("/repo-contributions").Methods("GET").Name(UserRepoContributions)
-	user.Path("/repo-dependencies").Methods("GET").Name(UserRepoDependencies)
-	user.Path("/repo-dependents").Methods("GET").Name(UserRepoDependents)
 	user.Path("/external-profile").Methods("PUT").Name(UserRefreshProfile)
 	user.Path("/stats").Methods("PUT").Name(UserComputeStats)
 	user.Path("/settings").Methods("GET").Name(UserSettings)
@@ -269,9 +248,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	def.Path("/.refs").Methods("GET").Name(DefRefs)
 	def.Path("/.examples").Methods("GET").Name(DefExamples)
 	def.Path("/.authors").Methods("GET").Name(DefAuthors)
-	def.Path("/.clients").Methods("GET").Name(DefClients)
-	def.Path("/.dependents").Methods("GET").Name(DefDependents)
-	def.Path("/.versions").Methods("GET").Name(DefVersions)
 
 	base.Path("/.units").Methods("GET").Name(Units)
 	unitPath := `/.units/{UnitType}/{Unit:.*}`

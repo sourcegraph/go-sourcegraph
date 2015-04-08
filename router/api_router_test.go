@@ -51,52 +51,47 @@ func TestMatch(t *testing.T) {
 
 		// Repo sub-routes
 		{
-			path:          "/repos/repohost.com/foo/.authors",
-			wantRouteName: RepoAuthors,
+			path:          "/repos/repohost.com/foo/.readme",
+			wantRouteName: RepoReadme,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo"},
 		},
 		{
-			path:          "/repos/R$123/.authors",
-			wantRouteName: RepoAuthors,
+			path:          "/repos/R$123/.readme",
+			wantRouteName: RepoReadme,
 			wantVars:      map[string]string{"RepoSpec": "R$123"},
 		},
 		{
-			path:          "/repos/repohost.com/foo@myrev/.authors",
-			wantRouteName: RepoAuthors,
+			path:          "/repos/repohost.com/foo@myrev/.readme",
+			wantRouteName: RepoReadme,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev"},
 		},
 		{
-			path:          "/repos/repohost.com/foo@myrev==abcd/.authors",
-			wantRouteName: RepoAuthors,
+			path:          "/repos/repohost.com/foo@myrev==abcd/.readme",
+			wantRouteName: RepoReadme,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev==abcd"},
 		},
 		{
-			path:          "/repos/repohost.com/foo@myrev/subrev/.authors",
-			wantRouteName: RepoAuthors,
+			path:          "/repos/repohost.com/foo@myrev/subrev/.readme",
+			wantRouteName: RepoReadme,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev/subrev"},
 		},
 		{
-			path:          "/repos/repohost.com/foo@myrev/subrev1/subrev2/.authors",
-			wantRouteName: RepoAuthors,
+			path:          "/repos/repohost.com/foo@myrev/subrev1/subrev2/.readme",
+			wantRouteName: RepoReadme,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev/subrev1/subrev2"},
 		},
 		{
-			path:          "/repos/repohost.com/foo@myrev/subrev==abcd/.authors",
-			wantRouteName: RepoAuthors,
+			path:          "/repos/repohost.com/foo@myrev/subrev==abcd/.readme",
+			wantRouteName: RepoReadme,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev/subrev==abcd"},
 		},
 		{
-			path:          "/repos/repohost.com/foo@releases/1.0rc/.authors",
-			wantRouteName: RepoAuthors,
+			path:          "/repos/repohost.com/foo@releases/1.0rc/.readme",
+			wantRouteName: RepoReadme,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "releases/1.0rc"},
 		},
 
 		// Repo sub-routes that don't allow an "@REVSPEC" revision.
-		{
-			path:          "/repos/repohost.com/foo/.dependents",
-			wantRouteName: RepoDependents,
-			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo"},
-		},
 		{
 			path:        "/repos/repohost.com/foo@myrevspec/.dependents", // no @REVSPEC match
 			wantNoMatch: true,

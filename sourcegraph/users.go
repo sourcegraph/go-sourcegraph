@@ -50,12 +50,6 @@ type UsersService interface {
 	// List users.
 	List(opt *UsersListOptions) ([]*User, Response, error)
 
-	// ListAuthors lists users who authored code that user uses.
-	ListAuthors(user UserSpec, opt *UsersListAuthorsOptions) ([]*AugmentedPersonUsageByClient, Response, error)
-
-	// ListClients lists users who use code that user authored.
-	ListClients(user UserSpec, opt *UsersListClientsOptions) ([]*AugmentedPersonUsageOfAuthor, Response, error)
-
 	// ListOrgs lists organizations that a user is a member of.
 	ListOrgs(member UserSpec, opt *UsersListOrgsOptions) ([]*Org, Response, error)
 }
@@ -432,75 +426,6 @@ func (s *usersService) List(opt *UsersListOptions) ([]*User, Response, error) {
 	}
 
 	return users, resp, nil
-}
-
-type PersonUsageByClient struct {
-	AuthorUID   nnz.Int    `db:"author_uid"`
-	AuthorEmail nnz.String `db:"author_email"`
-	RefCount    int        `db:"ref_count"`
-}
-
-type AugmentedPersonUsageByClient struct {
-	Author *Person
-	*PersonUsageByClient
-}
-
-// UsersListAuthorsOptions specifies options for the UsersService.ListAuthors
-// method.
-type UsersListAuthorsOptions UsersListOptions
-
-func (s *usersService) ListAuthors(user UserSpec, opt *UsersListAuthorsOptions) ([]*AugmentedPersonUsageByClient, Response, error) {
-	url, err := s.client.URL(router.UserAuthors, user.RouteVars(), opt)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := s.client.NewRequest("GET", url.String(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var people []*AugmentedPersonUsageByClient
-	resp, err := s.client.Do(req, &people)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return people, resp, nil
-}
-
-type PersonUsageOfAuthor struct {
-	ClientUID   nnz.Int    `db:"client_uid"`
-	ClientEmail nnz.String `db:"client_email"`
-	RefCount    int        `db:"ref_count"`
-}
-
-type AugmentedPersonUsageOfAuthor struct {
-	Client *Person
-	*PersonUsageOfAuthor
-}
-
-// UsersListClientsOptions specifies options for the UsersService.ListClients
-// method.
-type UsersListClientsOptions UsersListOptions
-
-func (s *usersService) ListClients(user UserSpec, opt *UsersListClientsOptions) ([]*AugmentedPersonUsageOfAuthor, Response, error) {
-	url, err := s.client.URL(router.UserClients, user.RouteVars(), opt)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := s.client.NewRequest("GET", url.String(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var people []*AugmentedPersonUsageOfAuthor
-	resp, err := s.client.Do(req, &people)
-	if err != nil {
-		return nil, resp, err
-	}
-	return people, resp, nil
 }
 
 type UsersListOrgsOptions struct {
