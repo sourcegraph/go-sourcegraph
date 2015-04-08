@@ -153,8 +153,6 @@ type Build struct {
 
 	BuildConfig
 
-	BuildMeta
-
 	// RepoURI is populated (as a convenience) in results by Get and List but
 	// should not be set when creating builds (it will be ignored).
 	RepoURI *string `db:"repo_uri" json:",omitempty"`
@@ -265,42 +263,12 @@ type BuildConfig struct {
 	Priority int
 }
 
-// BuildMeta holds additional metadata about the build that is not
-// considered by BuildCreateOptions.Force when deciding whether an
-// existing equivalent build exists.
-type BuildMeta struct {
-	// PullRepo is the RID of the repo associated with the pull
-	// request that caused this build to be created. If this build was
-	// not created due to a pull request, it is 0. If this build is
-	// for the head commit of a PR against a different base repo,
-	// PullRepo is the RID of that base repo (and PullRepo != the
-	// build's Repo).
-	//
-	// If PullRepo is set, PullNumber must also be set.
-	//
-	// TODO(sqs): This assumes that a given commit is only the head
-	// commit for a single PR, which is not true in general.
-	PullRepo int `db:"pull_repo" json:",omitempty"`
-
-	// PullNumber is the pull number (e.g., #123) of the pull request
-	// (on PullRepo) that caused this build to be created. If this
-	// build was not created due to a pull request, it is 0.
-	//
-	// If PullNumber is set, PullRepo must also be set.
-	//
-	// TODO(sqs): This assumes that a given commit is only the head
-	// commit for a single PR, which is not true in general.
-	PullNumber int `db:"pull_number" json:",omitempty"`
-}
-
 type BuildCreateOptions struct {
 	BuildConfig
-	BuildMeta
 
 	// Force creation of build. If false, the build will not be
 	// created if a build for the same repository and with the same
-	// BuildConfig exists. In all cases, the BuildMeta information is
-	// merged with the data that is already persisted.
+	// BuildConfig exists.
 	//
 	// TODO(bliu): test this
 	Force bool
