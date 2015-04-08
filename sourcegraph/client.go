@@ -24,20 +24,19 @@ const (
 // A Client communicates with the Sourcegraph API.
 type Client struct {
 	// Services used to communicate with different parts of the Sourcegraph API.
-	BuildData    BuildDataService
-	Builds       BuildsService
-	Deltas       DeltasService
-	Issues       IssuesService
-	Orgs         OrgsService
-	People       PeopleService
-	PullRequests PullRequestsService
-	Repos        ReposService
-	RepoTree     RepoTreeService
-	Search       SearchService
-	Units        UnitsService
-	Users        UsersService
-	Defs         DefsService
-	Markdown     MarkdownService
+	BuildData BuildDataService
+	Builds    BuildsService
+	Deltas    DeltasService
+	Issues    IssuesService
+	Orgs      OrgsService
+	People    PeopleService
+	Repos     ReposService
+	RepoTree  RepoTreeService
+	Search    SearchService
+	Units     UnitsService
+	Users     UsersService
+	Defs      DefsService
+	Markdown  MarkdownService
 
 	// Base URL for API requests, which should have a trailing slash.
 	BaseURL *url.URL
@@ -65,7 +64,6 @@ func NewClient(httpClient *http.Client) *Client {
 	c.Issues = &issuesService{c}
 	c.Orgs = &orgsService{c}
 	c.People = &peopleService{c}
-	c.PullRequests = &pullRequestsService{c}
 	c.Repos = &repositoriesService{c}
 	c.RepoTree = &repoTreeService{c}
 	c.Search = &searchService{c}
@@ -302,18 +300,17 @@ func addOptions(u *url.URL, opt interface{}) error {
 // NewMockClient returns a mockable Client for use in tests.
 func NewMockClient() *Client {
 	return &Client{
-		BuildData:    &MockBuildDataService{},
-		Builds:       &MockBuildsService{},
-		Deltas:       &MockDeltasService{},
-		Issues:       &MockIssuesService{},
-		Orgs:         &MockOrgsService{},
-		People:       &MockPeopleService{},
-		PullRequests: &MockPullRequestsService{},
-		Repos:        &MockReposService{},
-		RepoTree:     &MockRepoTreeService{},
-		Search:       &MockSearchService{},
-		Units:        &MockUnitsService{},
-		Users:        &MockUsersService{},
-		Defs:         &MockDefsService{},
+		BuildData: &MockBuildDataService{},
+		Builds:    &MockBuildsService{},
+		Deltas:    &MockDeltasService{},
+		Issues:    &MockIssuesService{},
+		Orgs:      &MockOrgsService{},
+		People:    &MockPeopleService{},
+		Repos:     &MockReposService{},
+		RepoTree:  &MockRepoTreeService{},
+		Search:    &MockSearchService{},
+		Units:     &MockUnitsService{},
+		Users:     &MockUsersService{},
+		Defs:      &MockDefsService{},
 	}
 }
