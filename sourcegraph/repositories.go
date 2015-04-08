@@ -352,6 +352,20 @@ type RepoSettings struct {
 	// authorized key. It is only necessary for private repositories
 	// and for write operations on public repositories.
 	UseSSHPrivateKey *bool `db:"use_ssh_private_key" json:",omitempty"`
+
+	// LastAdminUID is the UID of the last user to modify this repo's
+	// settings. When Sourcegraph needs to perform actions on GitHub
+	// repos that require OAuth authorization outside of an authorized
+	// HTTP request (e.g., during builds or asynchronous operations),
+	// it consults the repo's LastAdminUID to determine whose identity
+	// it should assume to perform the operation.
+	//
+	// If the LastAdminUID refers to a user who no longer has
+	// permissions to perform the action, GitHub will refuse to
+	// perform the operation. In that case, another admin of the
+	// repository needs to update the settings so that she will become
+	// the new LastAdminUID.
+	LastAdminUID *int `db:"admin_uid" json:",omitempty"`
 }
 
 func (s *repositoriesService) GetSettings(repo RepoSpec) (*RepoSettings, Response, error) {
