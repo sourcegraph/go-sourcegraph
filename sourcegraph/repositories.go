@@ -41,14 +41,6 @@ type ReposService interface {
 	// UpdateSettings updates a repository's configuration settings.
 	UpdateSettings(repo RepoSpec, settings RepoSettings) (Response, error)
 
-	// RefreshProfile updates the repository metadata for a repository, fetching
-	// it from an external host if the host is recognized (such as GitHub).
-	//
-	// This operation is performed asynchronously on the server side (after
-	// receiving the request) and the API currently has no way of notifying
-	// callers when the operation completes.
-	RefreshProfile(repo RepoSpec) (Response, error)
-
 	// RefreshVCSData updates the repository VCS (git/hg) data, fetching all new
 	// commits, branches, tags, and blobs.
 	//
@@ -389,25 +381,6 @@ func (s *repositoriesService) UpdateSettings(repo RepoSpec, settings RepoSetting
 	}
 
 	req, err := s.client.NewRequest("PUT", url.String(), settings)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := s.client.Do(req, nil)
-	if err != nil {
-		return resp, err
-	}
-
-	return resp, nil
-}
-
-func (s *repositoriesService) RefreshProfile(repo RepoSpec) (Response, error) {
-	url, err := s.client.URL(router.RepoRefreshProfile, repo.RouteVars(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := s.client.NewRequest("PUT", url.String(), nil)
 	if err != nil {
 		return nil, err
 	}

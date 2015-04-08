@@ -186,26 +186,6 @@ func TestReposService_UpdateSettings(t *testing.T) {
 	}
 }
 
-func TestReposService_RefreshProfile(t *testing.T) {
-	setup()
-	defer teardown()
-
-	var called bool
-	mux.HandleFunc(urlPath(t, router.RepoRefreshProfile, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		testMethod(t, r, "PUT")
-	})
-
-	_, err := client.Repos.RefreshProfile(RepoSpec{URI: "r.com/x"})
-	if err != nil {
-		t.Errorf("Repos.RefreshProfile returned error: %v", err)
-	}
-
-	if !called {
-		t.Fatal("!called")
-	}
-}
-
 func TestReposService_RefreshVCSData(t *testing.T) {
 	setup()
 	defer teardown()

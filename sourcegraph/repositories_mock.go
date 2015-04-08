@@ -12,7 +12,6 @@ type MockReposService struct {
 	CreateStatus_      func(spec RepoRevSpec, st RepoStatus) (*RepoStatus, Response, error)
 	GetSettings_       func(repo RepoSpec) (*RepoSettings, Response, error)
 	UpdateSettings_    func(repo RepoSpec, settings RepoSettings) (Response, error)
-	RefreshProfile_    func(repo RepoSpec) (Response, error)
 	RefreshVCSData_    func(repo RepoSpec) (Response, error)
 	ComputeStats_      func(repo RepoRevSpec) (Response, error)
 	GetBuild_          func(repo RepoRevSpec, opt *RepoGetBuildOptions) (*RepoBuildInfo, Response, error)
@@ -56,10 +55,6 @@ func (s MockReposService) GetSettings(repo RepoSpec) (*RepoSettings, Response, e
 
 func (s MockReposService) UpdateSettings(repo RepoSpec, settings RepoSettings) (Response, error) {
 	return s.UpdateSettings_(repo, settings)
-}
-
-func (s MockReposService) RefreshProfile(repo RepoSpec) (Response, error) {
-	return s.RefreshProfile_(repo)
 }
 
 func (s MockReposService) RefreshVCSData(repo RepoSpec) (Response, error) {

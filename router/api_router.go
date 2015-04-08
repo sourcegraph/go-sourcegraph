@@ -51,7 +51,6 @@ const (
 	RepoBuildDataEntry = "repo.build-data.entry"
 	RepoTreeEntry      = "repo.tree.entry"
 	RepoTreeSearch     = "repo.tree.search"
-	RepoRefreshProfile = "repo.refresh-profile"
 	RepoRefreshVCSData = "repo.refresh-vcs-data"
 	RepoComputeStats   = "repo.compute-stats"
 
@@ -158,7 +157,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	repo := base.PathPrefix(repoPath).Subrouter()
 	repo.Path("/.clients").Methods("GET").Name(RepoClients)
 	repo.Path("/.dependents").Methods("GET").Name(RepoDependents)
-	repo.Path("/.external-profile").Methods("PUT").Name(RepoRefreshProfile)
 	repo.Path("/.vcs-data").Methods("PUT").Name(RepoRefreshVCSData)
 	repo.Path("/.settings").Methods("GET").Name(RepoSettings)
 	repo.Path("/.settings").Methods("PUT").Name(RepoSettingsUpdate)
