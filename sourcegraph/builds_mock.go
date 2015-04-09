@@ -1,20 +1,25 @@
 package sourcegraph
 
 type MockBuildsService struct {
-	Get_            func(build BuildSpec, opt *BuildGetOptions) (*Build, Response, error)
-	List_           func(opt *BuildListOptions) ([]*Build, Response, error)
-	Create_         func(repoRev RepoRevSpec, opt *BuildCreateOptions) (*Build, Response, error)
-	Update_         func(build BuildSpec, info BuildUpdate) (*Build, Response, error)
-	ListBuildTasks_ func(build BuildSpec, opt *BuildTaskListOptions) ([]*BuildTask, Response, error)
-	CreateTasks_    func(build BuildSpec, tasks []*BuildTask) ([]*BuildTask, Response, error)
-	UpdateTask_     func(task TaskSpec, info TaskUpdate) (*BuildTask, Response, error)
-	GetLog_         func(build BuildSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error)
-	GetTaskLog_     func(task TaskSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error)
-	DequeueNext_    func() (*Build, Response, error)
+	Get_              func(build BuildSpec, opt *BuildGetOptions) (*Build, Response, error)
+	GetRepoBuildInfo_ func(repo RepoRevSpec, opt *BuildsGetRepoBuildInfoOptions) (*RepoBuildInfo, Response, error)
+	List_             func(opt *BuildListOptions) ([]*Build, Response, error)
+	Create_           func(repoRev RepoRevSpec, opt *BuildCreateOptions) (*Build, Response, error)
+	Update_           func(build BuildSpec, info BuildUpdate) (*Build, Response, error)
+	ListBuildTasks_   func(build BuildSpec, opt *BuildTaskListOptions) ([]*BuildTask, Response, error)
+	CreateTasks_      func(build BuildSpec, tasks []*BuildTask) ([]*BuildTask, Response, error)
+	UpdateTask_       func(task TaskSpec, info TaskUpdate) (*BuildTask, Response, error)
+	GetLog_           func(build BuildSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error)
+	GetTaskLog_       func(task TaskSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error)
+	DequeueNext_      func() (*Build, Response, error)
 }
 
 func (s MockBuildsService) Get(build BuildSpec, opt *BuildGetOptions) (*Build, Response, error) {
 	return s.Get_(build, opt)
+}
+
+func (s MockBuildsService) GetRepoBuildInfo(repo RepoRevSpec, opt *BuildsGetRepoBuildInfoOptions) (*RepoBuildInfo, Response, error) {
+	return s.GetRepoBuildInfo_(repo, opt)
 }
 
 func (s MockBuildsService) List(opt *BuildListOptions) ([]*Build, Response, error) {

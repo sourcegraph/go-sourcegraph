@@ -42,12 +42,6 @@ type ReposService interface {
 	// callers when the operation completes.
 	RefreshVCSData(repo RepoSpec) (Response, error)
 
-	// GetBuild gets the build for a specific revspec. It returns
-	// additional information about the build, such as whether it is
-	// exactly up-to-date with the revspec or a few commits behind the
-	// revspec. The opt param controls what is returned in this case.
-	GetBuild(repo RepoRevSpec, opt *RepoGetBuildOptions) (*RepoBuildInfo, Response, error)
-
 	// Create adds a repository.
 	Create(newRepo *Repo) (*Repo, Response, error)
 
@@ -388,60 +382,6 @@ func (s *repositoriesService) RefreshVCSData(repo RepoSpec) (Response, error) {
 	}
 
 	return resp, nil
-}
-
-// RepoGetBuildOptions sets options for the Repos.GetBuild call.
-type RepoGetBuildOptions struct {
-	// Exact is whether only a build whose commit ID exactly matches
-	// the revspec should be returned. (For non-full-commit ID
-	// revspecs, such as branches, tags, and partial commit IDs, this
-	// means that the build's commit ID matches the resolved revspec's
-	// commit ID.)
-	//
-	// If Exact is false, then builds for older commits that are
-	// reachable from the revspec may also be returned. For example,
-	// if there's a build for master~1 but no build for master, and
-	// your revspec is master, using Exact=false will return the build
-	// for master~1.
-	//
-	// Using Exact=true is faster as the commit and build history
-	// never needs to be searched. If the exact build is not
-	// found, or the exact build was found but it failed,
-	// LastSuccessful and LastSuccessfulCommit for RepoBuildInfo
-	// will be nil.
-	Exact bool `url:",omitempty" json:",omitempty"`
-}
-
-// RepoBuildInfo holds a repository build (if one exists for the
-// originally specified revspec) and additional information. It is returned by
-// Repos.GetBuild.
-type RepoBuildInfo struct {
-	Exact *Build // the newest build, if any, that exactly matches the revspec (can be same as LastSuccessful)
-
-	LastSuccessful *Build // the last successful build of a commit ID reachable from the revspec (can be same as Exact)
-
-	CommitsBehind        int     // the number of commits between the revspec and the commit of the LastSuccessful build
-	LastSuccessfulCommit *Commit // the commit of the LastSuccessful build
-}
-
-func (s *repositoriesService) GetBuild(repo RepoRevSpec, opt *RepoGetBuildOptions) (*RepoBuildInfo, Response, error) {
-	url, err := s.client.URL(router.RepoBuild, repo.RouteVars(), opt)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := s.client.NewRequest("GET", url.String(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var info *RepoBuildInfo
-	resp, err := s.client.Do(req, &info)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return info, resp, nil
 }
 
 func (s *repositoriesService) Create(newRepo *Repo) (*Repo, Response, error) {

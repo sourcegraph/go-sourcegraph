@@ -12,7 +12,6 @@ type MockReposService struct {
 	GetSettings_       func(repo RepoSpec) (*RepoSettings, Response, error)
 	UpdateSettings_    func(repo RepoSpec, settings RepoSettings) (Response, error)
 	RefreshVCSData_    func(repo RepoSpec) (Response, error)
-	GetBuild_          func(repo RepoRevSpec, opt *RepoGetBuildOptions) (*RepoBuildInfo, Response, error)
 	Create_            func(repo *Repo) (*Repo, Response, error)
 	GetReadme_         func(repo RepoRevSpec) (*vcsclient.TreeEntry, Response, error)
 	List_              func(opt *RepoListOptions) ([]*Repo, Response, error)
@@ -53,10 +52,6 @@ func (s MockReposService) UpdateSettings(repo RepoSpec, settings RepoSettings) (
 
 func (s MockReposService) RefreshVCSData(repo RepoSpec) (Response, error) {
 	return s.RefreshVCSData_(repo)
-}
-
-func (s MockReposService) GetBuild(repo RepoRevSpec, opt *RepoGetBuildOptions) (*RepoBuildInfo, Response, error) {
-	return s.GetBuild_(repo, opt)
 }
 
 func (s MockReposService) Create(repo *Repo) (*Repo, Response, error) {
