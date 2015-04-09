@@ -21,13 +21,6 @@ type ReposService interface {
 	// Get fetches a repository.
 	Get(repo RepoSpec, opt *RepoGetOptions) (*Repo, Response, error)
 
-	// GetStats gets statistics about a repository at a specific
-	// commit. Some statistics are per-commit and some are global to
-	// the repository. If you only care about global repository
-	// statistics, pass an empty Rev to the RepoRevSpec (which will be
-	// resolved to the repository's default branch).
-	GetStats(repo RepoRevSpec) (RepoStats, Response, error)
-
 	// CreateStatus creates a repository status for the given commit.
 	CreateStatus(spec RepoRevSpec, st RepoStatus) (*RepoStatus, Response, error)
 
@@ -48,13 +41,6 @@ type ReposService interface {
 	// receiving the request) and the API currently has no way of notifying
 	// callers when the operation completes.
 	RefreshVCSData(repo RepoSpec) (Response, error)
-
-	// ComputeStats updates the statistics about a repository.
-	//
-	// This operation is performed asynchronously on the server side (after
-	// receiving the request) and the API currently has no way of notifying
-	// callers when the operation completes.
-	ComputeStats(repo RepoRevSpec) (Response, error)
 
 	// GetBuild gets the build for a specific revspec. It returns
 	// additional information about the build, such as whether it is
@@ -270,9 +256,7 @@ func UnmarshalRepoRevSpec(routeVars map[string]string) (RepoRevSpec, error) {
 }
 
 // RepoGetOptions specifies options for getting a repository.
-type RepoGetOptions struct {
-	Stats bool `url:",omitempty" json:",omitempty"` // whether to fetch and include stats in the returned repository
-}
+type RepoGetOptions struct{}
 
 func (s *repositoriesService) Get(repo RepoSpec, opt *RepoGetOptions) (*Repo, Response, error) {
 	url, err := s.client.URL(router.Repo, repo.RouteVars(), opt)
@@ -292,26 +276,6 @@ func (s *repositoriesService) Get(repo RepoSpec, opt *RepoGetOptions) (*Repo, Re
 	}
 
 	return repo_, resp, nil
-}
-
-func (s *repositoriesService) GetStats(repoRev RepoRevSpec) (RepoStats, Response, error) {
-	url, err := s.client.URL(router.RepoStats, repoRev.RouteVars(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := s.client.NewRequest("GET", url.String(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var stats RepoStats
-	resp, err := s.client.Do(req, &stats)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return stats, resp, nil
 }
 
 // RepoSettings describes a repository's configuration settings.
@@ -409,25 +373,6 @@ func (s *repositoriesService) UpdateSettings(repo RepoSpec, settings RepoSetting
 
 func (s *repositoriesService) RefreshVCSData(repo RepoSpec) (Response, error) {
 	url, err := s.client.URL(router.RepoRefreshVCSData, repo.RouteVars(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := s.client.NewRequest("PUT", url.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := s.client.Do(req, nil)
-	if err != nil {
-		return resp, err
-	}
-
-	return resp, nil
-}
-
-func (s *repositoriesService) ComputeStats(repo RepoRevSpec) (Response, error) {
-	url, err := s.client.URL(router.RepoComputeStats, repo.RouteVars(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -559,8 +504,6 @@ type RepoListOptions struct {
 	State string `url:",omitempty" json:",omitempty"` // "enabled" or "disabled" (empty default means return "all")
 
 	Owner string `url:",omitempty" json:",omitempty"`
-
-	Stats bool `url:",omitempty" json:",omitempty"` // whether to fetch and include stats in the returned repositories
 
 	ListOptions
 }

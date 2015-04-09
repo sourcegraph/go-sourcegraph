@@ -31,7 +31,6 @@ const (
 	UserRefreshProfile    = "user.refresh-profile"
 	UserSettings          = "user.settings"
 	UserSettingsUpdate    = "user.settings.update"
-	UserComputeStats      = "user.compute-stats"
 
 	Person = "person"
 
@@ -52,12 +51,10 @@ const (
 	RepoTreeEntry      = "repo.tree.entry"
 	RepoTreeSearch     = "repo.tree.search"
 	RepoRefreshVCSData = "repo.refresh-vcs-data"
-	RepoComputeStats   = "repo.compute-stats"
 
 	RepoSettings       = "repo.settings"
 	RepoSettingsUpdate = "repo.settings.update"
 
-	RepoStats          = "repo.stats"
 	RepoCombinedStatus = "repo.combined-status"
 	RepoStatusCreate   = "repo.status.create"
 
@@ -139,8 +136,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	base.Path("/repos/github.com/{owner:[^/]+}/{repo:[^/]+}/{what:(?:badges|counters)}/{which}.{Format}").Methods("GET").Name(RedirectOldRepoBadgesAndCounters)
 
 	repoRev := base.PathPrefix(`/repos/` + RepoRevSpecPattern).PostMatchFunc(FixRepoRevSpecVars).BuildVarsFunc(PrepareRepoRevSpecRouteVars).Subrouter()
-	repoRev.Path("/.stats").Methods("PUT").Name(RepoComputeStats)
-	repoRev.Path("/.stats").Methods("GET").Name(RepoStats)
 	repoRev.Path("/.status").Methods("GET").Name(RepoCombinedStatus)
 	repoRev.Path("/.status").Methods("POST").Name(RepoStatusCreate)
 	repoRev.Path("/.authors").Methods("GET").Name(RepoAuthors)
@@ -203,7 +198,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	user.Path("/repo-dependencies").Methods("GET").Name(UserRepoDependencies)
 	user.Path("/repo-dependents").Methods("GET").Name(UserRepoDependents)
 	user.Path("/external-profile").Methods("PUT").Name(UserRefreshProfile)
-	user.Path("/stats").Methods("PUT").Name(UserComputeStats)
 	user.Path("/settings").Methods("GET").Name(UserSettings)
 	user.Path("/settings").Methods("PUT").Name(UserSettingsUpdate)
 	base.Path("/external-users/github/{GitHubUserSpec}").Methods("GET").Name(UserFromGitHub)

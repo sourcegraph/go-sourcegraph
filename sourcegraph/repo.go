@@ -1,7 +1,6 @@
 package sourcegraph
 
 import (
-	"database/sql/driver"
 	"errors"
 	"fmt"
 	"net/url"
@@ -98,9 +97,6 @@ type Repo struct {
 
 	// PushedAt is when this repository's was last (VCS-)pushed to.
 	PushedAt time.Time `db:"pushed_at"`
-
-	// Stat holds repository statistics. It's only filled in if Repo{Get,List}Options has Stats == true.
-	Stat RepoStats `db:"-" json:",omitempty"`
 
 	// Permissions describes the permissions that the current user (or
 	// anonymous users, if there is no current user) is granted to
@@ -247,65 +243,3 @@ var ErrNoScheme = errors.New("clone URL has no scheme")
 // ExternalHostTimeout is the timeout for HTTP requests to external repository
 // hosts.
 var ExternalHostTimeout = time.Second * 7
-
-// StatType is the name of a repository statistic (see below for a listing).
-type RepoStatType string
-
-// Stats holds statistics for a repository.
-type RepoStats map[RepoStatType]int
-
-const (
-	// StatXRefs is the number of external references to any def defined in a
-	// repository (i.e., references from other repositories). It is only
-	// computed per-repository (and not per-repository-commit) because it is
-	// not easy to determine which specific commit a ref references.
-	RepoStatXRefs = "xrefs"
-
-	// StatAuthors is the number of resolved people who contributed code to any
-	// def defined in a repository (i.e., references from other
-	// repositories). It is only computed per-repository-commit.
-	RepoStatAuthors = "authors"
-
-	// StatClients is the number of resolved people who have committed refs that
-	// reference a def defined in the repository. It is only computed
-	// per-repository (and not per-repository-commit) because it is not easy to
-	// determine which specific commit a ref references.
-	RepoStatClients = "clients"
-
-	// StatDependencies is the number of repositories that the repository
-	// depends on. It is only computed per-repository-commit.
-	RepoStatDependencies = "dependencies"
-
-	// StatDependents is the number of repositories containing refs to a def
-	// defined in the repository. It is only computed per-repository (and not
-	// per-repository-commit) because it is not easy to determine which specific
-	// commit a ref references.
-	RepoStatDependents = "dependents"
-
-	// StatDefs is the number of defs defined in a repository commit. It
-	// is only computed per-repository-commit (or else it would count 1 def
-	// for each revision of the repository that we have processed).
-	RepoStatDefs = "defs"
-
-	// StatExportedDefs is the number of exported defs defined in a
-	// repository commit. It is only computed per-repository-commit (or else it
-	// would count 1 def for each revision of the repository that we have
-	// processed).
-	RepoStatExportedDefs = "exported-defs"
-)
-
-var RepoStatTypes = map[RepoStatType]struct{}{RepoStatXRefs: struct{}{}, RepoStatAuthors: struct{}{}, RepoStatClients: struct{}{}, RepoStatDependencies: struct{}{}, RepoStatDependents: struct{}{}, RepoStatDefs: struct{}{}, RepoStatExportedDefs: struct{}{}}
-
-// Value implements database/sql/driver.Valuer.
-func (x RepoStatType) Value() (driver.Value, error) {
-	return string(x), nil
-}
-
-// Scan implements database/sql.Scanner.
-func (x *RepoStatType) Scan(v interface{}) error {
-	if data, ok := v.([]byte); ok {
-		*x = RepoStatType(data)
-		return nil
-	}
-	return fmt.Errorf("%T.Scan failed: %v", x, v)
-}

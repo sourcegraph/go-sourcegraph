@@ -7,13 +7,11 @@ import (
 
 type MockReposService struct {
 	Get_               func(repo RepoSpec, opt *RepoGetOptions) (*Repo, Response, error)
-	GetStats_          func(repo RepoRevSpec) (RepoStats, Response, error)
 	GetCombinedStatus_ func(spec RepoRevSpec) (*CombinedStatus, Response, error)
 	CreateStatus_      func(spec RepoRevSpec, st RepoStatus) (*RepoStatus, Response, error)
 	GetSettings_       func(repo RepoSpec) (*RepoSettings, Response, error)
 	UpdateSettings_    func(repo RepoSpec, settings RepoSettings) (Response, error)
 	RefreshVCSData_    func(repo RepoSpec) (Response, error)
-	ComputeStats_      func(repo RepoRevSpec) (Response, error)
 	GetBuild_          func(repo RepoRevSpec, opt *RepoGetBuildOptions) (*RepoBuildInfo, Response, error)
 	Create_            func(repo *Repo) (*Repo, Response, error)
 	GetReadme_         func(repo RepoRevSpec) (*vcsclient.TreeEntry, Response, error)
@@ -37,10 +35,6 @@ func (s MockReposService) Get(repo RepoSpec, opt *RepoGetOptions) (*Repo, Respon
 	return s.Get_(repo, opt)
 }
 
-func (s MockReposService) GetStats(repo RepoRevSpec) (RepoStats, Response, error) {
-	return s.GetStats_(repo)
-}
-
 func (s MockReposService) GetCombinedStatus(spec RepoRevSpec) (*CombinedStatus, Response, error) {
 	return s.GetCombinedStatus_(spec)
 }
@@ -59,10 +53,6 @@ func (s MockReposService) UpdateSettings(repo RepoSpec, settings RepoSettings) (
 
 func (s MockReposService) RefreshVCSData(repo RepoSpec) (Response, error) {
 	return s.RefreshVCSData_(repo)
-}
-
-func (s MockReposService) ComputeStats(repo RepoRevSpec) (Response, error) {
-	return s.ComputeStats_(repo)
 }
 
 func (s MockReposService) GetBuild(repo RepoRevSpec, opt *RepoGetBuildOptions) (*RepoBuildInfo, Response, error) {

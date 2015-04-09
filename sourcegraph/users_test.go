@@ -212,26 +212,6 @@ func TestUsersService_RefreshProfile(t *testing.T) {
 	}
 }
 
-func TestUsersService_ComputeStats(t *testing.T) {
-	setup()
-	defer teardown()
-
-	var called bool
-	mux.HandleFunc(urlPath(t, router.UserComputeStats, map[string]string{"UserSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		testMethod(t, r, "PUT")
-	})
-
-	_, err := client.Users.ComputeStats(UserSpec{Login: "a"})
-	if err != nil {
-		t.Errorf("Users.ComputeStats returned error: %v", err)
-	}
-
-	if !called {
-		t.Fatal("!called")
-	}
-}
-
 func TestUsersService_List(t *testing.T) {
 	setup()
 	defer teardown()

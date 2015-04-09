@@ -107,8 +107,6 @@ var _ DefsService = &defsService{}
 type Def struct {
 	graph.Def
 
-	Stat graph.Stats `json:",omitempty"`
-
 	DocHTML string `json:",omitempty"`
 
 	FmtStrings *DefFormatStrings `json:",omitempty"`
@@ -141,26 +139,9 @@ func (s *Def) DefSpec() DefSpec {
 	return spec
 }
 
-func (s *Def) XRefs() int { return s.Stat["xrefs"] }
-func (s *Def) RRefs() int { return s.Stat["rrefs"] }
-func (s *Def) URefs() int { return s.Stat["urefs"] }
-
-// TotalRefs is the number of unique references of all kinds to s. It
-// is computed as (xrefs + rrefs), omitting urefs to avoid double-counting
-// references in the same repository.
-//
-// The number of examples for s is usually TotalRefs() - 1, since the definition
-// of a def counts as a ref but not an example.
-func (s *Def) TotalRefs() int { return s.XRefs() + s.RRefs() }
-
-func (s *Def) TotalExamples() int { return s.TotalRefs() - 1 }
-
 // DefGetOptions specifies options for DefsService.Get.
 type DefGetOptions struct {
 	Doc bool `url:",omitempty"`
-
-	// Stats is whether the Def response object should include statistics.
-	Stats bool `url:",omitempty"`
 }
 
 func (s *defsService) Get(def DefSpec, opt *DefGetOptions) (*Def, Response, error) {
@@ -225,7 +206,6 @@ type DefListOptions struct {
 
 	// Enhancements
 	Doc   bool `url:",omitempty" json:",omitempty"`
-	Stats bool `url:",omitempty" json:",omitempty"`
 	Fuzzy bool `url:",omitempty" json:",omitempty"`
 
 	// Sorting

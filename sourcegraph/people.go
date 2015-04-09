@@ -1,8 +1,6 @@
 package sourcegraph
 
 import (
-	"database/sql/driver"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -132,33 +130,6 @@ func (s *peopleService) Get(spec PersonSpec) (*Person, Response, error) {
 	}
 
 	return person, resp, nil
-}
-
-type PersonStatType string
-
-type PersonStats map[PersonStatType]int
-
-const (
-	PersonStatAuthors            = "authors"
-	PersonStatClients            = "clients"
-	PersonStatOwnedRepos         = "owned-repos"
-	PersonStatContributedToRepos = "contributed-to-repos"
-	PersonStatDependencies       = "dependencies"
-	PersonStatDependents         = "dependents"
-	PersonStatDefs               = "defs"
-	PersonStatExportedDefs       = "exported-defs"
-)
-
-func (x PersonStatType) Value() (driver.Value, error) {
-	return string(x), nil
-}
-
-func (x *PersonStatType) Scan(v interface{}) error {
-	if data, ok := v.([]byte); ok {
-		*x = PersonStatType(data)
-		return nil
-	}
-	return fmt.Errorf("%T.Scan failed: %v", x, v)
 }
 
 var _ PeopleService = &MockPeopleService{}

@@ -40,13 +40,6 @@ type UsersService interface {
 	// of notifying callers when the operation completes.
 	RefreshProfile(userSpec UserSpec) (Response, error)
 
-	// ComputeStats recomputes statistics about the user.
-	//
-	// This operation is performed asynchronously on the server side
-	// (after receiving the request) and the API currently has no way
-	// of notifying callers when the operation completes.
-	ComputeStats(userSpec UserSpec) (Response, error)
-
 	// List users.
 	List(opt *UsersListOptions) ([]*User, Response, error)
 
@@ -100,10 +93,6 @@ type User struct {
 	// registered (i.e., we have processed their repos but they haven't signed
 	// into Sourcegraph), it is null.
 	RegisteredAt db_common.NullTime `db:"registered_at"`
-
-	// Stat contains statistics about this user. It's only filled in
-	// by certain API responses.
-	Stat PersonStats `db:"-" json:",omitempty"`
 }
 
 func (u *User) Spec() UserSpec {
@@ -217,10 +206,7 @@ type usersService struct {
 
 var _ UsersService = &usersService{}
 
-type UserGetOptions struct {
-	// Stats is whether to include statistics about the user in the response.
-	Stats bool `url:",omitempty"`
-}
+type UserGetOptions struct{}
 
 func (s *usersService) Get(user_ UserSpec, opt *UserGetOptions) (*User, Response, error) {
 	url, err := s.client.URL(router.User, user_.RouteVars(), opt)
@@ -365,25 +351,6 @@ func (s *usersService) GetOrCreateFromGitHub(user GitHubUserSpec, opt *UserGetOp
 
 func (s *usersService) RefreshProfile(user_ UserSpec) (Response, error) {
 	url, err := s.client.URL(router.UserRefreshProfile, user_.RouteVars(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := s.client.NewRequest("PUT", url.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := s.client.Do(req, nil)
-	if err != nil {
-		return resp, err
-	}
-
-	return resp, nil
-}
-
-func (s *usersService) ComputeStats(user_ UserSpec) (Response, error) {
-	url, err := s.client.URL(router.UserComputeStats, user_.RouteVars(), nil)
 	if err != nil {
 		return nil, err
 	}

@@ -7,7 +7,6 @@ type MockUsersService struct {
 	ListEmails_            func(user UserSpec) ([]*EmailAddr, Response, error)
 	GetOrCreateFromGitHub_ func(user GitHubUserSpec, opt *UserGetOptions) (*User, Response, error)
 	RefreshProfile_        func(userSpec UserSpec) (Response, error)
-	ComputeStats_          func(userSpec UserSpec) (Response, error)
 	List_                  func(opt *UsersListOptions) ([]*User, Response, error)
 	ListAuthors_           func(user UserSpec, opt *UsersListAuthorsOptions) ([]*AugmentedPersonUsageByClient, Response, error)
 	ListClients_           func(user UserSpec, opt *UsersListClientsOptions) ([]*AugmentedPersonUsageOfAuthor, Response, error)
@@ -36,10 +35,6 @@ func (s MockUsersService) GetOrCreateFromGitHub(user GitHubUserSpec, opt *UserGe
 
 func (s MockUsersService) RefreshProfile(userSpec UserSpec) (Response, error) {
 	return s.RefreshProfile_(userSpec)
-}
-
-func (s MockUsersService) ComputeStats(userSpec UserSpec) (Response, error) {
-	return s.ComputeStats_(userSpec)
 }
 
 func (s MockUsersService) List(opt *UsersListOptions) ([]*User, Response, error) { return s.List_(opt) }

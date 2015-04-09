@@ -105,34 +105,6 @@ func TestReposService_Get(t *testing.T) {
 	}
 }
 
-func TestReposService_GetStats(t *testing.T) {
-	setup()
-	defer teardown()
-
-	want := RepoStats{"x": 1, "y": 2}
-
-	var called bool
-	mux.HandleFunc(urlPath(t, router.RepoStats, map[string]string{"RepoSpec": "r.com/x", "Rev": "c"}), func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		testMethod(t, r, "GET")
-
-		writeJSON(w, want)
-	})
-
-	stats, _, err := client.Repos.GetStats(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"})
-	if err != nil {
-		t.Errorf("Repos.GetStats returned error: %v", err)
-	}
-
-	if !called {
-		t.Fatal("!called")
-	}
-
-	if !reflect.DeepEqual(stats, want) {
-		t.Errorf("Repos.GetStats returned %+v, want %+v", stats, want)
-	}
-}
-
 func TestReposService_GetSettings(t *testing.T) {
 	setup()
 	defer teardown()
@@ -199,26 +171,6 @@ func TestReposService_RefreshVCSData(t *testing.T) {
 	_, err := client.Repos.RefreshVCSData(RepoSpec{URI: "r.com/x"})
 	if err != nil {
 		t.Errorf("Repos.RefreshVCSData returned error: %v", err)
-	}
-
-	if !called {
-		t.Fatal("!called")
-	}
-}
-
-func TestReposService_ComputeStats(t *testing.T) {
-	setup()
-	defer teardown()
-
-	var called bool
-	mux.HandleFunc(urlPath(t, router.RepoComputeStats, map[string]string{"RepoSpec": "r.com/x", "Rev": "c"}), func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		testMethod(t, r, "PUT")
-	})
-
-	_, err := client.Repos.ComputeStats(RepoRevSpec{RepoSpec: RepoSpec{URI: "r.com/x"}, Rev: "c"})
-	if err != nil {
-		t.Errorf("Repos.ComputeStats returned error: %v", err)
 	}
 
 	if !called {
