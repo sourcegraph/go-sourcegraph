@@ -164,34 +164,6 @@ func TestUsersService_ListEmails(t *testing.T) {
 	}
 }
 
-func TestUsersService_GetOrCreateFromGitHub(t *testing.T) {
-	setup()
-	defer teardown()
-
-	want := &User{UID: 1, Login: "a"}
-
-	var called bool
-	mux.HandleFunc(urlPath(t, router.UserFromGitHub, map[string]string{"GitHubUserSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		testMethod(t, r, "GET")
-
-		writeJSON(w, want)
-	})
-
-	user_, _, err := client.Users.GetOrCreateFromGitHub(GitHubUserSpec{Login: "a"}, nil)
-	if err != nil {
-		t.Errorf("Users.GetOrCreateFromGitHub returned error: %v", err)
-	}
-
-	if !called {
-		t.Fatal("!called")
-	}
-
-	if !reflect.DeepEqual(user_, want) {
-		t.Errorf("Users.GetOrCreateFromGitHub returned %+v, want %+v", user_, want)
-	}
-}
-
 func TestUsersService_RefreshProfile(t *testing.T) {
 	setup()
 	defer teardown()

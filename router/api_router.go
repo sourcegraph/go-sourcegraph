@@ -200,7 +200,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	user.Path("/external-profile").Methods("PUT").Name(UserRefreshProfile)
 	user.Path("/settings").Methods("GET").Name(UserSettings)
 	user.Path("/settings").Methods("PUT").Name(UserSettingsUpdate)
-	base.Path("/external-users/github/{GitHubUserSpec}").Methods("GET").Name(UserFromGitHub)
 
 	orgPath := "/orgs/{OrgSpec}"
 	base.Path(orgPath).Methods("GET").Name(Org)

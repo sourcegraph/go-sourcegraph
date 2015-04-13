@@ -1,16 +1,15 @@
 package sourcegraph
 
 type MockUsersService struct {
-	Get_                   func(user UserSpec, opt *UserGetOptions) (*User, Response, error)
-	GetSettings_           func(user UserSpec) (*UserSettings, Response, error)
-	UpdateSettings_        func(user UserSpec, settings UserSettings) (Response, error)
-	ListEmails_            func(user UserSpec) ([]*EmailAddr, Response, error)
-	GetOrCreateFromGitHub_ func(user GitHubUserSpec, opt *UserGetOptions) (*User, Response, error)
-	RefreshProfile_        func(userSpec UserSpec) (Response, error)
-	List_                  func(opt *UsersListOptions) ([]*User, Response, error)
-	ListAuthors_           func(user UserSpec, opt *UsersListAuthorsOptions) ([]*AugmentedPersonUsageByClient, Response, error)
-	ListClients_           func(user UserSpec, opt *UsersListClientsOptions) ([]*AugmentedPersonUsageOfAuthor, Response, error)
-	ListOrgs_              func(member UserSpec, opt *UsersListOrgsOptions) ([]*Org, Response, error)
+	Get_            func(user UserSpec, opt *UserGetOptions) (*User, Response, error)
+	GetSettings_    func(user UserSpec) (*UserSettings, Response, error)
+	UpdateSettings_ func(user UserSpec, settings UserSettings) (Response, error)
+	ListEmails_     func(user UserSpec) ([]*EmailAddr, Response, error)
+	RefreshProfile_ func(userSpec UserSpec) (Response, error)
+	List_           func(opt *UsersListOptions) ([]*User, Response, error)
+	ListAuthors_    func(user UserSpec, opt *UsersListAuthorsOptions) ([]*AugmentedPersonUsageByClient, Response, error)
+	ListClients_    func(user UserSpec, opt *UsersListClientsOptions) ([]*AugmentedPersonUsageOfAuthor, Response, error)
+	ListOrgs_       func(member UserSpec, opt *UsersListOrgsOptions) ([]*Org, Response, error)
 }
 
 func (s MockUsersService) Get(user UserSpec, opt *UserGetOptions) (*User, Response, error) {
@@ -27,10 +26,6 @@ func (s MockUsersService) UpdateSettings(user UserSpec, settings UserSettings) (
 
 func (s MockUsersService) ListEmails(user UserSpec) ([]*EmailAddr, Response, error) {
 	return s.ListEmails_(user)
-}
-
-func (s MockUsersService) GetOrCreateFromGitHub(user GitHubUserSpec, opt *UserGetOptions) (*User, Response, error) {
-	return s.GetOrCreateFromGitHub_(user, opt)
 }
 
 func (s MockUsersService) RefreshProfile(userSpec UserSpec) (Response, error) {

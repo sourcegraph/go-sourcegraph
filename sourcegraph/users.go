@@ -29,9 +29,6 @@ type UsersService interface {
 	// ListEmails returns a list of a user's email addresses.
 	ListEmails(user UserSpec) ([]*EmailAddr, Response, error)
 
-	// GetOrCreateFromGitHub creates a new user based a GitHub user.
-	GetOrCreateFromGitHub(user GitHubUserSpec, opt *UserGetOptions) (*User, Response, error)
-
 	// RefreshProfile updates the user's profile information from external
 	// sources, such as GitHub.
 	//
@@ -311,42 +308,6 @@ func (s *usersService) UpdateSettings(user UserSpec, settings UserSettings) (Res
 	}
 
 	return resp, nil
-}
-
-// GitHubUserSpec specifies a GitHub user, either by GitHub login or GitHub user
-// ID.
-type GitHubUserSpec struct {
-	Login string
-	ID    int
-}
-
-func (s GitHubUserSpec) RouteVars() map[string]string {
-	if s.ID != 0 {
-		panic("GitHubUserSpec ID not supported via HTTP API")
-	} else if s.Login != "" {
-		return map[string]string{"GitHubUserSpec": s.Login}
-	}
-	panic("empty GitHubUserSpec")
-}
-
-func (s *usersService) GetOrCreateFromGitHub(user GitHubUserSpec, opt *UserGetOptions) (*User, Response, error) {
-	url, err := s.client.URL(router.UserFromGitHub, user.RouteVars(), opt)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := s.client.NewRequest("GET", url.String(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var user__ *User
-	resp, err := s.client.Do(req, &user__)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return user__, resp, nil
 }
 
 func (s *usersService) RefreshProfile(user_ UserSpec) (Response, error) {
