@@ -109,6 +109,9 @@ type RepoSpec struct {
 	RID int
 }
 
+// IsZero reports whether s.URI and s.RID are both the zero values.
+func (s RepoSpec) IsZero() bool { return s.URI == "" && s.RID == 0 }
+
 // PathComponent returns the URL path component that specifies the
 // repository.
 func (s RepoSpec) PathComponent() string {
