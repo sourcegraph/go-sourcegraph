@@ -113,7 +113,7 @@ func TestBuildsService_Create(t *testing.T) {
 	defer teardown()
 
 	config := &BuildCreateOptions{BuildConfig: BuildConfig{Import: true, Queue: true}, Force: true}
-	want := &Build{BID: 123, Repo: 456}
+	want := &Build{BID: 123, Repo: "r.com/x"}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.RepoBuildsCreate, map[string]string{"RepoSpec": "r.com/x", "Rev": "c"}), func(w http.ResponseWriter, r *http.Request) {
@@ -145,7 +145,7 @@ func TestBuildsService_Update(t *testing.T) {
 	defer teardown()
 
 	update := BuildUpdate{Host: String("h")}
-	want := &Build{BID: 123, Repo: 456}
+	want := &Build{BID: 123, Repo: "r.com/x"}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.BuildUpdate, map[string]string{"BID": "123"}), func(w http.ResponseWriter, r *http.Request) {

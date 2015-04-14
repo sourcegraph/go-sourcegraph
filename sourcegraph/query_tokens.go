@@ -51,11 +51,7 @@ type RepoToken struct {
 func (t RepoToken) String() string { return t.URI }
 
 func (t RepoToken) Spec() RepoSpec {
-	var rid int
-	if t.Repo != nil {
-		rid = t.Repo.RID
-	}
-	return RepoSpec{URI: t.URI, RID: rid}
+	return RepoSpec{URI: t.URI}
 }
 
 // A RevToken represents a specific revision (either a revspec or a

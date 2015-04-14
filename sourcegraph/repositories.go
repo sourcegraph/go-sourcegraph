@@ -9,7 +9,6 @@ import (
 	"sourcegraph.com/sourcegraph/go-vcs/vcs"
 	"sourcegraph.com/sourcegraph/vcsstore/vcsclient"
 
-	"strconv"
 	"strings"
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
@@ -106,26 +105,18 @@ var _ ReposService = &repositoriesService{}
 // RepoSpec specifies a repository.
 type RepoSpec struct {
 	URI string
-	RID int
 }
 
-// IsZero reports whether s.URI and s.RID are both the zero values.
-func (s RepoSpec) IsZero() bool { return s.URI == "" && s.RID == 0 }
+// IsZero reports whether s.URI is the zero value.
+func (s RepoSpec) IsZero() bool { return s.URI == "" }
 
 // PathComponent returns the URL path component that specifies the
 // repository.
 func (s RepoSpec) PathComponent() string {
-	if s.RID > 0 {
-		return "R$" + strconv.Itoa(s.RID)
+	if s.IsZero() {
+		panic("IsZero")
 	}
-	if s.URI != "" {
-		if strings.HasPrefix("sourcegraph.com/", s.URI) {
-			return s.URI[len("sourcegraph.com/"):]
-		} else {
-			return s.URI
-		}
-	}
-	panic("empty RepoSpec")
+	return s.URI
 }
 
 // RouteVars returns route variables for constructing repository
@@ -141,19 +132,7 @@ func ParseRepoSpec(pathComponent string) (RepoSpec, error) {
 	if pathComponent == "" {
 		return RepoSpec{}, errors.New("empty repository spec")
 	}
-	if strings.HasPrefix(pathComponent, "R$") {
-		rid, err := strconv.Atoi(pathComponent[2:])
-		return RepoSpec{RID: rid}, err
-	}
-
-	var uri string
-	if strings.HasPrefix(pathComponent, "sourcegraph/") {
-		uri = "sourcegraph.com/" + pathComponent
-	} else {
-		uri = pathComponent
-	}
-
-	return RepoSpec{URI: uri}, nil
+	return RepoSpec{URI: pathComponent}, nil
 }
 
 // UnmarshalRepoSpec marshals a map containing route variables
@@ -198,7 +177,7 @@ func UnmarshalRepoSpec(routeVars map[string]string) (RepoSpec, error) {
 // lets you canonicalize a URL with 'y' but does not default to using
 // the canonical URL).
 type RepoRevSpec struct {
-	RepoSpec        // repository URI or RID
+	RepoSpec        // repository specifier
 	Rev      string // the abstract/unresolved revspec, such as a branch name or abbreviated commit ID
 	CommitID string // the full commit ID that Rev resolves to
 }

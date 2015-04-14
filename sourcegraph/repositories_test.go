@@ -18,7 +18,7 @@ func TestRepoSpec(t *testing.T) {
 		spec RepoSpec
 	}{
 		{"a.com/x", RepoSpec{URI: "a.com/x"}},
-		{"R$1", RepoSpec{RID: 1}},
+		{"x", RepoSpec{URI: "x"}},
 	}
 
 	for _, test := range tests {
@@ -56,7 +56,7 @@ func TestRepoRevSpec(t *testing.T) {
 		routeVars map[string]string
 	}{
 		{RepoRevSpec{RepoSpec: RepoSpec{URI: "a.com/x"}, Rev: "r"}, map[string]string{"RepoSpec": "a.com/x", "Rev": "r"}},
-		{RepoRevSpec{RepoSpec: RepoSpec{RID: 123}, Rev: "r"}, map[string]string{"RepoSpec": "R$123", "Rev": "r"}},
+		{RepoRevSpec{RepoSpec: RepoSpec{URI: "x"}, Rev: "r"}, map[string]string{"RepoSpec": "x", "Rev": "r"}},
 		{RepoRevSpec{RepoSpec: RepoSpec{URI: "a.com/x"}, Rev: "r", CommitID: "c"}, map[string]string{"RepoSpec": "a.com/x", "Rev": "r===c"}},
 	}
 
@@ -80,7 +80,7 @@ func TestReposService_Get(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := &Repo{RID: 1}
+	want := &Repo{URI: "r.com/x"}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.Repo, map[string]string{"RepoSpec": "r.com/x"}), func(w http.ResponseWriter, r *http.Request) {
@@ -183,7 +183,7 @@ func TestReposService_Create(t *testing.T) {
 	defer teardown()
 
 	newRepo := &Repo{URI: "r.com/x", VCS: "git"}
-	want := &Repo{RID: 1, URI: "r.com/x", VCS: "git"}
+	want := &Repo{URI: "r.com/x", VCS: "git"}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.ReposCreate, nil), func(w http.ResponseWriter, r *http.Request) {
@@ -243,7 +243,7 @@ func TestReposService_List(t *testing.T) {
 	setup()
 	defer teardown()
 
-	want := []*Repo{&Repo{RID: 1}}
+	want := []*Repo{&Repo{URI: "x"}}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.Repos, nil), func(w http.ResponseWriter, r *http.Request) {

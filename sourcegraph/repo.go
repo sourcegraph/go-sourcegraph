@@ -13,9 +13,6 @@ import (
 
 // Repo is a code repository returned by the Sourcegraph API.
 type Repo struct {
-	// RID is the numeric primary key for a repository.
-	RID int
-
 	// URI is a normalized identifier for this repository based on its primary
 	// clone URL. E.g., "github.com/user/repo".
 	URI string
@@ -161,7 +158,7 @@ func IsGoogleCodeRepoURI(repoURI string) bool {
 
 // RepoSpec returns the RepoSpec that specifies r.
 func (r *Repo) RepoSpec() RepoSpec {
-	return RepoSpec{URI: r.URI, RID: r.RID}
+	return RepoSpec{URI: r.URI}
 }
 
 // RepoPermissions describes the possible permissions that a user (or

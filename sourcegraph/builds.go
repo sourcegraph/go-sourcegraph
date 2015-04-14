@@ -133,8 +133,11 @@ func (s *TaskSpec) RouteVars() map[string]string {
 // with simple behavior. As we encounter new requirements for the
 // build system, they may evolve.
 type Build struct {
-	BID  int64 `json:",omitempty"`
-	Repo int
+	// BID is the unique identifier for the build.
+	BID int64 `json:",omitempty"`
+
+	// Repo is the URI of the repository this build is for.
+	Repo string
 
 	// CommitID is the full resolved commit ID to build.
 	CommitID string `db:"commit_id"`
@@ -159,10 +162,6 @@ type Build struct {
 	Purged bool // whether the build's data (defs/refs/etc.) has been purged
 
 	BuildConfig
-
-	// RepoURI is populated (as a convenience) in results by Get and List but
-	// should not be set when creating builds (it will be ignored).
-	RepoURI *string `db:"repo_uri" json:",omitempty"`
 }
 
 func (b *Build) Spec() BuildSpec { return BuildSpec{BID: b.BID} }

@@ -2,7 +2,6 @@ package sourcegraph
 
 import (
 	"encoding/json"
-	"math"
 	"reflect"
 	"testing"
 	"time"
@@ -13,7 +12,7 @@ func TestTokens_JSON(t *testing.T) {
 		AnyToken("a"),
 		Term("b"),
 		Term(""),
-		RepoToken{URI: "r", Repo: &Repo{RID: math.MaxInt32 - 1}},
+		RepoToken{URI: "r", Repo: &Repo{URI: "r"}},
 		RevToken{Rev: "v"},
 		FileToken{Path: "p"},
 		UserToken{Login: "u"},
@@ -40,8 +39,7 @@ func TestTokens_JSON(t *testing.T) {
   {
     "URI": "r",
     "Repo": {
-      "RID": 2147483646,
-      "URI": "",
+      "URI": "r",
       "URIAlias": null,
       "Name": "",
       "OwnerUserID": 0,
