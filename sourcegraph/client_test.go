@@ -9,6 +9,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 )
 
 // Uses HTTP client testing code adapted from github.com/google/go-github.
@@ -87,6 +89,55 @@ func testBody(t *testing.T, r *http.Request, want string) {
 	str := string(b)
 	if want != str {
 		t.Errorf("Body = %s, want: %s", str, want)
+	}
+}
+
+func TestClient_URL(t *testing.T) {
+	tests := []struct {
+		base      string
+		route     string
+		routeVars map[string]string
+		opt       interface{}
+		exp       string
+	}{{
+		base:      "https://sourcegraph.com/api/",
+		route:     router.Repo,
+		routeVars: map[string]string{"RepoSpec": "github.com/gorilla/mux"},
+		exp:       "https://sourcegraph.com/api/repos/github.com/gorilla/mux",
+	}, {
+		base:      "https://sourcegraph.com/api",
+		route:     router.Repo,
+		routeVars: map[string]string{"RepoSpec": "github.com/gorilla/mux"},
+		exp:       "https://sourcegraph.com/api/repos/github.com/gorilla/mux",
+	}, {
+		base:      "http://localhost:3000/api/",
+		route:     router.Repo,
+		routeVars: map[string]string{"RepoSpec": "github.com/gorilla/mux"},
+		exp:       "http://localhost:3000/api/repos/github.com/gorilla/mux",
+	}, {
+		base:      "http://localhost:3000/api",
+		route:     router.Repo,
+		routeVars: map[string]string{"RepoSpec": "github.com/gorilla/mux"},
+		exp:       "http://localhost:3000/api/repos/github.com/gorilla/mux",
+	}}
+	for _, test := range tests {
+		func() {
+			c := NewClient(nil)
+			baseURL, err := url.Parse(test.base)
+			if err != nil {
+				t.Fatal(err)
+			}
+			c.BaseURL = baseURL
+			url, err := c.URL(test.route, test.routeVars, test.opt)
+			if err != nil {
+				t.Errorf("Error generating URL: %s", err)
+				return
+			}
+			if url.String() != test.exp {
+				t.Errorf("Expected %s, got %s on test case %+v", test.exp, url.String(), test)
+				return
+			}
+		}()
 	}
 }
 
