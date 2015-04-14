@@ -130,8 +130,14 @@ func (c *Client) URL(route string, routeVars map[string]string, opt interface{})
 	// make the route URL path relative to BaseURL by trimming the leading "/"
 	url.Path = strings.TrimPrefix(url.Path, "/")
 
+	// make the route URL path relative to BaseURL's path and not the path parent
+	baseURL := *c.BaseURL
+	if !strings.HasSuffix(baseURL.Path, "/") {
+		baseURL.Path = baseURL.Path + "/"
+	}
+
 	// make the URL absolute
-	url = c.BaseURL.ResolveReference(url)
+	url = baseURL.ResolveReference(url)
 
 	return url, nil
 }
