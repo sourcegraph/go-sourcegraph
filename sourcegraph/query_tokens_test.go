@@ -56,12 +56,7 @@ func TestTokens_JSON(t *testing.T) {
       "Private": false,
       "CreatedAt": "0001-01-01T00:00:00Z",
       "UpdatedAt": "0001-01-01T00:00:00Z",
-      "PushedAt": "0001-01-01T00:00:00Z",
-      "Permissions": {
-        "Read": false,
-        "Write": false,
-        "Admin": false
-      }
+      "PushedAt": "0001-01-01T00:00:00Z"
     },
     "Type": "RepoToken"
   },

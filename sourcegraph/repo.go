@@ -98,7 +98,7 @@ type Repo struct {
 	// Permissions describes the permissions that the current user (or
 	// anonymous users, if there is no current user) is granted to
 	// this repository.
-	Permissions RepoPermissions `db:"-"`
+	Permissions *RepoPermissions `db:"-" json:",omitempty"`
 }
 
 // IsGitHubRepo returns true iff this repository is hosted on GitHub.
