@@ -188,8 +188,6 @@ func (r *HTTPResponse) TotalCount() int {
 	return n
 }
 
-type MockResponse struct{}
-
 // Response is a response from the Sourcegraph API. When using the HTTP API,
 // API methods return *HTTPResponse values that implement Response.
 type Response interface {
@@ -199,6 +197,13 @@ type Response interface {
 	// returns -1.
 	TotalCount() int
 }
+
+// SimpleResponse implements Response.
+type SimpleResponse struct {
+	Total int // see (Response).TotalCount()
+}
+
+func (r *SimpleResponse) TotalCount() int { return r.Total }
 
 // ListOptions specifies general pagination options for fetching a list of
 // results.
