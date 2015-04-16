@@ -13,7 +13,7 @@ import (
 // fetch file and directory entries in repositories.
 type RepoTreeService interface {
 	Get(entry TreeEntrySpec, opt *RepoTreeGetOptions) (*TreeEntry, Response, error)
-	Search(RepoRevSpec, *RepoTreeSearchOptions) ([]*vcs.SearchResult, Response, error)
+	Search(rev RepoRevSpec, opt *RepoTreeSearchOptions) ([]*vcs.SearchResult, Response, error)
 }
 
 type repoTreeService struct {
