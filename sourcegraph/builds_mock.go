@@ -14,44 +14,44 @@ type MockBuildsService struct {
 	DequeueNext_      func() (*Build, Response, error)
 }
 
-func (s MockBuildsService) Get(build BuildSpec, opt *BuildGetOptions) (*Build, Response, error) {
+func (s *MockBuildsService) Get(build BuildSpec, opt *BuildGetOptions) (*Build, Response, error) {
 	return s.Get_(build, opt)
 }
 
-func (s MockBuildsService) GetRepoBuildInfo(repo RepoRevSpec, opt *BuildsGetRepoBuildInfoOptions) (*RepoBuildInfo, Response, error) {
+func (s *MockBuildsService) GetRepoBuildInfo(repo RepoRevSpec, opt *BuildsGetRepoBuildInfoOptions) (*RepoBuildInfo, Response, error) {
 	return s.GetRepoBuildInfo_(repo, opt)
 }
 
-func (s MockBuildsService) List(opt *BuildListOptions) ([]*Build, Response, error) {
+func (s *MockBuildsService) List(opt *BuildListOptions) ([]*Build, Response, error) {
 	return s.List_(opt)
 }
 
-func (s MockBuildsService) Create(repoRev RepoRevSpec, opt *BuildCreateOptions) (*Build, Response, error) {
+func (s *MockBuildsService) Create(repoRev RepoRevSpec, opt *BuildCreateOptions) (*Build, Response, error) {
 	return s.Create_(repoRev, opt)
 }
 
-func (s MockBuildsService) Update(build BuildSpec, info BuildUpdate) (*Build, Response, error) {
+func (s *MockBuildsService) Update(build BuildSpec, info BuildUpdate) (*Build, Response, error) {
 	return s.Update_(build, info)
 }
 
-func (s MockBuildsService) ListBuildTasks(build BuildSpec, opt *BuildTaskListOptions) ([]*BuildTask, Response, error) {
+func (s *MockBuildsService) ListBuildTasks(build BuildSpec, opt *BuildTaskListOptions) ([]*BuildTask, Response, error) {
 	return s.ListBuildTasks_(build, opt)
 }
 
-func (s MockBuildsService) CreateTasks(build BuildSpec, tasks []*BuildTask) ([]*BuildTask, Response, error) {
+func (s *MockBuildsService) CreateTasks(build BuildSpec, tasks []*BuildTask) ([]*BuildTask, Response, error) {
 	return s.CreateTasks_(build, tasks)
 }
 
-func (s MockBuildsService) UpdateTask(task TaskSpec, info TaskUpdate) (*BuildTask, Response, error) {
+func (s *MockBuildsService) UpdateTask(task TaskSpec, info TaskUpdate) (*BuildTask, Response, error) {
 	return s.UpdateTask_(task, info)
 }
 
-func (s MockBuildsService) GetLog(build BuildSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error) {
+func (s *MockBuildsService) GetLog(build BuildSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error) {
 	return s.GetLog_(build, opt)
 }
 
-func (s MockBuildsService) GetTaskLog(task TaskSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error) {
+func (s *MockBuildsService) GetTaskLog(task TaskSpec, opt *BuildGetLogOptions) (*LogEntries, Response, error) {
 	return s.GetTaskLog_(task, opt)
 }
 
-func (s MockBuildsService) DequeueNext() (*Build, Response, error) { return s.DequeueNext_() }
+func (s *MockBuildsService) DequeueNext() (*Build, Response, error) { return s.DequeueNext_() }
