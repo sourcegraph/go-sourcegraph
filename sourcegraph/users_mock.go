@@ -7,8 +7,6 @@ type MockUsersService struct {
 	ListEmails_     func(user UserSpec) ([]*EmailAddr, Response, error)
 	RefreshProfile_ func(userSpec UserSpec) (Response, error)
 	List_           func(opt *UsersListOptions) ([]*User, Response, error)
-	ListAuthors_    func(user UserSpec, opt *UsersListAuthorsOptions) ([]*AugmentedPersonUsageByClient, Response, error)
-	ListClients_    func(user UserSpec, opt *UsersListClientsOptions) ([]*AugmentedPersonUsageOfAuthor, Response, error)
 	ListOrgs_       func(member UserSpec, opt *UsersListOrgsOptions) ([]*Org, Response, error)
 }
 
@@ -33,14 +31,6 @@ func (s *MockUsersService) RefreshProfile(userSpec UserSpec) (Response, error) {
 }
 
 func (s *MockUsersService) List(opt *UsersListOptions) ([]*User, Response, error) { return s.List_(opt) }
-
-func (s *MockUsersService) ListAuthors(user UserSpec, opt *UsersListAuthorsOptions) ([]*AugmentedPersonUsageByClient, Response, error) {
-	return s.ListAuthors_(user, opt)
-}
-
-func (s *MockUsersService) ListClients(user UserSpec, opt *UsersListClientsOptions) ([]*AugmentedPersonUsageOfAuthor, Response, error) {
-	return s.ListClients_(user, opt)
-}
 
 func (s *MockUsersService) ListOrgs(member UserSpec, opt *UsersListOrgsOptions) ([]*Org, Response, error) {
 	return s.ListOrgs_(member, opt)

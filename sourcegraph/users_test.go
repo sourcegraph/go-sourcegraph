@@ -224,62 +224,6 @@ func TestUsersService_List(t *testing.T) {
 	}
 }
 
-func TestUsersService_ListAuthors(t *testing.T) {
-	setup()
-	defer teardown()
-
-	want := []*AugmentedPersonUsageByClient{{Author: &Person{FullName: "n"}}}
-
-	var called bool
-	mux.HandleFunc(urlPath(t, router.UserAuthors, map[string]string{"UserSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		testMethod(t, r, "GET")
-
-		writeJSON(w, want)
-	})
-
-	authors, _, err := client.Users.ListAuthors(UserSpec{Login: "a"}, nil)
-	if err != nil {
-		t.Errorf("Users.ListAuthors returned error: %v", err)
-	}
-
-	if !called {
-		t.Fatal("!called")
-	}
-
-	if !reflect.DeepEqual(authors, want) {
-		t.Errorf("Users.ListAuthors returned %+v, want %+v", authors, want)
-	}
-}
-
-func TestUsersService_ListClients(t *testing.T) {
-	setup()
-	defer teardown()
-
-	want := []*AugmentedPersonUsageOfAuthor{{Client: &Person{FullName: "n"}}}
-
-	var called bool
-	mux.HandleFunc(urlPath(t, router.UserClients, map[string]string{"UserSpec": "a"}), func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		testMethod(t, r, "GET")
-
-		writeJSON(w, want)
-	})
-
-	clients, _, err := client.Users.ListClients(UserSpec{Login: "a"}, nil)
-	if err != nil {
-		t.Errorf("Users.ListClients returned error: %v", err)
-	}
-
-	if !called {
-		t.Fatal("!called")
-	}
-
-	if !reflect.DeepEqual(clients, want) {
-		t.Errorf("Users.ListClients returned %+v, want %+v", clients, want)
-	}
-}
-
 func TestUsersService_ListOrgs(t *testing.T) {
 	setup()
 	defer teardown()

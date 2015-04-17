@@ -46,45 +46,45 @@ func TestMatch(t *testing.T) {
 
 		// Repo sub-routes
 		{
-			path:          "/repos/repohost.com/foo/.authors",
-			wantRouteName: RepoAuthors,
+			path:          "/repos/repohost.com/foo/.status",
+			wantRouteName: RepoCombinedStatus,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo"},
 		},
 		{
-			path:          "/repos/repohost.com/foo@myrev/.authors",
-			wantRouteName: RepoAuthors,
+			path:          "/repos/repohost.com/foo@myrev/.status",
+			wantRouteName: RepoCombinedStatus,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev"},
 		},
 		{
-			path:          "/repos/repohost.com/foo@myrev==abcd/.authors",
-			wantRouteName: RepoAuthors,
+			path:          "/repos/repohost.com/foo@myrev==abcd/.status",
+			wantRouteName: RepoCombinedStatus,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev==abcd"},
 		},
 		{
-			path:          "/repos/repohost.com/foo@myrev/subrev/.authors",
-			wantRouteName: RepoAuthors,
+			path:          "/repos/repohost.com/foo@myrev/subrev/.status",
+			wantRouteName: RepoCombinedStatus,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev/subrev"},
 		},
 		{
-			path:          "/repos/repohost.com/foo@myrev/subrev1/subrev2/.authors",
-			wantRouteName: RepoAuthors,
+			path:          "/repos/repohost.com/foo@myrev/subrev1/subrev2/.status",
+			wantRouteName: RepoCombinedStatus,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev/subrev1/subrev2"},
 		},
 		{
-			path:          "/repos/repohost.com/foo@myrev/subrev==abcd/.authors",
-			wantRouteName: RepoAuthors,
+			path:          "/repos/repohost.com/foo@myrev/subrev==abcd/.status",
+			wantRouteName: RepoCombinedStatus,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "myrev/subrev==abcd"},
 		},
 		{
-			path:          "/repos/repohost.com/foo@releases/1.0rc/.authors",
-			wantRouteName: RepoAuthors,
+			path:          "/repos/repohost.com/foo@releases/1.0rc/.status",
+			wantRouteName: RepoCombinedStatus,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "releases/1.0rc"},
 		},
 
 		// Repo sub-routes that don't allow an "@REVSPEC" revision.
 		{
-			path:          "/repos/repohost.com/foo/.dependents",
-			wantRouteName: RepoDependents,
+			path:          "/repos/repohost.com/foo/.settings",
+			wantRouteName: RepoSettings,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo"},
 		},
 		{
@@ -226,13 +226,13 @@ func TestMatch(t *testing.T) {
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "a/b/c", "DeltaHeadRev": "x/y/z"},
 		},
 		{
-			path:          "/repos/repohost.com/foo/.deltas/branch1..branch2/.reviewers",
-			wantRouteName: DeltaReviewers,
+			path:          "/repos/repohost.com/foo/.deltas/branch1..branch2/.files",
+			wantRouteName: DeltaFiles,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "branch1", "DeltaHeadRev": "branch2"},
 		},
 		{
-			path:          "/repos/repohost.com/foo/.deltas/branch1..branch2===4739/.reviewers",
-			wantRouteName: DeltaReviewers,
+			path:          "/repos/repohost.com/foo/.deltas/branch1..branch2===4739/.files",
+			wantRouteName: DeltaFiles,
 			wantVars:      map[string]string{"RepoSpec": "repohost.com/foo", "Rev": "branch1", "DeltaHeadRev": "branch2===4739"},
 		},
 

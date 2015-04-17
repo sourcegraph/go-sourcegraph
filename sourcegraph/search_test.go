@@ -1,7 +1,6 @@
 package sourcegraph
 
 import (
-	"encoding/json"
 	"net/http"
 	"reflect"
 	"testing"
@@ -121,9 +120,4 @@ func TestSearchService_Suggest(t *testing.T) {
 	if !reflect.DeepEqual(suggs, want) {
 		t.Errorf("Search.Suggest returned %+v, want %+v", suggs, want)
 	}
-}
-
-func asJSON(v interface{}) string {
-	b, _ := json.Marshal(v)
-	return string(b)
 }
