@@ -382,36 +382,3 @@ func TestDeltasService_ListReviewers(t *testing.T) {
 		t.Errorf("Deltas.ListReviewers returned %+v, want %+v", reviewers, want)
 	}
 }
-
-func TestDeltasService_ListIncoming(t *testing.T) {
-	setup()
-	defer teardown()
-
-	rr := RepoRevSpec{RepoSpec: RepoSpec{URI: "x.com/r"}, Rev: "r"}
-	want := []*Delta{}
-
-	var called bool
-	mux.HandleFunc(urlPath(t, router.DeltasIncoming, rr.RouteVars()), func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		testMethod(t, r, "GET")
-		testFormValues(t, r, values{
-			"UnitType": "t",
-			"Unit":     "u",
-		})
-
-		writeJSON(w, want)
-	})
-
-	incoming, _, err := client.Deltas.ListIncoming(rr, &DeltaListIncomingOptions{DeltaFilter: DeltaFilter{UnitType: "t", Unit: "u"}})
-	if err != nil {
-		t.Errorf("Deltas.ListIncoming returned error: %v", err)
-	}
-
-	if !called {
-		t.Fatal("!called")
-	}
-
-	if !reflect.DeepEqual(incoming, want) {
-		t.Errorf("Deltas.ListIncoming returned %+v, want %+v", incoming, want)
-	}
-}

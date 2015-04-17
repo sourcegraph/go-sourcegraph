@@ -46,9 +46,6 @@ type DeltasService interface {
 	// ListReviewers lists people who are reviewing or are suggested
 	// reviewers for this delta.
 	ListReviewers(ds DeltaSpec, opt *DeltaListReviewersOptions) ([]*DeltaReviewer, Response, error)
-
-	// ListIncoming lists deltas that affect the given repo.
-	ListIncoming(rr RepoRevSpec, opt *DeltaListIncomingOptions) ([]*Delta, Response, error)
 }
 
 // deltasService implements DeltasService.
@@ -542,33 +539,6 @@ func (s *deltasService) ListReviewers(ds DeltaSpec, opt *DeltaListReviewersOptio
 	}
 
 	return reviewers, resp, nil
-}
-
-// DeltaListIncomingOptions specifies options for
-// ListIncoming.
-type DeltaListIncomingOptions struct {
-	DeltaFilter
-	ListOptions
-}
-
-func (s *deltasService) ListIncoming(rr RepoRevSpec, opt *DeltaListIncomingOptions) ([]*Delta, Response, error) {
-	url, err := s.client.URL(router.DeltasIncoming, rr.RouteVars(), opt)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := s.client.NewRequest("GET", url.String(), nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var deltas []*Delta
-	resp, err := s.client.Do(req, &deltas)
-	if err != nil {
-		return nil, resp, err
-	}
-
-	return deltas, resp, nil
 }
 
 var _ DeltasService = &MockDeltasService{}

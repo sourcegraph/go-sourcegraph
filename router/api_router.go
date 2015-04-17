@@ -18,29 +18,19 @@ const (
 	OrgSettings       = "org.settings"
 	OrgSettingsUpdate = "org.settings.update"
 
-	Users                 = "users"
-	User                  = "user"
-	UserOrgs              = "user.orgs"
-	UserAuthors           = "user.authors"
-	UserClients           = "user.clients"
-	UserEmails            = "user.emails"
-	UserFromGitHub        = "user.from-github"
-	UserRepoContributions = "user.repo-contributions"
-	UserRepoDependencies  = "user.repo-dependencies"
-	UserRepoDependents    = "user.repo-dependents"
-	UserRefreshProfile    = "user.refresh-profile"
-	UserSettings          = "user.settings"
-	UserSettingsUpdate    = "user.settings.update"
+	Users              = "users"
+	User               = "user"
+	UserOrgs           = "user.orgs"
+	UserEmails         = "user.emails"
+	UserRefreshProfile = "user.refresh-profile"
+	UserSettings       = "user.settings"
+	UserSettingsUpdate = "user.settings.update"
 
 	Person = "person"
 
 	Repos              = "repos"
 	ReposCreate        = "repos.create"
 	Repo               = "repo"
-	RepoAuthors        = "repo.authors"
-	RepoClients        = "repo.clients"
-	RepoDependents     = "repo.dependents"
-	RepoDependencies   = "repo.dependencies"
 	RepoBadge          = "repo.badge"
 	RepoBadges         = "repo.badges"
 	RepoCounter        = "repo.counter"
@@ -71,16 +61,12 @@ const (
 
 	SearchSuggestions = "search.suggestions"
 
-	Snippet = "snippet"
-
-	Defs          = "defs"
-	Def           = "def"
-	DefRefs       = "def.refs"
-	DefExamples   = "def.examples"
-	DefAuthors    = "def.authors"
-	DefClients    = "def.clients"
-	DefDependents = "def.dependents"
-	DefVersions   = "def.versions"
+	Defs        = "defs"
+	Def         = "def"
+	DefRefs     = "def.refs"
+	DefExamples = "def.examples"
+	DefAuthors  = "def.authors"
+	DefClients  = "def.clients"
 
 	Delta                   = "delta"
 	DeltaUnits              = "delta.units"
@@ -91,7 +77,6 @@ const (
 	DeltaAffectedClients    = "delta.affected-clients"
 	DeltaAffectedDependents = "delta.affected-dependents"
 	DeltaReviewers          = "delta.reviewers"
-	DeltasIncoming          = "deltas.incoming"
 
 	Unit  = "unit"
 	Units = "units"
@@ -138,11 +123,9 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	repoRev := base.PathPrefix(`/repos/` + RepoRevSpecPattern).PostMatchFunc(FixRepoRevSpecVars).BuildVarsFunc(PrepareRepoRevSpecRouteVars).Subrouter()
 	repoRev.Path("/.status").Methods("GET").Name(RepoCombinedStatus)
 	repoRev.Path("/.status").Methods("POST").Name(RepoStatusCreate)
-	repoRev.Path("/.authors").Methods("GET").Name(RepoAuthors)
 	repoRev.Path("/.readme").Methods("GET").Name(RepoReadme)
 	repoRev.Path("/.build").Methods("GET").Name(RepoBuild)
 	repoRev.Path("/.builds").Methods("POST").Name(RepoBuildsCreate)
-	repoRev.Path("/.dependencies").Methods("GET").Name(RepoDependencies)
 	repoRev.PathPrefix("/.build-data"+TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET", "HEAD", "PUT", "DELETE").Name(RepoBuildDataEntry)
 	repoRev.Path("/.badges/{Badge}.{Format}").Methods("GET").Name(RepoBadge)
 
@@ -150,8 +133,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	repoPath := `/repos/` + RepoSpecPathPattern
 	base.Path(repoPath).Methods("GET").Name(Repo)
 	repo := base.PathPrefix(repoPath).Subrouter()
-	repo.Path("/.clients").Methods("GET").Name(RepoClients)
-	repo.Path("/.dependents").Methods("GET").Name(RepoDependents)
 	repo.Path("/.vcs-data").Methods("PUT").Name(RepoRefreshVCSData)
 	repo.Path("/.settings").Methods("GET").Name(RepoSettings)
 	repo.Path("/.settings").Methods("PUT").Name(RepoSettingsUpdate)
@@ -176,8 +157,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	deltas.Path("/.affected-dependents").Methods("GET").Name(DeltaAffectedDependents)
 	deltas.Path("/.reviewers").Methods("GET").Name(DeltaReviewers)
 
-	repo.Path("/.deltas-incoming").Methods("GET").Name(DeltasIncoming)
-
 	// See router_util/tree_route.go for an explanation of how we match tree
 	// entry routes.
 	repoRev.Path("/.tree" + TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET").Name(RepoTreeEntry)
@@ -191,12 +170,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	base.Path(userPath).Methods("GET").Name(User)
 	user := base.PathPrefix(userPath).Subrouter()
 	user.Path("/orgs").Methods("GET").Name(UserOrgs)
-	user.Path("/clients").Methods("GET").Name(UserClients)
-	user.Path("/authors").Methods("GET").Name(UserAuthors)
 	user.Path("/emails").Methods("GET").Name(UserEmails)
-	user.Path("/repo-contributions").Methods("GET").Name(UserRepoContributions)
-	user.Path("/repo-dependencies").Methods("GET").Name(UserRepoDependencies)
-	user.Path("/repo-dependents").Methods("GET").Name(UserRepoDependents)
 	user.Path("/external-profile").Methods("PUT").Name(UserRefreshProfile)
 	user.Path("/settings").Methods("GET").Name(UserSettings)
 	user.Path("/settings").Methods("PUT").Name(UserSettingsUpdate)
@@ -212,8 +186,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	base.Path("/search/complete").Methods("GET").Name(SearchComplete)
 	base.Path("/search/suggestions").Methods("GET").Name(SearchSuggestions)
 
-	base.Path("/snippet").Methods("GET", "POST", "ORIGIN").Name(Snippet)
-
 	base.Path("/.defs").Methods("GET").Name(Defs)
 
 	// See router_util/def_route.go for an explanation of how we match def
@@ -225,8 +197,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	def.Path("/.examples").Methods("GET").Name(DefExamples)
 	def.Path("/.authors").Methods("GET").Name(DefAuthors)
 	def.Path("/.clients").Methods("GET").Name(DefClients)
-	def.Path("/.dependents").Methods("GET").Name(DefDependents)
-	def.Path("/.versions").Methods("GET").Name(DefVersions)
 
 	base.Path("/.units").Methods("GET").Name(Units)
 	unitPath := `/.units/{UnitType}/{Unit:.*}`

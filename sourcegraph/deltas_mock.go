@@ -10,7 +10,6 @@ type MockDeltasService struct {
 	ListAffectedClients_    func(ds DeltaSpec, opt *DeltaListAffectedClientsOptions) ([]*DeltaAffectedPerson, Response, error)
 	ListAffectedDependents_ func(ds DeltaSpec, opt *DeltaListAffectedDependentsOptions) ([]*DeltaAffectedRepo, Response, error)
 	ListReviewers_          func(ds DeltaSpec, opt *DeltaListReviewersOptions) ([]*DeltaReviewer, Response, error)
-	ListIncoming_           func(rr RepoRevSpec, opt *DeltaListIncomingOptions) ([]*Delta, Response, error)
 }
 
 func (s *MockDeltasService) Get(ds DeltaSpec, opt *DeltaGetOptions) (*Delta, Response, error) {
@@ -47,8 +46,4 @@ func (s *MockDeltasService) ListAffectedDependents(ds DeltaSpec, opt *DeltaListA
 
 func (s *MockDeltasService) ListReviewers(ds DeltaSpec, opt *DeltaListReviewersOptions) ([]*DeltaReviewer, Response, error) {
 	return s.ListReviewers_(ds, opt)
-}
-
-func (s *MockDeltasService) ListIncoming(rr RepoRevSpec, opt *DeltaListIncomingOptions) ([]*Delta, Response, error) {
-	return s.ListIncoming_(rr, opt)
 }
