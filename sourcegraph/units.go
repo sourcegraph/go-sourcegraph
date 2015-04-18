@@ -122,4 +122,4 @@ func (s *unitsService) List(opt *UnitListOptions) ([]*unit.RepoSourceUnit, Respo
 	return units, resp, nil
 }
 
-var _ UnitsService = &MockUnitsService{}
+

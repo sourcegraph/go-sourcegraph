@@ -1,4 +1,3 @@
-//go:generate gen-mocks -p sourcegraph.com/sourcegraph/go-sourcegraph/sourcegraph -n sourcegraph -o . -w
 package sourcegraph
 
 import (
@@ -304,21 +303,4 @@ func addOptions(u *url.URL, opt interface{}) error {
 
 	u.RawQuery = qs.Encode()
 	return nil
-}
-
-// NewMockClient returns a mockable Client for use in tests.
-func NewMockClient() *Client {
-	return &Client{
-		BuildData: &MockBuildDataService{},
-		Builds:    &MockBuildsService{},
-		Deltas:    &MockDeltasService{},
-		Orgs:      &MockOrgsService{},
-		People:    &MockPeopleService{},
-		Repos:     &MockReposService{},
-		RepoTree:  &MockRepoTreeService{},
-		Search:    &MockSearchService{},
-		Units:     &MockUnitsService{},
-		Users:     &MockUsersService{},
-		Defs:      &MockDefsService{},
-	}
 }

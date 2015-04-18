@@ -157,4 +157,4 @@ func (s *orgsService) UpdateSettings(org OrgSpec, settings OrgSettings) (Respons
 	return resp, nil
 }
 
-var _ OrgsService = &MockOrgsService{}
+

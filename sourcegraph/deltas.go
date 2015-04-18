@@ -412,4 +412,4 @@ func (s *deltasService) ListAffectedClients(ds DeltaSpec, opt *DeltaListAffected
 	return clients, resp, nil
 }
 
-var _ DeltasService = &MockDeltasService{}
+

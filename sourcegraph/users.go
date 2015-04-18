@@ -380,4 +380,4 @@ func (s *usersService) ListOrgs(member UserSpec, opt *UsersListOrgsOptions) ([]*
 	return orgs, resp, nil
 }
 
-var _ UsersService = &MockUsersService{}
+

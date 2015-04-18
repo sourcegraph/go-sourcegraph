@@ -516,4 +516,4 @@ func (s *defsService) ListClients(def DefSpec, opt *DefListClientsOptions) ([]*A
 	return clients, resp, nil
 }
 
-var _ DefsService = &MockDefsService{}
+

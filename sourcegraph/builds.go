@@ -599,4 +599,4 @@ func (s *buildsService) DequeueNext() (*Build, Response, error) {
 	return build_, resp, nil
 }
 
-var _ BuildsService = &MockBuildsService{}
+

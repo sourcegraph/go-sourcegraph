@@ -66,4 +66,4 @@ func GetBuildDataFile(s BuildDataService, file BuildDataFileSpec) (io.ReadCloser
 	return f, fi, err
 }
 
-var _ BuildDataService = &MockBuildDataService{}
+

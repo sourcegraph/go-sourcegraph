@@ -588,4 +588,4 @@ func (s *repositoriesService) ListCounters(repo RepoSpec) ([]*Counter, Response,
 	return counters, resp, nil
 }
 
-var _ ReposService = &MockReposService{}
+
