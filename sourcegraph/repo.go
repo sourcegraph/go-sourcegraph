@@ -104,6 +104,20 @@ type Repo struct {
 // IsGitHubRepo returns true iff this repository is hosted on GitHub.
 func (r *Repo) IsGitHubRepo() bool { return r.GitHubID != 0 }
 
+// Returns the repository's canonical clone URL
+func (r *Repo) CloneURL() *url.URL {
+	var cloneURL string
+	if r.HTTPCloneURL != "" {
+		cloneURL = r.HTTPCloneURL
+	} else if r.SSHCloneURL != "" {
+		cloneURL = string(r.SSHCloneURL)
+	} else {
+		cloneURL = r.URI
+	}
+	u, _ := url.Parse(cloneURL)
+	return u
+}
+
 // GitHubHTMLURL returns URL to the GitHub HTML page (e.g.,
 // https://github.com/foo/bar, not a clone URL) for this repo, if it's
 // a GitHub repo. Otherwise it returns the empty string.
