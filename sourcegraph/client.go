@@ -38,6 +38,7 @@ type Client struct {
 	Users        UsersService
 	Defs         DefsService
 	Markdown     MarkdownService
+	VCS          VCSOpener
 
 	// Base URL for API requests, which should have a trailing slash.
 	BaseURL *url.URL

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
-	"strings"
 	"time"
 )
 
@@ -12,50 +11,6 @@ const (
 	Git = "git"
 	Hg  = "hg"
 )
-
-func MapByURI(repos []*Repo) map[string]*Repo {
-	repoMap := make(map[string]*Repo, len(repos))
-	for _, repo := range repos {
-		repoMap[repo.URI] = repo
-	}
-	return repoMap
-}
-
-type Repos []*Repo
-
-func (rs Repos) URIs() (uris []string) {
-	uris = make([]string, len(rs))
-	for i, r := range rs {
-		uris[i] = r.URI
-	}
-	return
-}
-
-const githubRepoURIPrefix = "github.com/"
-
-// IsGitHubRepoURI returns true iff this repository is hosted on GitHub.
-func IsGitHubRepoURI(repoURI string) bool {
-	return strings.HasPrefix(strings.ToLower(repoURI), githubRepoURIPrefix)
-}
-
-// IsGoogleCodeRepoURI returns true iff this repository is hosted on Google
-// Code (code.google.com).
-func IsGoogleCodeRepoURI(repoURI string) bool {
-	return strings.HasPrefix(strings.ToLower(repoURI), "code.google.com/p/")
-}
-
-// RepoSpec returns the RepoSpec that specifies r.
-func (r *Repo) RepoSpec() RepoSpec {
-	return RepoSpec{URI: r.URI}
-}
-
-// RepoPermissions describes the possible permissions that a user (or
-// an anonymous user) can be granted to a repository.
-type RepoPermissions struct {
-	Read  bool
-	Write bool
-	Admin bool
-}
 
 // ErrRenamed is an error type that indicates that a repository was renamed from
 // OldURI to NewURI.

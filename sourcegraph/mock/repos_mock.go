@@ -2,16 +2,13 @@
 
 package mock
 
-import (
-	"sourcegraph.com/sourcegraph/go-sourcegraph/sourcegraph"
-	"sourcegraph.com/sourcegraph/vcsstore/vcsclient"
-)
+import "sourcegraph.com/sourcegraph/go-sourcegraph/sourcegraph"
 
 type ReposService struct {
 	Get_       func(repo sourcegraph.RepoSpec, opt *sourcegraph.RepoGetOptions) (*sourcegraph.Repo, error)
 	List_      func(opt *sourcegraph.RepoListOptions) ([]*sourcegraph.Repo, error)
 	Create_    func(newRepo *sourcegraph.Repo) (*sourcegraph.Repo, error)
-	GetReadme_ func(repo sourcegraph.RepoRevSpec) (*vcsclient.TreeEntry, error)
+	GetReadme_ func(repo sourcegraph.RepoRevSpec) (*sourcegraph.Readme, error)
 }
 
 func (s *ReposService) Get(repo sourcegraph.RepoSpec, opt *sourcegraph.RepoGetOptions) (*sourcegraph.Repo, error) {
@@ -26,7 +23,7 @@ func (s *ReposService) Create(newRepo *sourcegraph.Repo) (*sourcegraph.Repo, err
 	return s.Create_(newRepo)
 }
 
-func (s *ReposService) GetReadme(repo sourcegraph.RepoRevSpec) (*vcsclient.TreeEntry, error) {
+func (s *ReposService) GetReadme(repo sourcegraph.RepoRevSpec) (*sourcegraph.Readme, error) {
 	return s.GetReadme_(repo)
 }
 

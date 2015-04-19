@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"reflect"
 	"testing"
-	"time"
 )
 
 func TestTokens_JSON(t *testing.T) {
@@ -12,7 +11,7 @@ func TestTokens_JSON(t *testing.T) {
 		AnyToken("a"),
 		Term("b"),
 		Term(""),
-		RepoToken{URI: "r", Repo: &Repo{URI: "r"}},
+		RepoToken{URI: "r"},
 		RevToken{Rev: "v"},
 		FileToken{Path: "p"},
 		UserToken{Login: "u"},
@@ -38,26 +37,6 @@ func TestTokens_JSON(t *testing.T) {
   },
   {
     "URI": "r",
-    "Repo": {
-      "URI": "r",
-      "URIAlias": null,
-      "Name": "",
-      "OwnerUserID": 0,
-      "VCS": "",
-      "HTTPCloneURL": "",
-      "SSHCloneURL": null,
-      "HomepageURL": null,
-      "DefaultBranch": "",
-      "Language": "",
-      "GitHubStars": 0,
-      "Deprecated": false,
-      "Fork": false,
-      "Mirror": false,
-      "Private": false,
-      "CreatedAt": "0001-01-01T00:00:00Z",
-      "UpdatedAt": "0001-01-01T00:00:00Z",
-      "PushedAt": "0001-01-01T00:00:00Z"
-    },
     "Type": "RepoToken"
   },
   {
@@ -82,19 +61,6 @@ func TestTokens_JSON(t *testing.T) {
 	if err := json.Unmarshal(b, &tokens2); err != nil {
 		t.Fatal(err)
 	}
-
-	// Normalize tokens for comparison.
-	normTok := func(toks ...Token) {
-		for _, tok := range toks {
-			if tok, ok := tok.(RepoToken); ok {
-				tok.Repo.CreatedAt = time.Time{}
-				tok.Repo.UpdatedAt = time.Time{}
-				tok.Repo.PushedAt = time.Time{}
-			}
-		}
-	}
-	normTok(tokens2...)
-	normTok(tokens...)
 
 	if !reflect.DeepEqual(tokens2, tokens) {
 		t.Errorf("got tokens\n%+v\n\nwant tokens\n%+v", tokens2, tokens)

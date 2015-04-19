@@ -3,12 +3,11 @@ package sourcegraph
 import (
 	"errors"
 	"fmt"
+	"html/template"
 	"net/url"
 	"time"
 
 	"github.com/sourcegraph/go-nnz/nnz"
-
-	"sourcegraph.com/sourcegraph/vcsstore/vcsclient"
 
 	"strings"
 )
@@ -26,7 +25,7 @@ type ReposService interface {
 	Create(newRepo *Repo) (*Repo, error)
 
 	// GetReadme fetches the formatted README file for a repository.
-	GetReadme(repo RepoRevSpec) (*vcsclient.TreeEntry, error)
+	GetReadme(repo RepoRevSpec) (*Readme, error)
 }
 
 // Repo represents a source code repository.
@@ -35,23 +34,10 @@ type Repo struct {
 	// clone URL. E.g., "github.com/user/repo".
 	URI string
 
-	// URIAlias is another URI that, if accessed, will redirect to
-	// this repository's primary URI. It's used, for example, to
-	// redirect from GitHub repos to their canonical URI (such as Go
-	// repos on gopkg.in).
-	URIAlias nnz.String `db:"uri_alias"`
-
 	// Name is the base name (the final path component) of the repository,
 	// typically the name of the directory that the repository would be cloned
 	// into. (For example, for git://example.com/foo.git, the name is "foo".)
 	Name string
-
-	// OwnerUserID is the account that owns this repository.
-	OwnerUserID int `db:"owner_user_id"`
-
-	// OwnerGitHubUserID is the GitHub user ID of this repository's owner, if this
-	// is a GitHub repository.
-	OwnerGitHubUserID nnz.Int `db:"owner_github_user_id" json:",omitempty"`
 
 	// Description is a brief description of the repository.
 	Description string `json:",omitempty"`
@@ -77,16 +63,8 @@ type Repo struct {
 	// Language is the primary programming language used in this repository.
 	Language string
 
-	// GitHubStars is the number of stargazers this repository has on GitHub (or
-	// 0 if it is not a GitHub repository).
-	GitHubStars int `db:"github_stars"`
-
-	// GitHubID is the GitHub ID of this repository. If a GitHub repository is
-	// renamed, the ID remains the same and should be used to resolve across the
-	// name change.
-	GitHubID nnz.Int `db:"github_id" json:",omitempty"`
-
-	// Disabled is whether this repo should not be downloaded and processed by the worker.
+	// Disabled is whether this repo has been disabled (and will not
+	// be returned via the external API).
 	Disabled bool `json:",omitempty"`
 
 	// Deprecated repositories are labeled as such and hidden from global search results.
@@ -120,7 +98,7 @@ type Repo struct {
 }
 
 // IsGitHubRepo returns true iff this repository is hosted on GitHub.
-func (r *Repo) IsGitHubRepo() bool { return r.GitHubID != 0 }
+func (r *Repo) IsGitHubRepo() bool { return strings.HasPrefix(r.URI, "github.com/") }
 
 // Returns the repository's canonical clone URL
 func (r *Repo) CloneURL() *url.URL {
@@ -140,16 +118,33 @@ func (r *Repo) CloneURL() *url.URL {
 // https://github.com/foo/bar, not a clone URL) for this repo, if it's
 // a GitHub repo. Otherwise it returns the empty string.
 func (r *Repo) GitHubHTMLURL() string {
-	var ghuri string
-	if IsGitHubRepoURI(r.URI) {
-		ghuri = r.URI
-	} else if IsGitHubRepoURI(string(r.URIAlias)) {
-		ghuri = string(r.URIAlias)
+	if r.IsGitHubRepo() {
+		return (&url.URL{Scheme: "https", Host: "github.com", Path: "/" + strings.TrimPrefix(r.URI, "github.com/")}).String()
 	}
-	if ghuri == "" {
-		return ""
-	}
-	return (&url.URL{Scheme: "https", Host: "github.com", Path: "/" + strings.TrimPrefix(ghuri, githubRepoURIPrefix)}).String()
+	return ""
+}
+
+// RepoSpec returns the RepoSpec that specifies r.
+func (r *Repo) RepoSpec() RepoSpec {
+	return RepoSpec{URI: r.URI}
+}
+
+// RepoPermissions describes the possible permissions that a user (or
+// an anonymous user) can be granted to a repository.
+type RepoPermissions struct {
+	Read  bool
+	Write bool
+	Admin bool
+}
+
+// A Readme represents a formatted "README"-type file in a repository.
+type Readme struct {
+	// Path is the relative path of this readme file from the
+	// repository root.
+	Path string
+
+	// HTML is the formatted HTML of this readme.
+	HTML template.HTML
 }
 
 // RepoSpec specifies a repository.
