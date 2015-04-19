@@ -28,10 +28,9 @@ type Client struct {
 	Deltas       DeltasService
 	Orgs         OrgsService
 	People       PeopleService
-	Repos        ReposService
-	RepoStatus   RepoStatusService
-	RepoGoodies  RepoGoodiesService
-	RepoSettings RepoSettingsService
+	Repos        ReposClient
+	RepoStatuses RepoStatusesClient
+	RepoGoodies  RepoGoodiesClient
 	RepoTree     RepoTreeService
 	Search       SearchService
 	Units        UnitsService
@@ -212,39 +211,6 @@ type SimpleResponse struct {
 }
 
 func (r *SimpleResponse) TotalCount() int { return r.Total }
-
-// ListOptions specifies general pagination options for fetching a list of
-// results.
-type ListOptions struct {
-	PerPage int `url:",omitempty" json:",omitempty"`
-	Page    int `url:",omitempty" json:",omitempty"`
-}
-
-const DefaultPerPage = 10
-
-func (o ListOptions) PageOrDefault() int {
-	if o.Page <= 0 {
-		return 1
-	}
-	return o.Page
-}
-
-func (o ListOptions) PerPageOrDefault() int {
-	if o.PerPage <= 0 {
-		return DefaultPerPage
-	}
-	return o.PerPage
-}
-
-// Limit returns the number of items to fetch.
-func (o ListOptions) Limit() int { return o.PerPageOrDefault() }
-
-// Offset returns the 0-indexed offset of the first item that appears on this
-// page, based on the PerPage and Page values (which are given default values if
-// they are zero).
-func (o ListOptions) Offset() int {
-	return (o.PageOrDefault() - 1) * o.PerPageOrDefault()
-}
 
 type doKey int // sentinel value type for (*Client).Do v parameter
 

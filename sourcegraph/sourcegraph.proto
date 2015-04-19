@@ -1,0 +1,262 @@
+syntax = "proto3";
+package sourcegraph;
+
+import "gogoproto/gogo.proto";
+import "timestamp.proto";
+import "void.proto";
+
+
+message Badge {
+	string name = 1;
+	string description = 2;
+	string image_url = 3 [(gogoproto.customname) = "ImageURL"];
+	string uncounted_image_url = 4 [(gogoproto.customname) = "UncountedImageURL"];
+	string markdown = 5;
+}
+
+// CombinedStatus is the combined status (i.e., incorporating statuses from all
+// contexts) of the repository at a specific rev.
+message CombinedStatus {
+	// CommitID is the full commit ID of the commit this status describes.
+	string commit_id = 1 [(gogoproto.customname) = "CommitID"];
+
+	// State is the combined status of the repository. Possible values are: failture,
+	// pending, or success.
+	string state = 2;
+
+	// Statuses are the statuses for each context.
+	repeated RepoStatus statuses = 3;
+}
+
+message Counter {
+	string name = 1;
+	string description = 2;
+	string image_url = 3 [(gogoproto.customname) = "ImageURL"];
+	string uncounted_image_url = 4 [(gogoproto.customname) = "UncountedImageURL"];
+	string markdown = 5;
+}
+
+// ListOptions specifies general pagination options for fetching a list of results.
+message ListOptions {
+	int32 per_page = 1 [(gogoproto.moretags) = "url:\",omitempty\""];
+	int32 page = 2 [(gogoproto.moretags) = "url:\",omitempty\""];
+}
+
+// A Readme represents a formatted "README"-type file in a repository.
+message Readme {
+	// Path is the relative path of this readme file from the repository root.
+	string path = 1;
+
+	// HTML is the formatted HTML of this readme.
+	string html = 2 [(gogoproto.customname) = "HTML"];
+}
+
+// Repo represents a source code repository.
+message Repo {
+	// URI is a normalized identifier for this repository based on its primary clone
+	// URL. E.g., "github.com/user/repo".
+	string uri = 1 [(gogoproto.customname) = "URI"];
+
+	// Name is the base name (the final path component) of the repository, typically
+	// the name of the directory that the repository would be cloned into. (For
+	// example, for git://example.com/foo.git, the name is "foo".)
+	string name = 2;
+
+	// Description is a brief description of the repository.
+	string description = 3;
+
+	// VCS is the short name of the VCS system that this repository uses: "git" or
+	// "hg".
+	string vcs = 4 [(gogoproto.customname) = "VCS"];
+
+	// HTTPCloneURL is the HTTPS clone URL of the repository (or the HTTP clone URL, if
+	// no HTTPS clone URL is available).
+	string http_clone_url = 5 [(gogoproto.customname) = "HTTPCloneURL"];
+
+	// SSHCloneURL is the SSH clone URL if the repository, if any.
+	string ssh_clone_url = 6 [(gogoproto.customname) = "SSHCloneURL"];
+
+	// HomepageURL is the URL to the repository's homepage, if any.
+	string homepage_url = 7 [(gogoproto.customname) = "HomepageURL"];
+
+	// DefaultBranch is the default VCS branch used (typically "master" for git
+	// repositories and "default" for hg repositories).
+	string default_branch = 8;
+
+	// Language is the primary programming language used in this repository.
+	string language = 9;
+
+	// Disabled is whether this repo has been disabled (and will not be returned via
+	// the external API).
+	bool disabled = 10;
+
+	// Deprecated repositories are labeled as such and hidden from global search
+	// results.
+	bool deprecated = 11;
+
+	// Fork is whether this repository is a fork.
+	bool fork = 12;
+
+	// Mirror is whether this repository is a mirror.
+	bool mirror = 13;
+
+	// Private is whether this repository is private.
+	bool private = 14;
+
+	// CreatedAt is when this repository was created. If it represents an externally
+	// hosted (e.g., GitHub) repository, the creation date is when it was created at
+	// that origin.
+	Timestamp created_at = 15 [(gogoproto.nullable) = false];
+
+	// UpdatedAt is when this repository's metadata was last updated (on its origin if
+	// it's an externally hosted repository).
+	Timestamp updated_at = 16 [(gogoproto.nullable) = false];
+
+	// PushedAt is when this repository's was last (VCS-)pushed to.
+	Timestamp pushed_at = 17 [(gogoproto.nullable) = false];
+
+	// Permissions describes the permissions that the current user (or anonymous users,
+	// if there is no current user) is granted to this repository.
+	optional RepoPermissions permissions = 18;
+}
+
+message BadgeList {
+	repeated Badge badges = 1;
+}
+
+message CounterList {
+	repeated Counter counters = 1;
+}
+
+message RepoListOptions {
+	string name = 1 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	// Specifies a search query for repositories. If specified, then the Sort and
+	// Direction options are ignored
+	string query = 2 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	repeated string uri_s = 3 [(gogoproto.customname) = "URIs", (gogoproto.moretags) = "url:\",comma,omitempty\""];
+	bool built_only = 4 [(gogoproto.moretags) = "url:\",omitempty\""];
+	string sort = 5 [(gogoproto.moretags) = "url:\",omitempty\""];
+	string direction = 6 [(gogoproto.moretags) = "url:\",omitempty\""];
+	bool no_fork = 7 [(gogoproto.moretags) = "url:\",omitempty\""];
+	string type = 8 [(gogoproto.moretags) = "url:\",omitempty\""];
+	string state = 9 [(gogoproto.moretags) = "url:\",omitempty\""];
+	string owner = 10 [(gogoproto.moretags) = "url:\",omitempty\""];
+	ListOptions list_options = 11 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// RepoPermissions describes the possible permissions that a user (or an anonymous
+// user) can be granted to a repository.
+message RepoPermissions {
+	bool read = 1;
+	bool write = 2;
+	bool admin = 3;
+}
+
+// RepoRevSpec specifies a repository at a specific commit (or revision specifier,
+// such as a branch, which is resolved on the server side to a specific commit).
+// 
+// Filling in CommitID is an optional optimization. It avoids the need for another
+// resolution of Rev. If CommitID is filled in, the "Rev" route variable becomes
+// "Rev===CommitID" (e.g., "master===af4cd6"). Handlers can parse this string to
+// retrieve the pre-resolved commit ID (e.g., "af4cd6") and still return data that
+// constructs URLs using the unresolved revspec (e.g., "master").
+// 
+// Why is it important/useful to pass the resolved commit ID instead of just using
+// a revspec everywhere? Consider this case. Your application wants to make a bunch
+// of requests for resources relating to "master"; for example, it wants to
+// retrieve a source file foo.go at master and all of the definitions and
+// references contained in the file. This may consist of dozens of API calls. If
+// each API call specified just "master", there would be 2 problems: (1) each API
+// call would have to re-resolve "master" to its actual commit ID, which takes a
+// lot of extra work; and (2) if the "master" ref changed during the API calls (if
+// someone pushed in the middle of the API call, for example), then your
+// application would receive data from 2 different commits. The solution is for
+// your application to resolve the revspec once and pass both the original revspec
+// and the resolved commit ID in all API calls it makes.
+// 
+// And why do we want to preserve the unresolved revspec? In this case, your app
+// wants to let the user continue browsing "master". If the API data all referred
+// to a specific commit ID, then the user would cease browsing master the next time
+// she clicked a link on your app. Preserving the revspec gives the user a choice
+// whether to use the absolute commit ID or the revspec (similar to how GitHub lets
+// you canonicalize a URL with 'y' but does not default to using the canonical
+// URL).
+message RepoRevSpec {
+	RepoSpec repo_spec = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+	string rev = 2;
+	string commit_id = 3 [(gogoproto.customname) = "CommitID"];
+}
+
+// RepoSpec specifies a repository.
+message RepoSpec {
+	string uri = 1 [(gogoproto.customname) = "URI"];
+}
+
+// RepoStatus is the status of the repository at a specific rev (in a single
+// context).
+message RepoStatus {
+	// CommitID is the full commit ID of the commit this status describes.
+	string commit_id = 1 [(gogoproto.customname) = "CommitID"];
+
+	// State is the current status of the repository. Possible values are: pending,
+	// success, error, or failure.
+	string state = 2;
+
+	// TargetURL is the URL of the page representing this status. It will be linked
+	// from the UI to allow users to see the source of the status.
+	string target_url = 3 [(gogoproto.customname) = "TargetURL"];
+
+	// Description is a short, high-level summary of the status.
+	string description = 4;
+
+	// A string label to differentiate this status from the statuses of other systems.
+	string context = 5;
+
+	Timestamp created_at = 6 [(gogoproto.nullable) = false];
+	Timestamp updated_at = 7 [(gogoproto.nullable) = false];
+}
+
+message RepoStatusesCreateOp {
+	RepoRevSpec repo = 1 [(gogoproto.nullable) = false];
+	RepoStatus status = 2 [(gogoproto.nullable) = false];
+}
+
+message RepoList {
+	repeated Repo repos = 1;
+}
+
+
+service RepoGoodies {
+	// ListBadges lists the available badges for repo.
+	rpc ListBadges(RepoSpec) returns (BadgeList);
+
+	// ListCounters lists the available counters for repo.
+	rpc ListCounters(RepoSpec) returns (CounterList);
+}
+
+service RepoStatuses {
+	// Create creates a repository status for the given commit.
+	rpc Create(RepoStatusesCreateOp) returns (RepoStatus);
+
+	// GetCombined fetches the combined repository status for the given commit.
+	rpc GetCombined(RepoRevSpec) returns (CombinedStatus);
+}
+
+service Repos {
+	// Get fetches a repository.
+	rpc Get(RepoSpec) returns (Repo);
+
+	// List repositories.
+	rpc List(RepoListOptions) returns (RepoList);
+
+	// GetReadme fetches the formatted README file for a repository.
+	rpc GetReadme(RepoRevSpec) returns (Readme);
+
+	// Enable enables the specified repository.
+    rpc Enable(RepoSpec) returns (Void);
+
+	// Disable disables the specified repository.
+    rpc Disable(RepoSpec) returns (Void);
+}

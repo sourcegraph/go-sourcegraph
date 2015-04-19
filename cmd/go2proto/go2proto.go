@@ -136,13 +136,13 @@ func main() {
 
 const (
 	gogoExtsProto      = "gogoproto/gogo.proto"
-	timestampProtoFile = "google/protobuf/timestamp.proto"
-	durationProtoFile  = "google/protobuf/duration.proto"
+	timestampProtoFile = "timestamp.proto"
 )
 
 type protoFile struct {
 	pkg      string
 	imports  []string
+	options  []string
 	messages []*protoMessage
 	services []*protoService
 }
@@ -169,6 +169,16 @@ func (f *protoFile) addImport(imp string) {
 }
 
 func (f *protoFile) write(w io.Writer) error {
+	// if f.options == nil {
+	// 	f.addImport("gogoproto/gogo.proto")
+	// 	f.options = []string{
+	// 		"(gogoproto.populate_all) = true;",
+	// 		"(gogoproto.testgen_all) = true;",
+	// 		"(gogoproto.benchgen_all) = true;",
+	// 		"(gogoproto.equal_all) = true;",
+	// 	}
+	// }
+
 	fmt.Fprintln(w, `syntax = "proto3";`)
 	fmt.Fprintf(w, "package %s;\n", f.pkg)
 	fmt.Fprintln(w)
@@ -176,6 +186,12 @@ func (f *protoFile) write(w io.Writer) error {
 		fmt.Fprintf(w, "import %q;\n", imp)
 	}
 	if len(f.imports) != 0 {
+		fmt.Fprintln(w)
+	}
+	for _, opt := range f.options {
+		fmt.Fprintf(w, "option %s;\n", opt)
+	}
+	if len(f.options) != 0 {
 		fmt.Fprintln(w)
 	}
 	for _, msg := range f.messages {
@@ -288,23 +304,23 @@ func (f *protoField) extensions() (exts []string, imports []string) {
 
 	var needsGogoExtsImport bool
 	if f.customName != "" {
-		exts = append(exts, formatExt("gogo.customname", f.customName))
+		exts = append(exts, formatExt("gogoproto.customname", f.customName))
 		needsGogoExtsImport = true
 	}
 	if f.customType != "" {
-		exts = append(exts, formatExt("gogo.customtype", f.customType))
+		exts = append(exts, formatExt("gogoproto.customtype", f.customType))
 		needsGogoExtsImport = true
 	}
 	if f.nonNullable {
-		exts = append(exts, formatExt("gogo.nullable", false))
+		exts = append(exts, formatExt("gogoproto.nullable", false))
 		needsGogoExtsImport = true
 	}
 	if len(f.moreTags) > 0 {
-		exts = append(exts, formatExt("gogo.moretags", strings.Join(f.moreTags, " ")))
+		exts = append(exts, formatExt("gogoproto.moretags", strings.Join(f.moreTags, " ")))
 		needsGogoExtsImport = true
 	}
 	if f.embedded {
-		exts = append(exts, formatExt("gogo.embed", f.embedded))
+		exts = append(exts, formatExt("gogoproto.embed", f.embedded))
 		needsGogoExtsImport = true
 	}
 
@@ -436,6 +452,9 @@ func (b *protoBuilder) build() {
 
 		// interfaces become services
 		if t, ok := tspec.Type.(*ast.InterfaceType); ok {
+			if stripService := false; stripService {
+				typ.Name = strings.TrimSuffix(typ.Name, "Service")
+			}
 			b.buildService(file, typ.Name, typ.Doc, t)
 		}
 	}
@@ -642,7 +661,7 @@ func camelToSnake(name string) string {
 }
 
 // needsExplicitName reports whether an explicit field name must be
-// specified (using the gogo.customname extension) to ensure the
+// specified (using the gogoproto.customname extension) to ensure the
 // generated Go field name will match the original Go input field
 // name. generator.CamelCase is the func used by protoc-gen-go (and
 // gogoproto).
@@ -650,15 +669,14 @@ func needsExplicitName(name string) bool {
 	return generator.CamelCase(camelToSnake(name)) != name
 }
 
+const timestampTypeName = "Timestamp"
+
 // customTypeMapping is consulted by equivProtoType when it can't
 // automatically determine the correct protobuf type to use for a Go
 // type expr.
 var customTypeMapping = map[string]protoFieldType{
-	"time.Time":          protoFieldType{typeName: "Timestamp", nonNullable: true, origin: timestampProtoFile},
-	"time.Duration":      protoFieldType{typeName: "Duration", nonNullable: true, origin: durationProtoFile},
-	"nnz.Int":            protoFieldType{typeName: "int32", customType: "nnz.Int"},
-	"nnz.String":         protoFieldType{typeName: "string", customType: "nnz.String"},
-	"db_common.NullTime": protoFieldType{typeName: "Timestamp", optional: true, origin: timestampProtoFile},
+	"time.Time":          protoFieldType{typeName: timestampTypeName, nonNullable: true, origin: timestampProtoFile},
+	"db_common.NullTime": protoFieldType{typeName: timestampTypeName, optional: true, origin: timestampProtoFile},
 	"template.HTML":      protoFieldType{typeName: "string", customType: "template.HTML"},
 	"graph.Def":          protoFieldType{typeName: "graph.Def", origin: "../../srclib/graph/def.proto"},
 	"graph.DefKey":       protoFieldType{typeName: "graph.DefKey", origin: "../../srclib/graph/def.proto"},
