@@ -10,6 +10,7 @@ import (
 
 	"sourcegraph.com/sourcegraph/go-sourcegraph/db_common"
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
+	"sourcegraph.com/sourcegraph/go-vcs/vcs"
 )
 
 // BuildsService communicates with the build-related endpoints in the
@@ -334,8 +335,8 @@ type RepoBuildInfo struct {
 
 	LastSuccessful *Build // the last successful build of a commit ID reachable from the revspec (can be same as Exact)
 
-	CommitsBehind        int     // the number of commits between the revspec and the commit of the LastSuccessful build
-	LastSuccessfulCommit *Commit // the commit of the LastSuccessful build
+	CommitsBehind        int         // the number of commits between the revspec and the commit of the LastSuccessful build
+	LastSuccessfulCommit *vcs.Commit // the commit of the LastSuccessful build
 }
 
 func (s *buildsService) GetRepoBuildInfo(repo RepoRevSpec, opt *BuildsGetRepoBuildInfoOptions) (*RepoBuildInfo, Response, error) {
@@ -598,5 +599,3 @@ func (s *buildsService) DequeueNext() (*Build, Response, error) {
 
 	return build_, resp, nil
 }
-
-

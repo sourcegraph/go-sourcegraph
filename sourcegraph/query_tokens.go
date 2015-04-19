@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"strings"
 
-	"sourcegraph.com/sourcegraph/srclib/unit"
+	"sourcegraph.com/sourcegraph/go-vcs/vcs"
 	"sourcegraph.com/sourcegraph/vcsstore/vcsclient"
 )
 
@@ -60,7 +60,7 @@ func (t RepoToken) Spec() RepoSpec {
 type RevToken struct {
 	Rev string // Rev is either a revspec or commit ID
 
-	Commit *Commit `json:",omitempty"`
+	Commit *vcs.Commit `json:",omitempty"`
 }
 
 func (t RevToken) String() string { return ":" + t.Rev }
@@ -72,9 +72,6 @@ type UnitToken struct {
 
 	// Name is the name of the source unit (e.g., mypkg).
 	Name string
-
-	// Unit is the source unit object.
-	Unit *unit.RepoSourceUnit
 }
 
 func (t UnitToken) String() string {

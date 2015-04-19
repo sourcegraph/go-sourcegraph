@@ -23,18 +23,21 @@ const (
 // A Client communicates with the Sourcegraph API.
 type Client struct {
 	// Services used to communicate with different parts of the Sourcegraph API.
-	BuildData BuildDataService
-	Builds    BuildsService
-	Deltas    DeltasService
-	Orgs      OrgsService
-	People    PeopleService
-	Repos     ReposService
-	RepoTree  RepoTreeService
-	Search    SearchService
-	Units     UnitsService
-	Users     UsersService
-	Defs      DefsService
-	Markdown  MarkdownService
+	BuildData    BuildDataService
+	Builds       BuildsService
+	Deltas       DeltasService
+	Orgs         OrgsService
+	People       PeopleService
+	Repos        ReposService
+	RepoStatus   RepoStatusService
+	RepoGoodies  RepoGoodiesService
+	RepoSettings RepoSettingsService
+	RepoTree     RepoTreeService
+	Search       SearchService
+	Units        UnitsService
+	Users        UsersService
+	Defs         DefsService
+	Markdown     MarkdownService
 
 	// Base URL for API requests, which should have a trailing slash.
 	BaseURL *url.URL
@@ -61,7 +64,6 @@ func NewClient(httpClient *http.Client) *Client {
 	c.Deltas = &deltasService{c}
 	c.Orgs = &orgsService{c}
 	c.People = &peopleService{c}
-	c.Repos = &repositoriesService{c}
 	c.RepoTree = &repoTreeService{c}
 	c.Search = &searchService{c}
 	c.Units = &unitsService{c}

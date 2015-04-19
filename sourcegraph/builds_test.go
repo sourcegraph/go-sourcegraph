@@ -47,7 +47,7 @@ func TestBuildsService_GetRepoBuildInfo(t *testing.T) {
 		Exact:                &Build{BID: 1},
 		LastSuccessful:       &Build{BID: 2},
 		CommitsBehind:        3,
-		LastSuccessfulCommit: &Commit{Commit: &vcs.Commit{Message: "m"}},
+		LastSuccessfulCommit: &vcs.Commit{Message: "m"},
 	}
 	normalizeTime(&want.LastSuccessfulCommit.Author.Date)
 	normalizeBuildTime(want.Exact)

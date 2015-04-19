@@ -6,6 +6,7 @@ import (
 
 	"sourcegraph.com/sourcegraph/go-diff/diff"
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
+	"sourcegraph.com/sourcegraph/go-vcs/vcs"
 	"sourcegraph.com/sourcegraph/srclib/store"
 	"sourcegraph.com/sourcegraph/srclib/unit"
 )
@@ -109,7 +110,7 @@ func UnmarshalDeltaSpec(routeVars map[string]string) (DeltaSpec, error) {
 // separate repositories).
 type Delta struct {
 	Base, Head             RepoRevSpec // base/head repo and revspec
-	BaseCommit, HeadCommit *Commit     // base/head commits
+	BaseCommit, HeadCommit *vcs.Commit // base/head commits
 	BaseRepo, HeadRepo     *Repo       // base/head repositories
 	BaseBuild, HeadBuild   *Build      // base/head builds (or nil)
 }
@@ -411,5 +412,3 @@ func (s *deltasService) ListAffectedClients(ds DeltaSpec, opt *DeltaListAffected
 
 	return clients, resp, nil
 }
-
-
