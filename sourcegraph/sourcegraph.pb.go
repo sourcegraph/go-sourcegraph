@@ -7,8 +7,6 @@ Package sourcegraph is a generated protocol buffer package.
 
 It is generated from these files:
 	sourcegraph.proto
-	timestamp.proto
-	void.proto
 
 It has these top-level messages:
 	Badge
@@ -34,6 +32,8 @@ package sourcegraph
 import proto "github.com/gogo/protobuf/proto"
 
 // discarding unused import gogoproto "gogoproto/gogo.pb"
+import pbtypes "sourcegraph.com/sqs/pbtypes"
+import pbtypes1 "sourcegraph.com/sqs/pbtypes"
 
 import (
 	context "golang.org/x/net/context"
@@ -157,12 +157,12 @@ type Repo struct {
 	// CreatedAt is when this repository was created. If it represents an externally
 	// hosted (e.g., GitHub) repository, the creation date is when it was created at
 	// that origin.
-	CreatedAt Timestamp `protobuf:"bytes,15,opt,name=created_at" json:"created_at"`
+	CreatedAt pbtypes.Timestamp `protobuf:"bytes,15,opt,name=created_at" json:"created_at"`
 	// UpdatedAt is when this repository's metadata was last updated (on its origin if
 	// it's an externally hosted repository).
-	UpdatedAt Timestamp `protobuf:"bytes,16,opt,name=updated_at" json:"updated_at"`
+	UpdatedAt pbtypes.Timestamp `protobuf:"bytes,16,opt,name=updated_at" json:"updated_at"`
 	// PushedAt is when this repository's was last (VCS-)pushed to.
-	PushedAt Timestamp `protobuf:"bytes,17,opt,name=pushed_at" json:"pushed_at"`
+	PushedAt pbtypes.Timestamp `protobuf:"bytes,17,opt,name=pushed_at" json:"pushed_at"`
 	// Permissions describes the permissions that the current user (or anonymous users,
 	// if there is no current user) is granted to this repository.
 	Permissions *RepoPermissions `protobuf:"bytes,18,opt,name=permissions" json:"permissions,omitempty"`
@@ -172,25 +172,25 @@ func (m *Repo) Reset()         { *m = Repo{} }
 func (m *Repo) String() string { return proto.CompactTextString(m) }
 func (*Repo) ProtoMessage()    {}
 
-func (m *Repo) GetCreatedAt() Timestamp {
+func (m *Repo) GetCreatedAt() pbtypes.Timestamp {
 	if m != nil {
 		return m.CreatedAt
 	}
-	return Timestamp{}
+	return pbtypes.Timestamp{}
 }
 
-func (m *Repo) GetUpdatedAt() Timestamp {
+func (m *Repo) GetUpdatedAt() pbtypes.Timestamp {
 	if m != nil {
 		return m.UpdatedAt
 	}
-	return Timestamp{}
+	return pbtypes.Timestamp{}
 }
 
-func (m *Repo) GetPushedAt() Timestamp {
+func (m *Repo) GetPushedAt() pbtypes.Timestamp {
 	if m != nil {
 		return m.PushedAt
 	}
-	return Timestamp{}
+	return pbtypes.Timestamp{}
 }
 
 func (m *Repo) GetPermissions() *RepoPermissions {
@@ -231,8 +231,8 @@ func (m *CounterList) GetCounters() []*Counter {
 }
 
 type RepoBadgesCountHitsOp struct {
-	Repo  RepoSpec   `protobuf:"bytes,1,opt,name=repo" json:"repo"`
-	Since *Timestamp `protobuf:"bytes,2,opt,name=since" json:"since,omitempty"`
+	Repo  RepoSpec           `protobuf:"bytes,1,opt,name=repo" json:"repo"`
+	Since *pbtypes.Timestamp `protobuf:"bytes,2,opt,name=since" json:"since,omitempty"`
 }
 
 func (m *RepoBadgesCountHitsOp) Reset()         { *m = RepoBadgesCountHitsOp{} }
@@ -246,7 +246,7 @@ func (m *RepoBadgesCountHitsOp) GetRepo() RepoSpec {
 	return RepoSpec{}
 }
 
-func (m *RepoBadgesCountHitsOp) GetSince() *Timestamp {
+func (m *RepoBadgesCountHitsOp) GetSince() *pbtypes.Timestamp {
 	if m != nil {
 		return m.Since
 	}
@@ -355,27 +355,27 @@ type RepoStatus struct {
 	// Description is a short, high-level summary of the status.
 	Description string `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
 	// A string label to differentiate this status from the statuses of other systems.
-	Context   string    `protobuf:"bytes,5,opt,name=context,proto3" json:"context,omitempty"`
-	CreatedAt Timestamp `protobuf:"bytes,6,opt,name=created_at" json:"created_at"`
-	UpdatedAt Timestamp `protobuf:"bytes,7,opt,name=updated_at" json:"updated_at"`
+	Context   string            `protobuf:"bytes,5,opt,name=context,proto3" json:"context,omitempty"`
+	CreatedAt pbtypes.Timestamp `protobuf:"bytes,6,opt,name=created_at" json:"created_at"`
+	UpdatedAt pbtypes.Timestamp `protobuf:"bytes,7,opt,name=updated_at" json:"updated_at"`
 }
 
 func (m *RepoStatus) Reset()         { *m = RepoStatus{} }
 func (m *RepoStatus) String() string { return proto.CompactTextString(m) }
 func (*RepoStatus) ProtoMessage()    {}
 
-func (m *RepoStatus) GetCreatedAt() Timestamp {
+func (m *RepoStatus) GetCreatedAt() pbtypes.Timestamp {
 	if m != nil {
 		return m.CreatedAt
 	}
-	return Timestamp{}
+	return pbtypes.Timestamp{}
 }
 
-func (m *RepoStatus) GetUpdatedAt() Timestamp {
+func (m *RepoStatus) GetUpdatedAt() pbtypes.Timestamp {
 	if m != nil {
 		return m.UpdatedAt
 	}
-	return Timestamp{}
+	return pbtypes.Timestamp{}
 }
 
 type RepoStatusesCreateOp struct {
@@ -428,7 +428,7 @@ type RepoBadgesClient interface {
 	ListCounters(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*CounterList, error)
 	// RecordHit records a visit to a repo (that will be reflected in
 	// its counter).
-	RecordHit(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*Void, error)
+	RecordHit(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error)
 	// CountHits returns the hit count (optionally in a recent time
 	// period).
 	CountHits(ctx context.Context, in *RepoBadgesCountHitsOp, opts ...grpc.CallOption) (*RepoBadgesCountHitsResult, error)
@@ -460,8 +460,8 @@ func (c *repoBadgesClient) ListCounters(ctx context.Context, in *RepoSpec, opts 
 	return out, nil
 }
 
-func (c *repoBadgesClient) RecordHit(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*Void, error) {
-	out := new(Void)
+func (c *repoBadgesClient) RecordHit(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
 	err := grpc.Invoke(ctx, "/sourcegraph.RepoBadges/RecordHit", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
@@ -487,7 +487,7 @@ type RepoBadgesServer interface {
 	ListCounters(context.Context, *RepoSpec) (*CounterList, error)
 	// RecordHit records a visit to a repo (that will be reflected in
 	// its counter).
-	RecordHit(context.Context, *RepoSpec) (*Void, error)
+	RecordHit(context.Context, *RepoSpec) (*pbtypes1.Void, error)
 	// CountHits returns the hit count (optionally in a recent time
 	// period).
 	CountHits(context.Context, *RepoBadgesCountHitsOp) (*RepoBadgesCountHitsResult, error)
@@ -667,9 +667,9 @@ type ReposClient interface {
 	// GetReadme fetches the formatted README file for a repository.
 	GetReadme(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*Readme, error)
 	// Enable enables the specified repository.
-	Enable(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*Void, error)
+	Enable(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error)
 	// Disable disables the specified repository.
-	Disable(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*Void, error)
+	Disable(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error)
 }
 
 type reposClient struct {
@@ -707,8 +707,8 @@ func (c *reposClient) GetReadme(ctx context.Context, in *RepoRevSpec, opts ...gr
 	return out, nil
 }
 
-func (c *reposClient) Enable(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*Void, error) {
-	out := new(Void)
+func (c *reposClient) Enable(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
 	err := grpc.Invoke(ctx, "/sourcegraph.Repos/Enable", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
@@ -716,8 +716,8 @@ func (c *reposClient) Enable(ctx context.Context, in *RepoSpec, opts ...grpc.Cal
 	return out, nil
 }
 
-func (c *reposClient) Disable(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*Void, error) {
-	out := new(Void)
+func (c *reposClient) Disable(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
 	err := grpc.Invoke(ctx, "/sourcegraph.Repos/Disable", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
@@ -735,9 +735,9 @@ type ReposServer interface {
 	// GetReadme fetches the formatted README file for a repository.
 	GetReadme(context.Context, *RepoRevSpec) (*Readme, error)
 	// Enable enables the specified repository.
-	Enable(context.Context, *RepoSpec) (*Void, error)
+	Enable(context.Context, *RepoSpec) (*pbtypes1.Void, error)
 	// Disable disables the specified repository.
-	Disable(context.Context, *RepoSpec) (*Void, error)
+	Disable(context.Context, *RepoSpec) (*pbtypes1.Void, error)
 }
 
 func RegisterReposServer(s *grpc.Server, srv ReposServer) {
@@ -836,7 +836,7 @@ var _Repos_serviceDesc = grpc.ServiceDesc{
 
 type MirrorReposClient interface {
 	// Refresh fetches the newest VCS data from the repo's origin.
-	RefreshVCS(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*Void, error)
+	RefreshVCS(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error)
 }
 
 type mirrorReposClient struct {
@@ -847,8 +847,8 @@ func NewMirrorReposClient(cc *grpc.ClientConn) MirrorReposClient {
 	return &mirrorReposClient{cc}
 }
 
-func (c *mirrorReposClient) RefreshVCS(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*Void, error) {
-	out := new(Void)
+func (c *mirrorReposClient) RefreshVCS(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
 	err := grpc.Invoke(ctx, "/sourcegraph.MirrorRepos/RefreshVCS", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
@@ -860,7 +860,7 @@ func (c *mirrorReposClient) RefreshVCS(ctx context.Context, in *RepoSpec, opts .
 
 type MirrorReposServer interface {
 	// Refresh fetches the newest VCS data from the repo's origin.
-	RefreshVCS(context.Context, *RepoSpec) (*Void, error)
+	RefreshVCS(context.Context, *RepoSpec) (*pbtypes1.Void, error)
 }
 
 func RegisterMirrorReposServer(s *grpc.Server, srv MirrorReposServer) {

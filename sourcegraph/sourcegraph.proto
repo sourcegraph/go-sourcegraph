@@ -106,14 +106,14 @@ message Repo {
 	// CreatedAt is when this repository was created. If it represents an externally
 	// hosted (e.g., GitHub) repository, the creation date is when it was created at
 	// that origin.
-	Timestamp created_at = 15 [(gogoproto.nullable) = false];
+	pbtypes.Timestamp created_at = 15 [(gogoproto.nullable) = false];
 
 	// UpdatedAt is when this repository's metadata was last updated (on its origin if
 	// it's an externally hosted repository).
-	Timestamp updated_at = 16 [(gogoproto.nullable) = false];
+	pbtypes.Timestamp updated_at = 16 [(gogoproto.nullable) = false];
 
 	// PushedAt is when this repository's was last (VCS-)pushed to.
-	Timestamp pushed_at = 17 [(gogoproto.nullable) = false];
+	pbtypes.Timestamp pushed_at = 17 [(gogoproto.nullable) = false];
 
 	// Permissions describes the permissions that the current user (or anonymous users,
 	// if there is no current user) is granted to this repository.
@@ -130,7 +130,7 @@ message CounterList {
 
 message RepoBadgesCountHitsOp {
 	RepoSpec repo = 1 [(gogoproto.nullable) = false];
-	Timestamp since = 2;
+	pbtypes.Timestamp since = 2;
 }
 
 message RepoBadgesCountHitsResult {
@@ -223,8 +223,8 @@ message RepoStatus {
 	// A string label to differentiate this status from the statuses of other systems.
 	string context = 5;
 
-	Timestamp created_at = 6 [(gogoproto.nullable) = false];
-	Timestamp updated_at = 7 [(gogoproto.nullable) = false];
+	pbtypes.Timestamp created_at = 6 [(gogoproto.nullable) = false];
+	pbtypes.Timestamp updated_at = 7 [(gogoproto.nullable) = false];
 }
 
 message RepoStatusesCreateOp {
@@ -246,7 +246,7 @@ service RepoBadges {
 
 	// RecordHit records a visit to a repo (that will be reflected in
 	// its counter).
-	rpc RecordHit(RepoSpec) returns (Void);
+	rpc RecordHit(RepoSpec) returns (pbtypes.Void);
 
 	// CountHits returns the hit count (optionally in a recent time
 	// period).
@@ -272,15 +272,15 @@ service Repos {
 	rpc GetReadme(RepoRevSpec) returns (Readme);
 
 	// Enable enables the specified repository.
-    rpc Enable(RepoSpec) returns (Void);
+    rpc Enable(RepoSpec) returns (pbtypes.Void);
 
 	// Disable disables the specified repository.
-    rpc Disable(RepoSpec) returns (Void);
+    rpc Disable(RepoSpec) returns (pbtypes.Void);
 }
 
 // MirrorRepos handles operations related to maintaining mirrors on
 // Sourcegraph of repositories hosted elsewhere.
 service MirrorRepos {
 	// Refresh fetches the newest VCS data from the repo's origin.
-	rpc RefreshVCS(RepoSpec) returns (Void);
+	rpc RefreshVCS(RepoSpec) returns (pbtypes.Void);
 }
