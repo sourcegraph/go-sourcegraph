@@ -72,11 +72,14 @@ type buildsService struct {
 var _ BuildsService = &buildsService{}
 
 type BuildSpec struct {
-	BID int64
+	BID  int64
+	Repo RepoSpec
 }
 
 func (s *BuildSpec) RouteVars() map[string]string {
-	return map[string]string{"BID": fmt.Sprintf("%d", s.BID)}
+	m := s.Repo.RouteVars()
+	m["BID"] = fmt.Sprintf("%d", s.BID)
+	return m
 }
 
 type TaskSpec struct {
@@ -165,7 +168,7 @@ type Build struct {
 	BuildConfig
 }
 
-func (b *Build) Spec() BuildSpec { return BuildSpec{BID: b.BID} }
+func (b *Build) Spec() BuildSpec { return BuildSpec{Repo: RepoSpec{URI: b.Repo}, BID: b.BID} }
 
 // IDString returns a succinct string that uniquely identifies this build.
 func (b BuildSpec) IDString() string { return buildIDString(b.BID) }
@@ -180,6 +183,10 @@ type BuildTask struct {
 	// TaskID is the unique ID of this task. It is unique over all
 	// tasks, not just tasks in the same build.
 	TaskID int64 `json:",omitempty"`
+
+	// Repo is the URI of the repository that this task's build is
+	// for.
+	Repo string
 
 	// BID is the build that this task is a part of.
 	BID int64
@@ -237,7 +244,7 @@ const (
 )
 
 func (t *BuildTask) Spec() TaskSpec {
-	return TaskSpec{BuildSpec: BuildSpec{BID: t.BID}, TaskID: t.TaskID}
+	return TaskSpec{BuildSpec: BuildSpec{Repo: RepoSpec{URI: t.Repo}, BID: t.BID}, TaskID: t.TaskID}
 }
 
 // IDString returns a succinct string that uniquely identifies this build task.
@@ -340,7 +347,7 @@ type RepoBuildInfo struct {
 }
 
 func (s *buildsService) GetRepoBuildInfo(repo RepoRevSpec, opt *BuildsGetRepoBuildInfoOptions) (*RepoBuildInfo, Response, error) {
-	url, err := s.client.URL(router.RepoBuild, repo.RouteVars(), opt)
+	url, err := s.client.URL(router.RepoBuildInfo, repo.RouteVars(), opt)
 	if err != nil {
 		return nil, nil, err
 	}

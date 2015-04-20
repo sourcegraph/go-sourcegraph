@@ -17,14 +17,14 @@ func TestBuildsService_Get(t *testing.T) {
 	want := &Build{BID: 1}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.Build, map[string]string{"BID": "1"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.Build, map[string]string{"RepoSpec": "r.com/x", "BID": "1"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	build, _, err := client.Builds.Get(BuildSpec{BID: 1}, nil)
+	build, _, err := client.Builds.Get(BuildSpec{Repo: RepoSpec{URI: "r.com/x"}, BID: 1}, nil)
 	if err != nil {
 		t.Errorf("Builds.Get returned error: %v", err)
 	}
@@ -54,7 +54,7 @@ func TestBuildsService_GetRepoBuildInfo(t *testing.T) {
 	normalizeBuildTime(want.LastSuccessful)
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.RepoBuild, map[string]string{"RepoSpec": "r.com/x", "Rev": "r"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoBuildInfo, map[string]string{"RepoSpec": "r.com/x", "Rev": "r"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
@@ -113,7 +113,7 @@ func TestBuildsService_Create(t *testing.T) {
 	defer teardown()
 
 	config := &BuildCreateOptions{BuildConfig: BuildConfig{Import: true, Queue: true}, Force: true}
-	want := &Build{BID: 123, Repo: "r.com/x"}
+	want := &Build{BID: 1, Repo: "r.com/x"}
 
 	var called bool
 	mux.HandleFunc(urlPath(t, router.RepoBuildsCreate, map[string]string{"RepoSpec": "r.com/x", "Rev": "c"}), func(w http.ResponseWriter, r *http.Request) {
@@ -145,10 +145,10 @@ func TestBuildsService_Update(t *testing.T) {
 	defer teardown()
 
 	update := BuildUpdate{Host: String("h")}
-	want := &Build{BID: 123, Repo: "r.com/x"}
+	want := &Build{BID: 1, Repo: "r.com/x"}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.BuildUpdate, map[string]string{"BID": "123"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.BuildUpdate, map[string]string{"RepoSpec": "r.com/x", "BID": "1"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 		testBody(t, r, `{"StartedAt":null,"EndedAt":null,"HeartbeatAt":null,"Host":"h","Success":null,"Purged":null,"Failure":null,"Killed":null,"Priority":null}`+"\n")
@@ -156,7 +156,7 @@ func TestBuildsService_Update(t *testing.T) {
 		writeJSON(w, want)
 	})
 
-	build, _, err := client.Builds.Update(BuildSpec{BID: 123}, update)
+	build, _, err := client.Builds.Update(BuildSpec{Repo: RepoSpec{URI: "r.com/x"}, BID: 1}, update)
 	if err != nil {
 		t.Errorf("Builds.Update returned error: %v", err)
 	}
@@ -177,10 +177,10 @@ func TestBuildsService_UpdateTask(t *testing.T) {
 	defer teardown()
 
 	update := TaskUpdate{Success: Bool(true)}
-	want := &BuildTask{BID: 123, TaskID: 456, CreatedAt: db_common.NullTime{}}
+	want := &BuildTask{BID: 1, TaskID: 456, CreatedAt: db_common.NullTime{}}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.BuildTaskUpdate, map[string]string{"BID": "123", "TaskID": "456"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.BuildTaskUpdate, map[string]string{"RepoSpec": "r.com/x", "BID": "1", "TaskID": "456"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "PUT")
 		testBody(t, r, `{"StartedAt":null,"EndedAt":null,"Success":true,"Failure":null}`+"\n")
@@ -188,7 +188,7 @@ func TestBuildsService_UpdateTask(t *testing.T) {
 		writeJSON(w, want)
 	})
 
-	task, _, err := client.Builds.UpdateTask(TaskSpec{BuildSpec: BuildSpec{BID: 123}, TaskID: 456}, update)
+	task, _, err := client.Builds.UpdateTask(TaskSpec{BuildSpec: BuildSpec{Repo: RepoSpec{URI: "r.com/x"}, BID: 1}, TaskID: 456}, update)
 	if err != nil {
 		t.Errorf("Builds.UpdateTask returned error: %v", err)
 	}
@@ -206,19 +206,19 @@ func TestBuildsService_CreateTasks(t *testing.T) {
 	defer teardown()
 
 	create := []*BuildTask{
-		{BID: 123, Op: "foo", UnitType: "t", Unit: "u"},
-		{BID: 123, Op: "bar", UnitType: "t", Unit: "u"},
+		{BID: 1, Op: "foo", UnitType: "t", Unit: "u"},
+		{BID: 1, Op: "bar", UnitType: "t", Unit: "u"},
 	}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.BuildTasksCreate, map[string]string{"BID": "123"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.BuildTasksCreate, map[string]string{"RepoSpec": "r.com/x", "BID": "1"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "POST")
-		testBody(t, r, `[{"BID":123,"UnitType":"t","Unit":"u","Op":"foo","CreatedAt":null,"StartedAt":null,"EndedAt":null,"Queue":false},{"BID":123,"UnitType":"t","Unit":"u","Op":"bar","CreatedAt":null,"StartedAt":null,"EndedAt":null,"Queue":false}]`+"\n")
+		testBody(t, r, `[{"Repo":"","BID":1,"UnitType":"t","Unit":"u","Op":"foo","CreatedAt":null,"StartedAt":null,"EndedAt":null,"Queue":false},{"Repo":"","BID":1,"UnitType":"t","Unit":"u","Op":"bar","CreatedAt":null,"StartedAt":null,"EndedAt":null,"Queue":false}]`+"\n")
 		writeJSON(w, create)
 	})
 
-	tasks, _, err := client.Builds.CreateTasks(BuildSpec{BID: 123}, create)
+	tasks, _, err := client.Builds.CreateTasks(BuildSpec{Repo: RepoSpec{URI: "r.com/x"}, BID: 1}, create)
 	if err != nil {
 		t.Errorf("Builds.CreateTasks returned error: %v", err)
 	}
@@ -238,14 +238,14 @@ func TestBuildsService_GetLog(t *testing.T) {
 	want := &LogEntries{MaxID: "1"}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.BuildLog, map[string]string{"BID": "1"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.BuildLog, map[string]string{"RepoSpec": "r.com/x", "BID": "1"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	entries, _, err := client.Builds.GetLog(BuildSpec{BID: 1}, nil)
+	entries, _, err := client.Builds.GetLog(BuildSpec{Repo: RepoSpec{URI: "r.com/x"}, BID: 1}, nil)
 	if err != nil {
 		t.Errorf("Builds.GetLog returned error: %v", err)
 	}
@@ -266,14 +266,14 @@ func TestBuildsService_GetTaskLog(t *testing.T) {
 	want := &LogEntries{MaxID: "1"}
 
 	var called bool
-	mux.HandleFunc(urlPath(t, router.BuildTaskLog, map[string]string{"BID": "1", "TaskID": "2"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.BuildTaskLog, map[string]string{"RepoSpec": "r.com/x", "BID": "1", "TaskID": "2"}), func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		testMethod(t, r, "GET")
 
 		writeJSON(w, want)
 	})
 
-	entries, _, err := client.Builds.GetTaskLog(TaskSpec{BuildSpec: BuildSpec{BID: 1}, TaskID: 2}, nil)
+	entries, _, err := client.Builds.GetTaskLog(TaskSpec{BuildSpec: BuildSpec{Repo: RepoSpec{URI: "r.com/x"}, BID: 1}, TaskID: 2}, nil)
 	if err != nil {
 		t.Errorf("Builds.GetTaskLog returned error: %v", err)
 	}

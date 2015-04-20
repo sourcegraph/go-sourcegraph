@@ -48,7 +48,7 @@ const (
 	RepoCombinedStatus = "repo.combined-status"
 	RepoStatusCreate   = "repo.status.create"
 
-	RepoBuild = "repo.build"
+	RepoBuildInfo = "repo.build"
 
 	RepoCommits        = "repo.commits"
 	RepoCommit         = "repo.commit"
@@ -102,15 +102,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	base.Path("/builds").Methods("GET").Name(Builds)
 	builds := base.PathPrefix("/builds").Subrouter()
 	builds.Path("/next").Methods("POST").Name(BuildDequeueNext)
-	buildPath := "/{BID}"
-	builds.Path(buildPath).Methods("GET").Name(Build)
-	builds.Path(buildPath).Methods("PUT").Name(BuildUpdate)
-	build := builds.PathPrefix(buildPath).Subrouter()
-	build.Path("/log").Methods("GET").Name(BuildLog)
-	build.Path("/tasks").Methods("GET").Name(BuildTasks)
-	build.Path("/tasks").Methods("POST").Name(BuildTasksCreate)
-	build.Path("/tasks/{TaskID}").Methods("PUT").Name(BuildTaskUpdate)
-	build.Path("/tasks/{TaskID}/log").Methods("GET").Name(BuildTaskLog)
 
 	base.Path("/repos").Methods("GET").Name(Repos)
 	base.Path("/repos").Methods("POST").Name(ReposCreate)
@@ -121,8 +112,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	repoRev.Path("/.status").Methods("GET").Name(RepoCombinedStatus)
 	repoRev.Path("/.status").Methods("POST").Name(RepoStatusCreate)
 	repoRev.Path("/.readme").Methods("GET").Name(RepoReadme)
-	repoRev.Path("/.build").Methods("GET").Name(RepoBuild)
-	repoRev.Path("/.builds").Methods("POST").Name(RepoBuildsCreate)
 	repoRev.PathPrefix("/.build-data"+TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET", "HEAD", "PUT", "DELETE").Name(RepoBuildDataEntry)
 	repoRev.Path("/.badges/{Badge}.{Format}").Methods("GET").Name(RepoBadge)
 
@@ -141,6 +130,18 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	repo.Path("/.badges").Methods("GET").Name(RepoBadges)
 	repo.Path("/.counters").Methods("GET").Name(RepoCounters)
 	repo.Path("/.counters/{Counter}.{Format}").Methods("GET").Name(RepoCounter)
+
+	repoRev.Path("/.build").Methods("GET").Name(RepoBuildInfo)
+	repoRev.Path("/.builds").Methods("POST").Name(RepoBuildsCreate)
+	buildPath := "/{BID}"
+	repo.Path(buildPath).Methods("GET").Name(Build)
+	repo.Path(buildPath).Methods("PUT").Name(BuildUpdate)
+	build := repo.PathPrefix(buildPath).Subrouter()
+	build.Path("/log").Methods("GET").Name(BuildLog)
+	build.Path("/tasks").Methods("GET").Name(BuildTasks)
+	build.Path("/tasks").Methods("POST").Name(BuildTasksCreate)
+	build.Path("/tasks/{TaskID}").Methods("PUT").Name(BuildTaskUpdate)
+	build.Path("/tasks/{TaskID}/log").Methods("GET").Name(BuildTaskLog)
 
 	deltaPath := "/.deltas/{Rev:.+}..{DeltaHeadRev:" + PathComponentNoLeadingDot + "}"
 	repo.Path(deltaPath).Methods("GET").Name(Delta)
