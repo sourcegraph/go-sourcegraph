@@ -49,7 +49,6 @@ func TestBuildsService_GetRepoBuildInfo(t *testing.T) {
 		CommitsBehind:        3,
 		LastSuccessfulCommit: &vcs.Commit{Message: "m"},
 	}
-	normalizeTime(&want.LastSuccessfulCommit.Author.Date)
 	normalizeBuildTime(want.Exact)
 	normalizeBuildTime(want.LastSuccessful)
 
@@ -70,7 +69,6 @@ func TestBuildsService_GetRepoBuildInfo(t *testing.T) {
 		t.Fatal("!called")
 	}
 
-	normalizeTime(&buildInfo.LastSuccessfulCommit.Author.Date)
 	normalizeBuildTime(buildInfo.Exact)
 	normalizeBuildTime(buildInfo.LastSuccessful)
 	if !reflect.DeepEqual(buildInfo.Exact, want.Exact) {

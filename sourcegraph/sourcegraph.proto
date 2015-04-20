@@ -4,6 +4,7 @@ package sourcegraph;
 import "gogoproto/gogo.proto";
 import "timestamp.proto";
 import "void.proto";
+import "vcs.proto";
 
 
 message Badge {
@@ -276,6 +277,53 @@ service Repos {
 
 	// Disable disables the specified repository.
     rpc Disable(RepoSpec) returns (pbtypes.Void);
+
+	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
+	rpc GetCommit(RepoRevSpec) returns (vcs.Commit);
+	rpc ListCommits(ReposListCommitsOp) returns (CommitList);
+	rpc ListBranches(ReposListBranchesOp) returns (BranchList);
+	rpc ListTags(ReposListTagsOp) returns (TagList);
+}
+
+message ReposListCommitsOp {
+	RepoSpec repo = 1 [(gogoproto.nullable) = false];
+	optional RepoListCommitsOptions opt = 2;
+}
+
+message RepoListCommitsOptions {
+	string head = 1;
+	string base = 2;
+	ListOptions list_options = 3 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+message CommitList {
+	repeated vcs.Commit commits = 1;
+}
+
+message ReposListBranchesOp {
+	RepoSpec repo = 1 [(gogoproto.nullable) = false];
+	optional RepoListBranchesOptions opt = 2;
+}
+
+message RepoListBranchesOptions {
+	ListOptions list_options = 3 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+message BranchList {
+	repeated vcs.Branch branches = 1;
+}
+
+message ReposListTagsOp {
+	RepoSpec repo = 1 [(gogoproto.nullable) = false];
+	optional RepoListTagsOptions opt = 2;
+}
+
+message RepoListTagsOptions {
+	ListOptions list_options = 3 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+message TagList {
+	repeated vcs.Tag tags = 1;
 }
 
 // MirrorRepos handles operations related to maintaining mirrors on

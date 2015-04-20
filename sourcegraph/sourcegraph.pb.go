@@ -26,6 +26,15 @@ It has these top-level messages:
 	RepoStatus
 	RepoStatusesCreateOp
 	RepoList
+	ReposListCommitsOp
+	RepoListCommitsOptions
+	CommitList
+	ReposListBranchesOp
+	RepoListBranchesOptions
+	BranchList
+	ReposListTagsOp
+	RepoListTagsOptions
+	TagList
 */
 package sourcegraph
 
@@ -34,6 +43,7 @@ import proto "github.com/gogo/protobuf/proto"
 // discarding unused import gogoproto "gogoproto/gogo.pb"
 import pbtypes "sourcegraph.com/sqs/pbtypes"
 import pbtypes1 "sourcegraph.com/sqs/pbtypes"
+import vcs "sourcegraph.com/sourcegraph/go-vcs/vcs"
 
 import (
 	context "golang.org/x/net/context"
@@ -416,6 +426,146 @@ func (m *RepoList) GetRepos() []*Repo {
 	return nil
 }
 
+type ReposListCommitsOp struct {
+	Repo RepoSpec                `protobuf:"bytes,1,opt,name=repo" json:"repo"`
+	Opt  *RepoListCommitsOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *ReposListCommitsOp) Reset()         { *m = ReposListCommitsOp{} }
+func (m *ReposListCommitsOp) String() string { return proto.CompactTextString(m) }
+func (*ReposListCommitsOp) ProtoMessage()    {}
+
+func (m *ReposListCommitsOp) GetRepo() RepoSpec {
+	if m != nil {
+		return m.Repo
+	}
+	return RepoSpec{}
+}
+
+func (m *ReposListCommitsOp) GetOpt() *RepoListCommitsOptions {
+	if m != nil {
+		return m.Opt
+	}
+	return nil
+}
+
+type RepoListCommitsOptions struct {
+	Head        string `protobuf:"bytes,1,opt,name=head,proto3" json:"head,omitempty"`
+	Base        string `protobuf:"bytes,2,opt,name=base,proto3" json:"base,omitempty"`
+	ListOptions `protobuf:"bytes,3,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *RepoListCommitsOptions) Reset()         { *m = RepoListCommitsOptions{} }
+func (m *RepoListCommitsOptions) String() string { return proto.CompactTextString(m) }
+func (*RepoListCommitsOptions) ProtoMessage()    {}
+
+type CommitList struct {
+	Commits []*vcs.Commit `protobuf:"bytes,1,rep,name=commits" json:"commits,omitempty"`
+}
+
+func (m *CommitList) Reset()         { *m = CommitList{} }
+func (m *CommitList) String() string { return proto.CompactTextString(m) }
+func (*CommitList) ProtoMessage()    {}
+
+func (m *CommitList) GetCommits() []*vcs.Commit {
+	if m != nil {
+		return m.Commits
+	}
+	return nil
+}
+
+type ReposListBranchesOp struct {
+	Repo RepoSpec                 `protobuf:"bytes,1,opt,name=repo" json:"repo"`
+	Opt  *RepoListBranchesOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *ReposListBranchesOp) Reset()         { *m = ReposListBranchesOp{} }
+func (m *ReposListBranchesOp) String() string { return proto.CompactTextString(m) }
+func (*ReposListBranchesOp) ProtoMessage()    {}
+
+func (m *ReposListBranchesOp) GetRepo() RepoSpec {
+	if m != nil {
+		return m.Repo
+	}
+	return RepoSpec{}
+}
+
+func (m *ReposListBranchesOp) GetOpt() *RepoListBranchesOptions {
+	if m != nil {
+		return m.Opt
+	}
+	return nil
+}
+
+type RepoListBranchesOptions struct {
+	ListOptions `protobuf:"bytes,3,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *RepoListBranchesOptions) Reset()         { *m = RepoListBranchesOptions{} }
+func (m *RepoListBranchesOptions) String() string { return proto.CompactTextString(m) }
+func (*RepoListBranchesOptions) ProtoMessage()    {}
+
+type BranchList struct {
+	Branches []*vcs.Branch `protobuf:"bytes,1,rep,name=branches" json:"branches,omitempty"`
+}
+
+func (m *BranchList) Reset()         { *m = BranchList{} }
+func (m *BranchList) String() string { return proto.CompactTextString(m) }
+func (*BranchList) ProtoMessage()    {}
+
+func (m *BranchList) GetBranches() []*vcs.Branch {
+	if m != nil {
+		return m.Branches
+	}
+	return nil
+}
+
+type ReposListTagsOp struct {
+	Repo RepoSpec             `protobuf:"bytes,1,opt,name=repo" json:"repo"`
+	Opt  *RepoListTagsOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *ReposListTagsOp) Reset()         { *m = ReposListTagsOp{} }
+func (m *ReposListTagsOp) String() string { return proto.CompactTextString(m) }
+func (*ReposListTagsOp) ProtoMessage()    {}
+
+func (m *ReposListTagsOp) GetRepo() RepoSpec {
+	if m != nil {
+		return m.Repo
+	}
+	return RepoSpec{}
+}
+
+func (m *ReposListTagsOp) GetOpt() *RepoListTagsOptions {
+	if m != nil {
+		return m.Opt
+	}
+	return nil
+}
+
+type RepoListTagsOptions struct {
+	ListOptions `protobuf:"bytes,3,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *RepoListTagsOptions) Reset()         { *m = RepoListTagsOptions{} }
+func (m *RepoListTagsOptions) String() string { return proto.CompactTextString(m) }
+func (*RepoListTagsOptions) ProtoMessage()    {}
+
+type TagList struct {
+	Tags []*vcs.Tag `protobuf:"bytes,1,rep,name=tags" json:"tags,omitempty"`
+}
+
+func (m *TagList) Reset()         { *m = TagList{} }
+func (m *TagList) String() string { return proto.CompactTextString(m) }
+func (*TagList) ProtoMessage()    {}
+
+func (m *TagList) GetTags() []*vcs.Tag {
+	if m != nil {
+		return m.Tags
+	}
+	return nil
+}
+
 func init() {
 }
 
@@ -670,6 +820,11 @@ type ReposClient interface {
 	Enable(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error)
 	// Disable disables the specified repository.
 	Disable(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error)
+	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
+	GetCommit(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*vcs.Commit, error)
+	ListCommits(ctx context.Context, in *ReposListCommitsOp, opts ...grpc.CallOption) (*CommitList, error)
+	ListBranches(ctx context.Context, in *ReposListBranchesOp, opts ...grpc.CallOption) (*BranchList, error)
+	ListTags(ctx context.Context, in *ReposListTagsOp, opts ...grpc.CallOption) (*TagList, error)
 }
 
 type reposClient struct {
@@ -725,6 +880,42 @@ func (c *reposClient) Disable(ctx context.Context, in *RepoSpec, opts ...grpc.Ca
 	return out, nil
 }
 
+func (c *reposClient) GetCommit(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*vcs.Commit, error) {
+	out := new(vcs.Commit)
+	err := grpc.Invoke(ctx, "/sourcegraph.Repos/GetCommit", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reposClient) ListCommits(ctx context.Context, in *ReposListCommitsOp, opts ...grpc.CallOption) (*CommitList, error) {
+	out := new(CommitList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Repos/ListCommits", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reposClient) ListBranches(ctx context.Context, in *ReposListBranchesOp, opts ...grpc.CallOption) (*BranchList, error) {
+	out := new(BranchList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Repos/ListBranches", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reposClient) ListTags(ctx context.Context, in *ReposListTagsOp, opts ...grpc.CallOption) (*TagList, error) {
+	out := new(TagList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Repos/ListTags", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Repos service
 
 type ReposServer interface {
@@ -738,6 +929,11 @@ type ReposServer interface {
 	Enable(context.Context, *RepoSpec) (*pbtypes1.Void, error)
 	// Disable disables the specified repository.
 	Disable(context.Context, *RepoSpec) (*pbtypes1.Void, error)
+	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
+	GetCommit(context.Context, *RepoRevSpec) (*vcs.Commit, error)
+	ListCommits(context.Context, *ReposListCommitsOp) (*CommitList, error)
+	ListBranches(context.Context, *ReposListBranchesOp) (*BranchList, error)
+	ListTags(context.Context, *ReposListTagsOp) (*TagList, error)
 }
 
 func RegisterReposServer(s *grpc.Server, srv ReposServer) {
@@ -804,6 +1000,54 @@ func _Repos_Disable_Handler(srv interface{}, ctx context.Context, buf []byte) (i
 	return out, nil
 }
 
+func _Repos_GetCommit_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(RepoRevSpec)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(ReposServer).GetCommit(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Repos_ListCommits_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(ReposListCommitsOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(ReposServer).ListCommits(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Repos_ListBranches_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(ReposListBranchesOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(ReposServer).ListBranches(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Repos_ListTags_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(ReposListTagsOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(ReposServer).ListTags(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 var _Repos_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sourcegraph.Repos",
 	HandlerType: (*ReposServer)(nil),
@@ -827,6 +1071,22 @@ var _Repos_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Disable",
 			Handler:    _Repos_Disable_Handler,
+		},
+		{
+			MethodName: "GetCommit",
+			Handler:    _Repos_GetCommit_Handler,
+		},
+		{
+			MethodName: "ListCommits",
+			Handler:    _Repos_ListCommits_Handler,
+		},
+		{
+			MethodName: "ListBranches",
+			Handler:    _Repos_ListBranches_Handler,
+		},
+		{
+			MethodName: "ListTags",
+			Handler:    _Repos_ListTags_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
