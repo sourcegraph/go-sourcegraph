@@ -30,7 +30,7 @@ type Client struct {
 	People       PeopleService
 	Repos        ReposClient
 	RepoStatuses RepoStatusesClient
-	RepoGoodies  RepoGoodiesClient
+	RepoBadges   RepoBadgesClient
 	RepoTree     RepoTreeService
 	Search       SearchService
 	Units        UnitsService

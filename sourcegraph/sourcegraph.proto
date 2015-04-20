@@ -86,9 +86,9 @@ message Repo {
 	// Language is the primary programming language used in this repository.
 	string language = 9;
 
-	// Disabled is whether this repo has been disabled (and will not be returned via
-	// the external API).
-	bool disabled = 10;
+	// Blocked is whether this repo has been blocked by an admin (and
+	// will not be returned via the external API).
+	bool blocked = 10;
 
 	// Deprecated repositories are labeled as such and hidden from global search
 	// results.
@@ -126,6 +126,15 @@ message BadgeList {
 
 message CounterList {
 	repeated Counter counters = 1;
+}
+
+message RepoBadgesCountHitsOp {
+	RepoSpec repo = 1 [(gogoproto.nullable) = false];
+	Timestamp since = 2;
+}
+
+message RepoBadgesCountHitsResult {
+	int32 hits = 1;
 }
 
 message RepoListOptions {
@@ -228,12 +237,20 @@ message RepoList {
 }
 
 
-service RepoGoodies {
+service RepoBadges {
 	// ListBadges lists the available badges for repo.
 	rpc ListBadges(RepoSpec) returns (BadgeList);
 
 	// ListCounters lists the available counters for repo.
 	rpc ListCounters(RepoSpec) returns (CounterList);
+
+	// RecordHit records a visit to a repo (that will be reflected in
+	// its counter).
+	rpc RecordHit(RepoSpec) returns (Void);
+
+	// CountHits returns the hit count (optionally in a recent time
+	// period).
+	rpc CountHits(RepoBadgesCountHitsOp) returns (RepoBadgesCountHitsResult);
 }
 
 service RepoStatuses {
@@ -259,4 +276,11 @@ service Repos {
 
 	// Disable disables the specified repository.
     rpc Disable(RepoSpec) returns (Void);
+}
+
+// MirrorRepos handles operations related to maintaining mirrors on
+// Sourcegraph of repositories hosted elsewhere.
+service MirrorRepos {
+	// Refresh fetches the newest VCS data from the repo's origin.
+	rpc RefreshVCS(RepoSpec) returns (Void);
 }

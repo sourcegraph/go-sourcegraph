@@ -187,5 +187,3 @@ func (s *repoTreeService) Search(repoRev RepoRevSpec, opt *RepoTreeSearchOptions
 
 	return res, resp, nil
 }
-
-

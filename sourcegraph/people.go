@@ -131,5 +131,3 @@ func (s *peopleService) Get(spec PersonSpec) (*Person, Response, error) {
 
 	return person, resp, nil
 }
-
-

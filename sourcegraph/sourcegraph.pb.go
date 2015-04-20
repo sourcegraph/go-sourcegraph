@@ -19,6 +19,8 @@ It has these top-level messages:
 	Repo
 	BadgeList
 	CounterList
+	RepoBadgesCountHitsOp
+	RepoBadgesCountHitsResult
 	RepoListOptions
 	RepoPermissions
 	RepoRevSpec
@@ -140,9 +142,9 @@ type Repo struct {
 	DefaultBranch string `protobuf:"bytes,8,opt,name=default_branch,proto3" json:"default_branch,omitempty"`
 	// Language is the primary programming language used in this repository.
 	Language string `protobuf:"bytes,9,opt,name=language,proto3" json:"language,omitempty"`
-	// Disabled is whether this repo has been disabled (and will not be returned via
-	// the external API).
-	Disabled bool `protobuf:"varint,10,opt,name=disabled,proto3" json:"disabled,omitempty"`
+	// Blocked is whether this repo has been blocked by an admin (and
+	// will not be returned via the external API).
+	Blocked bool `protobuf:"varint,10,opt,name=blocked,proto3" json:"blocked,omitempty"`
 	// Deprecated repositories are labeled as such and hidden from global search
 	// results.
 	Deprecated bool `protobuf:"varint,11,opt,name=deprecated,proto3" json:"deprecated,omitempty"`
@@ -227,6 +229,37 @@ func (m *CounterList) GetCounters() []*Counter {
 	}
 	return nil
 }
+
+type RepoBadgesCountHitsOp struct {
+	Repo  RepoSpec   `protobuf:"bytes,1,opt,name=repo" json:"repo"`
+	Since *Timestamp `protobuf:"bytes,2,opt,name=since" json:"since,omitempty"`
+}
+
+func (m *RepoBadgesCountHitsOp) Reset()         { *m = RepoBadgesCountHitsOp{} }
+func (m *RepoBadgesCountHitsOp) String() string { return proto.CompactTextString(m) }
+func (*RepoBadgesCountHitsOp) ProtoMessage()    {}
+
+func (m *RepoBadgesCountHitsOp) GetRepo() RepoSpec {
+	if m != nil {
+		return m.Repo
+	}
+	return RepoSpec{}
+}
+
+func (m *RepoBadgesCountHitsOp) GetSince() *Timestamp {
+	if m != nil {
+		return m.Since
+	}
+	return nil
+}
+
+type RepoBadgesCountHitsResult struct {
+	Hits int32 `protobuf:"varint,1,opt,name=hits,proto3" json:"hits,omitempty"`
+}
+
+func (m *RepoBadgesCountHitsResult) Reset()         { *m = RepoBadgesCountHitsResult{} }
+func (m *RepoBadgesCountHitsResult) String() string { return proto.CompactTextString(m) }
+func (*RepoBadgesCountHitsResult) ProtoMessage()    {}
 
 type RepoListOptions struct {
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty" url:",omitempty"`
@@ -386,89 +419,151 @@ func (m *RepoList) GetRepos() []*Repo {
 func init() {
 }
 
-// Client API for RepoGoodies service
+// Client API for RepoBadges service
 
-type RepoGoodiesClient interface {
+type RepoBadgesClient interface {
 	// ListBadges lists the available badges for repo.
 	ListBadges(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*BadgeList, error)
 	// ListCounters lists the available counters for repo.
 	ListCounters(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*CounterList, error)
+	// RecordHit records a visit to a repo (that will be reflected in
+	// its counter).
+	RecordHit(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*Void, error)
+	// CountHits returns the hit count (optionally in a recent time
+	// period).
+	CountHits(ctx context.Context, in *RepoBadgesCountHitsOp, opts ...grpc.CallOption) (*RepoBadgesCountHitsResult, error)
 }
 
-type repoGoodiesClient struct {
+type repoBadgesClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewRepoGoodiesClient(cc *grpc.ClientConn) RepoGoodiesClient {
-	return &repoGoodiesClient{cc}
+func NewRepoBadgesClient(cc *grpc.ClientConn) RepoBadgesClient {
+	return &repoBadgesClient{cc}
 }
 
-func (c *repoGoodiesClient) ListBadges(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*BadgeList, error) {
+func (c *repoBadgesClient) ListBadges(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*BadgeList, error) {
 	out := new(BadgeList)
-	err := grpc.Invoke(ctx, "/sourcegraph.RepoGoodies/ListBadges", in, out, c.cc, opts...)
+	err := grpc.Invoke(ctx, "/sourcegraph.RepoBadges/ListBadges", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *repoGoodiesClient) ListCounters(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*CounterList, error) {
+func (c *repoBadgesClient) ListCounters(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*CounterList, error) {
 	out := new(CounterList)
-	err := grpc.Invoke(ctx, "/sourcegraph.RepoGoodies/ListCounters", in, out, c.cc, opts...)
+	err := grpc.Invoke(ctx, "/sourcegraph.RepoBadges/ListCounters", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Server API for RepoGoodies service
+func (c *repoBadgesClient) RecordHit(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*Void, error) {
+	out := new(Void)
+	err := grpc.Invoke(ctx, "/sourcegraph.RepoBadges/RecordHit", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
 
-type RepoGoodiesServer interface {
+func (c *repoBadgesClient) CountHits(ctx context.Context, in *RepoBadgesCountHitsOp, opts ...grpc.CallOption) (*RepoBadgesCountHitsResult, error) {
+	out := new(RepoBadgesCountHitsResult)
+	err := grpc.Invoke(ctx, "/sourcegraph.RepoBadges/CountHits", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for RepoBadges service
+
+type RepoBadgesServer interface {
 	// ListBadges lists the available badges for repo.
 	ListBadges(context.Context, *RepoSpec) (*BadgeList, error)
 	// ListCounters lists the available counters for repo.
 	ListCounters(context.Context, *RepoSpec) (*CounterList, error)
+	// RecordHit records a visit to a repo (that will be reflected in
+	// its counter).
+	RecordHit(context.Context, *RepoSpec) (*Void, error)
+	// CountHits returns the hit count (optionally in a recent time
+	// period).
+	CountHits(context.Context, *RepoBadgesCountHitsOp) (*RepoBadgesCountHitsResult, error)
 }
 
-func RegisterRepoGoodiesServer(s *grpc.Server, srv RepoGoodiesServer) {
-	s.RegisterService(&_RepoGoodies_serviceDesc, srv)
+func RegisterRepoBadgesServer(s *grpc.Server, srv RepoBadgesServer) {
+	s.RegisterService(&_RepoBadges_serviceDesc, srv)
 }
 
-func _RepoGoodies_ListBadges_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+func _RepoBadges_ListBadges_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoSpec)
 	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
-	out, err := srv.(RepoGoodiesServer).ListBadges(ctx, in)
+	out, err := srv.(RepoBadgesServer).ListBadges(ctx, in)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func _RepoGoodies_ListCounters_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+func _RepoBadges_ListCounters_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoSpec)
 	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
-	out, err := srv.(RepoGoodiesServer).ListCounters(ctx, in)
+	out, err := srv.(RepoBadgesServer).ListCounters(ctx, in)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-var _RepoGoodies_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "sourcegraph.RepoGoodies",
-	HandlerType: (*RepoGoodiesServer)(nil),
+func _RepoBadges_RecordHit_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(RepoSpec)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RepoBadgesServer).RecordHit(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _RepoBadges_CountHits_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(RepoBadgesCountHitsOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RepoBadgesServer).CountHits(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _RepoBadges_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.RepoBadges",
+	HandlerType: (*RepoBadgesServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "ListBadges",
-			Handler:    _RepoGoodies_ListBadges_Handler,
+			Handler:    _RepoBadges_ListBadges_Handler,
 		},
 		{
 			MethodName: "ListCounters",
-			Handler:    _RepoGoodies_ListCounters_Handler,
+			Handler:    _RepoBadges_ListCounters_Handler,
+		},
+		{
+			MethodName: "RecordHit",
+			Handler:    _RepoBadges_RecordHit_Handler,
+		},
+		{
+			MethodName: "CountHits",
+			Handler:    _RepoBadges_CountHits_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
@@ -732,6 +827,65 @@ var _Repos_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Disable",
 			Handler:    _Repos_Disable_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for MirrorRepos service
+
+type MirrorReposClient interface {
+	// Refresh fetches the newest VCS data from the repo's origin.
+	RefreshVCS(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*Void, error)
+}
+
+type mirrorReposClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewMirrorReposClient(cc *grpc.ClientConn) MirrorReposClient {
+	return &mirrorReposClient{cc}
+}
+
+func (c *mirrorReposClient) RefreshVCS(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*Void, error) {
+	out := new(Void)
+	err := grpc.Invoke(ctx, "/sourcegraph.MirrorRepos/RefreshVCS", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for MirrorRepos service
+
+type MirrorReposServer interface {
+	// Refresh fetches the newest VCS data from the repo's origin.
+	RefreshVCS(context.Context, *RepoSpec) (*Void, error)
+}
+
+func RegisterMirrorReposServer(s *grpc.Server, srv MirrorReposServer) {
+	s.RegisterService(&_MirrorRepos_serviceDesc, srv)
+}
+
+func _MirrorRepos_RefreshVCS_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(RepoSpec)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(MirrorReposServer).RefreshVCS(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _MirrorRepos_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.MirrorRepos",
+	HandlerType: (*MirrorReposServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "RefreshVCS",
+			Handler:    _MirrorRepos_RefreshVCS_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
