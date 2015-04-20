@@ -452,7 +452,7 @@ func (b *protoBuilder) build() {
 
 		// interfaces become services
 		if t, ok := tspec.Type.(*ast.InterfaceType); ok {
-			if stripService := false; stripService {
+			if stripService := true; stripService {
 				typ.Name = strings.TrimSuffix(typ.Name, "Service")
 			}
 			b.buildService(file, typ.Name, typ.Doc, t)
@@ -681,6 +681,7 @@ var customTypeMapping = map[string]protoFieldType{
 	"graph.Def":          protoFieldType{typeName: "graph.Def", origin: "../../srclib/graph/def.proto"},
 	"graph.DefKey":       protoFieldType{typeName: "graph.DefKey", origin: "../../srclib/graph/def.proto"},
 	"graph.Ref":          protoFieldType{typeName: "graph.Ref", origin: "../../srclib/graph/ref.proto"},
+	"vcs.Commit":         protoFieldType{typeName: "vcs.Commit", origin: "vcs.proto"},
 }
 
 func equivProtoType(t ast.Expr) protoFieldType {

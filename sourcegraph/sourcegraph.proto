@@ -332,3 +332,547 @@ service MirrorRepos {
 	// Refresh fetches the newest VCS data from the repo's origin.
 	rpc RefreshVCS(RepoSpec) returns (pbtypes.Void);
 }
+
+// A Build represents a scheduled, completed, or failed repository analysis and
+// import job.
+// 
+// A build is composed of many tasks. The worker that is responsible for a build or
+// task determines whether a task failure causes the whole build to fail. (Keep
+// reading to see how we determine who is responsible for a build or task.) There
+// is no single kind of worker; currently there are 3 things that could be
+// considered workers because they build builds or perform tasks: the builders on
+// Sourcegraph.com, the task workers that run import tasks, and anyone who runs
+// `src push` locally.
+// 
+// Each task has logs associated with it, and each task can be associated with a
+// single source unit (or not).
+// 
+// Both builds and tasks have a Queue bool field. If a process creates a build or
+// task that has Queue=true, that means that it relinquishes responsibility for it;
+// some other queue workers (on the server, for example) will dequeue and complete
+// it. If Queue=false, then the process that created it is responsible for
+// completing it. The only exception to this is that after a certain timeout (on
+// the order of 45 minutes), started but unfinished builds are marked as failed.
+// 
+// A build and its tasks may be queued (or not queued) independently. A build may
+// have Queue=true and its tasks may all have Queue=false; this occurs when a build
+// is enqueued by a user and subsequently dequeued by a builder, which creates and
+// performs the tasks as a single process. Or a build may have Queue=false and it
+// may have a task with Queue=true; this occurs when someone builds a project
+// locally but wants the server to import the data (which only the server, having
+// direct DB access, can do).
+// 
+// It probably wouldn't make sense to create a queued build and immediately create
+// a queued task, since then those would be run independently (and potentially out
+// of order) by two workers. But it could make sense to create a queued build, and
+// then for the builder to do some work (such as analyzing a project) and then
+// create a queued task in the same build to import the build data it produced.
+// 
+// Builds and tasks are simple "build"ing blocks (no pun intended) with simple
+// behavior. As we encounter new requirements for the build system, they may
+// evolve.
+message Build {
+	// BID is the unique identifier for the build.
+	int64 b_id = 1 [(gogoproto.customname) = "BID"];
+
+	// Repo is the URI of the repository this build is for.
+	string repo = 2;
+
+	// CommitID is the full resolved commit ID to build.
+	string commit_id = 3 [(gogoproto.customname) = "CommitID"];
+
+	pbtypes.Timestamp created_at = 4 [(gogoproto.nullable) = false];
+	optional pbtypes.Timestamp started_at = 5;
+	optional pbtypes.Timestamp ended_at = 6;
+	optional pbtypes.Timestamp heartbeat_at = 7;
+	bool success = 8;
+	bool failure = 9;
+
+	// Killed is true if this build's worker didn't exit on its own accord. It is
+	// generally set when no heartbeat has been received within a certain interval. If
+	// Killed is true, then Failure must also always be set to true. Unqueued builds
+	// are never killed for lack of a heartbeat.
+	bool killed = 10;
+
+	// Host is the hostname of the machine that is working on this build.
+	string host = 11;
+
+	bool purged = 12;
+	BuildConfig build_config = 13 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// BuildConfig configures a repository build.
+message BuildConfig {
+	// Import is whether to import the build data into the database when the build is
+	// complete. The data must be imported for Sourcegraph's web app or API to use it,
+	// except that unimported build data is available through the BuildData service.
+	// (TODO(sqs): BuildData isn't yet implemented.)
+	bool import = 1;
+
+	// Queue is whether this build should be enqueued. If enqueued, any worker may
+	// begin running this build. If not enqueued, it is up to the client to run the
+	// build and update it accordingly.
+	bool queue = 2;
+
+	// UseCache is whether to use cached build data files. If false, the
+	// .sourcegraph-data directory will be wiped out before the build begins.
+	// 
+	// Regardless of the value of UseCache, the build data files will be uploaded to
+	// the central cache after the build ends.
+	bool use_cache = 3;
+
+	// Priority of the build in the queue (higher numbers mean the build is dequeued
+	// sooner).
+	int32 priority = 4 [(gogoproto.customtype) = "int"];
+}
+
+message BuildCreateOptions {
+	BuildConfig build_config = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+
+	// Force creation of build. If false, the build will not be created if a build for
+	// the same repository and with the same BuildConfig exists.
+	// 
+	// TODO(bliu): test this
+	bool force = 2;
+}
+
+// BuildGetLogOptions specifies options for build log API methods.
+message BuildGetLogOptions {
+	// MinID indicates that only log entries whose monotonically increasing ID is
+	// greater than MinID should be returned.
+	// 
+	// To "tail -f" or watch a log for updates, set each subsequent request's MinID to
+	// the MaxID of the previous request.
+	string min_id = 1 [(gogoproto.customname) = "MinID"];
+}
+
+message BuildListOptions {
+	bool queued = 1 [(gogoproto.moretags) = "url:\",omitempty\""];
+	bool active = 2 [(gogoproto.moretags) = "url:\",omitempty\""];
+	bool ended = 3 [(gogoproto.moretags) = "url:\",omitempty\""];
+	bool succeeded = 4 [(gogoproto.moretags) = "url:\",omitempty\""];
+	bool failed = 5 [(gogoproto.moretags) = "url:\",omitempty\""];
+	bool purged = 6 [(gogoproto.moretags) = "url:\",omitempty\""];
+	string repo = 7 [(gogoproto.moretags) = "url:\",omitempty\""];
+	string commit_id = 8 [(gogoproto.customname) = "CommitID", (gogoproto.moretags) = "url:\",omitempty\""];
+	string sort = 9 [(gogoproto.moretags) = "url:\",omitempty\""];
+	string direction = 10 [(gogoproto.moretags) = "url:\",omitempty\""];
+	ListOptions list_options = 11 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+message BuildSpec {
+	int64 b_id = 1 [(gogoproto.customname) = "BID"];
+	RepoSpec repo = 2 [(gogoproto.nullable) = false];
+}
+
+// A BuildTask represents an individual step of a build.
+// 
+// See the documentation for Build for more information about how builds and tasks
+// relate to each other.
+message BuildTask {
+	// TaskID is the unique ID of this task. It is unique over all tasks, not just
+	// tasks in the same build.
+	int64 task_id = 1 [(gogoproto.customname) = "TaskID"];
+
+	// Repo is the URI of the repository that this task's build is for.
+	string repo = 2;
+
+	// BID is the build that this task is a part of.
+	int64 b_id = 3 [(gogoproto.customname) = "BID"];
+
+	// UnitType is the srclib source unit type of the source unit that this task is
+	// associated with.
+	string unit_type = 4;
+
+	// Unit is the srclib source unit name of the source unit that this task is
+	// associated with.
+	string unit = 5;
+
+	// Op is the srclib toolchain operation (graph, depresolve, etc.) that this task
+	// performs.
+	string op = 6;
+
+	// Order is the order in which this task is performed, relative to other tasks in
+	// the same build. Lower-number-ordered tasks are built first. Multiple tasks may
+	// have the same order.
+	int32 order = 7 [(gogoproto.customtype) = "int"];
+
+	// CreatedAt is when this task was initially created.
+	optional pbtypes.Timestamp created_at = 8;
+
+	// StartedAt is when this task's execution began.
+	optional pbtypes.Timestamp started_at = 9;
+
+	// EndedAt is when this task's execution ended (whether because it succeeded or
+	// failed).
+	optional pbtypes.Timestamp ended_at = 10;
+
+	// Queue is whether this task should be performed by queue task remote workers on
+	// the central server. If true, then it will be performed remotely. If false, it
+	// should be performed locally by the process that created this task.
+	// 
+	// For example, import tasks are queued because they are performed by the remote
+	// server, not the local "src" process running on the builders.
+	// 
+	// See the documentation for Build for more discussion about queued builds and
+	// tasks (and how they relate).
+	bool queue = 11;
+
+	// Success is whether this task's execution succeeded.
+	bool success = 12;
+
+	// Failure is whether this task's execution failed.
+	bool failure = 13;
+}
+
+message BuildTaskListOptions {
+	ListOptions list_options = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// A BuildUpdate contains updated information to update on an existing build.
+message BuildUpdate {
+	optional pbtypes.Timestamp started_at = 1;
+	optional pbtypes.Timestamp ended_at = 2;
+	optional pbtypes.Timestamp heartbeat_at = 3;
+	string host = 4;
+	bool success = 5;
+	bool purged = 6;
+	bool failure = 7;
+	bool killed = 8;
+	int32 priority = 9 [(gogoproto.customtype) = "int"];
+}
+
+// BuildsGetRepoBuildInfoOptions sets options for the Repos.GetBuild call.
+message BuildsGetRepoBuildInfoOptions {
+	// Exact is whether only a build whose commit ID exactly matches the revspec should
+	// be returned. (For non-full-commit ID revspecs, such as branches, tags, and
+	// partial commit IDs, this means that the build's commit ID matches the resolved
+	// revspec's commit ID.)
+	// 
+	// If Exact is false, then builds for older commits that are reachable from the
+	// revspec may also be returned. For example, if there's a build for master~1 but
+	// no build for master, and your revspec is master, using Exact=false will return
+	// the build for master~1.
+	// 
+	// Using Exact=true is faster as the commit and build history never needs to be
+	// searched. If the exact build is not found, or the exact build was found but it
+	// failed, LastSuccessful and LastSuccessfulCommit for RepoBuildInfo will be nil.
+	bool exact = 1 [(gogoproto.moretags) = "url:\",omitempty\""];
+}
+
+message BuildsGetRepoBuildInfoOp {
+	RepoRevSpec repo = 1 [(gogoproto.nullable) = false];
+	optional BuildsGetRepoBuildInfoOptions opt = 2;
+}
+
+message BuildList {
+	repeated Build builds = 1;
+}
+
+message BuildsCreateOp {
+	RepoRevSpec repo_rev = 1 [(gogoproto.nullable) = false];
+	optional BuildCreateOptions opt = 2;
+}
+
+message BuildsUpdateOp {
+	BuildSpec build = 1 [(gogoproto.nullable) = false];
+	BuildUpdate info = 2 [(gogoproto.nullable) = false];
+}
+
+message BuildsListBuildTasksOp {
+	BuildSpec build = 1 [(gogoproto.nullable) = false];
+	optional BuildTaskListOptions opt = 2;
+}
+
+message BuildTaskList {
+	repeated BuildTask build_tasks = 1;
+}
+
+message BuildsCreateTasksOp {
+	BuildSpec build = 1 [(gogoproto.nullable) = false];
+	repeated BuildTask tasks = 2;
+}
+
+message BuildsUpdateTaskOp {
+	TaskSpec task = 1 [(gogoproto.nullable) = false];
+	TaskUpdate info = 2 [(gogoproto.nullable) = false];
+}
+
+message BuildsGetLogOp {
+	BuildSpec build = 1 [(gogoproto.nullable) = false];
+	optional BuildGetLogOptions opt = 2;
+}
+
+message BuildsGetTaskLogOp {
+	TaskSpec task = 1 [(gogoproto.nullable) = false];
+	optional BuildGetLogOptions opt = 2;
+}
+
+message BuildsDequeueNextOp {
+}
+
+// EmailAddr is an email address associated with a user.
+message EmailAddr {
+	// the email address (case-insensitively compared in the DB and API)
+	string email = 1;
+
+	// whether this email address has been verified
+	bool verified = 2;
+
+	// indicates this is the user's primary email (only 1 email can be primary per user)
+	bool primary = 3;
+
+	// whether Sourcegraph inferred via public data that this is an email for the user
+	bool guessed = 4;
+
+	// indicates that this email should not be associated with the user (even if guessed in the future)
+	bool blacklisted = 5;
+}
+
+message LogEntries {
+	string max_id = 1 [(gogoproto.customname) = "MaxID"];
+	repeated string entries = 2;
+}
+
+message Org {
+	User user = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+message OrgListMembersOptions {
+	ListOptions list_options = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// OrgSpec specifies an organization. At least one of Email, Login, and UID must be
+// nonempty.
+message OrgSpec {
+	string org = 1;
+	int32 uid = 2 [(gogoproto.customname) = "UID", (gogoproto.customtype) = "int"];
+}
+
+message OrgsListMembersOp {
+	OrgSpec org = 1 [(gogoproto.nullable) = false];
+	optional OrgListMembersOptions opt = 2;
+}
+
+message UserList {
+	repeated User users = 1;
+}
+
+// A Person represents either a registered user or a committer to a repository
+// (typically when their commit email can't be resolved to a user).
+message Person {
+	// PersonSpec is an identifier for the person. If the person was resolved to a
+	// user, then both Login and UID are set. Otherwise only Email is set, and it may
+	// be obfuscated (to protect privacy).
+	PersonSpec person_spec = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+
+	// FullName is the (possibly empty) full name of the person.
+	string full_name = 2;
+
+	// AvatarURL is the URL to the user's avatar image.
+	string avatar_url = 3 [(gogoproto.customname) = "AvatarURL"];
+}
+
+// PersonSpec specifies a person. At least one of Email, Login, and UID must be
+// nonempty.
+message PersonSpec {
+	// Email is a person's email address. It may be obfuscated (to protect privacy).
+	string email = 1;
+
+	// Login is a user's login.
+	string login = 2;
+
+	// UID is a user's UID.
+	int32 uid = 3 [(gogoproto.customname) = "UID", (gogoproto.customtype) = "int"];
+}
+
+// RepoBuildInfo holds a repository build (if one exists for the originally
+// specified revspec) and additional information. It is returned by
+// Repos.GetRepoBuildInfo.
+message RepoBuildInfo {
+	optional Build exact = 1;
+	optional Build last_successful = 2;
+	int32 commits_behind = 3 [(gogoproto.customtype) = "int"];
+	vcs.Commit last_successful_commit = 4;
+}
+
+message TaskSpec {
+	BuildSpec build_spec = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+	int64 task_id = 2 [(gogoproto.customname) = "TaskID"];
+}
+
+// A TaskUpdate contains updated information to update on an existing task.
+message TaskUpdate {
+	optional pbtypes.Timestamp started_at = 1;
+	optional pbtypes.Timestamp ended_at = 2;
+	bool success = 3;
+	bool failure = 4;
+}
+
+// User represents a registered user.
+message User {
+	// UID is the numeric primary key for a user.
+	int32 uid = 1 [(gogoproto.customname) = "UID", (gogoproto.customtype) = "int"];
+
+	// GitHubID is the numeric ID of the GitHub user account corresponding to this
+	// user.
+	int32 github_id = 2 [(gogoproto.customname) = "GitHubID", (gogoproto.customtype) = "int"];
+
+	// Login is the user's username, which typically corresponds to the user's GitHub
+	// login.
+	string login = 3;
+
+	// Name is the (possibly empty) full name of the user.
+	string name = 4;
+
+	// Type is either "User" or "Organization".
+	string type = 5;
+
+	// AvatarURL is the URL to an avatar image specified by the user.
+	string avatar_url = 6 [(gogoproto.customname) = "AvatarURL"];
+
+	// Location is the user's physical location (from their GitHub profile).
+	string location = 7;
+
+	// Company is the user's company (from their GitHub profile).
+	string company = 8;
+
+	// HomepageURL is the user's homepage or blog URL (from their GitHub profile).
+	string homepage_url = 9 [(gogoproto.customname) = "HomepageURL"];
+
+	// UserProfileDisabled is whether the user profile should not be displayed on the
+	// Web app.
+	bool user_profile_disabled = 10;
+
+	// RegisteredAt is the date that the user registered. If the user has not
+	// registered (i.e., we have processed their repos but they haven't signed into
+	// Sourcegraph), it is null.
+	optional pbtypes.Timestamp registered_at = 11;
+}
+
+message UserGetOptions {
+}
+
+// UserSpec specifies a user. At least one of Login, and UID must be nonempty.
+message UserSpec {
+	// Login is a user's login.
+	string login = 1;
+
+	// UID is a user's UID.
+	int32 uid = 2 [(gogoproto.customname) = "UID", (gogoproto.customtype) = "int"];
+}
+
+// UsersListOptions specifies options for the UsersService.List method.
+message UsersListOptions {
+	// Query filters the results to only those whose logins match. The search algorithm
+	// is an implementation detail (currently it is a prefix match).
+	string query = 1 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	string sort = 2 [(gogoproto.moretags) = "url:\",omitempty\""];
+	string direction = 3 [(gogoproto.moretags) = "url:\",omitempty\""];
+	ListOptions list_options = 4 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+message UsersListOrgsOptions {
+	ListOptions list_options = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+message EmailAddrList {
+	repeated EmailAddr email_addrs = 1;
+}
+
+
+message UsersListOrgsOp {
+	UserSpec member = 1 [(gogoproto.nullable) = false];
+	optional UsersListOrgsOptions opt = 2;
+}
+
+message OrgList {
+	repeated Org orgs = 1;
+}
+
+
+// BuildsService communicates with the build-related endpoints in the Sourcegraph
+// API.
+service Builds {
+	// Get fetches a build.
+	rpc Get(BuildSpec) returns (Build);
+
+	// GetRepoBuildInfo gets the best-match build for a specific repo revspec. It
+	// returns additional information about the build, such as whether it is exactly
+	// up-to-date with the revspec or a few commits behind the revspec. The opt param
+	// controls what is returned in this case.
+	rpc GetRepoBuildInfo(BuildsGetRepoBuildInfoOp) returns (RepoBuildInfo);
+
+	// List builds.
+	rpc List(BuildListOptions) returns (BuildList);
+
+	// Create a new build. The build will run asynchronously (Create does not wait for
+	// it to return. To monitor the build's status, use Get.)
+	rpc Create(BuildsCreateOp) returns (Build);
+
+	// Update updates information about a build and returns the build after the update
+	// has been applied.
+	rpc Update(BuildsUpdateOp) returns (Build);
+
+	// ListBuildTasks lists the tasks associated with a build.
+	rpc ListBuildTasks(BuildsListBuildTasksOp) returns (BuildTaskList);
+
+	// CreateTasks creates tasks associated with a build and returns them with their
+	// TID fields set.
+	rpc CreateTasks(BuildsCreateTasksOp) returns (BuildTaskList);
+
+	// UpdateTask updates a task associated with a build.
+	rpc UpdateTask(BuildsUpdateTaskOp) returns (BuildTask);
+
+	// GetLog gets log entries associated with a build.
+	rpc GetLog(BuildsGetLogOp) returns (LogEntries);
+
+	// GetTaskLog gets log entries associated with a task.
+	rpc GetTaskLog(BuildsGetTaskLogOp) returns (LogEntries);
+
+	// DequeueNext returns the next queued build and marks it as having started
+	// (atomically). It is not considered an error if there are no builds in the queue;
+	// in that case, a nil build and error are returned.
+	// 
+	// The HTTP response may contain tickets that grant the necessary permissions to
+	// build and upload build data for the build's repository. Call
+	// auth.SignedTicketStrings on the response's HTTP response field to obtain the
+	// tickets.
+	rpc DequeueNext(BuildsDequeueNextOp) returns (Build);
+}
+
+// OrgsService communicates with the organizations-related endpoints in the
+// Sourcegraph API.
+service Orgs {
+	// Get fetches an organization.
+	rpc Get(OrgSpec) returns (Org);
+
+	// ListMembers lists members of an organization.
+	rpc ListMembers(OrgsListMembersOp) returns (UserList);
+}
+
+// PeopleService communicates with the people-related endpoints in the Sourcegraph
+// API.
+service People {
+	// Get gets a person. If an email is provided and it resolves to a registered user,
+	// information about that user is returned. Otherwise a transient person is created
+	// and returned.
+	rpc Get(PersonSpec) returns (Person);
+}
+
+// UsersService communicates with the users-related endpoints in the Sourcegraph
+// API.
+service Users {
+	// Get fetches a user.
+	rpc Get(UserSpec) returns (User);
+
+	// ListEmails returns a list of a user's email addresses.
+	rpc ListEmails(UserSpec) returns (EmailAddrList);
+
+	// List users.
+	rpc List(UsersListOptions) returns (UserList);
+
+	// ListOrgs lists organizations that a user is a member of.
+	rpc ListOrgs(UsersListOrgsOp) returns (OrgList);
+}

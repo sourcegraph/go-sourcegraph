@@ -24,17 +24,17 @@ const (
 type Client struct {
 	// Services used to communicate with different parts of the Sourcegraph API.
 	BuildData    BuildDataService
-	Builds       BuildsService
+	Builds       BuildsClient
 	Deltas       DeltasService
-	Orgs         OrgsService
-	People       PeopleService
+	Orgs         OrgsClient
+	People       PeopleClient
 	Repos        ReposClient
 	RepoStatuses RepoStatusesClient
 	RepoBadges   RepoBadgesClient
 	RepoTree     RepoTreeService
 	Search       SearchService
 	Units        UnitsService
-	Users        UsersService
+	Users        UsersClient
 	Defs         DefsService
 	Markdown     MarkdownService
 	VCS          VCSOpener
@@ -60,14 +60,10 @@ func NewClient(httpClient *http.Client) *Client {
 	c := new(Client)
 	c.httpClient = httpClient
 	c.BuildData = &buildDataService{c}
-	c.Builds = &buildsService{c}
 	c.Deltas = &deltasService{c}
-	c.Orgs = &orgsService{c}
-	c.People = &peopleService{c}
 	c.RepoTree = &repoTreeService{c}
 	c.Search = &searchService{c}
 	c.Units = &unitsService{c}
-	c.Users = &usersService{c}
 	c.Defs = &defsService{c}
 	c.Markdown = &markdownService{c}
 

@@ -108,3 +108,113 @@ func (s *MirrorReposServer) RefreshVCS(v0 context.Context, v1 *sourcegraph.RepoS
 }
 
 var _ sourcegraph.MirrorReposServer = (*MirrorReposServer)(nil)
+
+type BuildsServer struct {
+	Get_              func(v0 context.Context, v1 *sourcegraph.BuildSpec) (*sourcegraph.Build, error)
+	GetRepoBuildInfo_ func(v0 context.Context, v1 *sourcegraph.BuildsGetRepoBuildInfoOp) (*sourcegraph.RepoBuildInfo, error)
+	List_             func(v0 context.Context, v1 *sourcegraph.BuildListOptions) (*sourcegraph.BuildList, error)
+	Create_           func(v0 context.Context, v1 *sourcegraph.BuildsCreateOp) (*sourcegraph.Build, error)
+	Update_           func(v0 context.Context, v1 *sourcegraph.BuildsUpdateOp) (*sourcegraph.Build, error)
+	ListBuildTasks_   func(v0 context.Context, v1 *sourcegraph.BuildsListBuildTasksOp) (*sourcegraph.BuildTaskList, error)
+	CreateTasks_      func(v0 context.Context, v1 *sourcegraph.BuildsCreateTasksOp) (*sourcegraph.BuildTaskList, error)
+	UpdateTask_       func(v0 context.Context, v1 *sourcegraph.BuildsUpdateTaskOp) (*sourcegraph.BuildTask, error)
+	GetLog_           func(v0 context.Context, v1 *sourcegraph.BuildsGetLogOp) (*sourcegraph.LogEntries, error)
+	GetTaskLog_       func(v0 context.Context, v1 *sourcegraph.BuildsGetTaskLogOp) (*sourcegraph.LogEntries, error)
+	DequeueNext_      func(v0 context.Context, v1 *sourcegraph.BuildsDequeueNextOp) (*sourcegraph.Build, error)
+}
+
+func (s *BuildsServer) Get(v0 context.Context, v1 *sourcegraph.BuildSpec) (*sourcegraph.Build, error) {
+	return s.Get_(v0, v1)
+}
+
+func (s *BuildsServer) GetRepoBuildInfo(v0 context.Context, v1 *sourcegraph.BuildsGetRepoBuildInfoOp) (*sourcegraph.RepoBuildInfo, error) {
+	return s.GetRepoBuildInfo_(v0, v1)
+}
+
+func (s *BuildsServer) List(v0 context.Context, v1 *sourcegraph.BuildListOptions) (*sourcegraph.BuildList, error) {
+	return s.List_(v0, v1)
+}
+
+func (s *BuildsServer) Create(v0 context.Context, v1 *sourcegraph.BuildsCreateOp) (*sourcegraph.Build, error) {
+	return s.Create_(v0, v1)
+}
+
+func (s *BuildsServer) Update(v0 context.Context, v1 *sourcegraph.BuildsUpdateOp) (*sourcegraph.Build, error) {
+	return s.Update_(v0, v1)
+}
+
+func (s *BuildsServer) ListBuildTasks(v0 context.Context, v1 *sourcegraph.BuildsListBuildTasksOp) (*sourcegraph.BuildTaskList, error) {
+	return s.ListBuildTasks_(v0, v1)
+}
+
+func (s *BuildsServer) CreateTasks(v0 context.Context, v1 *sourcegraph.BuildsCreateTasksOp) (*sourcegraph.BuildTaskList, error) {
+	return s.CreateTasks_(v0, v1)
+}
+
+func (s *BuildsServer) UpdateTask(v0 context.Context, v1 *sourcegraph.BuildsUpdateTaskOp) (*sourcegraph.BuildTask, error) {
+	return s.UpdateTask_(v0, v1)
+}
+
+func (s *BuildsServer) GetLog(v0 context.Context, v1 *sourcegraph.BuildsGetLogOp) (*sourcegraph.LogEntries, error) {
+	return s.GetLog_(v0, v1)
+}
+
+func (s *BuildsServer) GetTaskLog(v0 context.Context, v1 *sourcegraph.BuildsGetTaskLogOp) (*sourcegraph.LogEntries, error) {
+	return s.GetTaskLog_(v0, v1)
+}
+
+func (s *BuildsServer) DequeueNext(v0 context.Context, v1 *sourcegraph.BuildsDequeueNextOp) (*sourcegraph.Build, error) {
+	return s.DequeueNext_(v0, v1)
+}
+
+var _ sourcegraph.BuildsServer = (*BuildsServer)(nil)
+
+type OrgsServer struct {
+	Get_         func(v0 context.Context, v1 *sourcegraph.OrgSpec) (*sourcegraph.Org, error)
+	ListMembers_ func(v0 context.Context, v1 *sourcegraph.OrgsListMembersOp) (*sourcegraph.UserList, error)
+}
+
+func (s *OrgsServer) Get(v0 context.Context, v1 *sourcegraph.OrgSpec) (*sourcegraph.Org, error) {
+	return s.Get_(v0, v1)
+}
+
+func (s *OrgsServer) ListMembers(v0 context.Context, v1 *sourcegraph.OrgsListMembersOp) (*sourcegraph.UserList, error) {
+	return s.ListMembers_(v0, v1)
+}
+
+var _ sourcegraph.OrgsServer = (*OrgsServer)(nil)
+
+type PeopleServer struct {
+	Get_ func(v0 context.Context, v1 *sourcegraph.PersonSpec) (*sourcegraph.Person, error)
+}
+
+func (s *PeopleServer) Get(v0 context.Context, v1 *sourcegraph.PersonSpec) (*sourcegraph.Person, error) {
+	return s.Get_(v0, v1)
+}
+
+var _ sourcegraph.PeopleServer = (*PeopleServer)(nil)
+
+type UsersServer struct {
+	Get_        func(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.User, error)
+	ListEmails_ func(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.EmailAddrList, error)
+	List_       func(v0 context.Context, v1 *sourcegraph.UsersListOptions) (*sourcegraph.UserList, error)
+	ListOrgs_   func(v0 context.Context, v1 *sourcegraph.UsersListOrgsOp) (*sourcegraph.OrgList, error)
+}
+
+func (s *UsersServer) Get(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.User, error) {
+	return s.Get_(v0, v1)
+}
+
+func (s *UsersServer) ListEmails(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.EmailAddrList, error) {
+	return s.ListEmails_(v0, v1)
+}
+
+func (s *UsersServer) List(v0 context.Context, v1 *sourcegraph.UsersListOptions) (*sourcegraph.UserList, error) {
+	return s.List_(v0, v1)
+}
+
+func (s *UsersServer) ListOrgs(v0 context.Context, v1 *sourcegraph.UsersListOrgsOp) (*sourcegraph.OrgList, error) {
+	return s.ListOrgs_(v0, v1)
+}
+
+var _ sourcegraph.UsersServer = (*UsersServer)(nil)

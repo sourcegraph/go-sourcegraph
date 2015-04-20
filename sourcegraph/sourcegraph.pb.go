@@ -35,6 +35,47 @@ It has these top-level messages:
 	ReposListTagsOp
 	RepoListTagsOptions
 	TagList
+	Build
+	BuildConfig
+	BuildCreateOptions
+	BuildGetLogOptions
+	BuildListOptions
+	BuildSpec
+	BuildTask
+	BuildTaskListOptions
+	BuildUpdate
+	BuildsGetRepoBuildInfoOptions
+	BuildsGetRepoBuildInfoOp
+	BuildList
+	BuildsCreateOp
+	BuildsUpdateOp
+	BuildsListBuildTasksOp
+	BuildTaskList
+	BuildsCreateTasksOp
+	BuildsUpdateTaskOp
+	BuildsGetLogOp
+	BuildsGetTaskLogOp
+	BuildsDequeueNextOp
+	EmailAddr
+	LogEntries
+	Org
+	OrgListMembersOptions
+	OrgSpec
+	OrgsListMembersOp
+	UserList
+	Person
+	PersonSpec
+	RepoBuildInfo
+	TaskSpec
+	TaskUpdate
+	User
+	UserGetOptions
+	UserSpec
+	UsersListOptions
+	UsersListOrgsOptions
+	EmailAddrList
+	UsersListOrgsOp
+	OrgList
 */
 package sourcegraph
 
@@ -562,6 +603,874 @@ func (*TagList) ProtoMessage()    {}
 func (m *TagList) GetTags() []*vcs.Tag {
 	if m != nil {
 		return m.Tags
+	}
+	return nil
+}
+
+// A Build represents a scheduled, completed, or failed repository analysis and
+// import job.
+//
+// A build is composed of many tasks. The worker that is responsible for a build or
+// task determines whether a task failure causes the whole build to fail. (Keep
+// reading to see how we determine who is responsible for a build or task.) There
+// is no single kind of worker; currently there are 3 things that could be
+// considered workers because they build builds or perform tasks: the builders on
+// Sourcegraph.com, the task workers that run import tasks, and anyone who runs
+// `src push` locally.
+//
+// Each task has logs associated with it, and each task can be associated with a
+// single source unit (or not).
+//
+// Both builds and tasks have a Queue bool field. If a process creates a build or
+// task that has Queue=true, that means that it relinquishes responsibility for it;
+// some other queue workers (on the server, for example) will dequeue and complete
+// it. If Queue=false, then the process that created it is responsible for
+// completing it. The only exception to this is that after a certain timeout (on
+// the order of 45 minutes), started but unfinished builds are marked as failed.
+//
+// A build and its tasks may be queued (or not queued) independently. A build may
+// have Queue=true and its tasks may all have Queue=false; this occurs when a build
+// is enqueued by a user and subsequently dequeued by a builder, which creates and
+// performs the tasks as a single process. Or a build may have Queue=false and it
+// may have a task with Queue=true; this occurs when someone builds a project
+// locally but wants the server to import the data (which only the server, having
+// direct DB access, can do).
+//
+// It probably wouldn't make sense to create a queued build and immediately create
+// a queued task, since then those would be run independently (and potentially out
+// of order) by two workers. But it could make sense to create a queued build, and
+// then for the builder to do some work (such as analyzing a project) and then
+// create a queued task in the same build to import the build data it produced.
+//
+// Builds and tasks are simple "build"ing blocks (no pun intended) with simple
+// behavior. As we encounter new requirements for the build system, they may
+// evolve.
+type Build struct {
+	// BID is the unique identifier for the build.
+	BID int64 `protobuf:"varint,1,opt,name=b_id,proto3" json:"b_id,omitempty"`
+	// Repo is the URI of the repository this build is for.
+	Repo string `protobuf:"bytes,2,opt,name=repo,proto3" json:"repo,omitempty"`
+	// CommitID is the full resolved commit ID to build.
+	CommitID    string             `protobuf:"bytes,3,opt,name=commit_id,proto3" json:"commit_id,omitempty"`
+	CreatedAt   pbtypes.Timestamp  `protobuf:"bytes,4,opt,name=created_at" json:"created_at"`
+	StartedAt   *pbtypes.Timestamp `protobuf:"bytes,5,opt,name=started_at" json:"started_at,omitempty"`
+	EndedAt     *pbtypes.Timestamp `protobuf:"bytes,6,opt,name=ended_at" json:"ended_at,omitempty"`
+	HeartbeatAt *pbtypes.Timestamp `protobuf:"bytes,7,opt,name=heartbeat_at" json:"heartbeat_at,omitempty"`
+	Success     bool               `protobuf:"varint,8,opt,name=success,proto3" json:"success,omitempty"`
+	Failure     bool               `protobuf:"varint,9,opt,name=failure,proto3" json:"failure,omitempty"`
+	// Killed is true if this build's worker didn't exit on its own accord. It is
+	// generally set when no heartbeat has been received within a certain interval. If
+	// Killed is true, then Failure must also always be set to true. Unqueued builds
+	// are never killed for lack of a heartbeat.
+	Killed bool `protobuf:"varint,10,opt,name=killed,proto3" json:"killed,omitempty"`
+	// Host is the hostname of the machine that is working on this build.
+	Host        string `protobuf:"bytes,11,opt,name=host,proto3" json:"host,omitempty"`
+	Purged      bool   `protobuf:"varint,12,opt,name=purged,proto3" json:"purged,omitempty"`
+	BuildConfig `protobuf:"bytes,13,opt,name=build_config,embedded=build_config" json:"build_config"`
+}
+
+func (m *Build) Reset()         { *m = Build{} }
+func (m *Build) String() string { return proto.CompactTextString(m) }
+func (*Build) ProtoMessage()    {}
+
+func (m *Build) GetCreatedAt() pbtypes.Timestamp {
+	if m != nil {
+		return m.CreatedAt
+	}
+	return pbtypes.Timestamp{}
+}
+
+func (m *Build) GetStartedAt() *pbtypes.Timestamp {
+	if m != nil {
+		return m.StartedAt
+	}
+	return nil
+}
+
+func (m *Build) GetEndedAt() *pbtypes.Timestamp {
+	if m != nil {
+		return m.EndedAt
+	}
+	return nil
+}
+
+func (m *Build) GetHeartbeatAt() *pbtypes.Timestamp {
+	if m != nil {
+		return m.HeartbeatAt
+	}
+	return nil
+}
+
+// BuildConfig configures a repository build.
+type BuildConfig struct {
+	// Import is whether to import the build data into the database when the build is
+	// complete. The data must be imported for Sourcegraph's web app or API to use it,
+	// except that unimported build data is available through the BuildData service.
+	// (TODO(sqs): BuildData isn't yet implemented.)
+	Import bool `protobuf:"varint,1,opt,name=import,proto3" json:"import,omitempty"`
+	// Queue is whether this build should be enqueued. If enqueued, any worker may
+	// begin running this build. If not enqueued, it is up to the client to run the
+	// build and update it accordingly.
+	Queue bool `protobuf:"varint,2,opt,name=queue,proto3" json:"queue,omitempty"`
+	// UseCache is whether to use cached build data files. If false, the
+	// .sourcegraph-data directory will be wiped out before the build begins.
+	//
+	// Regardless of the value of UseCache, the build data files will be uploaded to
+	// the central cache after the build ends.
+	UseCache bool `protobuf:"varint,3,opt,name=use_cache,proto3" json:"use_cache,omitempty"`
+	// Priority of the build in the queue (higher numbers mean the build is dequeued
+	// sooner).
+	Priority int `protobuf:"varint,4,opt,name=priority,proto3,customtype=int" json:"priority,omitempty"`
+}
+
+func (m *BuildConfig) Reset()         { *m = BuildConfig{} }
+func (m *BuildConfig) String() string { return proto.CompactTextString(m) }
+func (*BuildConfig) ProtoMessage()    {}
+
+type BuildCreateOptions struct {
+	BuildConfig `protobuf:"bytes,1,opt,name=build_config,embedded=build_config" json:"build_config"`
+	// Force creation of build. If false, the build will not be created if a build for
+	// the same repository and with the same BuildConfig exists.
+	//
+	// TODO(bliu): test this
+	Force bool `protobuf:"varint,2,opt,name=force,proto3" json:"force,omitempty"`
+}
+
+func (m *BuildCreateOptions) Reset()         { *m = BuildCreateOptions{} }
+func (m *BuildCreateOptions) String() string { return proto.CompactTextString(m) }
+func (*BuildCreateOptions) ProtoMessage()    {}
+
+// BuildGetLogOptions specifies options for build log API methods.
+type BuildGetLogOptions struct {
+	// MinID indicates that only log entries whose monotonically increasing ID is
+	// greater than MinID should be returned.
+	//
+	// To "tail -f" or watch a log for updates, set each subsequent request's MinID to
+	// the MaxID of the previous request.
+	MinID string `protobuf:"bytes,1,opt,name=min_id,proto3" json:"min_id,omitempty"`
+}
+
+func (m *BuildGetLogOptions) Reset()         { *m = BuildGetLogOptions{} }
+func (m *BuildGetLogOptions) String() string { return proto.CompactTextString(m) }
+func (*BuildGetLogOptions) ProtoMessage()    {}
+
+type BuildListOptions struct {
+	Queued      bool   `protobuf:"varint,1,opt,name=queued,proto3" json:"queued,omitempty" url:",omitempty"`
+	Active      bool   `protobuf:"varint,2,opt,name=active,proto3" json:"active,omitempty" url:",omitempty"`
+	Ended       bool   `protobuf:"varint,3,opt,name=ended,proto3" json:"ended,omitempty" url:",omitempty"`
+	Succeeded   bool   `protobuf:"varint,4,opt,name=succeeded,proto3" json:"succeeded,omitempty" url:",omitempty"`
+	Failed      bool   `protobuf:"varint,5,opt,name=failed,proto3" json:"failed,omitempty" url:",omitempty"`
+	Purged      bool   `protobuf:"varint,6,opt,name=purged,proto3" json:"purged,omitempty" url:",omitempty"`
+	Repo        string `protobuf:"bytes,7,opt,name=repo,proto3" json:"repo,omitempty" url:",omitempty"`
+	CommitID    string `protobuf:"bytes,8,opt,name=commit_id,proto3" json:"commit_id,omitempty" url:",omitempty"`
+	Sort        string `protobuf:"bytes,9,opt,name=sort,proto3" json:"sort,omitempty" url:",omitempty"`
+	Direction   string `protobuf:"bytes,10,opt,name=direction,proto3" json:"direction,omitempty" url:",omitempty"`
+	ListOptions `protobuf:"bytes,11,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *BuildListOptions) Reset()         { *m = BuildListOptions{} }
+func (m *BuildListOptions) String() string { return proto.CompactTextString(m) }
+func (*BuildListOptions) ProtoMessage()    {}
+
+type BuildSpec struct {
+	BID  int64    `protobuf:"varint,1,opt,name=b_id,proto3" json:"b_id,omitempty"`
+	Repo RepoSpec `protobuf:"bytes,2,opt,name=repo" json:"repo"`
+}
+
+func (m *BuildSpec) Reset()         { *m = BuildSpec{} }
+func (m *BuildSpec) String() string { return proto.CompactTextString(m) }
+func (*BuildSpec) ProtoMessage()    {}
+
+func (m *BuildSpec) GetRepo() RepoSpec {
+	if m != nil {
+		return m.Repo
+	}
+	return RepoSpec{}
+}
+
+// A BuildTask represents an individual step of a build.
+//
+// See the documentation for Build for more information about how builds and tasks
+// relate to each other.
+type BuildTask struct {
+	// TaskID is the unique ID of this task. It is unique over all tasks, not just
+	// tasks in the same build.
+	TaskID int64 `protobuf:"varint,1,opt,name=task_id,proto3" json:"task_id,omitempty"`
+	// Repo is the URI of the repository that this task's build is for.
+	Repo string `protobuf:"bytes,2,opt,name=repo,proto3" json:"repo,omitempty"`
+	// BID is the build that this task is a part of.
+	BID int64 `protobuf:"varint,3,opt,name=b_id,proto3" json:"b_id,omitempty"`
+	// UnitType is the srclib source unit type of the source unit that this task is
+	// associated with.
+	UnitType string `protobuf:"bytes,4,opt,name=unit_type,proto3" json:"unit_type,omitempty"`
+	// Unit is the srclib source unit name of the source unit that this task is
+	// associated with.
+	Unit string `protobuf:"bytes,5,opt,name=unit,proto3" json:"unit,omitempty"`
+	// Op is the srclib toolchain operation (graph, depresolve, etc.) that this task
+	// performs.
+	Op string `protobuf:"bytes,6,opt,name=op,proto3" json:"op,omitempty"`
+	// Order is the order in which this task is performed, relative to other tasks in
+	// the same build. Lower-number-ordered tasks are built first. Multiple tasks may
+	// have the same order.
+	Order int `protobuf:"varint,7,opt,name=order,proto3,customtype=int" json:"order,omitempty"`
+	// CreatedAt is when this task was initially created.
+	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,8,opt,name=created_at" json:"created_at,omitempty"`
+	// StartedAt is when this task's execution began.
+	StartedAt *pbtypes.Timestamp `protobuf:"bytes,9,opt,name=started_at" json:"started_at,omitempty"`
+	// EndedAt is when this task's execution ended (whether because it succeeded or
+	// failed).
+	EndedAt *pbtypes.Timestamp `protobuf:"bytes,10,opt,name=ended_at" json:"ended_at,omitempty"`
+	// Queue is whether this task should be performed by queue task remote workers on
+	// the central server. If true, then it will be performed remotely. If false, it
+	// should be performed locally by the process that created this task.
+	//
+	// For example, import tasks are queued because they are performed by the remote
+	// server, not the local "src" process running on the builders.
+	//
+	// See the documentation for Build for more discussion about queued builds and
+	// tasks (and how they relate).
+	Queue bool `protobuf:"varint,11,opt,name=queue,proto3" json:"queue,omitempty"`
+	// Success is whether this task's execution succeeded.
+	Success bool `protobuf:"varint,12,opt,name=success,proto3" json:"success,omitempty"`
+	// Failure is whether this task's execution failed.
+	Failure bool `protobuf:"varint,13,opt,name=failure,proto3" json:"failure,omitempty"`
+}
+
+func (m *BuildTask) Reset()         { *m = BuildTask{} }
+func (m *BuildTask) String() string { return proto.CompactTextString(m) }
+func (*BuildTask) ProtoMessage()    {}
+
+func (m *BuildTask) GetCreatedAt() *pbtypes.Timestamp {
+	if m != nil {
+		return m.CreatedAt
+	}
+	return nil
+}
+
+func (m *BuildTask) GetStartedAt() *pbtypes.Timestamp {
+	if m != nil {
+		return m.StartedAt
+	}
+	return nil
+}
+
+func (m *BuildTask) GetEndedAt() *pbtypes.Timestamp {
+	if m != nil {
+		return m.EndedAt
+	}
+	return nil
+}
+
+type BuildTaskListOptions struct {
+	ListOptions `protobuf:"bytes,1,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *BuildTaskListOptions) Reset()         { *m = BuildTaskListOptions{} }
+func (m *BuildTaskListOptions) String() string { return proto.CompactTextString(m) }
+func (*BuildTaskListOptions) ProtoMessage()    {}
+
+// A BuildUpdate contains updated information to update on an existing build.
+type BuildUpdate struct {
+	StartedAt   *pbtypes.Timestamp `protobuf:"bytes,1,opt,name=started_at" json:"started_at,omitempty"`
+	EndedAt     *pbtypes.Timestamp `protobuf:"bytes,2,opt,name=ended_at" json:"ended_at,omitempty"`
+	HeartbeatAt *pbtypes.Timestamp `protobuf:"bytes,3,opt,name=heartbeat_at" json:"heartbeat_at,omitempty"`
+	Host        string             `protobuf:"bytes,4,opt,name=host,proto3" json:"host,omitempty"`
+	Success     bool               `protobuf:"varint,5,opt,name=success,proto3" json:"success,omitempty"`
+	Purged      bool               `protobuf:"varint,6,opt,name=purged,proto3" json:"purged,omitempty"`
+	Failure     bool               `protobuf:"varint,7,opt,name=failure,proto3" json:"failure,omitempty"`
+	Killed      bool               `protobuf:"varint,8,opt,name=killed,proto3" json:"killed,omitempty"`
+	Priority    int                `protobuf:"varint,9,opt,name=priority,proto3,customtype=int" json:"priority,omitempty"`
+}
+
+func (m *BuildUpdate) Reset()         { *m = BuildUpdate{} }
+func (m *BuildUpdate) String() string { return proto.CompactTextString(m) }
+func (*BuildUpdate) ProtoMessage()    {}
+
+func (m *BuildUpdate) GetStartedAt() *pbtypes.Timestamp {
+	if m != nil {
+		return m.StartedAt
+	}
+	return nil
+}
+
+func (m *BuildUpdate) GetEndedAt() *pbtypes.Timestamp {
+	if m != nil {
+		return m.EndedAt
+	}
+	return nil
+}
+
+func (m *BuildUpdate) GetHeartbeatAt() *pbtypes.Timestamp {
+	if m != nil {
+		return m.HeartbeatAt
+	}
+	return nil
+}
+
+// BuildsGetRepoBuildInfoOptions sets options for the Repos.GetBuild call.
+type BuildsGetRepoBuildInfoOptions struct {
+	// Exact is whether only a build whose commit ID exactly matches the revspec should
+	// be returned. (For non-full-commit ID revspecs, such as branches, tags, and
+	// partial commit IDs, this means that the build's commit ID matches the resolved
+	// revspec's commit ID.)
+	//
+	// If Exact is false, then builds for older commits that are reachable from the
+	// revspec may also be returned. For example, if there's a build for master~1 but
+	// no build for master, and your revspec is master, using Exact=false will return
+	// the build for master~1.
+	//
+	// Using Exact=true is faster as the commit and build history never needs to be
+	// searched. If the exact build is not found, or the exact build was found but it
+	// failed, LastSuccessful and LastSuccessfulCommit for RepoBuildInfo will be nil.
+	Exact bool `protobuf:"varint,1,opt,name=exact,proto3" json:"exact,omitempty" url:",omitempty"`
+}
+
+func (m *BuildsGetRepoBuildInfoOptions) Reset()         { *m = BuildsGetRepoBuildInfoOptions{} }
+func (m *BuildsGetRepoBuildInfoOptions) String() string { return proto.CompactTextString(m) }
+func (*BuildsGetRepoBuildInfoOptions) ProtoMessage()    {}
+
+type BuildsGetRepoBuildInfoOp struct {
+	Repo RepoRevSpec                    `protobuf:"bytes,1,opt,name=repo" json:"repo"`
+	Opt  *BuildsGetRepoBuildInfoOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *BuildsGetRepoBuildInfoOp) Reset()         { *m = BuildsGetRepoBuildInfoOp{} }
+func (m *BuildsGetRepoBuildInfoOp) String() string { return proto.CompactTextString(m) }
+func (*BuildsGetRepoBuildInfoOp) ProtoMessage()    {}
+
+func (m *BuildsGetRepoBuildInfoOp) GetRepo() RepoRevSpec {
+	if m != nil {
+		return m.Repo
+	}
+	return RepoRevSpec{}
+}
+
+func (m *BuildsGetRepoBuildInfoOp) GetOpt() *BuildsGetRepoBuildInfoOptions {
+	if m != nil {
+		return m.Opt
+	}
+	return nil
+}
+
+type BuildList struct {
+	Builds []*Build `protobuf:"bytes,1,rep,name=builds" json:"builds,omitempty"`
+}
+
+func (m *BuildList) Reset()         { *m = BuildList{} }
+func (m *BuildList) String() string { return proto.CompactTextString(m) }
+func (*BuildList) ProtoMessage()    {}
+
+func (m *BuildList) GetBuilds() []*Build {
+	if m != nil {
+		return m.Builds
+	}
+	return nil
+}
+
+type BuildsCreateOp struct {
+	RepoRev RepoRevSpec         `protobuf:"bytes,1,opt,name=repo_rev" json:"repo_rev"`
+	Opt     *BuildCreateOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *BuildsCreateOp) Reset()         { *m = BuildsCreateOp{} }
+func (m *BuildsCreateOp) String() string { return proto.CompactTextString(m) }
+func (*BuildsCreateOp) ProtoMessage()    {}
+
+func (m *BuildsCreateOp) GetRepoRev() RepoRevSpec {
+	if m != nil {
+		return m.RepoRev
+	}
+	return RepoRevSpec{}
+}
+
+func (m *BuildsCreateOp) GetOpt() *BuildCreateOptions {
+	if m != nil {
+		return m.Opt
+	}
+	return nil
+}
+
+type BuildsUpdateOp struct {
+	Build BuildSpec   `protobuf:"bytes,1,opt,name=build" json:"build"`
+	Info  BuildUpdate `protobuf:"bytes,2,opt,name=info" json:"info"`
+}
+
+func (m *BuildsUpdateOp) Reset()         { *m = BuildsUpdateOp{} }
+func (m *BuildsUpdateOp) String() string { return proto.CompactTextString(m) }
+func (*BuildsUpdateOp) ProtoMessage()    {}
+
+func (m *BuildsUpdateOp) GetBuild() BuildSpec {
+	if m != nil {
+		return m.Build
+	}
+	return BuildSpec{}
+}
+
+func (m *BuildsUpdateOp) GetInfo() BuildUpdate {
+	if m != nil {
+		return m.Info
+	}
+	return BuildUpdate{}
+}
+
+type BuildsListBuildTasksOp struct {
+	Build BuildSpec             `protobuf:"bytes,1,opt,name=build" json:"build"`
+	Opt   *BuildTaskListOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *BuildsListBuildTasksOp) Reset()         { *m = BuildsListBuildTasksOp{} }
+func (m *BuildsListBuildTasksOp) String() string { return proto.CompactTextString(m) }
+func (*BuildsListBuildTasksOp) ProtoMessage()    {}
+
+func (m *BuildsListBuildTasksOp) GetBuild() BuildSpec {
+	if m != nil {
+		return m.Build
+	}
+	return BuildSpec{}
+}
+
+func (m *BuildsListBuildTasksOp) GetOpt() *BuildTaskListOptions {
+	if m != nil {
+		return m.Opt
+	}
+	return nil
+}
+
+type BuildTaskList struct {
+	BuildTasks []*BuildTask `protobuf:"bytes,1,rep,name=build_tasks" json:"build_tasks,omitempty"`
+}
+
+func (m *BuildTaskList) Reset()         { *m = BuildTaskList{} }
+func (m *BuildTaskList) String() string { return proto.CompactTextString(m) }
+func (*BuildTaskList) ProtoMessage()    {}
+
+func (m *BuildTaskList) GetBuildTasks() []*BuildTask {
+	if m != nil {
+		return m.BuildTasks
+	}
+	return nil
+}
+
+type BuildsCreateTasksOp struct {
+	Build BuildSpec    `protobuf:"bytes,1,opt,name=build" json:"build"`
+	Tasks []*BuildTask `protobuf:"bytes,2,rep,name=tasks" json:"tasks,omitempty"`
+}
+
+func (m *BuildsCreateTasksOp) Reset()         { *m = BuildsCreateTasksOp{} }
+func (m *BuildsCreateTasksOp) String() string { return proto.CompactTextString(m) }
+func (*BuildsCreateTasksOp) ProtoMessage()    {}
+
+func (m *BuildsCreateTasksOp) GetBuild() BuildSpec {
+	if m != nil {
+		return m.Build
+	}
+	return BuildSpec{}
+}
+
+func (m *BuildsCreateTasksOp) GetTasks() []*BuildTask {
+	if m != nil {
+		return m.Tasks
+	}
+	return nil
+}
+
+type BuildsUpdateTaskOp struct {
+	Task TaskSpec   `protobuf:"bytes,1,opt,name=task" json:"task"`
+	Info TaskUpdate `protobuf:"bytes,2,opt,name=info" json:"info"`
+}
+
+func (m *BuildsUpdateTaskOp) Reset()         { *m = BuildsUpdateTaskOp{} }
+func (m *BuildsUpdateTaskOp) String() string { return proto.CompactTextString(m) }
+func (*BuildsUpdateTaskOp) ProtoMessage()    {}
+
+func (m *BuildsUpdateTaskOp) GetTask() TaskSpec {
+	if m != nil {
+		return m.Task
+	}
+	return TaskSpec{}
+}
+
+func (m *BuildsUpdateTaskOp) GetInfo() TaskUpdate {
+	if m != nil {
+		return m.Info
+	}
+	return TaskUpdate{}
+}
+
+type BuildsGetLogOp struct {
+	Build BuildSpec           `protobuf:"bytes,1,opt,name=build" json:"build"`
+	Opt   *BuildGetLogOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *BuildsGetLogOp) Reset()         { *m = BuildsGetLogOp{} }
+func (m *BuildsGetLogOp) String() string { return proto.CompactTextString(m) }
+func (*BuildsGetLogOp) ProtoMessage()    {}
+
+func (m *BuildsGetLogOp) GetBuild() BuildSpec {
+	if m != nil {
+		return m.Build
+	}
+	return BuildSpec{}
+}
+
+func (m *BuildsGetLogOp) GetOpt() *BuildGetLogOptions {
+	if m != nil {
+		return m.Opt
+	}
+	return nil
+}
+
+type BuildsGetTaskLogOp struct {
+	Task TaskSpec            `protobuf:"bytes,1,opt,name=task" json:"task"`
+	Opt  *BuildGetLogOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *BuildsGetTaskLogOp) Reset()         { *m = BuildsGetTaskLogOp{} }
+func (m *BuildsGetTaskLogOp) String() string { return proto.CompactTextString(m) }
+func (*BuildsGetTaskLogOp) ProtoMessage()    {}
+
+func (m *BuildsGetTaskLogOp) GetTask() TaskSpec {
+	if m != nil {
+		return m.Task
+	}
+	return TaskSpec{}
+}
+
+func (m *BuildsGetTaskLogOp) GetOpt() *BuildGetLogOptions {
+	if m != nil {
+		return m.Opt
+	}
+	return nil
+}
+
+type BuildsDequeueNextOp struct {
+}
+
+func (m *BuildsDequeueNextOp) Reset()         { *m = BuildsDequeueNextOp{} }
+func (m *BuildsDequeueNextOp) String() string { return proto.CompactTextString(m) }
+func (*BuildsDequeueNextOp) ProtoMessage()    {}
+
+// EmailAddr is an email address associated with a user.
+type EmailAddr struct {
+	Email       string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Verified    bool   `protobuf:"varint,2,opt,name=verified,proto3" json:"verified,omitempty"`
+	Primary     bool   `protobuf:"varint,3,opt,name=primary,proto3" json:"primary,omitempty"`
+	Guessed     bool   `protobuf:"varint,4,opt,name=guessed,proto3" json:"guessed,omitempty"`
+	Blacklisted bool   `protobuf:"varint,5,opt,name=blacklisted,proto3" json:"blacklisted,omitempty"`
+}
+
+func (m *EmailAddr) Reset()         { *m = EmailAddr{} }
+func (m *EmailAddr) String() string { return proto.CompactTextString(m) }
+func (*EmailAddr) ProtoMessage()    {}
+
+type LogEntries struct {
+	MaxID   string   `protobuf:"bytes,1,opt,name=max_id,proto3" json:"max_id,omitempty"`
+	Entries []string `protobuf:"bytes,2,rep,name=entries" json:"entries,omitempty"`
+}
+
+func (m *LogEntries) Reset()         { *m = LogEntries{} }
+func (m *LogEntries) String() string { return proto.CompactTextString(m) }
+func (*LogEntries) ProtoMessage()    {}
+
+type Org struct {
+	User `protobuf:"bytes,1,opt,name=user,embedded=user" json:"user"`
+}
+
+func (m *Org) Reset()         { *m = Org{} }
+func (m *Org) String() string { return proto.CompactTextString(m) }
+func (*Org) ProtoMessage()    {}
+
+type OrgListMembersOptions struct {
+	ListOptions `protobuf:"bytes,1,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *OrgListMembersOptions) Reset()         { *m = OrgListMembersOptions{} }
+func (m *OrgListMembersOptions) String() string { return proto.CompactTextString(m) }
+func (*OrgListMembersOptions) ProtoMessage()    {}
+
+// OrgSpec specifies an organization. At least one of Email, Login, and UID must be
+// nonempty.
+type OrgSpec struct {
+	Org string `protobuf:"bytes,1,opt,name=org,proto3" json:"org,omitempty"`
+	UID int    `protobuf:"varint,2,opt,name=uid,proto3,customtype=int" json:"uid,omitempty"`
+}
+
+func (m *OrgSpec) Reset()         { *m = OrgSpec{} }
+func (m *OrgSpec) String() string { return proto.CompactTextString(m) }
+func (*OrgSpec) ProtoMessage()    {}
+
+type OrgsListMembersOp struct {
+	Org OrgSpec                `protobuf:"bytes,1,opt,name=org" json:"org"`
+	Opt *OrgListMembersOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *OrgsListMembersOp) Reset()         { *m = OrgsListMembersOp{} }
+func (m *OrgsListMembersOp) String() string { return proto.CompactTextString(m) }
+func (*OrgsListMembersOp) ProtoMessage()    {}
+
+func (m *OrgsListMembersOp) GetOrg() OrgSpec {
+	if m != nil {
+		return m.Org
+	}
+	return OrgSpec{}
+}
+
+func (m *OrgsListMembersOp) GetOpt() *OrgListMembersOptions {
+	if m != nil {
+		return m.Opt
+	}
+	return nil
+}
+
+type UserList struct {
+	Users []*User `protobuf:"bytes,1,rep,name=users" json:"users,omitempty"`
+}
+
+func (m *UserList) Reset()         { *m = UserList{} }
+func (m *UserList) String() string { return proto.CompactTextString(m) }
+func (*UserList) ProtoMessage()    {}
+
+func (m *UserList) GetUsers() []*User {
+	if m != nil {
+		return m.Users
+	}
+	return nil
+}
+
+// A Person represents either a registered user or a committer to a repository
+// (typically when their commit email can't be resolved to a user).
+type Person struct {
+	// PersonSpec is an identifier for the person. If the person was resolved to a
+	// user, then both Login and UID are set. Otherwise only Email is set, and it may
+	// be obfuscated (to protect privacy).
+	PersonSpec `protobuf:"bytes,1,opt,name=person_spec,embedded=person_spec" json:"person_spec"`
+	// FullName is the (possibly empty) full name of the person.
+	FullName string `protobuf:"bytes,2,opt,name=full_name,proto3" json:"full_name,omitempty"`
+	// AvatarURL is the URL to the user's avatar image.
+	AvatarURL string `protobuf:"bytes,3,opt,name=avatar_url,proto3" json:"avatar_url,omitempty"`
+}
+
+func (m *Person) Reset()         { *m = Person{} }
+func (m *Person) String() string { return proto.CompactTextString(m) }
+func (*Person) ProtoMessage()    {}
+
+// PersonSpec specifies a person. At least one of Email, Login, and UID must be
+// nonempty.
+type PersonSpec struct {
+	// Email is a person's email address. It may be obfuscated (to protect privacy).
+	Email string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	// Login is a user's login.
+	Login string `protobuf:"bytes,2,opt,name=login,proto3" json:"login,omitempty"`
+	// UID is a user's UID.
+	UID int `protobuf:"varint,3,opt,name=uid,proto3,customtype=int" json:"uid,omitempty"`
+}
+
+func (m *PersonSpec) Reset()         { *m = PersonSpec{} }
+func (m *PersonSpec) String() string { return proto.CompactTextString(m) }
+func (*PersonSpec) ProtoMessage()    {}
+
+// RepoBuildInfo holds a repository build (if one exists for the originally
+// specified revspec) and additional information. It is returned by
+// Repos.GetRepoBuildInfo.
+type RepoBuildInfo struct {
+	Exact                *Build      `protobuf:"bytes,1,opt,name=exact" json:"exact,omitempty"`
+	LastSuccessful       *Build      `protobuf:"bytes,2,opt,name=last_successful" json:"last_successful,omitempty"`
+	CommitsBehind        int         `protobuf:"varint,3,opt,name=commits_behind,proto3,customtype=int" json:"commits_behind,omitempty"`
+	LastSuccessfulCommit *vcs.Commit `protobuf:"bytes,4,opt,name=last_successful_commit" json:"last_successful_commit,omitempty"`
+}
+
+func (m *RepoBuildInfo) Reset()         { *m = RepoBuildInfo{} }
+func (m *RepoBuildInfo) String() string { return proto.CompactTextString(m) }
+func (*RepoBuildInfo) ProtoMessage()    {}
+
+func (m *RepoBuildInfo) GetExact() *Build {
+	if m != nil {
+		return m.Exact
+	}
+	return nil
+}
+
+func (m *RepoBuildInfo) GetLastSuccessful() *Build {
+	if m != nil {
+		return m.LastSuccessful
+	}
+	return nil
+}
+
+func (m *RepoBuildInfo) GetLastSuccessfulCommit() *vcs.Commit {
+	if m != nil {
+		return m.LastSuccessfulCommit
+	}
+	return nil
+}
+
+type TaskSpec struct {
+	BuildSpec `protobuf:"bytes,1,opt,name=build_spec,embedded=build_spec" json:"build_spec"`
+	TaskID    int64 `protobuf:"varint,2,opt,name=task_id,proto3" json:"task_id,omitempty"`
+}
+
+func (m *TaskSpec) Reset()         { *m = TaskSpec{} }
+func (m *TaskSpec) String() string { return proto.CompactTextString(m) }
+func (*TaskSpec) ProtoMessage()    {}
+
+// A TaskUpdate contains updated information to update on an existing task.
+type TaskUpdate struct {
+	StartedAt *pbtypes.Timestamp `protobuf:"bytes,1,opt,name=started_at" json:"started_at,omitempty"`
+	EndedAt   *pbtypes.Timestamp `protobuf:"bytes,2,opt,name=ended_at" json:"ended_at,omitempty"`
+	Success   bool               `protobuf:"varint,3,opt,name=success,proto3" json:"success,omitempty"`
+	Failure   bool               `protobuf:"varint,4,opt,name=failure,proto3" json:"failure,omitempty"`
+}
+
+func (m *TaskUpdate) Reset()         { *m = TaskUpdate{} }
+func (m *TaskUpdate) String() string { return proto.CompactTextString(m) }
+func (*TaskUpdate) ProtoMessage()    {}
+
+func (m *TaskUpdate) GetStartedAt() *pbtypes.Timestamp {
+	if m != nil {
+		return m.StartedAt
+	}
+	return nil
+}
+
+func (m *TaskUpdate) GetEndedAt() *pbtypes.Timestamp {
+	if m != nil {
+		return m.EndedAt
+	}
+	return nil
+}
+
+// User represents a registered user.
+type User struct {
+	// UID is the numeric primary key for a user.
+	UID int `protobuf:"varint,1,opt,name=uid,proto3,customtype=int" json:"uid,omitempty"`
+	// GitHubID is the numeric ID of the GitHub user account corresponding to this
+	// user.
+	GitHubID int `protobuf:"varint,2,opt,name=github_id,proto3,customtype=int" json:"github_id,omitempty"`
+	// Login is the user's username, which typically corresponds to the user's GitHub
+	// login.
+	Login string `protobuf:"bytes,3,opt,name=login,proto3" json:"login,omitempty"`
+	// Name is the (possibly empty) full name of the user.
+	Name string `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	// Type is either "User" or "Organization".
+	Type string `protobuf:"bytes,5,opt,name=type,proto3" json:"type,omitempty"`
+	// AvatarURL is the URL to an avatar image specified by the user.
+	AvatarURL string `protobuf:"bytes,6,opt,name=avatar_url,proto3" json:"avatar_url,omitempty"`
+	// Location is the user's physical location (from their GitHub profile).
+	Location string `protobuf:"bytes,7,opt,name=location,proto3" json:"location,omitempty"`
+	// Company is the user's company (from their GitHub profile).
+	Company string `protobuf:"bytes,8,opt,name=company,proto3" json:"company,omitempty"`
+	// HomepageURL is the user's homepage or blog URL (from their GitHub profile).
+	HomepageURL string `protobuf:"bytes,9,opt,name=homepage_url,proto3" json:"homepage_url,omitempty"`
+	// UserProfileDisabled is whether the user profile should not be displayed on the
+	// Web app.
+	UserProfileDisabled bool `protobuf:"varint,10,opt,name=user_profile_disabled,proto3" json:"user_profile_disabled,omitempty"`
+	// RegisteredAt is the date that the user registered. If the user has not
+	// registered (i.e., we have processed their repos but they haven't signed into
+	// Sourcegraph), it is null.
+	RegisteredAt *pbtypes.Timestamp `protobuf:"bytes,11,opt,name=registered_at" json:"registered_at,omitempty"`
+}
+
+func (m *User) Reset()         { *m = User{} }
+func (m *User) String() string { return proto.CompactTextString(m) }
+func (*User) ProtoMessage()    {}
+
+func (m *User) GetRegisteredAt() *pbtypes.Timestamp {
+	if m != nil {
+		return m.RegisteredAt
+	}
+	return nil
+}
+
+type UserGetOptions struct {
+}
+
+func (m *UserGetOptions) Reset()         { *m = UserGetOptions{} }
+func (m *UserGetOptions) String() string { return proto.CompactTextString(m) }
+func (*UserGetOptions) ProtoMessage()    {}
+
+// UserSpec specifies a user. At least one of Login, and UID must be nonempty.
+type UserSpec struct {
+	// Login is a user's login.
+	Login string `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
+	// UID is a user's UID.
+	UID int `protobuf:"varint,2,opt,name=uid,proto3,customtype=int" json:"uid,omitempty"`
+}
+
+func (m *UserSpec) Reset()         { *m = UserSpec{} }
+func (m *UserSpec) String() string { return proto.CompactTextString(m) }
+func (*UserSpec) ProtoMessage()    {}
+
+// UsersListOptions specifies options for the UsersService.List method.
+type UsersListOptions struct {
+	// Query filters the results to only those whose logins match. The search algorithm
+	// is an implementation detail (currently it is a prefix match).
+	Query       string `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty" url:",omitempty"`
+	Sort        string `protobuf:"bytes,2,opt,name=sort,proto3" json:"sort,omitempty" url:",omitempty"`
+	Direction   string `protobuf:"bytes,3,opt,name=direction,proto3" json:"direction,omitempty" url:",omitempty"`
+	ListOptions `protobuf:"bytes,4,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *UsersListOptions) Reset()         { *m = UsersListOptions{} }
+func (m *UsersListOptions) String() string { return proto.CompactTextString(m) }
+func (*UsersListOptions) ProtoMessage()    {}
+
+type UsersListOrgsOptions struct {
+	ListOptions `protobuf:"bytes,1,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *UsersListOrgsOptions) Reset()         { *m = UsersListOrgsOptions{} }
+func (m *UsersListOrgsOptions) String() string { return proto.CompactTextString(m) }
+func (*UsersListOrgsOptions) ProtoMessage()    {}
+
+type EmailAddrList struct {
+	EmailAddrs []*EmailAddr `protobuf:"bytes,1,rep,name=email_addrs" json:"email_addrs,omitempty"`
+}
+
+func (m *EmailAddrList) Reset()         { *m = EmailAddrList{} }
+func (m *EmailAddrList) String() string { return proto.CompactTextString(m) }
+func (*EmailAddrList) ProtoMessage()    {}
+
+func (m *EmailAddrList) GetEmailAddrs() []*EmailAddr {
+	if m != nil {
+		return m.EmailAddrs
+	}
+	return nil
+}
+
+type UsersListOrgsOp struct {
+	Member UserSpec              `protobuf:"bytes,1,opt,name=member" json:"member"`
+	Opt    *UsersListOrgsOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *UsersListOrgsOp) Reset()         { *m = UsersListOrgsOp{} }
+func (m *UsersListOrgsOp) String() string { return proto.CompactTextString(m) }
+func (*UsersListOrgsOp) ProtoMessage()    {}
+
+func (m *UsersListOrgsOp) GetMember() UserSpec {
+	if m != nil {
+		return m.Member
+	}
+	return UserSpec{}
+}
+
+func (m *UsersListOrgsOp) GetOpt() *UsersListOrgsOptions {
+	if m != nil {
+		return m.Opt
+	}
+	return nil
+}
+
+type OrgList struct {
+	Orgs []*Org `protobuf:"bytes,1,rep,name=orgs" json:"orgs,omitempty"`
+}
+
+func (m *OrgList) Reset()         { *m = OrgList{} }
+func (m *OrgList) String() string { return proto.CompactTextString(m) }
+func (*OrgList) ProtoMessage()    {}
+
+func (m *OrgList) GetOrgs() []*Org {
+	if m != nil {
+		return m.Orgs
 	}
 	return nil
 }
@@ -1146,6 +2055,678 @@ var _MirrorRepos_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RefreshVCS",
 			Handler:    _MirrorRepos_RefreshVCS_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for Builds service
+
+type BuildsClient interface {
+	// Get fetches a build.
+	Get(ctx context.Context, in *BuildSpec, opts ...grpc.CallOption) (*Build, error)
+	// GetRepoBuildInfo gets the best-match build for a specific repo revspec. It
+	// returns additional information about the build, such as whether it is exactly
+	// up-to-date with the revspec or a few commits behind the revspec. The opt param
+	// controls what is returned in this case.
+	GetRepoBuildInfo(ctx context.Context, in *BuildsGetRepoBuildInfoOp, opts ...grpc.CallOption) (*RepoBuildInfo, error)
+	// List builds.
+	List(ctx context.Context, in *BuildListOptions, opts ...grpc.CallOption) (*BuildList, error)
+	// Create a new build. The build will run asynchronously (Create does not wait for
+	// it to return. To monitor the build's status, use Get.)
+	Create(ctx context.Context, in *BuildsCreateOp, opts ...grpc.CallOption) (*Build, error)
+	// Update updates information about a build and returns the build after the update
+	// has been applied.
+	Update(ctx context.Context, in *BuildsUpdateOp, opts ...grpc.CallOption) (*Build, error)
+	// ListBuildTasks lists the tasks associated with a build.
+	ListBuildTasks(ctx context.Context, in *BuildsListBuildTasksOp, opts ...grpc.CallOption) (*BuildTaskList, error)
+	// CreateTasks creates tasks associated with a build and returns them with their
+	// TID fields set.
+	CreateTasks(ctx context.Context, in *BuildsCreateTasksOp, opts ...grpc.CallOption) (*BuildTaskList, error)
+	// UpdateTask updates a task associated with a build.
+	UpdateTask(ctx context.Context, in *BuildsUpdateTaskOp, opts ...grpc.CallOption) (*BuildTask, error)
+	// GetLog gets log entries associated with a build.
+	GetLog(ctx context.Context, in *BuildsGetLogOp, opts ...grpc.CallOption) (*LogEntries, error)
+	// GetTaskLog gets log entries associated with a task.
+	GetTaskLog(ctx context.Context, in *BuildsGetTaskLogOp, opts ...grpc.CallOption) (*LogEntries, error)
+	// DequeueNext returns the next queued build and marks it as having started
+	// (atomically). It is not considered an error if there are no builds in the queue;
+	// in that case, a nil build and error are returned.
+	//
+	// The HTTP response may contain tickets that grant the necessary permissions to
+	// build and upload build data for the build's repository. Call
+	// auth.SignedTicketStrings on the response's HTTP response field to obtain the
+	// tickets.
+	DequeueNext(ctx context.Context, in *BuildsDequeueNextOp, opts ...grpc.CallOption) (*Build, error)
+}
+
+type buildsClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewBuildsClient(cc *grpc.ClientConn) BuildsClient {
+	return &buildsClient{cc}
+}
+
+func (c *buildsClient) Get(ctx context.Context, in *BuildSpec, opts ...grpc.CallOption) (*Build, error) {
+	out := new(Build)
+	err := grpc.Invoke(ctx, "/sourcegraph.Builds/Get", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *buildsClient) GetRepoBuildInfo(ctx context.Context, in *BuildsGetRepoBuildInfoOp, opts ...grpc.CallOption) (*RepoBuildInfo, error) {
+	out := new(RepoBuildInfo)
+	err := grpc.Invoke(ctx, "/sourcegraph.Builds/GetRepoBuildInfo", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *buildsClient) List(ctx context.Context, in *BuildListOptions, opts ...grpc.CallOption) (*BuildList, error) {
+	out := new(BuildList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Builds/List", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *buildsClient) Create(ctx context.Context, in *BuildsCreateOp, opts ...grpc.CallOption) (*Build, error) {
+	out := new(Build)
+	err := grpc.Invoke(ctx, "/sourcegraph.Builds/Create", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *buildsClient) Update(ctx context.Context, in *BuildsUpdateOp, opts ...grpc.CallOption) (*Build, error) {
+	out := new(Build)
+	err := grpc.Invoke(ctx, "/sourcegraph.Builds/Update", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *buildsClient) ListBuildTasks(ctx context.Context, in *BuildsListBuildTasksOp, opts ...grpc.CallOption) (*BuildTaskList, error) {
+	out := new(BuildTaskList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Builds/ListBuildTasks", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *buildsClient) CreateTasks(ctx context.Context, in *BuildsCreateTasksOp, opts ...grpc.CallOption) (*BuildTaskList, error) {
+	out := new(BuildTaskList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Builds/CreateTasks", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *buildsClient) UpdateTask(ctx context.Context, in *BuildsUpdateTaskOp, opts ...grpc.CallOption) (*BuildTask, error) {
+	out := new(BuildTask)
+	err := grpc.Invoke(ctx, "/sourcegraph.Builds/UpdateTask", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *buildsClient) GetLog(ctx context.Context, in *BuildsGetLogOp, opts ...grpc.CallOption) (*LogEntries, error) {
+	out := new(LogEntries)
+	err := grpc.Invoke(ctx, "/sourcegraph.Builds/GetLog", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *buildsClient) GetTaskLog(ctx context.Context, in *BuildsGetTaskLogOp, opts ...grpc.CallOption) (*LogEntries, error) {
+	out := new(LogEntries)
+	err := grpc.Invoke(ctx, "/sourcegraph.Builds/GetTaskLog", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *buildsClient) DequeueNext(ctx context.Context, in *BuildsDequeueNextOp, opts ...grpc.CallOption) (*Build, error) {
+	out := new(Build)
+	err := grpc.Invoke(ctx, "/sourcegraph.Builds/DequeueNext", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for Builds service
+
+type BuildsServer interface {
+	// Get fetches a build.
+	Get(context.Context, *BuildSpec) (*Build, error)
+	// GetRepoBuildInfo gets the best-match build for a specific repo revspec. It
+	// returns additional information about the build, such as whether it is exactly
+	// up-to-date with the revspec or a few commits behind the revspec. The opt param
+	// controls what is returned in this case.
+	GetRepoBuildInfo(context.Context, *BuildsGetRepoBuildInfoOp) (*RepoBuildInfo, error)
+	// List builds.
+	List(context.Context, *BuildListOptions) (*BuildList, error)
+	// Create a new build. The build will run asynchronously (Create does not wait for
+	// it to return. To monitor the build's status, use Get.)
+	Create(context.Context, *BuildsCreateOp) (*Build, error)
+	// Update updates information about a build and returns the build after the update
+	// has been applied.
+	Update(context.Context, *BuildsUpdateOp) (*Build, error)
+	// ListBuildTasks lists the tasks associated with a build.
+	ListBuildTasks(context.Context, *BuildsListBuildTasksOp) (*BuildTaskList, error)
+	// CreateTasks creates tasks associated with a build and returns them with their
+	// TID fields set.
+	CreateTasks(context.Context, *BuildsCreateTasksOp) (*BuildTaskList, error)
+	// UpdateTask updates a task associated with a build.
+	UpdateTask(context.Context, *BuildsUpdateTaskOp) (*BuildTask, error)
+	// GetLog gets log entries associated with a build.
+	GetLog(context.Context, *BuildsGetLogOp) (*LogEntries, error)
+	// GetTaskLog gets log entries associated with a task.
+	GetTaskLog(context.Context, *BuildsGetTaskLogOp) (*LogEntries, error)
+	// DequeueNext returns the next queued build and marks it as having started
+	// (atomically). It is not considered an error if there are no builds in the queue;
+	// in that case, a nil build and error are returned.
+	//
+	// The HTTP response may contain tickets that grant the necessary permissions to
+	// build and upload build data for the build's repository. Call
+	// auth.SignedTicketStrings on the response's HTTP response field to obtain the
+	// tickets.
+	DequeueNext(context.Context, *BuildsDequeueNextOp) (*Build, error)
+}
+
+func RegisterBuildsServer(s *grpc.Server, srv BuildsServer) {
+	s.RegisterService(&_Builds_serviceDesc, srv)
+}
+
+func _Builds_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(BuildSpec)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(BuildsServer).Get(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Builds_GetRepoBuildInfo_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(BuildsGetRepoBuildInfoOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(BuildsServer).GetRepoBuildInfo(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Builds_List_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(BuildListOptions)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(BuildsServer).List(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Builds_Create_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(BuildsCreateOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(BuildsServer).Create(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Builds_Update_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(BuildsUpdateOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(BuildsServer).Update(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Builds_ListBuildTasks_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(BuildsListBuildTasksOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(BuildsServer).ListBuildTasks(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Builds_CreateTasks_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(BuildsCreateTasksOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(BuildsServer).CreateTasks(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Builds_UpdateTask_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(BuildsUpdateTaskOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(BuildsServer).UpdateTask(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Builds_GetLog_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(BuildsGetLogOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(BuildsServer).GetLog(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Builds_GetTaskLog_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(BuildsGetTaskLogOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(BuildsServer).GetTaskLog(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Builds_DequeueNext_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(BuildsDequeueNextOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(BuildsServer).DequeueNext(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _Builds_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.Builds",
+	HandlerType: (*BuildsServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Get",
+			Handler:    _Builds_Get_Handler,
+		},
+		{
+			MethodName: "GetRepoBuildInfo",
+			Handler:    _Builds_GetRepoBuildInfo_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _Builds_List_Handler,
+		},
+		{
+			MethodName: "Create",
+			Handler:    _Builds_Create_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _Builds_Update_Handler,
+		},
+		{
+			MethodName: "ListBuildTasks",
+			Handler:    _Builds_ListBuildTasks_Handler,
+		},
+		{
+			MethodName: "CreateTasks",
+			Handler:    _Builds_CreateTasks_Handler,
+		},
+		{
+			MethodName: "UpdateTask",
+			Handler:    _Builds_UpdateTask_Handler,
+		},
+		{
+			MethodName: "GetLog",
+			Handler:    _Builds_GetLog_Handler,
+		},
+		{
+			MethodName: "GetTaskLog",
+			Handler:    _Builds_GetTaskLog_Handler,
+		},
+		{
+			MethodName: "DequeueNext",
+			Handler:    _Builds_DequeueNext_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for Orgs service
+
+type OrgsClient interface {
+	// Get fetches an organization.
+	Get(ctx context.Context, in *OrgSpec, opts ...grpc.CallOption) (*Org, error)
+	// ListMembers lists members of an organization.
+	ListMembers(ctx context.Context, in *OrgsListMembersOp, opts ...grpc.CallOption) (*UserList, error)
+}
+
+type orgsClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewOrgsClient(cc *grpc.ClientConn) OrgsClient {
+	return &orgsClient{cc}
+}
+
+func (c *orgsClient) Get(ctx context.Context, in *OrgSpec, opts ...grpc.CallOption) (*Org, error) {
+	out := new(Org)
+	err := grpc.Invoke(ctx, "/sourcegraph.Orgs/Get", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orgsClient) ListMembers(ctx context.Context, in *OrgsListMembersOp, opts ...grpc.CallOption) (*UserList, error) {
+	out := new(UserList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Orgs/ListMembers", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for Orgs service
+
+type OrgsServer interface {
+	// Get fetches an organization.
+	Get(context.Context, *OrgSpec) (*Org, error)
+	// ListMembers lists members of an organization.
+	ListMembers(context.Context, *OrgsListMembersOp) (*UserList, error)
+}
+
+func RegisterOrgsServer(s *grpc.Server, srv OrgsServer) {
+	s.RegisterService(&_Orgs_serviceDesc, srv)
+}
+
+func _Orgs_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(OrgSpec)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(OrgsServer).Get(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Orgs_ListMembers_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(OrgsListMembersOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(OrgsServer).ListMembers(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _Orgs_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.Orgs",
+	HandlerType: (*OrgsServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Get",
+			Handler:    _Orgs_Get_Handler,
+		},
+		{
+			MethodName: "ListMembers",
+			Handler:    _Orgs_ListMembers_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for People service
+
+type PeopleClient interface {
+	// Get gets a person. If an email is provided and it resolves to a registered user,
+	// information about that user is returned. Otherwise a transient person is created
+	// and returned.
+	Get(ctx context.Context, in *PersonSpec, opts ...grpc.CallOption) (*Person, error)
+}
+
+type peopleClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewPeopleClient(cc *grpc.ClientConn) PeopleClient {
+	return &peopleClient{cc}
+}
+
+func (c *peopleClient) Get(ctx context.Context, in *PersonSpec, opts ...grpc.CallOption) (*Person, error) {
+	out := new(Person)
+	err := grpc.Invoke(ctx, "/sourcegraph.People/Get", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for People service
+
+type PeopleServer interface {
+	// Get gets a person. If an email is provided and it resolves to a registered user,
+	// information about that user is returned. Otherwise a transient person is created
+	// and returned.
+	Get(context.Context, *PersonSpec) (*Person, error)
+}
+
+func RegisterPeopleServer(s *grpc.Server, srv PeopleServer) {
+	s.RegisterService(&_People_serviceDesc, srv)
+}
+
+func _People_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(PersonSpec)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(PeopleServer).Get(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _People_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.People",
+	HandlerType: (*PeopleServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Get",
+			Handler:    _People_Get_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for Users service
+
+type UsersClient interface {
+	// Get fetches a user.
+	Get(ctx context.Context, in *UserSpec, opts ...grpc.CallOption) (*User, error)
+	// ListEmails returns a list of a user's email addresses.
+	ListEmails(ctx context.Context, in *UserSpec, opts ...grpc.CallOption) (*EmailAddrList, error)
+	// List users.
+	List(ctx context.Context, in *UsersListOptions, opts ...grpc.CallOption) (*UserList, error)
+	// ListOrgs lists organizations that a user is a member of.
+	ListOrgs(ctx context.Context, in *UsersListOrgsOp, opts ...grpc.CallOption) (*OrgList, error)
+}
+
+type usersClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewUsersClient(cc *grpc.ClientConn) UsersClient {
+	return &usersClient{cc}
+}
+
+func (c *usersClient) Get(ctx context.Context, in *UserSpec, opts ...grpc.CallOption) (*User, error) {
+	out := new(User)
+	err := grpc.Invoke(ctx, "/sourcegraph.Users/Get", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) ListEmails(ctx context.Context, in *UserSpec, opts ...grpc.CallOption) (*EmailAddrList, error) {
+	out := new(EmailAddrList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Users/ListEmails", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) List(ctx context.Context, in *UsersListOptions, opts ...grpc.CallOption) (*UserList, error) {
+	out := new(UserList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Users/List", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) ListOrgs(ctx context.Context, in *UsersListOrgsOp, opts ...grpc.CallOption) (*OrgList, error) {
+	out := new(OrgList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Users/ListOrgs", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for Users service
+
+type UsersServer interface {
+	// Get fetches a user.
+	Get(context.Context, *UserSpec) (*User, error)
+	// ListEmails returns a list of a user's email addresses.
+	ListEmails(context.Context, *UserSpec) (*EmailAddrList, error)
+	// List users.
+	List(context.Context, *UsersListOptions) (*UserList, error)
+	// ListOrgs lists organizations that a user is a member of.
+	ListOrgs(context.Context, *UsersListOrgsOp) (*OrgList, error)
+}
+
+func RegisterUsersServer(s *grpc.Server, srv UsersServer) {
+	s.RegisterService(&_Users_serviceDesc, srv)
+}
+
+func _Users_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(UserSpec)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(UsersServer).Get(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Users_ListEmails_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(UserSpec)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(UsersServer).ListEmails(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Users_List_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(UsersListOptions)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(UsersServer).List(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Users_ListOrgs_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(UsersListOrgsOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(UsersServer).ListOrgs(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _Users_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.Users",
+	HandlerType: (*UsersServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Get",
+			Handler:    _Users_Get_Handler,
+		},
+		{
+			MethodName: "ListEmails",
+			Handler:    _Users_ListEmails_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _Users_List_Handler,
+		},
+		{
+			MethodName: "ListOrgs",
+			Handler:    _Users_ListOrgs_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
