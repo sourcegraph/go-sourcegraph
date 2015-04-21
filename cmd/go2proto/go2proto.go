@@ -669,7 +669,7 @@ func needsExplicitName(name string) bool {
 	return generator.CamelCase(camelToSnake(name)) != name
 }
 
-const timestampTypeName = "Timestamp"
+const timestampTypeName = "pbtypes.Timestamp"
 
 // customTypeMapping is consulted by equivProtoType when it can't
 // automatically determine the correct protobuf type to use for a Go
