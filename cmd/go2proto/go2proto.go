@@ -135,8 +135,8 @@ func main() {
 }
 
 const (
-	gogoExtsProto      = "gogoproto/gogo.proto"
-	timestampProtoFile = "timestamp.proto"
+	gogoExtsProto      = "github.com/gogo/protobuf/gogoproto/gogo.proto"
+	timestampProtoFile = "sourcegraph.com/sqs/pbtypes/timestamp.proto"
 )
 
 type protoFile struct {
@@ -427,7 +427,7 @@ func (b *protoBuilder) build() {
 	skipStructType := func(x *ast.TypeSpec) bool {
 		name := x.Name.Name
 		file := filepath.Base(fset.Position(x.Pos()).Filename)
-		return !ast.IsExported(name) || strings.HasPrefix(name, "Err") || strings.HasSuffix(name, "Error") ||
+		return !ast.IsExported(name) || strings.HasPrefix(name, "Err") || /*strings.HasSuffix(name, "Error") ||*/
 			(file == "client.go" && (name == "Client" || name == "HTTPResponse")) ||
 			strings.HasPrefix(name, "Mock")
 	}
@@ -675,13 +675,21 @@ const timestampTypeName = "pbtypes.Timestamp"
 // automatically determine the correct protobuf type to use for a Go
 // type expr.
 var customTypeMapping = map[string]protoFieldType{
-	"time.Time":          protoFieldType{typeName: timestampTypeName, nonNullable: true, origin: timestampProtoFile},
-	"db_common.NullTime": protoFieldType{typeName: timestampTypeName, optional: true, origin: timestampProtoFile},
-	"template.HTML":      protoFieldType{typeName: "string", customType: "template.HTML"},
-	"graph.Def":          protoFieldType{typeName: "graph.Def", origin: "../../srclib/graph/def.proto"},
-	"graph.DefKey":       protoFieldType{typeName: "graph.DefKey", origin: "../../srclib/graph/def.proto"},
-	"graph.Ref":          protoFieldType{typeName: "graph.Ref", origin: "../../srclib/graph/ref.proto"},
-	"vcs.Commit":         protoFieldType{typeName: "vcs.Commit", origin: "vcs.proto"},
+	"time.Time":                protoFieldType{typeName: timestampTypeName, nonNullable: true, origin: timestampProtoFile},
+	"db_common.NullTime":       protoFieldType{typeName: timestampTypeName, optional: true, origin: timestampProtoFile},
+	"template.HTML":            protoFieldType{typeName: "string", customType: "template.HTML"},
+	"graph.Def":                protoFieldType{typeName: "graph.Def", origin: "sourcegraph.com/sourcegraph/srclib/graph/def.proto"},
+	"graph.DefKey":             protoFieldType{typeName: "graph.DefKey", origin: "sourcegraph.com/sourcegraph//srclib/graph/def.proto"},
+	"graph.Ref":                protoFieldType{typeName: "graph.Ref", origin: "sourcegraph.com/sourcegraph/srclib/graph/ref.proto"},
+	"unit.RepoSourceUnit":      protoFieldType{typeName: "unit.RepoSourceUnit", origin: "sourcegraph.com/sourcegraph/srclib/unit/unit.proto"},
+	"vcs.Commit":               protoFieldType{typeName: "vcs.Commit", origin: "sourcegraph.com/sourcegraph/go-vcs/vcs.proto"},
+	"vcs.SearchResult":         protoFieldType{typeName: "vcs.SearchResult", origin: "sourcegraph.com/sourcegraph/go-vcs/vcs.proto"},
+	"vcs.SearchOptions":        protoFieldType{typeName: "vcs.SearchOptions", origin: "sourcegraph.com/sourcegraph/go-vcs/vcs.proto"},
+	"vcsclient.FileRange":      protoFieldType{typeName: "vcsclient.FileRange", origin: "sourcegraph.com/sourcegraph/vcsstore/vcsclient/vcsclient.proto"},
+	"vcsclient.GetFileOptions": protoFieldType{typeName: "vcsclient.GetFileOptions", origin: "sourcegraph.com/sourcegraph/vcsstore/vcsclient/vcsclient.proto"},
+	"vcsclient.TreeEntry":      protoFieldType{typeName: "vcsclient.TreeEntry", origin: "sourcegraph.com/sourcegraph/vcsstore/vcsclient/vcsclient.proto"},
+	"diff.FileDiff":            protoFieldType{typeName: "diff.FileDiff", origin: "sourcegraph.com/sourcegraph/go-diff/diff/diff.proto"},
+	"diff.Stat":                protoFieldType{typeName: "diff.Stat", origin: "sourcegraph.com/sourcegraph/go-diff/diff/diff.proto"},
 }
 
 func equivProtoType(t ast.Expr) protoFieldType {
@@ -698,7 +706,9 @@ func equivProtoType(t ast.Expr) protoFieldType {
 		case "float64":
 			return protoFieldType{typeName: "double"}
 		case "int":
-			return protoFieldType{typeName: "int32", customType: "int"}
+			return protoFieldType{typeName: "int32"}
+		case "uint":
+			return protoFieldType{typeName: "uint32"}
 		}
 	case *ast.StarExpr:
 		pt := equivProtoType(t.X)
