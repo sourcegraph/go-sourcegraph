@@ -76,15 +76,106 @@ It has these top-level messages:
 	EmailAddrList
 	UsersListOrgsOp
 	OrgList
+	AugmentedDefAuthor
+	AugmentedDefClient
+	AuthorshipInfo
+	Completions
+	Def
+	DefAuthor
+	DefAuthorship
+	DefClient
+	DefDelta
+	DefFormatStrings
+	DefGetOptions
+	DefListAuthorsOptions
+	DefListClientsOptions
+	DefListExamplesOptions
+	DefListOptions
+	DefListRefsOptions
+	DefSpec
+	DefsGetOp
+	DefList
+	DefsListRefsOp
+	RefList
+	DefsListExamplesOp
+	ExampleList
+	DefsListAuthorsOp
+	AugmentedDefAuthorList
+	DefsListClientsOp
+	AugmentedDefClientList
+	Delta
+	DeltaAffectedPerson
+	DeltaDefs
+	DeltaFiles
+	DeltaFilter
+	DeltaListAffectedAuthorsOptions
+	DeltaListAffectedClientsOptions
+	DeltaListDefsOptions
+	DeltaListFilesOptions
+	DeltaListUnitsOptions
+	DeltaSpec
+	DeltasListUnitsOp
+	UnitDeltaList
+	DeltasListDefsOp
+	DeltasListFilesOp
+	DeltasListAffectedAuthorsOp
+	DeltaAffectedPersonList
+	DeltasListAffectedClientsOp
+	Example
+	FormatResult
+	MarkdownData
+	MarkdownOpt
+	MarkdownRequestBody
+	MarkdownRenderOp
+	QualFormatStrings
+	Ref
+	RepoTreeGetOptions
+	RepoTreeSearchOptions
+	RepoTreeSearchResult
+	RepoTreeGetOp
+	RepoTreeSearchOp
+	VCSSearchResultList
+	SearchOptions
+	SearchResults
+	SuggestionList
+	SourceCode
+	SourceCodeLine
+	SourceCodeLineTokenOrString
+	SourceCodeToken
+	TreeEntry
+	TreeEntrySpec
+	UnitDelta
+	UnitListOptions
+	UnitSpec
+	RepoSourceUnitList
+	Checklist
+	FileToken
+	Plan
+	RawQuery
+	RepoToken
+	ResolvedQuery
+	RevToken
+	Suggestion
+	UnitToken
+	UserToken
+	TokenError
+	PBToken
 */
 package sourcegraph
 
 import proto "github.com/gogo/protobuf/proto"
 
-// discarding unused import gogoproto "gogoproto/gogo.pb"
+// discarding unused import gogoproto "github.com/gogo/protobuf/gogoproto/gogo.pb"
+import diff "sourcegraph.com/sourcegraph/go-diff/diff"
+import vcs "sourcegraph.com/sourcegraph/go-vcs/vcs"
+import graph "sourcegraph.com/sourcegraph/srclib/graph"
+import graph1 "sourcegraph.com/sourcegraph/srclib/graph"
+import unit "sourcegraph.com/sourcegraph/srclib/unit"
+import vcsclient "sourcegraph.com/sourcegraph/vcsstore/vcsclient"
 import pbtypes "sourcegraph.com/sqs/pbtypes"
 import pbtypes1 "sourcegraph.com/sqs/pbtypes"
-import vcs "sourcegraph.com/sourcegraph/go-vcs/vcs"
+
+import html_template "html/template"
 
 import (
 	context "golang.org/x/net/context"
@@ -125,13 +216,6 @@ type CombinedStatus struct {
 func (m *CombinedStatus) Reset()         { *m = CombinedStatus{} }
 func (m *CombinedStatus) String() string { return proto.CompactTextString(m) }
 func (*CombinedStatus) ProtoMessage()    {}
-
-func (m *CombinedStatus) GetStatuses() []*RepoStatus {
-	if m != nil {
-		return m.Statuses
-	}
-	return nil
-}
 
 type Counter struct {
 	Name              string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -223,34 +307,6 @@ func (m *Repo) Reset()         { *m = Repo{} }
 func (m *Repo) String() string { return proto.CompactTextString(m) }
 func (*Repo) ProtoMessage()    {}
 
-func (m *Repo) GetCreatedAt() pbtypes.Timestamp {
-	if m != nil {
-		return m.CreatedAt
-	}
-	return pbtypes.Timestamp{}
-}
-
-func (m *Repo) GetUpdatedAt() pbtypes.Timestamp {
-	if m != nil {
-		return m.UpdatedAt
-	}
-	return pbtypes.Timestamp{}
-}
-
-func (m *Repo) GetPushedAt() pbtypes.Timestamp {
-	if m != nil {
-		return m.PushedAt
-	}
-	return pbtypes.Timestamp{}
-}
-
-func (m *Repo) GetPermissions() *RepoPermissions {
-	if m != nil {
-		return m.Permissions
-	}
-	return nil
-}
-
 type BadgeList struct {
 	Badges []*Badge `protobuf:"bytes,1,rep,name=badges" json:"badges,omitempty"`
 }
@@ -258,13 +314,6 @@ type BadgeList struct {
 func (m *BadgeList) Reset()         { *m = BadgeList{} }
 func (m *BadgeList) String() string { return proto.CompactTextString(m) }
 func (*BadgeList) ProtoMessage()    {}
-
-func (m *BadgeList) GetBadges() []*Badge {
-	if m != nil {
-		return m.Badges
-	}
-	return nil
-}
 
 type CounterList struct {
 	Counters []*Counter `protobuf:"bytes,1,rep,name=counters" json:"counters,omitempty"`
@@ -274,13 +323,6 @@ func (m *CounterList) Reset()         { *m = CounterList{} }
 func (m *CounterList) String() string { return proto.CompactTextString(m) }
 func (*CounterList) ProtoMessage()    {}
 
-func (m *CounterList) GetCounters() []*Counter {
-	if m != nil {
-		return m.Counters
-	}
-	return nil
-}
-
 type RepoBadgesCountHitsOp struct {
 	Repo  RepoSpec           `protobuf:"bytes,1,opt,name=repo" json:"repo"`
 	Since *pbtypes.Timestamp `protobuf:"bytes,2,opt,name=since" json:"since,omitempty"`
@@ -289,20 +331,6 @@ type RepoBadgesCountHitsOp struct {
 func (m *RepoBadgesCountHitsOp) Reset()         { *m = RepoBadgesCountHitsOp{} }
 func (m *RepoBadgesCountHitsOp) String() string { return proto.CompactTextString(m) }
 func (*RepoBadgesCountHitsOp) ProtoMessage()    {}
-
-func (m *RepoBadgesCountHitsOp) GetRepo() RepoSpec {
-	if m != nil {
-		return m.Repo
-	}
-	return RepoSpec{}
-}
-
-func (m *RepoBadgesCountHitsOp) GetSince() *pbtypes.Timestamp {
-	if m != nil {
-		return m.Since
-	}
-	return nil
-}
 
 type RepoBadgesCountHitsResult struct {
 	Hits int32 `protobuf:"varint,1,opt,name=hits,proto3" json:"hits,omitempty"`
@@ -415,20 +443,6 @@ func (m *RepoStatus) Reset()         { *m = RepoStatus{} }
 func (m *RepoStatus) String() string { return proto.CompactTextString(m) }
 func (*RepoStatus) ProtoMessage()    {}
 
-func (m *RepoStatus) GetCreatedAt() pbtypes.Timestamp {
-	if m != nil {
-		return m.CreatedAt
-	}
-	return pbtypes.Timestamp{}
-}
-
-func (m *RepoStatus) GetUpdatedAt() pbtypes.Timestamp {
-	if m != nil {
-		return m.UpdatedAt
-	}
-	return pbtypes.Timestamp{}
-}
-
 type RepoStatusesCreateOp struct {
 	Repo   RepoRevSpec `protobuf:"bytes,1,opt,name=repo" json:"repo"`
 	Status RepoStatus  `protobuf:"bytes,2,opt,name=status" json:"status"`
@@ -438,20 +452,6 @@ func (m *RepoStatusesCreateOp) Reset()         { *m = RepoStatusesCreateOp{} }
 func (m *RepoStatusesCreateOp) String() string { return proto.CompactTextString(m) }
 func (*RepoStatusesCreateOp) ProtoMessage()    {}
 
-func (m *RepoStatusesCreateOp) GetRepo() RepoRevSpec {
-	if m != nil {
-		return m.Repo
-	}
-	return RepoRevSpec{}
-}
-
-func (m *RepoStatusesCreateOp) GetStatus() RepoStatus {
-	if m != nil {
-		return m.Status
-	}
-	return RepoStatus{}
-}
-
 type RepoList struct {
 	Repos []*Repo `protobuf:"bytes,1,rep,name=repos" json:"repos,omitempty"`
 }
@@ -459,13 +459,6 @@ type RepoList struct {
 func (m *RepoList) Reset()         { *m = RepoList{} }
 func (m *RepoList) String() string { return proto.CompactTextString(m) }
 func (*RepoList) ProtoMessage()    {}
-
-func (m *RepoList) GetRepos() []*Repo {
-	if m != nil {
-		return m.Repos
-	}
-	return nil
-}
 
 type ReposListCommitsOp struct {
 	Repo RepoSpec                `protobuf:"bytes,1,opt,name=repo" json:"repo"`
@@ -475,20 +468,6 @@ type ReposListCommitsOp struct {
 func (m *ReposListCommitsOp) Reset()         { *m = ReposListCommitsOp{} }
 func (m *ReposListCommitsOp) String() string { return proto.CompactTextString(m) }
 func (*ReposListCommitsOp) ProtoMessage()    {}
-
-func (m *ReposListCommitsOp) GetRepo() RepoSpec {
-	if m != nil {
-		return m.Repo
-	}
-	return RepoSpec{}
-}
-
-func (m *ReposListCommitsOp) GetOpt() *RepoListCommitsOptions {
-	if m != nil {
-		return m.Opt
-	}
-	return nil
-}
 
 type RepoListCommitsOptions struct {
 	Head        string `protobuf:"bytes,1,opt,name=head,proto3" json:"head,omitempty"`
@@ -508,13 +487,6 @@ func (m *CommitList) Reset()         { *m = CommitList{} }
 func (m *CommitList) String() string { return proto.CompactTextString(m) }
 func (*CommitList) ProtoMessage()    {}
 
-func (m *CommitList) GetCommits() []*vcs.Commit {
-	if m != nil {
-		return m.Commits
-	}
-	return nil
-}
-
 type ReposListBranchesOp struct {
 	Repo RepoSpec                 `protobuf:"bytes,1,opt,name=repo" json:"repo"`
 	Opt  *RepoListBranchesOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
@@ -523,20 +495,6 @@ type ReposListBranchesOp struct {
 func (m *ReposListBranchesOp) Reset()         { *m = ReposListBranchesOp{} }
 func (m *ReposListBranchesOp) String() string { return proto.CompactTextString(m) }
 func (*ReposListBranchesOp) ProtoMessage()    {}
-
-func (m *ReposListBranchesOp) GetRepo() RepoSpec {
-	if m != nil {
-		return m.Repo
-	}
-	return RepoSpec{}
-}
-
-func (m *ReposListBranchesOp) GetOpt() *RepoListBranchesOptions {
-	if m != nil {
-		return m.Opt
-	}
-	return nil
-}
 
 type RepoListBranchesOptions struct {
 	ListOptions `protobuf:"bytes,3,opt,name=list_options,embedded=list_options" json:"list_options"`
@@ -554,13 +512,6 @@ func (m *BranchList) Reset()         { *m = BranchList{} }
 func (m *BranchList) String() string { return proto.CompactTextString(m) }
 func (*BranchList) ProtoMessage()    {}
 
-func (m *BranchList) GetBranches() []*vcs.Branch {
-	if m != nil {
-		return m.Branches
-	}
-	return nil
-}
-
 type ReposListTagsOp struct {
 	Repo RepoSpec             `protobuf:"bytes,1,opt,name=repo" json:"repo"`
 	Opt  *RepoListTagsOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
@@ -569,20 +520,6 @@ type ReposListTagsOp struct {
 func (m *ReposListTagsOp) Reset()         { *m = ReposListTagsOp{} }
 func (m *ReposListTagsOp) String() string { return proto.CompactTextString(m) }
 func (*ReposListTagsOp) ProtoMessage()    {}
-
-func (m *ReposListTagsOp) GetRepo() RepoSpec {
-	if m != nil {
-		return m.Repo
-	}
-	return RepoSpec{}
-}
-
-func (m *ReposListTagsOp) GetOpt() *RepoListTagsOptions {
-	if m != nil {
-		return m.Opt
-	}
-	return nil
-}
 
 type RepoListTagsOptions struct {
 	ListOptions `protobuf:"bytes,3,opt,name=list_options,embedded=list_options" json:"list_options"`
@@ -599,13 +536,6 @@ type TagList struct {
 func (m *TagList) Reset()         { *m = TagList{} }
 func (m *TagList) String() string { return proto.CompactTextString(m) }
 func (*TagList) ProtoMessage()    {}
-
-func (m *TagList) GetTags() []*vcs.Tag {
-	if m != nil {
-		return m.Tags
-	}
-	return nil
-}
 
 // A Build represents a scheduled, completed, or failed repository analysis and
 // import job.
@@ -672,34 +602,6 @@ type Build struct {
 func (m *Build) Reset()         { *m = Build{} }
 func (m *Build) String() string { return proto.CompactTextString(m) }
 func (*Build) ProtoMessage()    {}
-
-func (m *Build) GetCreatedAt() pbtypes.Timestamp {
-	if m != nil {
-		return m.CreatedAt
-	}
-	return pbtypes.Timestamp{}
-}
-
-func (m *Build) GetStartedAt() *pbtypes.Timestamp {
-	if m != nil {
-		return m.StartedAt
-	}
-	return nil
-}
-
-func (m *Build) GetEndedAt() *pbtypes.Timestamp {
-	if m != nil {
-		return m.EndedAt
-	}
-	return nil
-}
-
-func (m *Build) GetHeartbeatAt() *pbtypes.Timestamp {
-	if m != nil {
-		return m.HeartbeatAt
-	}
-	return nil
-}
 
 // BuildConfig configures a repository build.
 type BuildConfig struct {
@@ -781,13 +683,6 @@ func (m *BuildSpec) Reset()         { *m = BuildSpec{} }
 func (m *BuildSpec) String() string { return proto.CompactTextString(m) }
 func (*BuildSpec) ProtoMessage()    {}
 
-func (m *BuildSpec) GetRepo() RepoSpec {
-	if m != nil {
-		return m.Repo
-	}
-	return RepoSpec{}
-}
-
 // A BuildTask represents an individual step of a build.
 //
 // See the documentation for Build for more information about how builds and tasks
@@ -840,27 +735,6 @@ func (m *BuildTask) Reset()         { *m = BuildTask{} }
 func (m *BuildTask) String() string { return proto.CompactTextString(m) }
 func (*BuildTask) ProtoMessage()    {}
 
-func (m *BuildTask) GetCreatedAt() *pbtypes.Timestamp {
-	if m != nil {
-		return m.CreatedAt
-	}
-	return nil
-}
-
-func (m *BuildTask) GetStartedAt() *pbtypes.Timestamp {
-	if m != nil {
-		return m.StartedAt
-	}
-	return nil
-}
-
-func (m *BuildTask) GetEndedAt() *pbtypes.Timestamp {
-	if m != nil {
-		return m.EndedAt
-	}
-	return nil
-}
-
 type BuildTaskListOptions struct {
 	ListOptions `protobuf:"bytes,1,opt,name=list_options,embedded=list_options" json:"list_options"`
 }
@@ -885,27 +759,6 @@ type BuildUpdate struct {
 func (m *BuildUpdate) Reset()         { *m = BuildUpdate{} }
 func (m *BuildUpdate) String() string { return proto.CompactTextString(m) }
 func (*BuildUpdate) ProtoMessage()    {}
-
-func (m *BuildUpdate) GetStartedAt() *pbtypes.Timestamp {
-	if m != nil {
-		return m.StartedAt
-	}
-	return nil
-}
-
-func (m *BuildUpdate) GetEndedAt() *pbtypes.Timestamp {
-	if m != nil {
-		return m.EndedAt
-	}
-	return nil
-}
-
-func (m *BuildUpdate) GetHeartbeatAt() *pbtypes.Timestamp {
-	if m != nil {
-		return m.HeartbeatAt
-	}
-	return nil
-}
 
 // BuildsGetRepoBuildInfoOptions sets options for the Repos.GetBuild call.
 type BuildsGetRepoBuildInfoOptions struct {
@@ -938,20 +791,6 @@ func (m *BuildsGetRepoBuildInfoOp) Reset()         { *m = BuildsGetRepoBuildInfo
 func (m *BuildsGetRepoBuildInfoOp) String() string { return proto.CompactTextString(m) }
 func (*BuildsGetRepoBuildInfoOp) ProtoMessage()    {}
 
-func (m *BuildsGetRepoBuildInfoOp) GetRepo() RepoRevSpec {
-	if m != nil {
-		return m.Repo
-	}
-	return RepoRevSpec{}
-}
-
-func (m *BuildsGetRepoBuildInfoOp) GetOpt() *BuildsGetRepoBuildInfoOptions {
-	if m != nil {
-		return m.Opt
-	}
-	return nil
-}
-
 type BuildList struct {
 	Builds []*Build `protobuf:"bytes,1,rep,name=builds" json:"builds,omitempty"`
 }
@@ -959,13 +798,6 @@ type BuildList struct {
 func (m *BuildList) Reset()         { *m = BuildList{} }
 func (m *BuildList) String() string { return proto.CompactTextString(m) }
 func (*BuildList) ProtoMessage()    {}
-
-func (m *BuildList) GetBuilds() []*Build {
-	if m != nil {
-		return m.Builds
-	}
-	return nil
-}
 
 type BuildsCreateOp struct {
 	RepoRev RepoRevSpec         `protobuf:"bytes,1,opt,name=repo_rev" json:"repo_rev"`
@@ -976,20 +808,6 @@ func (m *BuildsCreateOp) Reset()         { *m = BuildsCreateOp{} }
 func (m *BuildsCreateOp) String() string { return proto.CompactTextString(m) }
 func (*BuildsCreateOp) ProtoMessage()    {}
 
-func (m *BuildsCreateOp) GetRepoRev() RepoRevSpec {
-	if m != nil {
-		return m.RepoRev
-	}
-	return RepoRevSpec{}
-}
-
-func (m *BuildsCreateOp) GetOpt() *BuildCreateOptions {
-	if m != nil {
-		return m.Opt
-	}
-	return nil
-}
-
 type BuildsUpdateOp struct {
 	Build BuildSpec   `protobuf:"bytes,1,opt,name=build" json:"build"`
 	Info  BuildUpdate `protobuf:"bytes,2,opt,name=info" json:"info"`
@@ -998,20 +816,6 @@ type BuildsUpdateOp struct {
 func (m *BuildsUpdateOp) Reset()         { *m = BuildsUpdateOp{} }
 func (m *BuildsUpdateOp) String() string { return proto.CompactTextString(m) }
 func (*BuildsUpdateOp) ProtoMessage()    {}
-
-func (m *BuildsUpdateOp) GetBuild() BuildSpec {
-	if m != nil {
-		return m.Build
-	}
-	return BuildSpec{}
-}
-
-func (m *BuildsUpdateOp) GetInfo() BuildUpdate {
-	if m != nil {
-		return m.Info
-	}
-	return BuildUpdate{}
-}
 
 type BuildsListBuildTasksOp struct {
 	Build BuildSpec             `protobuf:"bytes,1,opt,name=build" json:"build"`
@@ -1022,20 +826,6 @@ func (m *BuildsListBuildTasksOp) Reset()         { *m = BuildsListBuildTasksOp{}
 func (m *BuildsListBuildTasksOp) String() string { return proto.CompactTextString(m) }
 func (*BuildsListBuildTasksOp) ProtoMessage()    {}
 
-func (m *BuildsListBuildTasksOp) GetBuild() BuildSpec {
-	if m != nil {
-		return m.Build
-	}
-	return BuildSpec{}
-}
-
-func (m *BuildsListBuildTasksOp) GetOpt() *BuildTaskListOptions {
-	if m != nil {
-		return m.Opt
-	}
-	return nil
-}
-
 type BuildTaskList struct {
 	BuildTasks []*BuildTask `protobuf:"bytes,1,rep,name=build_tasks" json:"build_tasks,omitempty"`
 }
@@ -1043,13 +833,6 @@ type BuildTaskList struct {
 func (m *BuildTaskList) Reset()         { *m = BuildTaskList{} }
 func (m *BuildTaskList) String() string { return proto.CompactTextString(m) }
 func (*BuildTaskList) ProtoMessage()    {}
-
-func (m *BuildTaskList) GetBuildTasks() []*BuildTask {
-	if m != nil {
-		return m.BuildTasks
-	}
-	return nil
-}
 
 type BuildsCreateTasksOp struct {
 	Build BuildSpec    `protobuf:"bytes,1,opt,name=build" json:"build"`
@@ -1060,20 +843,6 @@ func (m *BuildsCreateTasksOp) Reset()         { *m = BuildsCreateTasksOp{} }
 func (m *BuildsCreateTasksOp) String() string { return proto.CompactTextString(m) }
 func (*BuildsCreateTasksOp) ProtoMessage()    {}
 
-func (m *BuildsCreateTasksOp) GetBuild() BuildSpec {
-	if m != nil {
-		return m.Build
-	}
-	return BuildSpec{}
-}
-
-func (m *BuildsCreateTasksOp) GetTasks() []*BuildTask {
-	if m != nil {
-		return m.Tasks
-	}
-	return nil
-}
-
 type BuildsUpdateTaskOp struct {
 	Task TaskSpec   `protobuf:"bytes,1,opt,name=task" json:"task"`
 	Info TaskUpdate `protobuf:"bytes,2,opt,name=info" json:"info"`
@@ -1082,20 +851,6 @@ type BuildsUpdateTaskOp struct {
 func (m *BuildsUpdateTaskOp) Reset()         { *m = BuildsUpdateTaskOp{} }
 func (m *BuildsUpdateTaskOp) String() string { return proto.CompactTextString(m) }
 func (*BuildsUpdateTaskOp) ProtoMessage()    {}
-
-func (m *BuildsUpdateTaskOp) GetTask() TaskSpec {
-	if m != nil {
-		return m.Task
-	}
-	return TaskSpec{}
-}
-
-func (m *BuildsUpdateTaskOp) GetInfo() TaskUpdate {
-	if m != nil {
-		return m.Info
-	}
-	return TaskUpdate{}
-}
 
 type BuildsGetLogOp struct {
 	Build BuildSpec           `protobuf:"bytes,1,opt,name=build" json:"build"`
@@ -1106,20 +861,6 @@ func (m *BuildsGetLogOp) Reset()         { *m = BuildsGetLogOp{} }
 func (m *BuildsGetLogOp) String() string { return proto.CompactTextString(m) }
 func (*BuildsGetLogOp) ProtoMessage()    {}
 
-func (m *BuildsGetLogOp) GetBuild() BuildSpec {
-	if m != nil {
-		return m.Build
-	}
-	return BuildSpec{}
-}
-
-func (m *BuildsGetLogOp) GetOpt() *BuildGetLogOptions {
-	if m != nil {
-		return m.Opt
-	}
-	return nil
-}
-
 type BuildsGetTaskLogOp struct {
 	Task TaskSpec            `protobuf:"bytes,1,opt,name=task" json:"task"`
 	Opt  *BuildGetLogOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
@@ -1128,20 +869,6 @@ type BuildsGetTaskLogOp struct {
 func (m *BuildsGetTaskLogOp) Reset()         { *m = BuildsGetTaskLogOp{} }
 func (m *BuildsGetTaskLogOp) String() string { return proto.CompactTextString(m) }
 func (*BuildsGetTaskLogOp) ProtoMessage()    {}
-
-func (m *BuildsGetTaskLogOp) GetTask() TaskSpec {
-	if m != nil {
-		return m.Task
-	}
-	return TaskSpec{}
-}
-
-func (m *BuildsGetTaskLogOp) GetOpt() *BuildGetLogOptions {
-	if m != nil {
-		return m.Opt
-	}
-	return nil
-}
 
 type BuildsDequeueNextOp struct {
 }
@@ -1152,11 +879,16 @@ func (*BuildsDequeueNextOp) ProtoMessage()    {}
 
 // EmailAddr is an email address associated with a user.
 type EmailAddr struct {
-	Email       string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
-	Verified    bool   `protobuf:"varint,2,opt,name=verified,proto3" json:"verified,omitempty"`
-	Primary     bool   `protobuf:"varint,3,opt,name=primary,proto3" json:"primary,omitempty"`
-	Guessed     bool   `protobuf:"varint,4,opt,name=guessed,proto3" json:"guessed,omitempty"`
-	Blacklisted bool   `protobuf:"varint,5,opt,name=blacklisted,proto3" json:"blacklisted,omitempty"`
+	// the email address (case-insensitively compared in the DB and API)
+	Email string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	// whether this email address has been verified
+	Verified bool `protobuf:"varint,2,opt,name=verified,proto3" json:"verified,omitempty"`
+	// indicates this is the user's primary email (only 1 email can be primary per user)
+	Primary bool `protobuf:"varint,3,opt,name=primary,proto3" json:"primary,omitempty"`
+	// whether Sourcegraph inferred via public data that this is an email for the user
+	Guessed bool `protobuf:"varint,4,opt,name=guessed,proto3" json:"guessed,omitempty"`
+	// indicates that this email should not be associated with the user (even if guessed in the future)
+	Blacklisted bool `protobuf:"varint,5,opt,name=blacklisted,proto3" json:"blacklisted,omitempty"`
 }
 
 func (m *EmailAddr) Reset()         { *m = EmailAddr{} }
@@ -1208,20 +940,6 @@ func (m *OrgsListMembersOp) Reset()         { *m = OrgsListMembersOp{} }
 func (m *OrgsListMembersOp) String() string { return proto.CompactTextString(m) }
 func (*OrgsListMembersOp) ProtoMessage()    {}
 
-func (m *OrgsListMembersOp) GetOrg() OrgSpec {
-	if m != nil {
-		return m.Org
-	}
-	return OrgSpec{}
-}
-
-func (m *OrgsListMembersOp) GetOpt() *OrgListMembersOptions {
-	if m != nil {
-		return m.Opt
-	}
-	return nil
-}
-
 type UserList struct {
 	Users []*User `protobuf:"bytes,1,rep,name=users" json:"users,omitempty"`
 }
@@ -1229,13 +947,6 @@ type UserList struct {
 func (m *UserList) Reset()         { *m = UserList{} }
 func (m *UserList) String() string { return proto.CompactTextString(m) }
 func (*UserList) ProtoMessage()    {}
-
-func (m *UserList) GetUsers() []*User {
-	if m != nil {
-		return m.Users
-	}
-	return nil
-}
 
 // A Person represents either a registered user or a committer to a repository
 // (typically when their commit email can't be resolved to a user).
@@ -1283,27 +994,6 @@ func (m *RepoBuildInfo) Reset()         { *m = RepoBuildInfo{} }
 func (m *RepoBuildInfo) String() string { return proto.CompactTextString(m) }
 func (*RepoBuildInfo) ProtoMessage()    {}
 
-func (m *RepoBuildInfo) GetExact() *Build {
-	if m != nil {
-		return m.Exact
-	}
-	return nil
-}
-
-func (m *RepoBuildInfo) GetLastSuccessful() *Build {
-	if m != nil {
-		return m.LastSuccessful
-	}
-	return nil
-}
-
-func (m *RepoBuildInfo) GetLastSuccessfulCommit() *vcs.Commit {
-	if m != nil {
-		return m.LastSuccessfulCommit
-	}
-	return nil
-}
-
 type TaskSpec struct {
 	BuildSpec `protobuf:"bytes,1,opt,name=build_spec,embedded=build_spec" json:"build_spec"`
 	TaskID    int64 `protobuf:"varint,2,opt,name=task_id,proto3" json:"task_id,omitempty"`
@@ -1324,20 +1014,6 @@ type TaskUpdate struct {
 func (m *TaskUpdate) Reset()         { *m = TaskUpdate{} }
 func (m *TaskUpdate) String() string { return proto.CompactTextString(m) }
 func (*TaskUpdate) ProtoMessage()    {}
-
-func (m *TaskUpdate) GetStartedAt() *pbtypes.Timestamp {
-	if m != nil {
-		return m.StartedAt
-	}
-	return nil
-}
-
-func (m *TaskUpdate) GetEndedAt() *pbtypes.Timestamp {
-	if m != nil {
-		return m.EndedAt
-	}
-	return nil
-}
 
 // User represents a registered user.
 type User struct {
@@ -1373,13 +1049,6 @@ type User struct {
 func (m *User) Reset()         { *m = User{} }
 func (m *User) String() string { return proto.CompactTextString(m) }
 func (*User) ProtoMessage()    {}
-
-func (m *User) GetRegisteredAt() *pbtypes.Timestamp {
-	if m != nil {
-		return m.RegisteredAt
-	}
-	return nil
-}
 
 type UserGetOptions struct {
 }
@@ -1430,13 +1099,6 @@ func (m *EmailAddrList) Reset()         { *m = EmailAddrList{} }
 func (m *EmailAddrList) String() string { return proto.CompactTextString(m) }
 func (*EmailAddrList) ProtoMessage()    {}
 
-func (m *EmailAddrList) GetEmailAddrs() []*EmailAddr {
-	if m != nil {
-		return m.EmailAddrs
-	}
-	return nil
-}
-
 type UsersListOrgsOp struct {
 	Member UserSpec              `protobuf:"bytes,1,opt,name=member" json:"member"`
 	Opt    *UsersListOrgsOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
@@ -1446,20 +1108,6 @@ func (m *UsersListOrgsOp) Reset()         { *m = UsersListOrgsOp{} }
 func (m *UsersListOrgsOp) String() string { return proto.CompactTextString(m) }
 func (*UsersListOrgsOp) ProtoMessage()    {}
 
-func (m *UsersListOrgsOp) GetMember() UserSpec {
-	if m != nil {
-		return m.Member
-	}
-	return UserSpec{}
-}
-
-func (m *UsersListOrgsOp) GetOpt() *UsersListOrgsOptions {
-	if m != nil {
-		return m.Opt
-	}
-	return nil
-}
-
 type OrgList struct {
 	Orgs []*Org `protobuf:"bytes,1,rep,name=orgs" json:"orgs,omitempty"`
 }
@@ -1468,12 +1116,1047 @@ func (m *OrgList) Reset()         { *m = OrgList{} }
 func (m *OrgList) String() string { return proto.CompactTextString(m) }
 func (*OrgList) ProtoMessage()    {}
 
-func (m *OrgList) GetOrgs() []*Org {
-	if m != nil {
-		return m.Orgs
-	}
-	return nil
+type AugmentedDefAuthor struct {
+	Person     *Person `protobuf:"bytes,1,opt,name=person" json:"person,omitempty"`
+	*DefAuthor `protobuf:"bytes,2,opt,name=def_author,embedded=def_author" json:"def_author,omitempty"`
 }
+
+func (m *AugmentedDefAuthor) Reset()         { *m = AugmentedDefAuthor{} }
+func (m *AugmentedDefAuthor) String() string { return proto.CompactTextString(m) }
+func (*AugmentedDefAuthor) ProtoMessage()    {}
+
+type AugmentedDefClient struct {
+	Person     *Person `protobuf:"bytes,1,opt,name=person" json:"person,omitempty"`
+	*DefClient `protobuf:"bytes,2,opt,name=def_client,embedded=def_client" json:"def_client,omitempty"`
+}
+
+func (m *AugmentedDefClient) Reset()         { *m = AugmentedDefClient{} }
+func (m *AugmentedDefClient) String() string { return proto.CompactTextString(m) }
+func (*AugmentedDefClient) ProtoMessage()    {}
+
+type AuthorshipInfo struct {
+	AuthorEmail    string            `protobuf:"bytes,1,opt,name=author_email,proto3" json:"author_email,omitempty"`
+	LastCommitDate pbtypes.Timestamp `protobuf:"bytes,2,opt,name=last_commit_date" json:"last_commit_date"`
+	// LastCommitID is the commit ID of the last commit that this author made to the
+	// thing that this info describes.
+	LastCommitID string `protobuf:"bytes,3,opt,name=last_commit_id,proto3" json:"last_commit_id,omitempty"`
+}
+
+func (m *AuthorshipInfo) Reset()         { *m = AuthorshipInfo{} }
+func (m *AuthorshipInfo) String() string { return proto.CompactTextString(m) }
+func (*AuthorshipInfo) ProtoMessage()    {}
+
+// Completions holds search query completions.
+type Completions struct {
+	// TokenCompletions are suggested completions for the token at the raw query's
+	// InsertionPoint.
+	TokenCompletions []PBToken `protobuf:"bytes,1,rep,name=token_completions" json:"token_completions"`
+	// ResolvedTokens is the resolution of the original query's tokens used to produce
+	// the completions. It is useful for debugging.
+	ResolvedTokens  []PBToken    `protobuf:"bytes,2,rep,name=resolved_tokens" json:"resolved_tokens"`
+	ResolveErrors   []TokenError `protobuf:"bytes,3,rep,name=resolve_errors" json:"resolve_errors"`
+	ResolutionFatal bool         `protobuf:"varint,4,opt,name=resolution_fatal,proto3" json:"resolution_fatal,omitempty"`
+}
+
+func (m *Completions) Reset()         { *m = Completions{} }
+func (m *Completions) String() string { return proto.CompactTextString(m) }
+func (*Completions) ProtoMessage()    {}
+
+// Def is a code def returned by the Sourcegraph API.
+type Def struct {
+	*graph.Def `protobuf:"bytes,1,opt,name=def,embedded=def" json:"def,omitempty"`
+	DocHTML    string            `protobuf:"bytes,2,opt,name=doc_html,proto3" json:"doc_html,omitempty"`
+	FmtStrings *DefFormatStrings `protobuf:"bytes,3,opt,name=fmt_strings" json:"fmt_strings,omitempty"`
+}
+
+func (m *Def) Reset()         { *m = Def{} }
+func (m *Def) String() string { return proto.CompactTextString(m) }
+func (*Def) ProtoMessage()    {}
+
+type DefAuthor struct {
+	UID           int32  `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	Email         string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	DefAuthorship `protobuf:"bytes,3,opt,name=def_authorship,embedded=def_authorship" json:"def_authorship"`
+}
+
+func (m *DefAuthor) Reset()         { *m = DefAuthor{} }
+func (m *DefAuthor) String() string { return proto.CompactTextString(m) }
+func (*DefAuthor) ProtoMessage()    {}
+
+type DefAuthorship struct {
+	AuthorshipInfo `protobuf:"bytes,1,opt,name=authorship_info,embedded=authorship_info" json:"authorship_info"`
+	// Exported is whether the def is exported.
+	Exported        bool    `protobuf:"varint,2,opt,name=exported,proto3" json:"exported,omitempty"`
+	Bytes           int32   `protobuf:"varint,3,opt,name=bytes,proto3" json:"bytes,omitempty"`
+	BytesProportion float64 `protobuf:"fixed64,4,opt,name=bytes_proportion,proto3" json:"bytes_proportion,omitempty"`
+}
+
+func (m *DefAuthorship) Reset()         { *m = DefAuthorship{} }
+func (m *DefAuthorship) String() string { return proto.CompactTextString(m) }
+func (*DefAuthorship) ProtoMessage()    {}
+
+type DefClient struct {
+	UID            int32  `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	Email          string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	AuthorshipInfo `protobuf:"bytes,3,opt,name=authorship_info,embedded=authorship_info" json:"authorship_info"`
+	// UseCount is the number of times this person referred to the def.
+	UseCount int32 `protobuf:"varint,4,opt,name=use_count,proto3" json:"use_count,omitempty"`
+}
+
+func (m *DefClient) Reset()         { *m = DefClient{} }
+func (m *DefClient) String() string { return proto.CompactTextString(m) }
+func (*DefClient) ProtoMessage()    {}
+
+// A DefDelta represents a single definition that was changed. It has fields for
+// the before (Base) and after (Head) versions. If both Base and Head are non-nil,
+// then the def was changed from base to head. Otherwise, one of the fields being
+// nil means that the def did not exist in that revision (e.g., it was added or
+// deleted from base to head).
+type DefDelta struct {
+	// the def in the base commit (if nil, this def was added in the head)
+	Base *Def `protobuf:"bytes,1,opt,name=base" json:"base,omitempty"`
+	// the def in the head commit (if nil, this def was deleted in the head)
+	Head *Def `protobuf:"bytes,2,opt,name=head" json:"head,omitempty"`
+}
+
+func (m *DefDelta) Reset()         { *m = DefDelta{} }
+func (m *DefDelta) String() string { return proto.CompactTextString(m) }
+func (*DefDelta) ProtoMessage()    {}
+
+// DefFormatStrings contains the various def format strings from the srclib def
+// formatter.
+type DefFormatStrings struct {
+	Name                 QualFormatStrings `protobuf:"bytes,1,opt,name=name" json:"name"`
+	Type                 QualFormatStrings `protobuf:"bytes,2,opt,name=type" json:"type"`
+	NameAndTypeSeparator string            `protobuf:"bytes,3,opt,name=name_and_type_separator,proto3" json:"name_and_type_separator,omitempty"`
+	Language             string            `protobuf:"bytes,4,opt,name=language,proto3" json:"language,omitempty"`
+	DefKeyword           string            `protobuf:"bytes,5,opt,name=def_keyword,proto3" json:"def_keyword,omitempty"`
+	Kind                 string            `protobuf:"bytes,6,opt,name=kind,proto3" json:"kind,omitempty"`
+}
+
+func (m *DefFormatStrings) Reset()         { *m = DefFormatStrings{} }
+func (m *DefFormatStrings) String() string { return proto.CompactTextString(m) }
+func (*DefFormatStrings) ProtoMessage()    {}
+
+// DefGetOptions specifies options for DefsService.Get.
+type DefGetOptions struct {
+	Doc bool `protobuf:"varint,1,opt,name=doc,proto3" json:"doc,omitempty" url:",omitempty"`
+}
+
+func (m *DefGetOptions) Reset()         { *m = DefGetOptions{} }
+func (m *DefGetOptions) String() string { return proto.CompactTextString(m) }
+func (*DefGetOptions) ProtoMessage()    {}
+
+// DefListAuthorsOptions specifies options for DefsService.ListAuthors.
+type DefListAuthorsOptions struct {
+	ListOptions `protobuf:"bytes,1,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *DefListAuthorsOptions) Reset()         { *m = DefListAuthorsOptions{} }
+func (m *DefListAuthorsOptions) String() string { return proto.CompactTextString(m) }
+func (*DefListAuthorsOptions) ProtoMessage()    {}
+
+// DefListClientsOptions specifies options for DefsService.ListClients.
+type DefListClientsOptions struct {
+	ListOptions `protobuf:"bytes,1,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *DefListClientsOptions) Reset()         { *m = DefListClientsOptions{} }
+func (m *DefListClientsOptions) String() string { return proto.CompactTextString(m) }
+func (*DefListClientsOptions) ProtoMessage()    {}
+
+// DefListExamplesOptions specifies options for DefsService.ListExamples.
+type DefListExamplesOptions struct {
+	Formatted bool `protobuf:"varint,1,opt,name=formatted,proto3" json:"formatted,omitempty" url:",omitempty"`
+	// Filter by a specific Repo URI
+	Repo string `protobuf:"bytes,2,opt,name=repo,proto3" json:"repo,omitempty" url:",omitempty"`
+	// TokenizedSource requests that the source code be returned as a tokenized data
+	// structure rather than an (annotated) string.
+	//
+	// This is useful when the client wants to take full control of rendering and
+	// manipulating the contents.
+	TokenizedSource bool `protobuf:"varint,3,opt,name=tokenized_source,proto3" json:"tokenized_source,omitempty" url:",omitempty"`
+	ListOptions     `protobuf:"bytes,4,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *DefListExamplesOptions) Reset()         { *m = DefListExamplesOptions{} }
+func (m *DefListExamplesOptions) String() string { return proto.CompactTextString(m) }
+func (*DefListExamplesOptions) ProtoMessage()    {}
+
+// DefListOptions specifies options for DefsService.List.
+type DefListOptions struct {
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty" url:",omitempty"`
+	// Specifies a search query for defs. If specified, then the Sort and Direction
+	// options are ignored
+	Query string `protobuf:"bytes,2,opt,name=query,proto3" json:"query,omitempty" url:",omitempty"`
+	// ByteStart and ByteEnd will restrict the results to only definitions that overlap
+	// with the specified start and end byte offsets. This filter is only applied if
+	// both values are set.
+	ByteStart uint32 `protobuf:"varint,3,opt,name=byte_start,proto3" json:"byte_start,omitempty"`
+	// ByteStart and ByteEnd will restrict the results to only definitions that overlap
+	// with the specified start and end byte offsets. This filter is only applied if
+	// both values are set.
+	ByteEnd uint32 `protobuf:"varint,4,opt,name=byte_end,proto3" json:"byte_end,omitempty"`
+	// DefKeys, if set, will return the definitions that match the given DefKey
+	DefKeys []*graph.DefKey `protobuf:"bytes,5,rep,name=def_keys" json:"def_keys,omitempty"`
+	// RepoRevs constrains the results to a set of repository revisions (given by their
+	// URIs plus an optional "@" and a revision specifier). For example,
+	// "repo.com/foo@revspec".
+	RepoRevs []string `protobuf:"bytes,6,rep,name=repo_revs" json:"repo_revs,omitempty" url:",omitempty,comma"`
+	UnitType string   `protobuf:"bytes,7,opt,name=unit_type,proto3" json:"unit_type,omitempty" url:",omitempty"`
+	Unit     string   `protobuf:"bytes,8,opt,name=unit,proto3" json:"unit,omitempty" url:",omitempty"`
+	Path     string   `protobuf:"bytes,9,opt,name=path,proto3" json:"path,omitempty" url:",omitempty"`
+	// File, if specified, will restrict the results to only defs defined in the
+	// specified file.
+	File string `protobuf:"bytes,10,opt,name=file,proto3" json:"file,omitempty" url:",omitempty"`
+	// FilePathPrefix, if specified, will restrict the results to only defs defined in
+	// files whose path is underneath the specified prefix.
+	FilePathPrefix string   `protobuf:"bytes,11,opt,name=file_path_prefix,proto3" json:"file_path_prefix,omitempty" url:",omitempty"`
+	Kinds          []string `protobuf:"bytes,12,rep,name=kinds" json:"kinds,omitempty" url:",omitempty,comma"`
+	Exported       bool     `protobuf:"varint,13,opt,name=exported,proto3" json:"exported,omitempty" url:",omitempty"`
+	Nonlocal       bool     `protobuf:"varint,14,opt,name=nonlocal,proto3" json:"nonlocal,omitempty" url:",omitempty"`
+	// IncludeTest is whether the results should include definitions in test files.
+	IncludeTest bool `protobuf:"varint,15,opt,name=include_test,proto3" json:"include_test,omitempty" url:",omitempty"`
+	// Enhancements
+	Doc   bool `protobuf:"varint,16,opt,name=doc,proto3" json:"doc,omitempty" url:",omitempty"`
+	Fuzzy bool `protobuf:"varint,17,opt,name=fuzzy,proto3" json:"fuzzy,omitempty" url:",omitempty"`
+	// Sorting
+	Sort      string `protobuf:"bytes,18,opt,name=sort,proto3" json:"sort,omitempty" url:",omitempty"`
+	Direction string `protobuf:"bytes,19,opt,name=direction,proto3" json:"direction,omitempty" url:",omitempty"`
+	// Paging
+	ListOptions `protobuf:"bytes,20,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *DefListOptions) Reset()         { *m = DefListOptions{} }
+func (m *DefListOptions) String() string { return proto.CompactTextString(m) }
+func (*DefListOptions) ProtoMessage()    {}
+
+type DefListRefsOptions struct {
+	Authorship  bool   `protobuf:"varint,1,opt,name=authorship,proto3" json:"authorship,omitempty" url:",omitempty"`
+	Repo        string `protobuf:"bytes,2,opt,name=repo,proto3" json:"repo,omitempty" url:",omitempty"`
+	ListOptions `protobuf:"bytes,3,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *DefListRefsOptions) Reset()         { *m = DefListRefsOptions{} }
+func (m *DefListRefsOptions) String() string { return proto.CompactTextString(m) }
+func (*DefListRefsOptions) ProtoMessage()    {}
+
+// DefSpec specifies a def.
+type DefSpec struct {
+	Repo     string `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	CommitID string `protobuf:"bytes,2,opt,name=commit_id,proto3" json:"commit_id,omitempty"`
+	UnitType string `protobuf:"bytes,3,opt,name=unit_type,proto3" json:"unit_type,omitempty"`
+	Unit     string `protobuf:"bytes,4,opt,name=unit,proto3" json:"unit,omitempty"`
+	Path     string `protobuf:"bytes,5,opt,name=path,proto3" json:"path,omitempty"`
+}
+
+func (m *DefSpec) Reset()         { *m = DefSpec{} }
+func (m *DefSpec) String() string { return proto.CompactTextString(m) }
+func (*DefSpec) ProtoMessage()    {}
+
+type DefsGetOp struct {
+	Def DefSpec        `protobuf:"bytes,1,opt,name=def" json:"def"`
+	Opt *DefGetOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *DefsGetOp) Reset()         { *m = DefsGetOp{} }
+func (m *DefsGetOp) String() string { return proto.CompactTextString(m) }
+func (*DefsGetOp) ProtoMessage()    {}
+
+type DefList struct {
+	Defs []*Def `protobuf:"bytes,1,rep,name=defs" json:"defs,omitempty"`
+}
+
+func (m *DefList) Reset()         { *m = DefList{} }
+func (m *DefList) String() string { return proto.CompactTextString(m) }
+func (*DefList) ProtoMessage()    {}
+
+type DefsListRefsOp struct {
+	Def DefSpec             `protobuf:"bytes,1,opt,name=def" json:"def"`
+	Opt *DefListRefsOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *DefsListRefsOp) Reset()         { *m = DefsListRefsOp{} }
+func (m *DefsListRefsOp) String() string { return proto.CompactTextString(m) }
+func (*DefsListRefsOp) ProtoMessage()    {}
+
+type RefList struct {
+	Refs []*Ref `protobuf:"bytes,1,rep,name=refs" json:"refs,omitempty"`
+}
+
+func (m *RefList) Reset()         { *m = RefList{} }
+func (m *RefList) String() string { return proto.CompactTextString(m) }
+func (*RefList) ProtoMessage()    {}
+
+type DefsListExamplesOp struct {
+	Def DefSpec                 `protobuf:"bytes,1,opt,name=def" json:"def"`
+	Opt *DefListExamplesOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *DefsListExamplesOp) Reset()         { *m = DefsListExamplesOp{} }
+func (m *DefsListExamplesOp) String() string { return proto.CompactTextString(m) }
+func (*DefsListExamplesOp) ProtoMessage()    {}
+
+type ExampleList struct {
+	Examples []*Example `protobuf:"bytes,1,rep,name=examples" json:"examples,omitempty"`
+}
+
+func (m *ExampleList) Reset()         { *m = ExampleList{} }
+func (m *ExampleList) String() string { return proto.CompactTextString(m) }
+func (*ExampleList) ProtoMessage()    {}
+
+type DefsListAuthorsOp struct {
+	Def DefSpec                `protobuf:"bytes,1,opt,name=def" json:"def"`
+	Opt *DefListAuthorsOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *DefsListAuthorsOp) Reset()         { *m = DefsListAuthorsOp{} }
+func (m *DefsListAuthorsOp) String() string { return proto.CompactTextString(m) }
+func (*DefsListAuthorsOp) ProtoMessage()    {}
+
+type AugmentedDefAuthorList struct {
+	AugmentedDefAuthors []*AugmentedDefAuthor `protobuf:"bytes,1,rep,name=augmented_def_authors" json:"augmented_def_authors,omitempty"`
+}
+
+func (m *AugmentedDefAuthorList) Reset()         { *m = AugmentedDefAuthorList{} }
+func (m *AugmentedDefAuthorList) String() string { return proto.CompactTextString(m) }
+func (*AugmentedDefAuthorList) ProtoMessage()    {}
+
+type DefsListClientsOp struct {
+	Def DefSpec                `protobuf:"bytes,1,opt,name=def" json:"def"`
+	Opt *DefListClientsOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *DefsListClientsOp) Reset()         { *m = DefsListClientsOp{} }
+func (m *DefsListClientsOp) String() string { return proto.CompactTextString(m) }
+func (*DefsListClientsOp) ProtoMessage()    {}
+
+type AugmentedDefClientList struct {
+	AugmentedDefClients []*AugmentedDefClient `protobuf:"bytes,1,rep,name=augmented_def_clients" json:"augmented_def_clients,omitempty"`
+}
+
+func (m *AugmentedDefClientList) Reset()         { *m = AugmentedDefClientList{} }
+func (m *AugmentedDefClientList) String() string { return proto.CompactTextString(m) }
+func (*AugmentedDefClientList) ProtoMessage()    {}
+
+// Delta represents the difference between two commits (possibly in 2 separate
+// repositories).
+type Delta struct {
+	Base       RepoRevSpec `protobuf:"bytes,1,opt,name=base" json:"base"`
+	Head       RepoRevSpec `protobuf:"bytes,2,opt,name=head" json:"head"`
+	BaseCommit *vcs.Commit `protobuf:"bytes,3,opt,name=base_commit" json:"base_commit,omitempty"`
+	HeadCommit *vcs.Commit `protobuf:"bytes,4,opt,name=head_commit" json:"head_commit,omitempty"`
+	BaseRepo   *Repo       `protobuf:"bytes,5,opt,name=base_repo" json:"base_repo,omitempty"`
+	HeadRepo   *Repo       `protobuf:"bytes,6,opt,name=head_repo" json:"head_repo,omitempty"`
+	BaseBuild  *Build      `protobuf:"bytes,7,opt,name=base_build" json:"base_build,omitempty"`
+	HeadBuild  *Build      `protobuf:"bytes,8,opt,name=head_build" json:"head_build,omitempty"`
+}
+
+func (m *Delta) Reset()         { *m = Delta{} }
+func (m *Delta) String() string { return proto.CompactTextString(m) }
+func (*Delta) ProtoMessage()    {}
+
+// DeltaAffectedPerson describes a person (registered user or committer email
+// address) that is affected by a delta. It includes fields for the person affected
+// as well as the defs that are the reason why we consider them to be affected.
+//
+// The person's relationship to the Defs depends on what method returned this
+// DeltaAffectedPerson. If it was returned by a method that lists authors, then the
+// Defs are definitions that the Person committed. If it was returned by a method
+// that lists clients (a.k.a users), then the Defs are definitions that the Person
+// uses.
+type DeltaAffectedPerson struct {
+	// the affected person
+	Person `protobuf:"bytes,1,opt,name=person,embedded=person" json:"person"`
+	// the defs they authored or use (the reason why they're affected)
+	Defs []*Def `protobuf:"bytes,2,rep,name=defs" json:"defs,omitempty"`
+}
+
+func (m *DeltaAffectedPerson) Reset()         { *m = DeltaAffectedPerson{} }
+func (m *DeltaAffectedPerson) String() string { return proto.CompactTextString(m) }
+func (*DeltaAffectedPerson) ProtoMessage()    {}
+
+// DeltaDefs describes definitions added/changed/deleted in a delta.
+type DeltaDefs struct {
+	// added/changed/deleted defs
+	Defs []*DefDelta `protobuf:"bytes,1,rep,name=defs" json:"defs,omitempty"`
+	// overall diffstat (not subject to pagination)
+	DiffStat *diff.Stat `protobuf:"bytes,2,opt,name=diff_stat" json:"diff_stat,omitempty"`
+}
+
+func (m *DeltaDefs) Reset()         { *m = DeltaDefs{} }
+func (m *DeltaDefs) String() string { return proto.CompactTextString(m) }
+func (*DeltaDefs) ProtoMessage()    {}
+
+// DeltaFiles describes files added/changed/deleted in a delta.
+type DeltaFiles struct {
+	FileDiffs []*diff.FileDiff `protobuf:"bytes,1,rep,name=file_diffs" json:"file_diffs,omitempty"`
+}
+
+func (m *DeltaFiles) Reset()         { *m = DeltaFiles{} }
+func (m *DeltaFiles) String() string { return proto.CompactTextString(m) }
+func (*DeltaFiles) ProtoMessage()    {}
+
+// DeltaFilter specifies criteria by which to filter results from DeltaListXxx
+// methods.
+type DeltaFilter struct {
+	Unit     string `protobuf:"bytes,1,opt,name=unit,proto3" json:"unit,omitempty" url:",omitempty"`
+	UnitType string `protobuf:"bytes,2,opt,name=unit_type,proto3" json:"unit_type,omitempty" url:",omitempty"`
+}
+
+func (m *DeltaFilter) Reset()         { *m = DeltaFilter{} }
+func (m *DeltaFilter) String() string { return proto.CompactTextString(m) }
+func (*DeltaFilter) ProtoMessage()    {}
+
+// DeltaListAffectedAuthorsOptions specifies options for ListAffectedAuthors.
+type DeltaListAffectedAuthorsOptions struct {
+	DeltaFilter `protobuf:"bytes,1,opt,name=delta_filter,embedded=delta_filter" json:"delta_filter"`
+	ListOptions `protobuf:"bytes,2,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *DeltaListAffectedAuthorsOptions) Reset()         { *m = DeltaListAffectedAuthorsOptions{} }
+func (m *DeltaListAffectedAuthorsOptions) String() string { return proto.CompactTextString(m) }
+func (*DeltaListAffectedAuthorsOptions) ProtoMessage()    {}
+
+// DeltaListAffectedClientsOptions specifies options for ListAffectedClients.
+type DeltaListAffectedClientsOptions struct {
+	DeltaFilter `protobuf:"bytes,1,opt,name=delta_filter,embedded=delta_filter" json:"delta_filter"`
+	ListOptions `protobuf:"bytes,2,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *DeltaListAffectedClientsOptions) Reset()         { *m = DeltaListAffectedClientsOptions{} }
+func (m *DeltaListAffectedClientsOptions) String() string { return proto.CompactTextString(m) }
+func (*DeltaListAffectedClientsOptions) ProtoMessage()    {}
+
+// DeltaListDefsOptions specifies options for ListDefs.
+type DeltaListDefsOptions struct {
+	DeltaFilter `protobuf:"bytes,1,opt,name=delta_filter,embedded=delta_filter" json:"delta_filter"`
+	ListOptions `protobuf:"bytes,2,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *DeltaListDefsOptions) Reset()         { *m = DeltaListDefsOptions{} }
+func (m *DeltaListDefsOptions) String() string { return proto.CompactTextString(m) }
+func (*DeltaListDefsOptions) ProtoMessage()    {}
+
+// DeltaListFilesOptions specifies options for ListFiles.
+type DeltaListFilesOptions struct {
+	// Formatted is whether the files should have their contents code-formatted
+	// (syntax-highlighted and reference-linked) if they contain code.
+	Formatted bool `protobuf:"varint,1,opt,name=formatted,proto3" json:"formatted,omitempty" url:",omitempty"`
+	// Filter filters the list of returned files to those whose name matches Filter.
+	Filter      string `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty" url:",omitempty"`
+	DeltaFilter `protobuf:"bytes,3,opt,name=delta_filter,embedded=delta_filter" json:"delta_filter"`
+}
+
+func (m *DeltaListFilesOptions) Reset()         { *m = DeltaListFilesOptions{} }
+func (m *DeltaListFilesOptions) String() string { return proto.CompactTextString(m) }
+func (*DeltaListFilesOptions) ProtoMessage()    {}
+
+// DeltaListUnitsOptions specifies options for ListUnits.
+type DeltaListUnitsOptions struct {
+}
+
+func (m *DeltaListUnitsOptions) Reset()         { *m = DeltaListUnitsOptions{} }
+func (m *DeltaListUnitsOptions) String() string { return proto.CompactTextString(m) }
+func (*DeltaListUnitsOptions) ProtoMessage()    {}
+
+// A DeltaSpec specifies a delta.
+type DeltaSpec struct {
+	Base RepoRevSpec `protobuf:"bytes,1,opt,name=base" json:"base"`
+	Head RepoRevSpec `protobuf:"bytes,2,opt,name=head" json:"head"`
+}
+
+func (m *DeltaSpec) Reset()         { *m = DeltaSpec{} }
+func (m *DeltaSpec) String() string { return proto.CompactTextString(m) }
+func (*DeltaSpec) ProtoMessage()    {}
+
+type DeltasListUnitsOp struct {
+	Ds  DeltaSpec              `protobuf:"bytes,1,opt,name=ds" json:"ds"`
+	Opt *DeltaListUnitsOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *DeltasListUnitsOp) Reset()         { *m = DeltasListUnitsOp{} }
+func (m *DeltasListUnitsOp) String() string { return proto.CompactTextString(m) }
+func (*DeltasListUnitsOp) ProtoMessage()    {}
+
+type UnitDeltaList struct {
+	UnitDeltas []*UnitDelta `protobuf:"bytes,1,rep,name=unit_deltas" json:"unit_deltas,omitempty"`
+}
+
+func (m *UnitDeltaList) Reset()         { *m = UnitDeltaList{} }
+func (m *UnitDeltaList) String() string { return proto.CompactTextString(m) }
+func (*UnitDeltaList) ProtoMessage()    {}
+
+type DeltasListDefsOp struct {
+	Ds  DeltaSpec             `protobuf:"bytes,1,opt,name=ds" json:"ds"`
+	Opt *DeltaListDefsOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *DeltasListDefsOp) Reset()         { *m = DeltasListDefsOp{} }
+func (m *DeltasListDefsOp) String() string { return proto.CompactTextString(m) }
+func (*DeltasListDefsOp) ProtoMessage()    {}
+
+type DeltasListFilesOp struct {
+	Ds  DeltaSpec              `protobuf:"bytes,1,opt,name=ds" json:"ds"`
+	Opt *DeltaListFilesOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *DeltasListFilesOp) Reset()         { *m = DeltasListFilesOp{} }
+func (m *DeltasListFilesOp) String() string { return proto.CompactTextString(m) }
+func (*DeltasListFilesOp) ProtoMessage()    {}
+
+type DeltasListAffectedAuthorsOp struct {
+	Ds  DeltaSpec                        `protobuf:"bytes,1,opt,name=ds" json:"ds"`
+	Opt *DeltaListAffectedAuthorsOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *DeltasListAffectedAuthorsOp) Reset()         { *m = DeltasListAffectedAuthorsOp{} }
+func (m *DeltasListAffectedAuthorsOp) String() string { return proto.CompactTextString(m) }
+func (*DeltasListAffectedAuthorsOp) ProtoMessage()    {}
+
+type DeltaAffectedPersonList struct {
+	DeltaAffectedPersons []*DeltaAffectedPerson `protobuf:"bytes,1,rep,name=delta_affected_persons" json:"delta_affected_persons,omitempty"`
+}
+
+func (m *DeltaAffectedPersonList) Reset()         { *m = DeltaAffectedPersonList{} }
+func (m *DeltaAffectedPersonList) String() string { return proto.CompactTextString(m) }
+func (*DeltaAffectedPersonList) ProtoMessage()    {}
+
+type DeltasListAffectedClientsOp struct {
+	Ds  DeltaSpec                        `protobuf:"bytes,1,opt,name=ds" json:"ds"`
+	Opt *DeltaListAffectedClientsOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *DeltasListAffectedClientsOp) Reset()         { *m = DeltasListAffectedClientsOp{} }
+func (m *DeltasListAffectedClientsOp) String() string { return proto.CompactTextString(m) }
+func (*DeltasListAffectedClientsOp) ProtoMessage()    {}
+
+// Example is a usage example of a def.
+type Example struct {
+	*graph1.Ref `protobuf:"bytes,1,opt,name=ref,embedded=ref" json:"ref,omitempty"`
+	// SrcHTML is the formatted HTML source code of the example, with links to
+	// definitions.
+	SrcHTML html_template.HTML `protobuf:"bytes,2,opt,name=src_html,proto3,customtype=html/template.HTML" json:"src_html,omitempty"`
+	// SourceCode contains the parsed source for this example, if requested via
+	// DefListExamplesOptions.
+	SourceCode *SourceCode `protobuf:"bytes,3,opt,name=source_code" json:"source_code,omitempty"`
+	// The line that the given example starts on
+	StartLine int32 `protobuf:"varint,4,opt,name=start_line,proto3" json:"start_line,omitempty"`
+	// The line that the given example ends on
+	EndLine int32 `protobuf:"varint,5,opt,name=end_line,proto3" json:"end_line,omitempty"`
+	// Error is whether an error occurred while fetching this example.
+	Error bool `protobuf:"varint,6,opt,name=error,proto3" json:"error,omitempty"`
+}
+
+func (m *Example) Reset()         { *m = Example{} }
+func (m *Example) String() string { return proto.CompactTextString(m) }
+func (*Example) ProtoMessage()    {}
+
+// FormatResult contains information about and warnings from the formatting
+// operation (if Formatted is true in the options).
+type FormatResult struct {
+	// TooManyRefs indicates that the file being formatted exceeded the maximum number
+	// of refs that are linked. Only the first NumRefs refs are linked.
+	TooManyRefs bool `protobuf:"varint,1,opt,name=too_many_refs,proto3" json:"too_many_refs,omitempty"`
+	// NumRefs is the number of refs that were linked in this file. If the total number
+	// of refs in the file exceeds the (server-defined) limit, NumRefs is capped at the
+	// limit.
+	NumRefs int32 `protobuf:"varint,2,opt,name=num_refs,proto3" json:"num_refs,omitempty"`
+	// LineStartByteOffsets is the byte offset of each line's first byte.
+	LineStartByteOffsets []int32 `protobuf:"varint,3,rep,name=line_start_byte_offsets" json:"line_start_byte_offsets,omitempty"`
+}
+
+func (m *FormatResult) Reset()         { *m = FormatResult{} }
+func (m *FormatResult) String() string { return proto.CompactTextString(m) }
+func (*FormatResult) ProtoMessage()    {}
+
+type MarkdownData struct {
+	Rendered  []byte     `protobuf:"bytes,1,opt,name=rendered,proto3" json:"rendered,omitempty"`
+	Checklist *Checklist `protobuf:"bytes,2,opt,name=checklist" json:"checklist,omitempty"`
+}
+
+func (m *MarkdownData) Reset()         { *m = MarkdownData{} }
+func (m *MarkdownData) String() string { return proto.CompactTextString(m) }
+func (*MarkdownData) ProtoMessage()    {}
+
+type MarkdownOpt struct {
+	EnableCheckboxes bool `protobuf:"varint,1,opt,name=enable_checkboxes,proto3" json:"enable_checkboxes,omitempty"`
+}
+
+func (m *MarkdownOpt) Reset()         { *m = MarkdownOpt{} }
+func (m *MarkdownOpt) String() string { return proto.CompactTextString(m) }
+func (*MarkdownOpt) ProtoMessage()    {}
+
+type MarkdownRequestBody struct {
+	Markdown    []byte `protobuf:"bytes,1,opt,name=markdown,proto3" json:"markdown,omitempty"`
+	MarkdownOpt `protobuf:"bytes,2,opt,name=markdown_opt,embedded=markdown_opt" json:"markdown_opt"`
+}
+
+func (m *MarkdownRequestBody) Reset()         { *m = MarkdownRequestBody{} }
+func (m *MarkdownRequestBody) String() string { return proto.CompactTextString(m) }
+func (*MarkdownRequestBody) ProtoMessage()    {}
+
+type MarkdownRenderOp struct {
+	Markdown []byte      `protobuf:"bytes,1,opt,name=markdown,proto3" json:"markdown,omitempty"`
+	Opt      MarkdownOpt `protobuf:"bytes,2,opt,name=opt" json:"opt"`
+}
+
+func (m *MarkdownRenderOp) Reset()         { *m = MarkdownRenderOp{} }
+func (m *MarkdownRenderOp) String() string { return proto.CompactTextString(m) }
+func (*MarkdownRenderOp) ProtoMessage()    {}
+
+// QualFormatStrings holds the formatted string for each Qualification for a def
+// (for either Name or Type).
+type QualFormatStrings struct {
+	Unqualified             string `protobuf:"bytes,1,opt,name=unqualified,proto3" json:"unqualified,omitempty"`
+	ScopeQualified          string `protobuf:"bytes,2,opt,name=scope_qualified,proto3" json:"scope_qualified,omitempty"`
+	DepQualified            string `protobuf:"bytes,3,opt,name=dep_qualified,proto3" json:"dep_qualified,omitempty"`
+	RepositoryWideQualified string `protobuf:"bytes,4,opt,name=repository_wide_qualified,proto3" json:"repository_wide_qualified,omitempty"`
+	LanguageWideQualified   string `protobuf:"bytes,5,opt,name=language_wide_qualified,proto3" json:"language_wide_qualified,omitempty"`
+}
+
+func (m *QualFormatStrings) Reset()         { *m = QualFormatStrings{} }
+func (m *QualFormatStrings) String() string { return proto.CompactTextString(m) }
+func (*QualFormatStrings) ProtoMessage()    {}
+
+type Ref struct {
+	*graph1.Ref `protobuf:"bytes,1,opt,name=ref,embedded=ref" json:"ref,omitempty"`
+	Authorship  *AuthorshipInfo `protobuf:"bytes,2,opt,name=authorship" json:"authorship,omitempty"`
+}
+
+func (m *Ref) Reset()         { *m = Ref{} }
+func (m *Ref) String() string { return proto.CompactTextString(m) }
+func (*Ref) ProtoMessage()    {}
+
+// RepoTreeGetOptions specifies options for (RepoTreeService).Get.
+type RepoTreeGetOptions struct {
+	// Formatted is whether the specified entry, if it's a file, should have its
+	// Contents code-formatted using HTML.
+	Formatted bool `protobuf:"varint,1,opt,name=formatted,proto3" json:"formatted,omitempty"`
+	// HighlightStrings is a list of fixed strings that should be wrapped in a <span
+	// class="highlight"> in the returned HTML. It only takes effect if Formatted is
+	// true.
+	HighlightStrings []string `protobuf:"bytes,2,rep,name=highlight_strings" json:"highlight_strings,omitempty"`
+	// TokenizedSource requests that the source code be returned as a tokenized data
+	// structure rather than an (annotated) string.
+	//
+	// This is useful when the client wants to take full control of rendering and
+	// manipulating the contents.
+	TokenizedSource           bool `protobuf:"varint,3,opt,name=tokenized_source,proto3" json:"tokenized_source,omitempty" url:",omitempty"`
+	ContentsAsString          bool `protobuf:"varint,4,opt,name=contents_as_string,proto3" json:"contents_as_string,omitempty" url:",omitempty"`
+	*vcsclient.GetFileOptions `protobuf:"bytes,5,opt,name=get_file_options,embedded=get_file_options" json:"get_file_options,omitempty"`
+}
+
+func (m *RepoTreeGetOptions) Reset()         { *m = RepoTreeGetOptions{} }
+func (m *RepoTreeGetOptions) String() string { return proto.CompactTextString(m) }
+func (*RepoTreeGetOptions) ProtoMessage()    {}
+
+type RepoTreeSearchOptions struct {
+	*vcs.SearchOptions `protobuf:"bytes,1,opt,name=search_options,embedded=search_options" json:"search_options,omitempty"`
+	Formatted          bool `protobuf:"varint,2,opt,name=formatted,proto3" json:"formatted,omitempty"`
+}
+
+func (m *RepoTreeSearchOptions) Reset()         { *m = RepoTreeSearchOptions{} }
+func (m *RepoTreeSearchOptions) String() string { return proto.CompactTextString(m) }
+func (*RepoTreeSearchOptions) ProtoMessage()    {}
+
+// A RepoTreeSearchResult is a tree search result that includes the repo and rev it
+// came from.
+type RepoTreeSearchResult struct {
+	*vcs.SearchResult `protobuf:"bytes,1,opt,name=search_result,embedded=search_result" json:"search_result,omitempty"`
+	RepoRev           RepoRevSpec `protobuf:"bytes,2,opt,name=repo_rev" json:"repo_rev"`
+}
+
+func (m *RepoTreeSearchResult) Reset()         { *m = RepoTreeSearchResult{} }
+func (m *RepoTreeSearchResult) String() string { return proto.CompactTextString(m) }
+func (*RepoTreeSearchResult) ProtoMessage()    {}
+
+type RepoTreeGetOp struct {
+	Entry TreeEntrySpec       `protobuf:"bytes,1,opt,name=entry" json:"entry"`
+	Opt   *RepoTreeGetOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *RepoTreeGetOp) Reset()         { *m = RepoTreeGetOp{} }
+func (m *RepoTreeGetOp) String() string { return proto.CompactTextString(m) }
+func (*RepoTreeGetOp) ProtoMessage()    {}
+
+type RepoTreeSearchOp struct {
+	Rev RepoRevSpec            `protobuf:"bytes,1,opt,name=rev" json:"rev"`
+	Opt *RepoTreeSearchOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *RepoTreeSearchOp) Reset()         { *m = RepoTreeSearchOp{} }
+func (m *RepoTreeSearchOp) String() string { return proto.CompactTextString(m) }
+func (*RepoTreeSearchOp) ProtoMessage()    {}
+
+type VCSSearchResultList struct {
+	SearchResults []*vcs.SearchResult `protobuf:"bytes,1,rep,name=search_results" json:"search_results,omitempty"`
+}
+
+func (m *VCSSearchResultList) Reset()         { *m = VCSSearchResultList{} }
+func (m *VCSSearchResultList) String() string { return proto.CompactTextString(m) }
+func (*VCSSearchResultList) ProtoMessage()    {}
+
+type SearchOptions struct {
+	Query       string `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty" url:"q" schema:"q"`
+	Defs        bool   `protobuf:"varint,2,opt,name=defs,proto3" json:"defs,omitempty"`
+	Repos       bool   `protobuf:"varint,3,opt,name=repos,proto3" json:"repos,omitempty"`
+	People      bool   `protobuf:"varint,4,opt,name=people,proto3" json:"people,omitempty"`
+	Tree        bool   `protobuf:"varint,5,opt,name=tree,proto3" json:"tree,omitempty"`
+	ListOptions `protobuf:"bytes,6,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *SearchOptions) Reset()         { *m = SearchOptions{} }
+func (m *SearchOptions) String() string { return proto.CompactTextString(m) }
+func (*SearchOptions) ProtoMessage()    {}
+
+type SearchResults struct {
+	Defs   []*Def                  `protobuf:"bytes,1,rep,name=defs" json:"defs,omitempty"`
+	People []*Person               `protobuf:"bytes,2,rep,name=people" json:"people,omitempty"`
+	Repos  []*Repo                 `protobuf:"bytes,3,rep,name=repos" json:"repos,omitempty"`
+	Tree   []*RepoTreeSearchResult `protobuf:"bytes,4,rep,name=tree" json:"tree,omitempty"`
+	// RawQuery is the raw query passed to search.
+	RawQuery RawQuery `protobuf:"bytes,5,opt,name=raw_query" json:"raw_query"`
+	// Tokens are the unresolved tokens.
+	Tokens []PBToken `protobuf:"bytes,6,rep,name=tokens" json:"tokens"`
+	// Plan is the query plan used to fetch the results.
+	Plan *Plan `protobuf:"bytes,7,opt,name=plan" json:"plan,omitempty"`
+	// ResolvedTokens holds the resolved tokens from the original query string.
+	ResolvedTokens []PBToken    `protobuf:"bytes,8,rep,name=resolved_tokens" json:"resolved_tokens"`
+	ResolveErrors  []TokenError `protobuf:"bytes,9,rep,name=resolve_errors" json:"resolve_errors"`
+	// Tips are helpful tips for the user about their query. They are not errors per
+	// se, but they use the TokenError type because it allows us to associate a message
+	// with a particular token (and JSON de/serialize that).
+	Tips []TokenError `protobuf:"bytes,10,rep,name=tips" json:"tips"`
+	// Canceled is true if the query was canceled. More information about how to
+	// correct the issue can be found in the ResolveErrors and Tips.
+	Canceled bool `protobuf:"varint,11,opt,name=canceled,proto3" json:"canceled,omitempty"`
+}
+
+func (m *SearchResults) Reset()         { *m = SearchResults{} }
+func (m *SearchResults) String() string { return proto.CompactTextString(m) }
+func (*SearchResults) ProtoMessage()    {}
+
+type SuggestionList struct {
+	Suggestions []*Suggestion `protobuf:"bytes,1,rep,name=suggestions" json:"suggestions,omitempty"`
+}
+
+func (m *SuggestionList) Reset()         { *m = SuggestionList{} }
+func (m *SuggestionList) String() string { return proto.CompactTextString(m) }
+func (*SuggestionList) ProtoMessage()    {}
+
+// SourceCode contains a snippet of code with linked and classed tokens, along with
+// other information about the contents.
+//
+// This data structure is useful when one desires to take full control of rendering
+// and manipulating the contents of the requested TreeEntry or snippet, rather than
+// dealing with an (annotated) string or parsing text. To obtain this strcture in
+// the TreeEntry, TokenizedSource must be set to "true" in the RepoTreeGetOptions.
+type SourceCode struct {
+	// Lines contains all the lines of the contained code snippet.
+	Lines       []*SourceCodeLine `protobuf:"bytes,1,rep,name=lines" json:"lines,omitempty"`
+	NumRefs     int32             `protobuf:"varint,2,opt,name=num_refs,proto3" json:"num_refs,omitempty"`
+	TooManyRefs bool              `protobuf:"varint,3,opt,name=too_many_refs,proto3" json:"too_many_refs,omitempty"`
+}
+
+func (m *SourceCode) Reset()         { *m = SourceCode{} }
+func (m *SourceCode) String() string { return proto.CompactTextString(m) }
+func (*SourceCode) ProtoMessage()    {}
+
+// SourceCodeLine contains all tokens on this line along with other information
+// such as byte offsets in original source.
+type SourceCodeLine struct {
+	// StartByte and EndByte are the start and end offsets in bytes, in the original
+	// file.
+	StartByte int32 `protobuf:"varint,1,opt,name=start_byte,proto3" json:"start_byte,omitempty"`
+	EndByte   int32 `protobuf:"varint,2,opt,name=end_byte,proto3" json:"end_byte,omitempty"`
+	// Tokens contains any tokens that may be on this line, including whitespace. New
+	// lines ('\n') are not present.
+	Tokens []SourceCodeLineTokenOrString `protobuf:"bytes,3,rep,name=tokens" json:"tokens"`
+}
+
+func (m *SourceCodeLine) Reset()         { *m = SourceCodeLine{} }
+func (m *SourceCodeLine) String() string { return proto.CompactTextString(m) }
+func (*SourceCodeLine) ProtoMessage()    {}
+
+// SourceCodeLineTokenOrString is either a whitespace token (stored as an HTML
+// encoded "string") or a SourceCodeToken. Exactly one field is nonempty.
+//
+// TODO(sqs) TODO(perf): space- and memory-optimize this (by making it implement
+// json.Marshaler, for example) - it's an inefficient hack to make it
+// protobuf-serializable.
+type SourceCodeLineTokenOrString struct {
+	Whitespace string           `protobuf:"bytes,1,opt,name=whitespace,proto3" json:"whitespace,omitempty"`
+	Token      *SourceCodeToken `protobuf:"bytes,2,opt,name=token" json:"token,omitempty"`
+}
+
+func (m *SourceCodeLineTokenOrString) Reset()         { *m = SourceCodeLineTokenOrString{} }
+func (m *SourceCodeLineTokenOrString) String() string { return proto.CompactTextString(m) }
+func (*SourceCodeLineTokenOrString) ProtoMessage()    {}
+
+// SourceCodeToken contains information about a code token.
+type SourceCodeToken struct {
+	// Start and end byte offsets in original file.
+	StartByte int32 `protobuf:"varint,1,opt,name=start_byte,proto3" json:"start_byte,omitempty"`
+	EndByte   int32 `protobuf:"varint,2,opt,name=end_byte,proto3" json:"end_byte,omitempty"`
+	// If the token is a reference URL contains the DefKey-based URLs for all the
+	// definitions at this position.
+	URL []string `protobuf:"bytes,3,rep,name=url" json:"url,omitempty"`
+	// IsDef specifies whether the token is a definition.
+	IsDef bool `protobuf:"varint,4,opt,name=is_def,proto3" json:"is_def,omitempty"`
+	// Class specifies the token type as per
+	// [google-code-prettify](https://code.google.com/p/google-code-prettify/).
+	Class string `protobuf:"bytes,5,opt,name=class,proto3" json:"class,omitempty"`
+	// Label is non-whitespace HTML encoded source code.
+	Label string `protobuf:"bytes,6,opt,name=label,proto3" json:"label,omitempty"`
+}
+
+func (m *SourceCodeToken) Reset()         { *m = SourceCodeToken{} }
+func (m *SourceCodeToken) String() string { return proto.CompactTextString(m) }
+func (*SourceCodeToken) ProtoMessage()    {}
+
+// TreeEntry is a file or directory in a repository, with additional feedback from
+// the formatting operation (if Formatted is true in the options).
+type TreeEntry struct {
+	*vcsclient.TreeEntry `protobuf:"bytes,1,opt,name=tree_entry,embedded=tree_entry" json:"tree_entry,omitempty"`
+	*vcsclient.FileRange `protobuf:"bytes,2,opt,name=file_range,embedded=file_range" json:"file_range,omitempty"`
+	ContentsString       string `protobuf:"bytes,3,opt,name=contents_string,proto3" json:"contents_string,omitempty"`
+	// SourceCode is set when TokenizedSource is enabled in RepoTreeGetOptions.
+	SourceCode *SourceCode `protobuf:"bytes,4,opt,name=source_code" json:"source_code,omitempty"`
+	// FormatResult is only set if this TreeEntry is a file.
+	FormatResult *FormatResult `protobuf:"bytes,5,opt,name=format_result" json:"format_result,omitempty"`
+}
+
+func (m *TreeEntry) Reset()         { *m = TreeEntry{} }
+func (m *TreeEntry) String() string { return proto.CompactTextString(m) }
+func (*TreeEntry) ProtoMessage()    {}
+
+type TreeEntrySpec struct {
+	RepoRev RepoRevSpec `protobuf:"bytes,1,opt,name=repo_rev" json:"repo_rev"`
+	Path    string      `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+}
+
+func (m *TreeEntrySpec) Reset()         { *m = TreeEntrySpec{} }
+func (m *TreeEntrySpec) String() string { return proto.CompactTextString(m) }
+func (*TreeEntrySpec) ProtoMessage()    {}
+
+// A UnitDelta represents a single source unit that was changed. It has fields for
+// the before (Base) and after (Head) versions. If both Base and Head are non-nil,
+// then the unit was changed from base to head. Otherwise, one of the fields being
+// nil means that the unit did not exist in that revision (e.g., it was added or
+// deleted from base to head).
+type UnitDelta struct {
+	Base *unit.RepoSourceUnit `protobuf:"bytes,1,opt,name=base" json:"base,omitempty"`
+	Head *unit.RepoSourceUnit `protobuf:"bytes,2,opt,name=head" json:"head,omitempty"`
+}
+
+func (m *UnitDelta) Reset()         { *m = UnitDelta{} }
+func (m *UnitDelta) String() string { return proto.CompactTextString(m) }
+func (*UnitDelta) ProtoMessage()    {}
+
+// UnitListOptions specifies options for UnitsService.List.
+type UnitListOptions struct {
+	// RepoRevs constrains the results to a set of repository revisions (given by their
+	// URIs plus an optional "@" and a revision specifier). For example,
+	// "repo.com/foo@revspec".
+	RepoRevs []string `protobuf:"bytes,1,rep,name=repo_revs" json:"repo_revs,omitempty" url:",omitempty,comma"`
+	UnitType string   `protobuf:"bytes,2,opt,name=unit_type,proto3" json:"unit_type,omitempty" url:",omitempty"`
+	Unit     string   `protobuf:"bytes,3,opt,name=unit,proto3" json:"unit,omitempty" url:",omitempty"`
+	// NameQuery specifies a full-text search query over the unit name.
+	NameQuery string `protobuf:"bytes,4,opt,name=name_query,proto3" json:"name_query,omitempty" url:",omitempty"`
+	// Query specifies a full-text search query over the repo URI, unit name, and unit
+	// data.
+	Query string `protobuf:"bytes,5,opt,name=query,proto3" json:"query,omitempty" url:",omitempty"`
+	// Paging
+	ListOptions `protobuf:"bytes,6,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *UnitListOptions) Reset()         { *m = UnitListOptions{} }
+func (m *UnitListOptions) String() string { return proto.CompactTextString(m) }
+func (*UnitListOptions) ProtoMessage()    {}
+
+// UnitSpec specifies a source unit.
+type UnitSpec struct {
+	RepoRevSpec `protobuf:"bytes,1,opt,name=repo_rev_spec,embedded=repo_rev_spec" json:"repo_rev_spec"`
+	UnitType    string `protobuf:"bytes,2,opt,name=unit_type,proto3" json:"unit_type,omitempty"`
+	Unit        string `protobuf:"bytes,3,opt,name=unit,proto3" json:"unit,omitempty"`
+}
+
+func (m *UnitSpec) Reset()         { *m = UnitSpec{} }
+func (m *UnitSpec) String() string { return proto.CompactTextString(m) }
+func (*UnitSpec) ProtoMessage()    {}
+
+type RepoSourceUnitList struct {
+	Units []*unit.RepoSourceUnit `protobuf:"bytes,1,rep,name=units" json:"units,omitempty"`
+}
+
+func (m *RepoSourceUnitList) Reset()         { *m = RepoSourceUnitList{} }
+func (m *RepoSourceUnitList) String() string { return proto.CompactTextString(m) }
+func (*RepoSourceUnitList) ProtoMessage()    {}
+
+type Checklist struct {
+	// number of tasks to be done (unchecked)
+	Todo int32 `protobuf:"varint,1,opt,name=todo,proto3" json:"todo,omitempty"`
+	// number of tasks that are done (checked)
+	Done int32 `protobuf:"varint,2,opt,name=done,proto3" json:"done,omitempty"`
+}
+
+func (m *Checklist) Reset()         { *m = Checklist{} }
+func (m *Checklist) String() string { return proto.CompactTextString(m) }
+func (*Checklist) ProtoMessage()    {}
+
+type FileToken struct {
+	Path  string               `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Entry *vcsclient.TreeEntry `protobuf:"bytes,2,opt,name=entry" json:"entry,omitempty"`
+}
+
+func (m *FileToken) Reset()         { *m = FileToken{} }
+func (m *FileToken) String() string { return proto.CompactTextString(m) }
+func (*FileToken) ProtoMessage()    {}
+
+// A Plan is a query plan that fetches the data necessary to satisfy (and provide
+// autocomplete suggestions for) a query.
+type Plan struct {
+	Repos *RepoListOptions       `protobuf:"bytes,1,opt,name=repos" json:"repos,omitempty"`
+	Defs  *DefListOptions        `protobuf:"bytes,2,opt,name=defs" json:"defs,omitempty"`
+	Users *UsersListOptions      `protobuf:"bytes,3,opt,name=users" json:"users,omitempty"`
+	Tree  *RepoTreeSearchOptions `protobuf:"bytes,4,opt,name=tree" json:"tree,omitempty"`
+	// TreeRepoRevs constrains the Tree search results to a set of repository revisions
+	// (given by their URIs plus an optional "@" and a revision specifier). For
+	// example, "repo.com/foo@revspec".
+	//
+	// TODO(sqs): gorilla/schema does not respect ",comma" and it has no similar
+	// option, so specifying multiple repo revs here does NOT work.
+	TreeRepoRevs []string `protobuf:"bytes,5,rep,name=tree_repo_revs" json:"tree_repo_revs,omitempty" url:",omitempty,comma"`
+}
+
+func (m *Plan) Reset()         { *m = Plan{} }
+func (m *Plan) String() string { return proto.CompactTextString(m) }
+func (*Plan) ProtoMessage()    {}
+
+// A RawQuery is a raw search query. To obtain the results for the query, it must
+// be tokenized, parsed, resolved, planned, etc.
+type RawQuery struct {
+	// Text is the raw query string from the client.
+	Text string `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
+	// InsertionPoint is the 0-indexed character offset of the text insertion cursor on
+	// the client.
+	InsertionPoint int32 `protobuf:"varint,2,opt,name=insertion_point,proto3" json:"insertion_point,omitempty"`
+}
+
+func (m *RawQuery) Reset()         { *m = RawQuery{} }
+func (m *RawQuery) String() string { return proto.CompactTextString(m) }
+func (*RawQuery) ProtoMessage()    {}
+
+// A RepoToken represents a repository, although it does not necessarily uniquely
+// identify the repository. It consists of any number of slash-separated path
+// components, such as "a/b" or "github.com/foo/bar".
+type RepoToken struct {
+	URI  string `protobuf:"bytes,1,opt,name=uri,proto3" json:"uri,omitempty"`
+	Repo *Repo  `protobuf:"bytes,2,opt,name=repo" json:"repo,omitempty"`
+}
+
+func (m *RepoToken) Reset()         { *m = RepoToken{} }
+func (m *RepoToken) String() string { return proto.CompactTextString(m) }
+func (*RepoToken) ProtoMessage()    {}
+
+// A ResolvedQuery is a query that has been parsed and resolved so that each token
+// is given an unambiguous meaning.
+type ResolvedQuery struct {
+	// Tokens are resolved tokens, each of whose meaning is unambiguous.
+	Tokens []PBToken `protobuf:"bytes,1,rep,name=tokens" json:"tokens"`
+}
+
+func (m *ResolvedQuery) Reset()         { *m = ResolvedQuery{} }
+func (m *ResolvedQuery) String() string { return proto.CompactTextString(m) }
+func (*ResolvedQuery) ProtoMessage()    {}
+
+// A RevToken represents a specific revision (either a revspec or a commit ID) of a
+// repository (which must be specified by a previous RepoToken in the query).
+type RevToken struct {
+	// Rev is either a revspec or commit ID
+	Rev    string      `protobuf:"bytes,1,opt,name=rev,proto3" json:"rev,omitempty"`
+	Commit *vcs.Commit `protobuf:"bytes,2,opt,name=commit" json:"commit,omitempty"`
+}
+
+func (m *RevToken) Reset()         { *m = RevToken{} }
+func (m *RevToken) String() string { return proto.CompactTextString(m) }
+func (*RevToken) ProtoMessage()    {}
+
+// A Suggestion is a possible completion of a query (returned by Suggest method).
+// It does not attempt to "complete" a query but rather indicate to the user what
+// types of queries are possible.
+type Suggestion struct {
+	// Query is a suggested query related to the original query.
+	Query []PBToken `protobuf:"bytes,1,rep,name=query" json:"query"`
+	// QueryString is what the user needs to enter into the search field to search
+	// using this suggested query.
+	QueryString string `protobuf:"bytes,2,opt,name=query_string,proto3" json:"query_string,omitempty"`
+	// Description is the human-readable description of Query (usually generated by
+	// calling the Describe func).
+	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+}
+
+func (m *Suggestion) Reset()         { *m = Suggestion{} }
+func (m *Suggestion) String() string { return proto.CompactTextString(m) }
+func (*Suggestion) ProtoMessage()    {}
+
+// A UnitToken represents a source unit in a repository.
+type UnitToken struct {
+	// UnitType is the type of the source unit (e.g., GoPackage).
+	UnitType string `protobuf:"bytes,1,opt,name=unit_type,proto3" json:"unit_type,omitempty"`
+	// Name is the name of the source unit (e.g., mypkg).
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+}
+
+func (m *UnitToken) Reset()         { *m = UnitToken{} }
+func (m *UnitToken) String() string { return proto.CompactTextString(m) }
+func (*UnitToken) ProtoMessage()    {}
+
+// A UserToken represents a user or org, although it does not necessarily uniquely
+// identify one. It consists of the string "@" followed by a full or partial
+// user/org login.
+type UserToken struct {
+	Login string `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
+	User  *User  `protobuf:"bytes,2,opt,name=user" json:"user,omitempty"`
+}
+
+func (m *UserToken) Reset()         { *m = UserToken{} }
+func (m *UserToken) String() string { return proto.CompactTextString(m) }
+func (*UserToken) ProtoMessage()    {}
+
+// A TokenError is an error about a specific token.
+type TokenError struct {
+	// Index is the 1-indexed index of the token that caused the error (0 means not
+	// associated with any particular token).
+	//
+	// NOTE: Index is 1-indexed (not 0-indexed) because some TokenErrors don't pertain
+	// to a token, and it's misleading if the Index in the JSON is 0 (which could mean
+	// that it pertains to the 1st token if index was 0-indexed).
+	Index   int32    `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
+	Token   *PBToken `protobuf:"bytes,2,opt,name=token" json:"token,omitempty"`
+	Message string   `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+}
+
+func (m *TokenError) Reset()         { *m = TokenError{} }
+func (m *TokenError) String() string { return proto.CompactTextString(m) }
+func (*TokenError) ProtoMessage()    {}
+
+// A PBToken is a protobuf wrapper (hence the prefix "PB") for a
+// search token. Exactly one field must be non-empty.
+type PBToken struct {
+	Term      string     `protobuf:"bytes,1,opt,name=term,proto3" json:"term,omitempty"`
+	AnyToken  string     `protobuf:"bytes,2,opt,name=any_token,proto3" json:"any_token,omitempty"`
+	RepoToken *RepoToken `protobuf:"bytes,3,opt,name=repo_token" json:"repo_token,omitempty"`
+	RevToken  *RevToken  `protobuf:"bytes,4,opt,name=rev_token" json:"rev_token,omitempty"`
+	UnitToken *UnitToken `protobuf:"bytes,5,opt,name=unit_token" json:"unit_token,omitempty"`
+	FileToken *FileToken `protobuf:"bytes,6,opt,name=file_token" json:"file_token,omitempty"`
+	UserToken *UserToken `protobuf:"bytes,7,opt,name=user_token" json:"user_token,omitempty"`
+}
+
+func (m *PBToken) Reset()         { *m = PBToken{} }
+func (m *PBToken) String() string { return proto.CompactTextString(m) }
+func (*PBToken) ProtoMessage()    {}
 
 func init() {
 }
@@ -2727,6 +3410,766 @@ var _Users_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListOrgs",
 			Handler:    _Users_ListOrgs_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for Defs service
+
+type DefsClient interface {
+	// Get fetches a def.
+	Get(ctx context.Context, in *DefsGetOp, opts ...grpc.CallOption) (*Def, error)
+	// List defs.
+	List(ctx context.Context, in *DefListOptions, opts ...grpc.CallOption) (*DefList, error)
+	// ListRefs lists references to def.
+	ListRefs(ctx context.Context, in *DefsListRefsOp, opts ...grpc.CallOption) (*RefList, error)
+	// ListExamples lists examples for def.
+	ListExamples(ctx context.Context, in *DefsListExamplesOp, opts ...grpc.CallOption) (*ExampleList, error)
+	// ListExamples lists people who committed parts of def's definition.
+	ListAuthors(ctx context.Context, in *DefsListAuthorsOp, opts ...grpc.CallOption) (*AugmentedDefAuthorList, error)
+	// ListClients lists people who use def in their code.
+	ListClients(ctx context.Context, in *DefsListClientsOp, opts ...grpc.CallOption) (*AugmentedDefClientList, error)
+}
+
+type defsClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewDefsClient(cc *grpc.ClientConn) DefsClient {
+	return &defsClient{cc}
+}
+
+func (c *defsClient) Get(ctx context.Context, in *DefsGetOp, opts ...grpc.CallOption) (*Def, error) {
+	out := new(Def)
+	err := grpc.Invoke(ctx, "/sourcegraph.Defs/Get", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *defsClient) List(ctx context.Context, in *DefListOptions, opts ...grpc.CallOption) (*DefList, error) {
+	out := new(DefList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Defs/List", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *defsClient) ListRefs(ctx context.Context, in *DefsListRefsOp, opts ...grpc.CallOption) (*RefList, error) {
+	out := new(RefList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Defs/ListRefs", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *defsClient) ListExamples(ctx context.Context, in *DefsListExamplesOp, opts ...grpc.CallOption) (*ExampleList, error) {
+	out := new(ExampleList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Defs/ListExamples", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *defsClient) ListAuthors(ctx context.Context, in *DefsListAuthorsOp, opts ...grpc.CallOption) (*AugmentedDefAuthorList, error) {
+	out := new(AugmentedDefAuthorList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Defs/ListAuthors", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *defsClient) ListClients(ctx context.Context, in *DefsListClientsOp, opts ...grpc.CallOption) (*AugmentedDefClientList, error) {
+	out := new(AugmentedDefClientList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Defs/ListClients", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for Defs service
+
+type DefsServer interface {
+	// Get fetches a def.
+	Get(context.Context, *DefsGetOp) (*Def, error)
+	// List defs.
+	List(context.Context, *DefListOptions) (*DefList, error)
+	// ListRefs lists references to def.
+	ListRefs(context.Context, *DefsListRefsOp) (*RefList, error)
+	// ListExamples lists examples for def.
+	ListExamples(context.Context, *DefsListExamplesOp) (*ExampleList, error)
+	// ListExamples lists people who committed parts of def's definition.
+	ListAuthors(context.Context, *DefsListAuthorsOp) (*AugmentedDefAuthorList, error)
+	// ListClients lists people who use def in their code.
+	ListClients(context.Context, *DefsListClientsOp) (*AugmentedDefClientList, error)
+}
+
+func RegisterDefsServer(s *grpc.Server, srv DefsServer) {
+	s.RegisterService(&_Defs_serviceDesc, srv)
+}
+
+func _Defs_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(DefsGetOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(DefsServer).Get(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Defs_List_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(DefListOptions)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(DefsServer).List(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Defs_ListRefs_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(DefsListRefsOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(DefsServer).ListRefs(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Defs_ListExamples_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(DefsListExamplesOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(DefsServer).ListExamples(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Defs_ListAuthors_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(DefsListAuthorsOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(DefsServer).ListAuthors(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Defs_ListClients_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(DefsListClientsOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(DefsServer).ListClients(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _Defs_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.Defs",
+	HandlerType: (*DefsServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Get",
+			Handler:    _Defs_Get_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _Defs_List_Handler,
+		},
+		{
+			MethodName: "ListRefs",
+			Handler:    _Defs_ListRefs_Handler,
+		},
+		{
+			MethodName: "ListExamples",
+			Handler:    _Defs_ListExamples_Handler,
+		},
+		{
+			MethodName: "ListAuthors",
+			Handler:    _Defs_ListAuthors_Handler,
+		},
+		{
+			MethodName: "ListClients",
+			Handler:    _Defs_ListClients_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for Deltas service
+
+type DeltasClient interface {
+	// Get fetches a summary of a delta.
+	Get(ctx context.Context, in *DeltaSpec, opts ...grpc.CallOption) (*Delta, error)
+	// ListUnits lists units added/changed/deleted in a delta.
+	ListUnits(ctx context.Context, in *DeltasListUnitsOp, opts ...grpc.CallOption) (*UnitDeltaList, error)
+	// ListDefs lists definitions added/changed/deleted in a delta.
+	ListDefs(ctx context.Context, in *DeltasListDefsOp, opts ...grpc.CallOption) (*DeltaDefs, error)
+	// ListFiles fetches the file diff for a delta.
+	ListFiles(ctx context.Context, in *DeltasListFilesOp, opts ...grpc.CallOption) (*DeltaFiles, error)
+	// ListAffectedAuthors lists authors whose code is added/deleted/changed in a
+	// delta.
+	ListAffectedAuthors(ctx context.Context, in *DeltasListAffectedAuthorsOp, opts ...grpc.CallOption) (*DeltaAffectedPersonList, error)
+	// ListAffectedClients lists clients whose code is affected by a delta.
+	ListAffectedClients(ctx context.Context, in *DeltasListAffectedClientsOp, opts ...grpc.CallOption) (*DeltaAffectedPersonList, error)
+}
+
+type deltasClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewDeltasClient(cc *grpc.ClientConn) DeltasClient {
+	return &deltasClient{cc}
+}
+
+func (c *deltasClient) Get(ctx context.Context, in *DeltaSpec, opts ...grpc.CallOption) (*Delta, error) {
+	out := new(Delta)
+	err := grpc.Invoke(ctx, "/sourcegraph.Deltas/Get", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deltasClient) ListUnits(ctx context.Context, in *DeltasListUnitsOp, opts ...grpc.CallOption) (*UnitDeltaList, error) {
+	out := new(UnitDeltaList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Deltas/ListUnits", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deltasClient) ListDefs(ctx context.Context, in *DeltasListDefsOp, opts ...grpc.CallOption) (*DeltaDefs, error) {
+	out := new(DeltaDefs)
+	err := grpc.Invoke(ctx, "/sourcegraph.Deltas/ListDefs", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deltasClient) ListFiles(ctx context.Context, in *DeltasListFilesOp, opts ...grpc.CallOption) (*DeltaFiles, error) {
+	out := new(DeltaFiles)
+	err := grpc.Invoke(ctx, "/sourcegraph.Deltas/ListFiles", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deltasClient) ListAffectedAuthors(ctx context.Context, in *DeltasListAffectedAuthorsOp, opts ...grpc.CallOption) (*DeltaAffectedPersonList, error) {
+	out := new(DeltaAffectedPersonList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Deltas/ListAffectedAuthors", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deltasClient) ListAffectedClients(ctx context.Context, in *DeltasListAffectedClientsOp, opts ...grpc.CallOption) (*DeltaAffectedPersonList, error) {
+	out := new(DeltaAffectedPersonList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Deltas/ListAffectedClients", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for Deltas service
+
+type DeltasServer interface {
+	// Get fetches a summary of a delta.
+	Get(context.Context, *DeltaSpec) (*Delta, error)
+	// ListUnits lists units added/changed/deleted in a delta.
+	ListUnits(context.Context, *DeltasListUnitsOp) (*UnitDeltaList, error)
+	// ListDefs lists definitions added/changed/deleted in a delta.
+	ListDefs(context.Context, *DeltasListDefsOp) (*DeltaDefs, error)
+	// ListFiles fetches the file diff for a delta.
+	ListFiles(context.Context, *DeltasListFilesOp) (*DeltaFiles, error)
+	// ListAffectedAuthors lists authors whose code is added/deleted/changed in a
+	// delta.
+	ListAffectedAuthors(context.Context, *DeltasListAffectedAuthorsOp) (*DeltaAffectedPersonList, error)
+	// ListAffectedClients lists clients whose code is affected by a delta.
+	ListAffectedClients(context.Context, *DeltasListAffectedClientsOp) (*DeltaAffectedPersonList, error)
+}
+
+func RegisterDeltasServer(s *grpc.Server, srv DeltasServer) {
+	s.RegisterService(&_Deltas_serviceDesc, srv)
+}
+
+func _Deltas_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(DeltaSpec)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(DeltasServer).Get(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Deltas_ListUnits_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(DeltasListUnitsOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(DeltasServer).ListUnits(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Deltas_ListDefs_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(DeltasListDefsOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(DeltasServer).ListDefs(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Deltas_ListFiles_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(DeltasListFilesOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(DeltasServer).ListFiles(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Deltas_ListAffectedAuthors_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(DeltasListAffectedAuthorsOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(DeltasServer).ListAffectedAuthors(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Deltas_ListAffectedClients_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(DeltasListAffectedClientsOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(DeltasServer).ListAffectedClients(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _Deltas_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.Deltas",
+	HandlerType: (*DeltasServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Get",
+			Handler:    _Deltas_Get_Handler,
+		},
+		{
+			MethodName: "ListUnits",
+			Handler:    _Deltas_ListUnits_Handler,
+		},
+		{
+			MethodName: "ListDefs",
+			Handler:    _Deltas_ListDefs_Handler,
+		},
+		{
+			MethodName: "ListFiles",
+			Handler:    _Deltas_ListFiles_Handler,
+		},
+		{
+			MethodName: "ListAffectedAuthors",
+			Handler:    _Deltas_ListAffectedAuthors_Handler,
+		},
+		{
+			MethodName: "ListAffectedClients",
+			Handler:    _Deltas_ListAffectedClients_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for Markdown service
+
+type MarkdownClient interface {
+	Render(ctx context.Context, in *MarkdownRenderOp, opts ...grpc.CallOption) (*MarkdownData, error)
+}
+
+type markdownClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewMarkdownClient(cc *grpc.ClientConn) MarkdownClient {
+	return &markdownClient{cc}
+}
+
+func (c *markdownClient) Render(ctx context.Context, in *MarkdownRenderOp, opts ...grpc.CallOption) (*MarkdownData, error) {
+	out := new(MarkdownData)
+	err := grpc.Invoke(ctx, "/sourcegraph.Markdown/Render", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for Markdown service
+
+type MarkdownServer interface {
+	Render(context.Context, *MarkdownRenderOp) (*MarkdownData, error)
+}
+
+func RegisterMarkdownServer(s *grpc.Server, srv MarkdownServer) {
+	s.RegisterService(&_Markdown_serviceDesc, srv)
+}
+
+func _Markdown_Render_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(MarkdownRenderOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(MarkdownServer).Render(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _Markdown_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.Markdown",
+	HandlerType: (*MarkdownServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Render",
+			Handler:    _Markdown_Render_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for RepoTree service
+
+type RepoTreeClient interface {
+	Get(ctx context.Context, in *RepoTreeGetOp, opts ...grpc.CallOption) (*TreeEntry, error)
+	Search(ctx context.Context, in *RepoTreeSearchOp, opts ...grpc.CallOption) (*VCSSearchResultList, error)
+}
+
+type repoTreeClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewRepoTreeClient(cc *grpc.ClientConn) RepoTreeClient {
+	return &repoTreeClient{cc}
+}
+
+func (c *repoTreeClient) Get(ctx context.Context, in *RepoTreeGetOp, opts ...grpc.CallOption) (*TreeEntry, error) {
+	out := new(TreeEntry)
+	err := grpc.Invoke(ctx, "/sourcegraph.RepoTree/Get", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *repoTreeClient) Search(ctx context.Context, in *RepoTreeSearchOp, opts ...grpc.CallOption) (*VCSSearchResultList, error) {
+	out := new(VCSSearchResultList)
+	err := grpc.Invoke(ctx, "/sourcegraph.RepoTree/Search", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for RepoTree service
+
+type RepoTreeServer interface {
+	Get(context.Context, *RepoTreeGetOp) (*TreeEntry, error)
+	Search(context.Context, *RepoTreeSearchOp) (*VCSSearchResultList, error)
+}
+
+func RegisterRepoTreeServer(s *grpc.Server, srv RepoTreeServer) {
+	s.RegisterService(&_RepoTree_serviceDesc, srv)
+}
+
+func _RepoTree_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(RepoTreeGetOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RepoTreeServer).Get(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _RepoTree_Search_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(RepoTreeSearchOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RepoTreeServer).Search(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _RepoTree_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.RepoTree",
+	HandlerType: (*RepoTreeServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Get",
+			Handler:    _RepoTree_Get_Handler,
+		},
+		{
+			MethodName: "Search",
+			Handler:    _RepoTree_Search_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for Search service
+
+type SearchClient interface {
+	// Search searches the full index.
+	Search(ctx context.Context, in *SearchOptions, opts ...grpc.CallOption) (*SearchResults, error)
+	// Complete completes the token at the RawQuery's InsertionPoint.
+	Complete(ctx context.Context, in *RawQuery, opts ...grpc.CallOption) (*Completions, error)
+	// Suggest suggests queries given an existing query. It can be called with an empty
+	// query to get example queries that pertain to the current user's repositories,
+	// orgs, etc.
+	Suggest(ctx context.Context, in *RawQuery, opts ...grpc.CallOption) (*SuggestionList, error)
+}
+
+type searchClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewSearchClient(cc *grpc.ClientConn) SearchClient {
+	return &searchClient{cc}
+}
+
+func (c *searchClient) Search(ctx context.Context, in *SearchOptions, opts ...grpc.CallOption) (*SearchResults, error) {
+	out := new(SearchResults)
+	err := grpc.Invoke(ctx, "/sourcegraph.Search/Search", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *searchClient) Complete(ctx context.Context, in *RawQuery, opts ...grpc.CallOption) (*Completions, error) {
+	out := new(Completions)
+	err := grpc.Invoke(ctx, "/sourcegraph.Search/Complete", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *searchClient) Suggest(ctx context.Context, in *RawQuery, opts ...grpc.CallOption) (*SuggestionList, error) {
+	out := new(SuggestionList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Search/Suggest", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for Search service
+
+type SearchServer interface {
+	// Search searches the full index.
+	Search(context.Context, *SearchOptions) (*SearchResults, error)
+	// Complete completes the token at the RawQuery's InsertionPoint.
+	Complete(context.Context, *RawQuery) (*Completions, error)
+	// Suggest suggests queries given an existing query. It can be called with an empty
+	// query to get example queries that pertain to the current user's repositories,
+	// orgs, etc.
+	Suggest(context.Context, *RawQuery) (*SuggestionList, error)
+}
+
+func RegisterSearchServer(s *grpc.Server, srv SearchServer) {
+	s.RegisterService(&_Search_serviceDesc, srv)
+}
+
+func _Search_Search_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(SearchOptions)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(SearchServer).Search(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Search_Complete_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(RawQuery)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(SearchServer).Complete(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Search_Suggest_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(RawQuery)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(SearchServer).Suggest(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _Search_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.Search",
+	HandlerType: (*SearchServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Search",
+			Handler:    _Search_Search_Handler,
+		},
+		{
+			MethodName: "Complete",
+			Handler:    _Search_Complete_Handler,
+		},
+		{
+			MethodName: "Suggest",
+			Handler:    _Search_Suggest_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for Units service
+
+type UnitsClient interface {
+	// Get fetches a unit.
+	Get(ctx context.Context, in *UnitSpec, opts ...grpc.CallOption) (*unit.RepoSourceUnit, error)
+	// List units.
+	List(ctx context.Context, in *UnitListOptions, opts ...grpc.CallOption) (*RepoSourceUnitList, error)
+}
+
+type unitsClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewUnitsClient(cc *grpc.ClientConn) UnitsClient {
+	return &unitsClient{cc}
+}
+
+func (c *unitsClient) Get(ctx context.Context, in *UnitSpec, opts ...grpc.CallOption) (*unit.RepoSourceUnit, error) {
+	out := new(unit.RepoSourceUnit)
+	err := grpc.Invoke(ctx, "/sourcegraph.Units/Get", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *unitsClient) List(ctx context.Context, in *UnitListOptions, opts ...grpc.CallOption) (*RepoSourceUnitList, error) {
+	out := new(RepoSourceUnitList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Units/List", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for Units service
+
+type UnitsServer interface {
+	// Get fetches a unit.
+	Get(context.Context, *UnitSpec) (*unit.RepoSourceUnit, error)
+	// List units.
+	List(context.Context, *UnitListOptions) (*RepoSourceUnitList, error)
+}
+
+func RegisterUnitsServer(s *grpc.Server, srv UnitsServer) {
+	s.RegisterService(&_Units_serviceDesc, srv)
+}
+
+func _Units_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(UnitSpec)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(UnitsServer).Get(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Units_List_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(UnitListOptions)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(UnitsServer).List(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _Units_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.Units",
+	HandlerType: (*UnitsServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Get",
+			Handler:    _Units_Get_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _Units_List_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},

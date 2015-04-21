@@ -36,20 +36,19 @@ func TestTokens_JSON(t *testing.T) {
     "Type": "Term"
   },
   {
-    "URI": "r",
+    "uri": "r",
     "Type": "RepoToken"
   },
   {
-    "Rev": "v",
+    "rev": "v",
     "Type": "RevToken"
   },
   {
-    "Path": "p",
-    "Entry": null,
+    "path": "p",
     "Type": "FileToken"
   },
   {
-    "Login": "u",
+    "login": "u",
     "Type": "UserToken"
   }
 ]`
@@ -78,5 +77,32 @@ func TestTokens_nil(t *testing.T) {
 	wantJSON := `[]`
 	if string(b) != wantJSON {
 		t.Errorf("got JSON\n%s\n\nwant JSON\n%s", b, wantJSON)
+	}
+}
+
+func TestPBToken_Token(t *testing.T) {
+	tests := []struct {
+		pb   PBToken
+		want Token
+	}{
+		{PBTokenWrap(Term("t")), Term("t")},
+		{PBTokenWrap(AnyToken("t")), AnyToken("t")},
+		{PBTokenWrap(RepoToken{URI: "r"}), RepoToken{URI: "r"}},
+		{PBTokenWrap(RevToken{Rev: "v"}), RevToken{Rev: "v"}},
+		{PBTokenWrap(FileToken{Path: "p"}), FileToken{Path: "p"}},
+		{PBTokenWrap(UserToken{Login: "u"}), UserToken{Login: "u"}},
+		{PBTokenWrap(&RepoToken{URI: "r"}), RepoToken{URI: "r"}},
+		{PBTokenWrap(&RevToken{Rev: "v"}), RevToken{Rev: "v"}},
+		{PBTokenWrap(&FileToken{Path: "p"}), FileToken{Path: "p"}},
+		{PBTokenWrap(&UserToken{Login: "u"}), UserToken{Login: "u"}},
+
+		{PBTokenWrap(nil), Term("")},
+		{PBTokenWrap(Term("")), Term("")},
+	}
+	for _, test := range tests {
+		tok := test.pb.Token()
+		if !reflect.DeepEqual(tok, test.want) {
+			t.Errorf("got %#v, want %#v", tok, test.want)
+		}
 	}
 }

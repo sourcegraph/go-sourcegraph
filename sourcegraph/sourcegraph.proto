@@ -1,11 +1,17 @@
 syntax = "proto3";
 package sourcegraph;
 
-import "gogoproto/gogo.proto";
-import "timestamp.proto";
-import "void.proto";
-import "vcs.proto";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "sourcegraph.com/sourcegraph/go-diff/diff/diff.proto";
+import "sourcegraph.com/sourcegraph/go-vcs/vcs/vcs.proto";
+import "sourcegraph.com/sourcegraph/srclib/graph/def.proto";
+import "sourcegraph.com/sourcegraph/srclib/graph/ref.proto";
+import "sourcegraph.com/sourcegraph/srclib/unit/unit.proto";
+import "sourcegraph.com/sourcegraph/vcsstore/vcsclient/vcsclient.proto";
+import "sourcegraph.com/sqs/pbtypes/timestamp.proto";
+import "sourcegraph.com/sqs/pbtypes/void.proto";
 
+option (gogoproto.goproto_getters_all) = false;
 
 message Badge {
 	string name = 1;
@@ -875,4 +881,868 @@ service Users {
 
 	// ListOrgs lists organizations that a user is a member of.
 	rpc ListOrgs(UsersListOrgsOp) returns (OrgList);
+}
+
+message AugmentedDefAuthor {
+	optional Person person = 1;
+	optional DefAuthor def_author = 2 [(gogoproto.embed) = true];
+}
+
+message AugmentedDefClient {
+	optional Person person = 1;
+	optional DefClient def_client = 2 [(gogoproto.embed) = true];
+}
+
+message AuthorshipInfo {
+	string author_email = 1;
+	pbtypes.Timestamp last_commit_date = 2 [(gogoproto.nullable) = false];
+
+	// LastCommitID is the commit ID of the last commit that this author made to the
+	// thing that this info describes.
+	string last_commit_id = 3 [(gogoproto.customname) = "LastCommitID"];
+}
+
+// Completions holds search query completions.
+message Completions {
+	// TokenCompletions are suggested completions for the token at the raw query's
+	// InsertionPoint.
+	repeated PBToken token_completions = 1 [(gogoproto.nullable) = false];
+
+	// ResolvedTokens is the resolution of the original query's tokens used to produce
+	// the completions. It is useful for debugging.
+	repeated PBToken resolved_tokens = 2 [(gogoproto.nullable) = false];
+
+	repeated TokenError resolve_errors = 3 [(gogoproto.nullable) = false];
+	bool resolution_fatal = 4;
+}
+
+// Def is a code def returned by the Sourcegraph API.
+message Def {
+	graph.Def def = 1 [(gogoproto.embed) = true];
+	string doc_html = 2 [(gogoproto.customname) = "DocHTML"];
+	optional DefFormatStrings fmt_strings = 3;
+}
+
+message DefAuthor {
+	int32 uid = 1 [(gogoproto.customname) = "UID"];
+	string email = 2;
+	DefAuthorship def_authorship = 3 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+message DefAuthorship {
+	AuthorshipInfo authorship_info = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+
+	// Exported is whether the def is exported.
+	bool exported = 2;
+
+	int32 bytes = 3;
+	double bytes_proportion = 4;
+}
+
+message DefClient {
+	int32 uid = 1 [(gogoproto.customname) = "UID"];
+	string email = 2;
+	AuthorshipInfo authorship_info = 3 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+
+	// UseCount is the number of times this person referred to the def.
+	int32 use_count = 4;
+}
+
+// A DefDelta represents a single definition that was changed. It has fields for
+// the before (Base) and after (Head) versions. If both Base and Head are non-nil,
+// then the def was changed from base to head. Otherwise, one of the fields being
+// nil means that the def did not exist in that revision (e.g., it was added or
+// deleted from base to head).
+message DefDelta {
+	// the def in the base commit (if nil, this def was added in the head)
+	optional Def base = 1;
+
+	// the def in the head commit (if nil, this def was deleted in the head)
+	optional Def head = 2;
+}
+
+// DefFormatStrings contains the various def format strings from the srclib def
+// formatter.
+message DefFormatStrings {
+	QualFormatStrings name = 1 [(gogoproto.nullable) = false];
+	QualFormatStrings type = 2 [(gogoproto.nullable) = false];
+	string name_and_type_separator = 3;
+	string language = 4;
+	string def_keyword = 5;
+	string kind = 6;
+}
+
+// DefGetOptions specifies options for DefsService.Get.
+message DefGetOptions {
+	bool doc = 1 [(gogoproto.moretags) = "url:\",omitempty\""];
+}
+
+// DefListAuthorsOptions specifies options for DefsService.ListAuthors.
+message DefListAuthorsOptions {
+	ListOptions list_options = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// DefListClientsOptions specifies options for DefsService.ListClients.
+message DefListClientsOptions {
+	ListOptions list_options = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// DefListExamplesOptions specifies options for DefsService.ListExamples.
+message DefListExamplesOptions {
+	bool formatted = 1 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	// Filter by a specific Repo URI
+	string repo = 2 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	// TokenizedSource requests that the source code be returned as a tokenized data
+	// structure rather than an (annotated) string.
+	// 
+	// This is useful when the client wants to take full control of rendering and
+	// manipulating the contents.
+	bool tokenized_source = 3 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	ListOptions list_options = 4 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// DefListOptions specifies options for DefsService.List.
+message DefListOptions {
+	string name = 1 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	// Specifies a search query for defs. If specified, then the Sort and Direction
+	// options are ignored
+	string query = 2 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	// ByteStart and ByteEnd will restrict the results to only definitions that overlap
+	// with the specified start and end byte offsets. This filter is only applied if
+	// both values are set.
+	uint32 byte_start = 3;
+
+	// ByteStart and ByteEnd will restrict the results to only definitions that overlap
+	// with the specified start and end byte offsets. This filter is only applied if
+	// both values are set.
+	uint32 byte_end = 4;
+
+	// DefKeys, if set, will return the definitions that match the given DefKey
+	repeated graph.DefKey def_keys = 5;
+
+	// RepoRevs constrains the results to a set of repository revisions (given by their
+	// URIs plus an optional "@" and a revision specifier). For example,
+	// "repo.com/foo@revspec".
+	repeated string repo_revs = 6 [(gogoproto.moretags) = "url:\",omitempty,comma\""];
+
+	string unit_type = 7 [(gogoproto.moretags) = "url:\",omitempty\""];
+	string unit = 8 [(gogoproto.moretags) = "url:\",omitempty\""];
+	string path = 9 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	// File, if specified, will restrict the results to only defs defined in the
+	// specified file.
+	string file = 10 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	// FilePathPrefix, if specified, will restrict the results to only defs defined in
+	// files whose path is underneath the specified prefix.
+	string file_path_prefix = 11 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	repeated string kinds = 12 [(gogoproto.moretags) = "url:\",omitempty,comma\""];
+	bool exported = 13 [(gogoproto.moretags) = "url:\",omitempty\""];
+	bool nonlocal = 14 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	// IncludeTest is whether the results should include definitions in test files.
+	bool include_test = 15 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	// Enhancements
+	bool doc = 16 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	bool fuzzy = 17 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	// Sorting
+	string sort = 18 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	string direction = 19 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	// Paging
+	ListOptions list_options = 20 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+message DefListRefsOptions {
+	bool authorship = 1 [(gogoproto.moretags) = "url:\",omitempty\""];
+	string repo = 2 [(gogoproto.moretags) = "url:\",omitempty\""];
+	ListOptions list_options = 3 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// DefSpec specifies a def.
+message DefSpec {
+	string repo = 1;
+	string commit_id = 2 [(gogoproto.customname) = "CommitID"];
+	string unit_type = 3;
+	string unit = 4;
+	string path = 5;
+}
+
+message DefsGetOp {
+	DefSpec def = 1 [(gogoproto.nullable) = false];
+	optional DefGetOptions opt = 2;
+}
+
+message DefList {
+	repeated Def defs = 1;
+}
+
+message DefsListRefsOp {
+	DefSpec def = 1 [(gogoproto.nullable) = false];
+	optional DefListRefsOptions opt = 2;
+}
+
+message RefList {
+	repeated Ref refs = 1;
+}
+
+message DefsListExamplesOp {
+	DefSpec def = 1 [(gogoproto.nullable) = false];
+	optional DefListExamplesOptions opt = 2;
+}
+
+message ExampleList {
+	repeated Example examples = 1;
+}
+
+message DefsListAuthorsOp {
+	DefSpec def = 1 [(gogoproto.nullable) = false];
+	optional DefListAuthorsOptions opt = 2;
+}
+
+message AugmentedDefAuthorList {
+	repeated AugmentedDefAuthor augmented_def_authors = 1;
+}
+
+message DefsListClientsOp {
+	DefSpec def = 1 [(gogoproto.nullable) = false];
+	optional DefListClientsOptions opt = 2;
+}
+
+message AugmentedDefClientList {
+	repeated AugmentedDefClient augmented_def_clients = 1;
+}
+
+// Delta represents the difference between two commits (possibly in 2 separate
+// repositories).
+message Delta {
+	RepoRevSpec base = 1 [(gogoproto.nullable) = false];
+	RepoRevSpec head = 2 [(gogoproto.nullable) = false];
+	vcs.Commit base_commit = 3;
+	vcs.Commit head_commit = 4;
+	optional Repo base_repo = 5;
+	optional Repo head_repo = 6;
+	optional Build base_build = 7;
+	optional Build head_build = 8;
+}
+
+// DeltaAffectedPerson describes a person (registered user or committer email
+// address) that is affected by a delta. It includes fields for the person affected
+// as well as the defs that are the reason why we consider them to be affected.
+// 
+// The person's relationship to the Defs depends on what method returned this
+// DeltaAffectedPerson. If it was returned by a method that lists authors, then the
+// Defs are definitions that the Person committed. If it was returned by a method
+// that lists clients (a.k.a users), then the Defs are definitions that the Person
+// uses.
+message DeltaAffectedPerson {
+	// the affected person
+	Person person = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+
+	// the defs they authored or use (the reason why they're affected)
+	repeated Def defs = 2;
+}
+
+// DeltaDefs describes definitions added/changed/deleted in a delta.
+message DeltaDefs {
+	// added/changed/deleted defs
+	repeated DefDelta defs = 1;
+
+	// overall diffstat (not subject to pagination)
+	diff.Stat diff_stat = 2;
+}
+
+// DeltaFiles describes files added/changed/deleted in a delta.
+message DeltaFiles {
+	repeated diff.FileDiff file_diffs = 1;
+}
+
+// DeltaFilter specifies criteria by which to filter results from DeltaListXxx
+// methods.
+message DeltaFilter {
+	string unit = 1 [(gogoproto.moretags) = "url:\",omitempty\""];
+	string unit_type = 2 [(gogoproto.moretags) = "url:\",omitempty\""];
+}
+
+// DeltaListAffectedAuthorsOptions specifies options for ListAffectedAuthors.
+message DeltaListAffectedAuthorsOptions {
+	DeltaFilter delta_filter = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+	ListOptions list_options = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// DeltaListAffectedClientsOptions specifies options for ListAffectedClients.
+message DeltaListAffectedClientsOptions {
+	DeltaFilter delta_filter = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+	ListOptions list_options = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// DeltaListDefsOptions specifies options for ListDefs.
+message DeltaListDefsOptions {
+	DeltaFilter delta_filter = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+	ListOptions list_options = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// DeltaListFilesOptions specifies options for ListFiles.
+message DeltaListFilesOptions {
+	// Formatted is whether the files should have their contents code-formatted
+	// (syntax-highlighted and reference-linked) if they contain code.
+	bool formatted = 1 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	// Filter filters the list of returned files to those whose name matches Filter.
+	string filter = 2 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	DeltaFilter delta_filter = 3 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// DeltaListUnitsOptions specifies options for ListUnits.
+message DeltaListUnitsOptions {
+}
+
+// A DeltaSpec specifies a delta.
+message DeltaSpec {
+	RepoRevSpec base = 1 [(gogoproto.nullable) = false];
+	RepoRevSpec head = 2 [(gogoproto.nullable) = false];
+}
+
+message DeltasListUnitsOp {
+	DeltaSpec ds = 1 [(gogoproto.nullable) = false];
+	optional DeltaListUnitsOptions opt = 2;
+}
+
+message UnitDeltaList {
+	repeated UnitDelta unit_deltas = 1;
+}
+
+message DeltasListDefsOp {
+	DeltaSpec ds = 1 [(gogoproto.nullable) = false];
+	optional DeltaListDefsOptions opt = 2;
+}
+
+message DeltasListFilesOp {
+	DeltaSpec ds = 1 [(gogoproto.nullable) = false];
+	optional DeltaListFilesOptions opt = 2;
+}
+
+message DeltasListAffectedAuthorsOp {
+	DeltaSpec ds = 1 [(gogoproto.nullable) = false];
+	optional DeltaListAffectedAuthorsOptions opt = 2;
+}
+
+message DeltaAffectedPersonList {
+	repeated DeltaAffectedPerson delta_affected_persons = 1;
+}
+
+message DeltasListAffectedClientsOp {
+	DeltaSpec ds = 1 [(gogoproto.nullable) = false];
+	optional DeltaListAffectedClientsOptions opt = 2;
+}
+
+// Example is a usage example of a def.
+message Example {
+	graph.Ref ref = 1 [(gogoproto.embed) = true];
+
+	// SrcHTML is the formatted HTML source code of the example, with links to
+	// definitions.
+	string src_html = 2 [(gogoproto.customname) = "SrcHTML", (gogoproto.customtype) = "html/template.HTML"];
+
+	// SourceCode contains the parsed source for this example, if requested via
+	// DefListExamplesOptions.
+	optional SourceCode source_code = 3;
+
+	// The line that the given example starts on
+	int32 start_line = 4;
+
+	// The line that the given example ends on
+	int32 end_line = 5;
+
+	// Error is whether an error occurred while fetching this example.
+	bool error = 6;
+}
+
+// FormatResult contains information about and warnings from the formatting
+// operation (if Formatted is true in the options).
+message FormatResult {
+	// TooManyRefs indicates that the file being formatted exceeded the maximum number
+	// of refs that are linked. Only the first NumRefs refs are linked.
+	bool too_many_refs = 1;
+
+	// NumRefs is the number of refs that were linked in this file. If the total number
+	// of refs in the file exceeds the (server-defined) limit, NumRefs is capped at the
+	// limit.
+	int32 num_refs = 2;
+
+	// LineStartByteOffsets is the byte offset of each line's first byte.
+	repeated int32 line_start_byte_offsets = 3;
+}
+
+message MarkdownData {
+	bytes rendered = 1;
+	optional Checklist checklist = 2;
+}
+
+message MarkdownOpt {
+	bool enable_checkboxes = 1;
+}
+
+message MarkdownRequestBody {
+	bytes markdown = 1;
+	MarkdownOpt markdown_opt = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+message MarkdownRenderOp {
+	bytes markdown = 1;
+	MarkdownOpt opt = 2 [(gogoproto.nullable) = false];
+}
+
+// QualFormatStrings holds the formatted string for each Qualification for a def
+// (for either Name or Type).
+message QualFormatStrings {
+	string unqualified = 1;
+	string scope_qualified = 2;
+	string dep_qualified = 3;
+	string repository_wide_qualified = 4;
+	string language_wide_qualified = 5;
+}
+
+message Ref {
+	graph.Ref ref = 1 [(gogoproto.embed) = true];
+	optional AuthorshipInfo authorship = 2;
+}
+
+// RepoTreeGetOptions specifies options for (RepoTreeService).Get.
+message RepoTreeGetOptions {
+	// Formatted is whether the specified entry, if it's a file, should have its
+	// Contents code-formatted using HTML.
+	bool formatted = 1;
+
+	// HighlightStrings is a list of fixed strings that should be wrapped in a <span
+	// class="highlight"> in the returned HTML. It only takes effect if Formatted is
+	// true.
+	repeated string highlight_strings = 2;
+
+	// TokenizedSource requests that the source code be returned as a tokenized data
+	// structure rather than an (annotated) string.
+	// 
+	// This is useful when the client wants to take full control of rendering and
+	// manipulating the contents.
+	bool tokenized_source = 3 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	bool contents_as_string = 4 [(gogoproto.moretags) = "url:\",omitempty\""];
+	vcsclient.GetFileOptions get_file_options = 5 [(gogoproto.embed) = true];
+}
+
+message RepoTreeSearchOptions {
+	vcs.SearchOptions search_options = 1 [(gogoproto.embed) = true];
+	bool formatted = 2;
+}
+
+// A RepoTreeSearchResult is a tree search result that includes the repo and rev it
+// came from.
+message RepoTreeSearchResult {
+	vcs.SearchResult search_result = 1 [(gogoproto.embed) = true];
+	RepoRevSpec repo_rev = 2 [(gogoproto.nullable) = false];
+}
+
+message RepoTreeGetOp {
+	TreeEntrySpec entry = 1 [(gogoproto.nullable) = false];
+	optional RepoTreeGetOptions opt = 2;
+}
+
+message RepoTreeSearchOp {
+	RepoRevSpec rev = 1 [(gogoproto.nullable) = false];
+	optional RepoTreeSearchOptions opt = 2;
+}
+
+message VCSSearchResultList {
+	repeated vcs.SearchResult search_results = 1;
+}
+
+message SearchOptions {
+	string query = 1 [(gogoproto.moretags) = "url:\"q\" schema:\"q\""];
+	bool defs = 2;
+	bool repos = 3;
+	bool people = 4;
+	bool tree = 5;
+	ListOptions list_options = 6 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+message SearchResults {
+	repeated Def defs = 1;
+	repeated Person people = 2;
+	repeated Repo repos = 3;
+	repeated RepoTreeSearchResult tree = 4;
+
+	// RawQuery is the raw query passed to search.
+	RawQuery raw_query = 5 [(gogoproto.nullable) = false];
+
+	// Tokens are the unresolved tokens.
+	repeated PBToken tokens = 6 [(gogoproto.nullable) = false];
+
+	// Plan is the query plan used to fetch the results.
+	optional Plan plan = 7;
+
+	// ResolvedTokens holds the resolved tokens from the original query string.
+	repeated PBToken resolved_tokens = 8 [(gogoproto.nullable) = false];
+
+	repeated TokenError resolve_errors = 9 [(gogoproto.nullable) = false];
+
+	// Tips are helpful tips for the user about their query. They are not errors per
+	// se, but they use the TokenError type because it allows us to associate a message
+	// with a particular token (and JSON de/serialize that).
+	repeated TokenError tips = 10 [(gogoproto.nullable) = false];
+
+	// Canceled is true if the query was canceled. More information about how to
+	// correct the issue can be found in the ResolveErrors and Tips.
+	bool canceled = 11;
+}
+
+message SuggestionList {
+	repeated Suggestion suggestions = 1;
+}
+
+// SourceCode contains a snippet of code with linked and classed tokens, along with
+// other information about the contents.
+// 
+// This data structure is useful when one desires to take full control of rendering
+// and manipulating the contents of the requested TreeEntry or snippet, rather than
+// dealing with an (annotated) string or parsing text. To obtain this strcture in
+// the TreeEntry, TokenizedSource must be set to "true" in the RepoTreeGetOptions.
+message SourceCode {
+	// Lines contains all the lines of the contained code snippet.
+	repeated SourceCodeLine lines = 1;
+
+	int32 num_refs = 2;
+	bool too_many_refs = 3;
+}
+
+// SourceCodeLine contains all tokens on this line along with other information
+// such as byte offsets in original source.
+message SourceCodeLine {
+	// StartByte and EndByte are the start and end offsets in bytes, in the original
+	// file.
+	int32 start_byte = 1;
+
+	int32 end_byte = 2;
+
+	// Tokens contains any tokens that may be on this line, including whitespace. New
+	// lines ('\n') are not present.
+	repeated SourceCodeLineTokenOrString tokens = 3 [(gogoproto.nullable) = false];
+}
+
+// SourceCodeLineTokenOrString is either a whitespace token (stored as an HTML
+// encoded "string") or a SourceCodeToken. Exactly one field is nonempty.
+// 
+// TODO(sqs) TODO(perf): space- and memory-optimize this (by making it implement
+// json.Marshaler, for example) - it's an inefficient hack to make it
+// protobuf-serializable.
+message SourceCodeLineTokenOrString {
+	string whitespace = 1;
+	optional SourceCodeToken token = 2;
+}
+
+// SourceCodeToken contains information about a code token.
+message SourceCodeToken {
+	// Start and end byte offsets in original file.
+	int32 start_byte = 1;
+
+	int32 end_byte = 2;
+
+	// If the token is a reference URL contains the DefKey-based URLs for all the
+	// definitions at this position.
+	repeated string url = 3 [(gogoproto.customname) = "URL"];
+
+	// IsDef specifies whether the token is a definition.
+	bool is_def = 4;
+
+	// Class specifies the token type as per
+	// [google-code-prettify](https://code.google.com/p/google-code-prettify/).
+	string class = 5;
+
+	// Label is non-whitespace HTML encoded source code.
+	string label = 6;
+}
+
+// TreeEntry is a file or directory in a repository, with additional feedback from
+// the formatting operation (if Formatted is true in the options).
+message TreeEntry {
+	vcsclient.TreeEntry tree_entry = 1 [(gogoproto.embed) = true];
+	vcsclient.FileRange file_range = 2 [(gogoproto.embed) = true];
+	string contents_string = 3;
+
+	// SourceCode is set when TokenizedSource is enabled in RepoTreeGetOptions.
+	optional SourceCode source_code = 4;
+
+	// FormatResult is only set if this TreeEntry is a file.
+	optional FormatResult format_result = 5;
+}
+
+message TreeEntrySpec {
+	RepoRevSpec repo_rev = 1 [(gogoproto.nullable) = false];
+	string path = 2;
+}
+
+// A UnitDelta represents a single source unit that was changed. It has fields for
+// the before (Base) and after (Head) versions. If both Base and Head are non-nil,
+// then the unit was changed from base to head. Otherwise, one of the fields being
+// nil means that the unit did not exist in that revision (e.g., it was added or
+// deleted from base to head).
+message UnitDelta {
+	unit.RepoSourceUnit base = 1;
+	unit.RepoSourceUnit head = 2;
+}
+
+// UnitListOptions specifies options for UnitsService.List.
+message UnitListOptions {
+	// RepoRevs constrains the results to a set of repository revisions (given by their
+	// URIs plus an optional "@" and a revision specifier). For example,
+	// "repo.com/foo@revspec".
+	repeated string repo_revs = 1 [(gogoproto.moretags) = "url:\",omitempty,comma\""];
+
+	string unit_type = 2 [(gogoproto.moretags) = "url:\",omitempty\""];
+	string unit = 3 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	// NameQuery specifies a full-text search query over the unit name.
+	string name_query = 4 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	// Query specifies a full-text search query over the repo URI, unit name, and unit
+	// data.
+	string query = 5 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	// Paging
+	ListOptions list_options = 6 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// UnitSpec specifies a source unit.
+message UnitSpec {
+	RepoRevSpec repo_rev_spec = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+	string unit_type = 2;
+	string unit = 3;
+}
+
+message RepoSourceUnitList {
+	repeated unit.RepoSourceUnit units = 1;
+}
+
+
+// DefsService communicates with the def- and graph-related endpoints in the
+// Sourcegraph API.
+service Defs {
+	// Get fetches a def.
+	rpc Get(DefsGetOp) returns (Def);
+
+	// List defs.
+	rpc List(DefListOptions) returns (DefList);
+
+	// ListRefs lists references to def.
+	rpc ListRefs(DefsListRefsOp) returns (RefList);
+
+	// ListExamples lists examples for def.
+	rpc ListExamples(DefsListExamplesOp) returns (ExampleList);
+
+	// ListExamples lists people who committed parts of def's definition.
+	rpc ListAuthors(DefsListAuthorsOp) returns (AugmentedDefAuthorList);
+
+	// ListClients lists people who use def in their code.
+	rpc ListClients(DefsListClientsOp) returns (AugmentedDefClientList);
+}
+
+// DeltasService interacts with the delta-related endpoints of the Sourcegraph API.
+// A delta is all of the changes between two commits, possibly from two different
+// repositories. It includes the usual file diffs as well as definition-level
+// diffs, affected author/repo impact information, etc.
+service Deltas {
+	// Get fetches a summary of a delta.
+	rpc Get(DeltaSpec) returns (Delta);
+
+	// ListUnits lists units added/changed/deleted in a delta.
+	rpc ListUnits(DeltasListUnitsOp) returns (UnitDeltaList);
+
+	// ListDefs lists definitions added/changed/deleted in a delta.
+	rpc ListDefs(DeltasListDefsOp) returns (DeltaDefs);
+
+	// ListFiles fetches the file diff for a delta.
+	rpc ListFiles(DeltasListFilesOp) returns (DeltaFiles);
+
+	// ListAffectedAuthors lists authors whose code is added/deleted/changed in a
+	// delta.
+	rpc ListAffectedAuthors(DeltasListAffectedAuthorsOp) returns (DeltaAffectedPersonList);
+
+	// ListAffectedClients lists clients whose code is affected by a delta.
+	rpc ListAffectedClients(DeltasListAffectedClientsOp) returns (DeltaAffectedPersonList);
+}
+
+service Markdown {
+	rpc Render(MarkdownRenderOp) returns (MarkdownData);
+}
+
+// RepoTreeService communicates with the Sourcegraph API endpoints that fetch file
+// and directory entries in repositories.
+service RepoTree {
+	rpc Get(RepoTreeGetOp) returns (TreeEntry);
+	rpc Search(RepoTreeSearchOp) returns (VCSSearchResultList);
+}
+
+// SearchService communicates with the search-related endpoints in the Sourcegraph
+// API.
+service Search {
+	// Search searches the full index.
+	rpc Search(SearchOptions) returns (SearchResults);
+
+	// Complete completes the token at the RawQuery's InsertionPoint.
+	rpc Complete(RawQuery) returns (Completions);
+
+	// Suggest suggests queries given an existing query. It can be called with an empty
+	// query to get example queries that pertain to the current user's repositories,
+	// orgs, etc.
+	rpc Suggest(RawQuery) returns (SuggestionList);
+}
+
+// UnitsService communicates with the source unit-related endpoints in the
+// Sourcegraph API.
+service Units {
+	// Get fetches a unit.
+	rpc Get(UnitSpec) returns (unit.RepoSourceUnit);
+
+	// List units.
+	rpc List(UnitListOptions) returns (RepoSourceUnitList);
+}
+
+message Checklist {
+	// number of tasks to be done (unchecked)
+	int32 todo = 1;
+
+	// number of tasks that are done (checked)
+	int32 done = 2;
+}
+
+message FileToken {
+	string path = 1;
+	vcsclient.TreeEntry entry = 2;
+}
+
+// A Plan is a query plan that fetches the data necessary to satisfy (and provide
+// autocomplete suggestions for) a query.
+message Plan {
+	optional RepoListOptions repos = 1;
+	optional DefListOptions defs = 2;
+	optional UsersListOptions users = 3;
+	optional RepoTreeSearchOptions tree = 4;
+
+	// TreeRepoRevs constrains the Tree search results to a set of repository revisions
+	// (given by their URIs plus an optional "@" and a revision specifier). For
+	// example, "repo.com/foo@revspec".
+	// 
+	// TODO(sqs): gorilla/schema does not respect ",comma" and it has no similar
+	// option, so specifying multiple repo revs here does NOT work.
+	repeated string tree_repo_revs = 5 [(gogoproto.moretags) = "url:\",omitempty,comma\""];
+}
+
+// A RawQuery is a raw search query. To obtain the results for the query, it must
+// be tokenized, parsed, resolved, planned, etc.
+message RawQuery {
+	// Text is the raw query string from the client.
+	string text = 1;
+
+	// InsertionPoint is the 0-indexed character offset of the text insertion cursor on
+	// the client.
+	int32 insertion_point = 2;
+}
+
+// A RepoToken represents a repository, although it does not necessarily uniquely
+// identify the repository. It consists of any number of slash-separated path
+// components, such as "a/b" or "github.com/foo/bar".
+message RepoToken {
+	string uri = 1 [(gogoproto.customname) = "URI"];
+	optional Repo repo = 2;
+}
+
+// A ResolvedQuery is a query that has been parsed and resolved so that each token
+// is given an unambiguous meaning.
+message ResolvedQuery {
+	// Tokens are resolved tokens, each of whose meaning is unambiguous.
+	repeated PBToken tokens = 1 [(gogoproto.nullable) = false];
+}
+
+// A RevToken represents a specific revision (either a revspec or a commit ID) of a
+// repository (which must be specified by a previous RepoToken in the query).
+message RevToken {
+	// Rev is either a revspec or commit ID
+	string rev = 1;
+
+	vcs.Commit commit = 2;
+}
+
+// A Suggestion is a possible completion of a query (returned by Suggest method).
+// It does not attempt to "complete" a query but rather indicate to the user what
+// types of queries are possible.
+message Suggestion {
+	// Query is a suggested query related to the original query.
+	repeated PBToken query = 1 [(gogoproto.nullable) = false];
+
+	// QueryString is what the user needs to enter into the search field to search
+	// using this suggested query.
+	string query_string = 2;
+
+	// Description is the human-readable description of Query (usually generated by
+	// calling the Describe func).
+	string description = 3;
+}
+
+// A UnitToken represents a source unit in a repository.
+message UnitToken {
+	// UnitType is the type of the source unit (e.g., GoPackage).
+	string unit_type = 1;
+
+	// Name is the name of the source unit (e.g., mypkg).
+	string name = 2;
+}
+
+// A UserToken represents a user or org, although it does not necessarily uniquely
+// identify one. It consists of the string "@" followed by a full or partial
+// user/org login.
+message UserToken {
+	string login = 1;
+	optional User user = 2;
+}
+
+// A TokenError is an error about a specific token.
+message TokenError {
+	// Index is the 1-indexed index of the token that caused the error (0 means not
+	// associated with any particular token).
+	// 
+	// NOTE: Index is 1-indexed (not 0-indexed) because some TokenErrors don't pertain
+	// to a token, and it's misleading if the Index in the JSON is 0 (which could mean
+	// that it pertains to the 1st token if index was 0-indexed).
+	int32 index = 1;
+
+	optional PBToken token = 2;
+	string message = 3;
+}
+
+// A PBToken is a protobuf wrapper (hence the prefix "PB") for a
+// search token. Exactly one field must be non-empty.
+message PBToken {
+	// TODO(sqs!nodb-ctx): how to get protobuf unions to work?
+	//
+	// option (gogoproto.onlyone) = true;
+
+	oneof token {
+		string term = 1;
+		string any_token = 2;
+		RepoToken repo_token = 3;
+		RevToken rev_token = 4;
+		UnitToken unit_token = 5;
+		FileToken file_token = 6;
+		UserToken user_token = 7;
+	}
 }

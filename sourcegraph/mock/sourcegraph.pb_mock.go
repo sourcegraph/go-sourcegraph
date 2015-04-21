@@ -6,6 +6,7 @@ import (
 	"golang.org/x/net/context"
 	"sourcegraph.com/sourcegraph/go-sourcegraph/sourcegraph"
 	"sourcegraph.com/sourcegraph/go-vcs/vcs"
+	"sourcegraph.com/sourcegraph/srclib/unit"
 	"sourcegraph.com/sqs/pbtypes"
 )
 
@@ -218,3 +219,133 @@ func (s *UsersServer) ListOrgs(v0 context.Context, v1 *sourcegraph.UsersListOrgs
 }
 
 var _ sourcegraph.UsersServer = (*UsersServer)(nil)
+
+type DefsServer struct {
+	Get_          func(v0 context.Context, v1 *sourcegraph.DefsGetOp) (*sourcegraph.Def, error)
+	List_         func(v0 context.Context, v1 *sourcegraph.DefListOptions) (*sourcegraph.DefList, error)
+	ListRefs_     func(v0 context.Context, v1 *sourcegraph.DefsListRefsOp) (*sourcegraph.RefList, error)
+	ListExamples_ func(v0 context.Context, v1 *sourcegraph.DefsListExamplesOp) (*sourcegraph.ExampleList, error)
+	ListAuthors_  func(v0 context.Context, v1 *sourcegraph.DefsListAuthorsOp) (*sourcegraph.AugmentedDefAuthorList, error)
+	ListClients_  func(v0 context.Context, v1 *sourcegraph.DefsListClientsOp) (*sourcegraph.AugmentedDefClientList, error)
+}
+
+func (s *DefsServer) Get(v0 context.Context, v1 *sourcegraph.DefsGetOp) (*sourcegraph.Def, error) {
+	return s.Get_(v0, v1)
+}
+
+func (s *DefsServer) List(v0 context.Context, v1 *sourcegraph.DefListOptions) (*sourcegraph.DefList, error) {
+	return s.List_(v0, v1)
+}
+
+func (s *DefsServer) ListRefs(v0 context.Context, v1 *sourcegraph.DefsListRefsOp) (*sourcegraph.RefList, error) {
+	return s.ListRefs_(v0, v1)
+}
+
+func (s *DefsServer) ListExamples(v0 context.Context, v1 *sourcegraph.DefsListExamplesOp) (*sourcegraph.ExampleList, error) {
+	return s.ListExamples_(v0, v1)
+}
+
+func (s *DefsServer) ListAuthors(v0 context.Context, v1 *sourcegraph.DefsListAuthorsOp) (*sourcegraph.AugmentedDefAuthorList, error) {
+	return s.ListAuthors_(v0, v1)
+}
+
+func (s *DefsServer) ListClients(v0 context.Context, v1 *sourcegraph.DefsListClientsOp) (*sourcegraph.AugmentedDefClientList, error) {
+	return s.ListClients_(v0, v1)
+}
+
+var _ sourcegraph.DefsServer = (*DefsServer)(nil)
+
+type DeltasServer struct {
+	Get_                 func(v0 context.Context, v1 *sourcegraph.DeltaSpec) (*sourcegraph.Delta, error)
+	ListUnits_           func(v0 context.Context, v1 *sourcegraph.DeltasListUnitsOp) (*sourcegraph.UnitDeltaList, error)
+	ListDefs_            func(v0 context.Context, v1 *sourcegraph.DeltasListDefsOp) (*sourcegraph.DeltaDefs, error)
+	ListFiles_           func(v0 context.Context, v1 *sourcegraph.DeltasListFilesOp) (*sourcegraph.DeltaFiles, error)
+	ListAffectedAuthors_ func(v0 context.Context, v1 *sourcegraph.DeltasListAffectedAuthorsOp) (*sourcegraph.DeltaAffectedPersonList, error)
+	ListAffectedClients_ func(v0 context.Context, v1 *sourcegraph.DeltasListAffectedClientsOp) (*sourcegraph.DeltaAffectedPersonList, error)
+}
+
+func (s *DeltasServer) Get(v0 context.Context, v1 *sourcegraph.DeltaSpec) (*sourcegraph.Delta, error) {
+	return s.Get_(v0, v1)
+}
+
+func (s *DeltasServer) ListUnits(v0 context.Context, v1 *sourcegraph.DeltasListUnitsOp) (*sourcegraph.UnitDeltaList, error) {
+	return s.ListUnits_(v0, v1)
+}
+
+func (s *DeltasServer) ListDefs(v0 context.Context, v1 *sourcegraph.DeltasListDefsOp) (*sourcegraph.DeltaDefs, error) {
+	return s.ListDefs_(v0, v1)
+}
+
+func (s *DeltasServer) ListFiles(v0 context.Context, v1 *sourcegraph.DeltasListFilesOp) (*sourcegraph.DeltaFiles, error) {
+	return s.ListFiles_(v0, v1)
+}
+
+func (s *DeltasServer) ListAffectedAuthors(v0 context.Context, v1 *sourcegraph.DeltasListAffectedAuthorsOp) (*sourcegraph.DeltaAffectedPersonList, error) {
+	return s.ListAffectedAuthors_(v0, v1)
+}
+
+func (s *DeltasServer) ListAffectedClients(v0 context.Context, v1 *sourcegraph.DeltasListAffectedClientsOp) (*sourcegraph.DeltaAffectedPersonList, error) {
+	return s.ListAffectedClients_(v0, v1)
+}
+
+var _ sourcegraph.DeltasServer = (*DeltasServer)(nil)
+
+type MarkdownServer struct {
+	Render_ func(v0 context.Context, v1 *sourcegraph.MarkdownRenderOp) (*sourcegraph.MarkdownData, error)
+}
+
+func (s *MarkdownServer) Render(v0 context.Context, v1 *sourcegraph.MarkdownRenderOp) (*sourcegraph.MarkdownData, error) {
+	return s.Render_(v0, v1)
+}
+
+var _ sourcegraph.MarkdownServer = (*MarkdownServer)(nil)
+
+type RepoTreeServer struct {
+	Get_    func(v0 context.Context, v1 *sourcegraph.RepoTreeGetOp) (*sourcegraph.TreeEntry, error)
+	Search_ func(v0 context.Context, v1 *sourcegraph.RepoTreeSearchOp) (*sourcegraph.VCSSearchResultList, error)
+}
+
+func (s *RepoTreeServer) Get(v0 context.Context, v1 *sourcegraph.RepoTreeGetOp) (*sourcegraph.TreeEntry, error) {
+	return s.Get_(v0, v1)
+}
+
+func (s *RepoTreeServer) Search(v0 context.Context, v1 *sourcegraph.RepoTreeSearchOp) (*sourcegraph.VCSSearchResultList, error) {
+	return s.Search_(v0, v1)
+}
+
+var _ sourcegraph.RepoTreeServer = (*RepoTreeServer)(nil)
+
+type SearchServer struct {
+	Search_   func(v0 context.Context, v1 *sourcegraph.SearchOptions) (*sourcegraph.SearchResults, error)
+	Complete_ func(v0 context.Context, v1 *sourcegraph.RawQuery) (*sourcegraph.Completions, error)
+	Suggest_  func(v0 context.Context, v1 *sourcegraph.RawQuery) (*sourcegraph.SuggestionList, error)
+}
+
+func (s *SearchServer) Search(v0 context.Context, v1 *sourcegraph.SearchOptions) (*sourcegraph.SearchResults, error) {
+	return s.Search_(v0, v1)
+}
+
+func (s *SearchServer) Complete(v0 context.Context, v1 *sourcegraph.RawQuery) (*sourcegraph.Completions, error) {
+	return s.Complete_(v0, v1)
+}
+
+func (s *SearchServer) Suggest(v0 context.Context, v1 *sourcegraph.RawQuery) (*sourcegraph.SuggestionList, error) {
+	return s.Suggest_(v0, v1)
+}
+
+var _ sourcegraph.SearchServer = (*SearchServer)(nil)
+
+type UnitsServer struct {
+	Get_  func(v0 context.Context, v1 *sourcegraph.UnitSpec) (*unit.RepoSourceUnit, error)
+	List_ func(v0 context.Context, v1 *sourcegraph.UnitListOptions) (*sourcegraph.RepoSourceUnitList, error)
+}
+
+func (s *UnitsServer) Get(v0 context.Context, v1 *sourcegraph.UnitSpec) (*unit.RepoSourceUnit, error) {
+	return s.Get_(v0, v1)
+}
+
+func (s *UnitsServer) List(v0 context.Context, v1 *sourcegraph.UnitListOptions) (*sourcegraph.RepoSourceUnitList, error) {
+	return s.List_(v0, v1)
+}
+
+var _ sourcegraph.UnitsServer = (*UnitsServer)(nil)

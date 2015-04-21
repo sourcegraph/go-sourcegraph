@@ -5,20 +5,20 @@ package mock
 import "sourcegraph.com/sourcegraph/go-sourcegraph/sourcegraph"
 
 type SearchService struct {
-	Search_   func(opt *sourcegraph.SearchOptions) (*sourcegraph.SearchResults, sourcegraph.Response, error)
-	Complete_ func(q sourcegraph.RawQuery) (*sourcegraph.Completions, sourcegraph.Response, error)
-	Suggest_  func(q sourcegraph.RawQuery) ([]*sourcegraph.Suggestion, sourcegraph.Response, error)
+	Search_   func(opt *sourcegraph.SearchOptions) (*sourcegraph.SearchResults, error)
+	Complete_ func(q sourcegraph.RawQuery) (*sourcegraph.Completions, error)
+	Suggest_  func(q sourcegraph.RawQuery) ([]*sourcegraph.Suggestion, error)
 }
 
-func (s *SearchService) Search(opt *sourcegraph.SearchOptions) (*sourcegraph.SearchResults, sourcegraph.Response, error) {
+func (s *SearchService) Search(opt *sourcegraph.SearchOptions) (*sourcegraph.SearchResults, error) {
 	return s.Search_(opt)
 }
 
-func (s *SearchService) Complete(q sourcegraph.RawQuery) (*sourcegraph.Completions, sourcegraph.Response, error) {
+func (s *SearchService) Complete(q sourcegraph.RawQuery) (*sourcegraph.Completions, error) {
 	return s.Complete_(q)
 }
 
-func (s *SearchService) Suggest(q sourcegraph.RawQuery) ([]*sourcegraph.Suggestion, sourcegraph.Response, error) {
+func (s *SearchService) Suggest(q sourcegraph.RawQuery) ([]*sourcegraph.Suggestion, error) {
 	return s.Suggest_(q)
 }
 
