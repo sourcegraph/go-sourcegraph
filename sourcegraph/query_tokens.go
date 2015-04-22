@@ -211,6 +211,14 @@ func PBTokenWrap(t Token) PBToken {
 	return pb
 }
 
+func PBTokensWrap(toks []Token) []PBToken {
+	pbtoks := make([]PBToken, len(toks))
+	for i, tok := range toks {
+		pbtoks[i] = PBTokenWrap(tok)
+	}
+	return pbtoks
+}
+
 // PBTokens converts []PBToken to Tokens.
 func PBTokens(pbtoks []PBToken) Tokens {
 	toks := make(Tokens, len(pbtoks))
