@@ -2098,7 +2098,8 @@ type UnitToken struct {
 	// UnitType is the type of the source unit (e.g., GoPackage).
 	UnitType string `protobuf:"bytes,1,opt,name=unit_type,proto3" json:"unit_type,omitempty"`
 	// Name is the name of the source unit (e.g., mypkg).
-	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Name string               `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Unit *unit.RepoSourceUnit `protobuf:"bytes,3,opt,name=unit" json:"unit,omitempty"`
 }
 
 func (m *UnitToken) Reset()         { *m = UnitToken{} }

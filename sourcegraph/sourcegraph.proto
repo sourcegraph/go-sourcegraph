@@ -1702,6 +1702,8 @@ message UnitToken {
 
 	// Name is the name of the source unit (e.g., mypkg).
 	string name = 2;
+
+	optional unit.RepoSourceUnit unit = 3;
 }
 
 // A UserToken represents a user or org, although it does not necessarily uniquely
