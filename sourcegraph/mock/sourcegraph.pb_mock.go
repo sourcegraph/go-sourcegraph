@@ -220,6 +220,16 @@ func (s *UsersServer) ListOrgs(v0 context.Context, v1 *sourcegraph.UsersListOrgs
 
 var _ sourcegraph.UsersServer = (*UsersServer)(nil)
 
+type ExternalUsersServer struct {
+	Authenticate_ func(v0 context.Context, v1 *sourcegraph.ExternalUsersAuthenticateOp) (*sourcegraph.ExternalUser, error)
+}
+
+func (s *ExternalUsersServer) Authenticate(v0 context.Context, v1 *sourcegraph.ExternalUsersAuthenticateOp) (*sourcegraph.ExternalUser, error) {
+	return s.Authenticate_(v0, v1)
+}
+
+var _ sourcegraph.ExternalUsersServer = (*ExternalUsersServer)(nil)
+
 type DefsServer struct {
 	Get_          func(v0 context.Context, v1 *sourcegraph.DefsGetOp) (*sourcegraph.Def, error)
 	List_         func(v0 context.Context, v1 *sourcegraph.DefListOptions) (*sourcegraph.DefList, error)

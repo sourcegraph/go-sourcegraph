@@ -24,20 +24,21 @@ const (
 // A Client communicates with the Sourcegraph API.
 type Client struct {
 	// Services used to communicate with different parts of the Sourcegraph API.
-	Builds       BuildsClient
-	Deltas       DeltasClient
-	Orgs         OrgsClient
-	People       PeopleClient
-	Repos        ReposClient
-	RepoStatuses RepoStatusesClient
-	RepoBadges   RepoBadgesClient
-	RepoTree     RepoTreeClient
-	Search       SearchClient
-	Units        UnitsClient
-	Users        UsersClient
-	Defs         DefsClient
-	Markdown     MarkdownClient
-	VCS          VCSOpener
+	Builds        BuildsClient
+	Deltas        DeltasClient
+	ExternalUsers ExternalUsersClient
+	Orgs          OrgsClient
+	People        PeopleClient
+	Repos         ReposClient
+	RepoStatuses  RepoStatusesClient
+	RepoBadges    RepoBadgesClient
+	RepoTree      RepoTreeClient
+	Search        SearchClient
+	Units         UnitsClient
+	Users         UsersClient
+	Defs          DefsClient
+	Markdown      MarkdownClient
+	VCS           VCSOpener
 
 	// Base URL for API requests, which should have a trailing slash.
 	BaseURL *url.URL
@@ -57,6 +58,7 @@ func NewGRPCClient(conn *grpc.ClientConn) *Client {
 	c := new(Client)
 	c.Builds = NewBuildsClient(conn)
 	c.Deltas = NewDeltasClient(conn)
+	c.ExternalUsers = NewExternalUsersClient(conn)
 	c.Orgs = NewOrgsClient(conn)
 	c.People = NewPeopleClient(conn)
 	c.Repos = NewReposClient(conn)

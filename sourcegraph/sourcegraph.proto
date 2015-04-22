@@ -880,6 +880,35 @@ service Users {
 	rpc ListOrgs(UsersListOrgsOp) returns (OrgList);
 }
 
+// ExternalUsers manages authentication and registration of external
+// users.
+service ExternalUsers {
+	rpc Authenticate(ExternalUsersAuthenticateOp) returns (ExternalUser);
+}
+
+// An ExternalUser represents a user on an external service (GitHub,
+// LDAP, etc.).
+message ExternalUser {
+	User user = 1;
+}
+
+message ExternalUsersAuthenticateOp {
+	string client_id = 1 [(gogoproto.customname) = "ClientID"];
+	string access_token = 2;
+	string scope = 3;
+
+	// Host is the hostname of the external service (e.g., github.com,
+	// github.example.com).
+	string host = 4;
+
+	enum Service {
+		Sourcegraph = 0;
+		LDAP = 1;
+		GitHub = 2;
+	}
+	Service service = 5;
+}
+
 message AugmentedDefAuthor {
 	optional Person person = 1;
 	optional DefAuthor def_author = 2 [(gogoproto.embed) = true];
