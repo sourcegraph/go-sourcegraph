@@ -577,7 +577,7 @@ func (*TagList) ProtoMessage()    {}
 // evolve.
 type Build struct {
 	// BID is the unique identifier for the build.
-	BID int64 `protobuf:"varint,1,opt,name=b_id,proto3" json:"b_id,omitempty"`
+	BID int64 `protobuf:"varint,1,opt,name=bid,proto3" json:"bid,omitempty"`
 	// Repo is the URI of the repository this build is for.
 	Repo string `protobuf:"bytes,2,opt,name=repo,proto3" json:"repo,omitempty"`
 	// CommitID is the full resolved commit ID to build.
@@ -675,7 +675,7 @@ func (m *BuildListOptions) String() string { return proto.CompactTextString(m) }
 func (*BuildListOptions) ProtoMessage()    {}
 
 type BuildSpec struct {
-	BID  int64    `protobuf:"varint,1,opt,name=b_id,proto3" json:"b_id,omitempty"`
+	BID  int64    `protobuf:"varint,1,opt,name=bid,proto3" json:"bid,omitempty"`
 	Repo RepoSpec `protobuf:"bytes,2,opt,name=repo" json:"repo"`
 }
 
@@ -694,7 +694,7 @@ type BuildTask struct {
 	// Repo is the URI of the repository that this task's build is for.
 	Repo string `protobuf:"bytes,2,opt,name=repo,proto3" json:"repo,omitempty"`
 	// BID is the build that this task is a part of.
-	BID int64 `protobuf:"varint,3,opt,name=b_id,proto3" json:"b_id,omitempty"`
+	BID int64 `protobuf:"varint,3,opt,name=bid,proto3" json:"bid,omitempty"`
 	// UnitType is the srclib source unit type of the source unit that this task is
 	// associated with.
 	UnitType string `protobuf:"bytes,4,opt,name=unit_type,proto3" json:"unit_type,omitempty"`

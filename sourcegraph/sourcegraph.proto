@@ -379,7 +379,7 @@ service MirrorRepos {
 // evolve.
 message Build {
 	// BID is the unique identifier for the build.
-	int64 b_id = 1 [(gogoproto.customname) = "BID"];
+	int64 bid = 1 [(gogoproto.customname) = "BID"];
 
 	// Repo is the URI of the repository this build is for.
 	string repo = 2;
@@ -467,7 +467,7 @@ message BuildListOptions {
 }
 
 message BuildSpec {
-	int64 b_id = 1 [(gogoproto.customname) = "BID"];
+	int64 bid = 1 [(gogoproto.customname) = "BID"];
 	RepoSpec repo = 2 [(gogoproto.nullable) = false];
 }
 
@@ -484,7 +484,7 @@ message BuildTask {
 	string repo = 2;
 
 	// BID is the build that this task is a part of.
-	int64 b_id = 3 [(gogoproto.customname) = "BID"];
+	int64 bid = 3 [(gogoproto.customname) = "BID"];
 
 	// UnitType is the srclib source unit type of the source unit that this task is
 	// associated with.
