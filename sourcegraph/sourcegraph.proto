@@ -1342,14 +1342,14 @@ message RepoTreeGetOptions {
 }
 
 message RepoTreeSearchOptions {
-	vcs.SearchOptions search_options = 1 [(gogoproto.embed) = true];
+	vcs.SearchOptions search_options = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 	bool formatted = 2;
 }
 
 // A RepoTreeSearchResult is a tree search result that includes the repo and rev it
 // came from.
 message RepoTreeSearchResult {
-	vcs.SearchResult search_result = 1 [(gogoproto.embed) = true];
+	vcs.SearchResult search_result = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 	RepoRevSpec repo_rev = 2 [(gogoproto.nullable) = false];
 }
 

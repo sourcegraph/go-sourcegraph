@@ -1752,8 +1752,8 @@ func (m *RepoTreeGetOptions) String() string { return proto.CompactTextString(m)
 func (*RepoTreeGetOptions) ProtoMessage()    {}
 
 type RepoTreeSearchOptions struct {
-	*vcs.SearchOptions `protobuf:"bytes,1,opt,name=search_options,embedded=search_options" json:"search_options,omitempty"`
-	Formatted          bool `protobuf:"varint,2,opt,name=formatted,proto3" json:"formatted,omitempty"`
+	vcs.SearchOptions `protobuf:"bytes,1,opt,name=search_options,embedded=search_options" json:"search_options"`
+	Formatted         bool `protobuf:"varint,2,opt,name=formatted,proto3" json:"formatted,omitempty"`
 }
 
 func (m *RepoTreeSearchOptions) Reset()         { *m = RepoTreeSearchOptions{} }
@@ -1763,8 +1763,8 @@ func (*RepoTreeSearchOptions) ProtoMessage()    {}
 // A RepoTreeSearchResult is a tree search result that includes the repo and rev it
 // came from.
 type RepoTreeSearchResult struct {
-	*vcs.SearchResult `protobuf:"bytes,1,opt,name=search_result,embedded=search_result" json:"search_result,omitempty"`
-	RepoRev           RepoRevSpec `protobuf:"bytes,2,opt,name=repo_rev" json:"repo_rev"`
+	vcs.SearchResult `protobuf:"bytes,1,opt,name=search_result,embedded=search_result" json:"search_result"`
+	RepoRev          RepoRevSpec `protobuf:"bytes,2,opt,name=repo_rev" json:"repo_rev"`
 }
 
 func (m *RepoTreeSearchResult) Reset()         { *m = RepoTreeSearchResult{} }
