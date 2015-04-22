@@ -915,7 +915,7 @@ message Completions {
 
 // Def is a code def returned by the Sourcegraph API.
 message Def {
-	graph.Def def = 1 [(gogoproto.embed) = true];
+	graph.Def def = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 	string doc_html = 2 [(gogoproto.customname) = "DocHTML"];
 	optional DefFormatStrings fmt_strings = 3;
 }

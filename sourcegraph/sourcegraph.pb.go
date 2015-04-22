@@ -1156,7 +1156,7 @@ func (*Completions) ProtoMessage()    {}
 
 // Def is a code def returned by the Sourcegraph API.
 type Def struct {
-	*graph.Def `protobuf:"bytes,1,opt,name=def,embedded=def" json:"def,omitempty"`
+	graph.Def  `protobuf:"bytes,1,opt,name=def,embedded=def" json:"def"`
 	DocHTML    string            `protobuf:"bytes,2,opt,name=doc_html,proto3" json:"doc_html,omitempty"`
 	FmtStrings *DefFormatStrings `protobuf:"bytes,3,opt,name=fmt_strings" json:"fmt_strings,omitempty"`
 }
