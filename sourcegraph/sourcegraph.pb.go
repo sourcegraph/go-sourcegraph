@@ -2460,6 +2460,7 @@ type ReposClient interface {
 	ListCommits(ctx context.Context, in *ReposListCommitsOp, opts ...grpc.CallOption) (*CommitList, error)
 	ListBranches(ctx context.Context, in *ReposListBranchesOp, opts ...grpc.CallOption) (*BranchList, error)
 	ListTags(ctx context.Context, in *ReposListTagsOp, opts ...grpc.CallOption) (*TagList, error)
+	RefreshVCS(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error)
 }
 
 type reposClient struct {
@@ -2551,6 +2552,15 @@ func (c *reposClient) ListTags(ctx context.Context, in *ReposListTagsOp, opts ..
 	return out, nil
 }
 
+func (c *reposClient) RefreshVCS(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
+	err := grpc.Invoke(ctx, "/sourcegraph.Repos/RefreshVCS", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Repos service
 
 type ReposServer interface {
@@ -2569,6 +2579,7 @@ type ReposServer interface {
 	ListCommits(context.Context, *ReposListCommitsOp) (*CommitList, error)
 	ListBranches(context.Context, *ReposListBranchesOp) (*BranchList, error)
 	ListTags(context.Context, *ReposListTagsOp) (*TagList, error)
+	RefreshVCS(context.Context, *RepoSpec) (*pbtypes1.Void, error)
 }
 
 func RegisterReposServer(s *grpc.Server, srv ReposServer) {
@@ -2683,6 +2694,18 @@ func _Repos_ListTags_Handler(srv interface{}, ctx context.Context, buf []byte) (
 	return out, nil
 }
 
+func _Repos_RefreshVCS_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(RepoSpec)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(ReposServer).RefreshVCS(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 var _Repos_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sourcegraph.Repos",
 	HandlerType: (*ReposServer)(nil),
@@ -2722,6 +2745,10 @@ var _Repos_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListTags",
 			Handler:    _Repos_ListTags_Handler,
+		},
+		{
+			MethodName: "RefreshVCS",
+			Handler:    _Repos_RefreshVCS_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},

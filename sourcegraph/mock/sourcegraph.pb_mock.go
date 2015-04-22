@@ -60,6 +60,7 @@ type ReposServer struct {
 	ListCommits_  func(v0 context.Context, v1 *sourcegraph.ReposListCommitsOp) (*sourcegraph.CommitList, error)
 	ListBranches_ func(v0 context.Context, v1 *sourcegraph.ReposListBranchesOp) (*sourcegraph.BranchList, error)
 	ListTags_     func(v0 context.Context, v1 *sourcegraph.ReposListTagsOp) (*sourcegraph.TagList, error)
+	RefreshVCS_   func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error)
 }
 
 func (s *ReposServer) Get(v0 context.Context, v1 *sourcegraph.RepoSpec) (*sourcegraph.Repo, error) {
@@ -96,6 +97,10 @@ func (s *ReposServer) ListBranches(v0 context.Context, v1 *sourcegraph.ReposList
 
 func (s *ReposServer) ListTags(v0 context.Context, v1 *sourcegraph.ReposListTagsOp) (*sourcegraph.TagList, error) {
 	return s.ListTags_(v0, v1)
+}
+
+func (s *ReposServer) RefreshVCS(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error) {
+	return s.RefreshVCS_(v0, v1)
 }
 
 var _ sourcegraph.ReposServer = (*ReposServer)(nil)
