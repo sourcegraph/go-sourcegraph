@@ -15,6 +15,7 @@ It has these top-level messages:
 	ListOptions
 	Readme
 	GitHubRepo
+	RepoConfig
 	Repo
 	BadgeList
 	CounterList
@@ -285,6 +286,14 @@ func (m *GitHubRepo) Reset()         { *m = GitHubRepo{} }
 func (m *GitHubRepo) String() string { return proto.CompactTextString(m) }
 func (*GitHubRepo) ProtoMessage()    {}
 
+type RepoConfig struct {
+	Enabled bool `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+}
+
+func (m *RepoConfig) Reset()         { *m = RepoConfig{} }
+func (m *RepoConfig) String() string { return proto.CompactTextString(m) }
+func (*RepoConfig) ProtoMessage()    {}
+
 // Repo represents a source code repository.
 type Repo struct {
 	// URI is a normalized identifier for this repository based on its primary clone
@@ -336,6 +345,7 @@ type Repo struct {
 	// if there is no current user) is granted to this repository.
 	Permissions *RepoPermissions `protobuf:"bytes,18,opt,name=permissions" json:"permissions,omitempty"`
 	GitHub      *GitHubRepo      `protobuf:"bytes,19,opt,name=github" json:"github,omitempty"`
+	Config      *RepoConfig      `protobuf:"bytes,20,opt,name=config" json:"config,omitempty"`
 }
 
 func (m *Repo) Reset()         { *m = Repo{} }
