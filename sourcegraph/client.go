@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/google/go-querystring/query"
+	"google.golang.org/grpc"
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 )
 
@@ -48,6 +49,31 @@ type Client struct {
 	httpClient *http.Client
 }
 
+func NewGRPCClient(conn *grpc.ClientConn) *Client {
+	if conn == nil {
+		panic("conn == nil")
+	}
+
+	c := new(Client)
+	c.Builds = NewBuildsClient(conn)
+	c.Deltas = NewDeltasClient(conn)
+	c.Orgs = NewOrgsClient(conn)
+	c.People = NewPeopleClient(conn)
+	c.Repos = NewReposClient(conn)
+	c.RepoStatuses = NewRepoStatusesClient(conn)
+	c.RepoBadges = NewRepoBadgesClient(conn)
+	c.RepoTree = NewRepoTreeClient(conn)
+	c.Search = NewSearchClient(conn)
+	c.Units = NewUnitsClient(conn)
+	c.Users = NewUsersClient(conn)
+	c.Defs = NewDefsClient(conn)
+	c.Markdown = NewMarkdownClient(conn)
+
+	c.UserAgent = userAgent
+
+	return c
+}
+
 // NewClient returns a new Sourcegraph API client. If httpClient is nil,
 // http.DefaultClient is used.
 func NewClient(httpClient *http.Client) *Client {
@@ -55,6 +81,9 @@ func NewClient(httpClient *http.Client) *Client {
 		cloned := *http.DefaultClient
 		httpClient = &cloned
 	}
+
+	// TODO(sqs!nodb-ctx): this needs to be filled in to use the
+	// grpc-gateway client impls, if we go that route
 
 	c := new(Client)
 	c.httpClient = httpClient
