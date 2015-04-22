@@ -709,7 +709,7 @@ type BuildTask struct {
 	// have the same order.
 	Order int `protobuf:"varint,7,opt,name=order,proto3,customtype=int" json:"order,omitempty"`
 	// CreatedAt is when this task was initially created.
-	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,8,opt,name=created_at" json:"created_at,omitempty"`
+	CreatedAt pbtypes.Timestamp `protobuf:"bytes,8,opt,name=created_at" json:"created_at"`
 	// StartedAt is when this task's execution began.
 	StartedAt *pbtypes.Timestamp `protobuf:"bytes,9,opt,name=started_at" json:"started_at,omitempty"`
 	// EndedAt is when this task's execution ended (whether because it succeeded or

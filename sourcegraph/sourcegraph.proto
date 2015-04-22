@@ -504,7 +504,7 @@ message BuildTask {
 	int32 order = 7 [(gogoproto.customtype) = "int"];
 
 	// CreatedAt is when this task was initially created.
-	optional pbtypes.Timestamp created_at = 8;
+	pbtypes.Timestamp created_at = 8 [(gogoproto.nullable) = false];
 
 	// StartedAt is when this task's execution began.
 	optional pbtypes.Timestamp started_at = 9;
