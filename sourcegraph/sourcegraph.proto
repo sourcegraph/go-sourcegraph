@@ -756,9 +756,6 @@ message User {
 	optional pbtypes.Timestamp registered_at = 11;
 }
 
-message UserGetOptions {
-}
-
 // UserSpec specifies a user. At least one of Login, and UID must be nonempty.
 message UserSpec {
 	// Login is a user's login.

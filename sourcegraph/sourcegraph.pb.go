@@ -69,7 +69,6 @@ It has these top-level messages:
 	TaskSpec
 	TaskUpdate
 	User
-	UserGetOptions
 	UserSpec
 	UsersListOptions
 	UsersListOrgsOptions
@@ -1049,13 +1048,6 @@ type User struct {
 func (m *User) Reset()         { *m = User{} }
 func (m *User) String() string { return proto.CompactTextString(m) }
 func (*User) ProtoMessage()    {}
-
-type UserGetOptions struct {
-}
-
-func (m *UserGetOptions) Reset()         { *m = UserGetOptions{} }
-func (m *UserGetOptions) String() string { return proto.CompactTextString(m) }
-func (*UserGetOptions) ProtoMessage()    {}
 
 // UserSpec specifies a user. At least one of Login, and UID must be nonempty.
 type UserSpec struct {
