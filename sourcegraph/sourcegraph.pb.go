@@ -14,6 +14,7 @@ It has these top-level messages:
 	Counter
 	ListOptions
 	Readme
+	GitHubRepo
 	Repo
 	BadgeList
 	CounterList
@@ -275,6 +276,15 @@ func (m *Readme) Reset()         { *m = Readme{} }
 func (m *Readme) String() string { return proto.CompactTextString(m) }
 func (*Readme) ProtoMessage()    {}
 
+// GitHubRepo holds additional metadata about GitHub repos.
+type GitHubRepo struct {
+	Stars int32 `protobuf:"varint,1,opt,name=stars,proto3" json:"stars,omitempty"`
+}
+
+func (m *GitHubRepo) Reset()         { *m = GitHubRepo{} }
+func (m *GitHubRepo) String() string { return proto.CompactTextString(m) }
+func (*GitHubRepo) ProtoMessage()    {}
+
 // Repo represents a source code repository.
 type Repo struct {
 	// URI is a normalized identifier for this repository based on its primary clone
@@ -325,6 +335,7 @@ type Repo struct {
 	// Permissions describes the permissions that the current user (or anonymous users,
 	// if there is no current user) is granted to this repository.
 	Permissions *RepoPermissions `protobuf:"bytes,18,opt,name=permissions" json:"permissions,omitempty"`
+	GitHub      *GitHubRepo      `protobuf:"bytes,19,opt,name=github" json:"github,omitempty"`
 }
 
 func (m *Repo) Reset()         { *m = Repo{} }

@@ -58,6 +58,11 @@ message Readme {
 	string html = 2 [(gogoproto.customname) = "HTML"];
 }
 
+// GitHubRepo holds additional metadata about GitHub repos.
+message GitHubRepo {
+	int32 stars = 1;
+}
+
 // Repo represents a source code repository.
 message Repo {
 	// URI is a normalized identifier for this repository based on its primary clone
@@ -125,6 +130,8 @@ message Repo {
 	// Permissions describes the permissions that the current user (or anonymous users,
 	// if there is no current user) is granted to this repository.
 	optional RepoPermissions permissions = 18;
+
+	optional GitHubRepo github = 19 [(gogoproto.customname) = "GitHub"];
 }
 
 message BadgeList {
