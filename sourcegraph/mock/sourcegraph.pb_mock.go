@@ -177,11 +177,16 @@ var _ sourcegraph.BuildsServer = (*BuildsServer)(nil)
 
 type OrgsServer struct {
 	Get_         func(v0 context.Context, v1 *sourcegraph.OrgSpec) (*sourcegraph.Org, error)
+	List_        func(v0 context.Context, v1 *sourcegraph.OrgsListOp) (*sourcegraph.OrgList, error)
 	ListMembers_ func(v0 context.Context, v1 *sourcegraph.OrgsListMembersOp) (*sourcegraph.UserList, error)
 }
 
 func (s *OrgsServer) Get(v0 context.Context, v1 *sourcegraph.OrgSpec) (*sourcegraph.Org, error) {
 	return s.Get_(v0, v1)
+}
+
+func (s *OrgsServer) List(v0 context.Context, v1 *sourcegraph.OrgsListOp) (*sourcegraph.OrgList, error) {
+	return s.List_(v0, v1)
 }
 
 func (s *OrgsServer) ListMembers(v0 context.Context, v1 *sourcegraph.OrgsListMembersOp) (*sourcegraph.UserList, error) {
@@ -204,7 +209,6 @@ type UsersServer struct {
 	Get_        func(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.User, error)
 	ListEmails_ func(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.EmailAddrList, error)
 	List_       func(v0 context.Context, v1 *sourcegraph.UsersListOptions) (*sourcegraph.UserList, error)
-	ListOrgs_   func(v0 context.Context, v1 *sourcegraph.UsersListOrgsOp) (*sourcegraph.OrgList, error)
 }
 
 func (s *UsersServer) Get(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.User, error) {
@@ -217,10 +221,6 @@ func (s *UsersServer) ListEmails(v0 context.Context, v1 *sourcegraph.UserSpec) (
 
 func (s *UsersServer) List(v0 context.Context, v1 *sourcegraph.UsersListOptions) (*sourcegraph.UserList, error) {
 	return s.List_(v0, v1)
-}
-
-func (s *UsersServer) ListOrgs(v0 context.Context, v1 *sourcegraph.UsersListOrgsOp) (*sourcegraph.OrgList, error) {
-	return s.ListOrgs_(v0, v1)
 }
 
 var _ sourcegraph.UsersServer = (*UsersServer)(nil)

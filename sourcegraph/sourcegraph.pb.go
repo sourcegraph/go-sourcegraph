@@ -73,9 +73,8 @@ It has these top-level messages:
 	User
 	UserSpec
 	UsersListOptions
-	UsersListOrgsOptions
+	OrgsListOp
 	EmailAddrList
-	UsersListOrgsOp
 	OrgList
 	ExternalUser
 	ExternalUsersAuthenticateOp
@@ -1121,13 +1120,14 @@ func (m *UsersListOptions) Reset()         { *m = UsersListOptions{} }
 func (m *UsersListOptions) String() string { return proto.CompactTextString(m) }
 func (*UsersListOptions) ProtoMessage()    {}
 
-type UsersListOrgsOptions struct {
-	ListOptions `protobuf:"bytes,1,opt,name=list_options,embedded=list_options" json:"list_options"`
+type OrgsListOp struct {
+	Member      UserSpec `protobuf:"bytes,1,opt,name=member" json:"member"`
+	ListOptions `protobuf:"bytes,2,opt,name=list_options,embedded=list_options" json:"list_options"`
 }
 
-func (m *UsersListOrgsOptions) Reset()         { *m = UsersListOrgsOptions{} }
-func (m *UsersListOrgsOptions) String() string { return proto.CompactTextString(m) }
-func (*UsersListOrgsOptions) ProtoMessage()    {}
+func (m *OrgsListOp) Reset()         { *m = OrgsListOp{} }
+func (m *OrgsListOp) String() string { return proto.CompactTextString(m) }
+func (*OrgsListOp) ProtoMessage()    {}
 
 type EmailAddrList struct {
 	EmailAddrs []*EmailAddr `protobuf:"bytes,1,rep,name=email_addrs" json:"email_addrs,omitempty"`
@@ -1136,15 +1136,6 @@ type EmailAddrList struct {
 func (m *EmailAddrList) Reset()         { *m = EmailAddrList{} }
 func (m *EmailAddrList) String() string { return proto.CompactTextString(m) }
 func (*EmailAddrList) ProtoMessage()    {}
-
-type UsersListOrgsOp struct {
-	Member UserSpec              `protobuf:"bytes,1,opt,name=member" json:"member"`
-	Opt    *UsersListOrgsOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
-}
-
-func (m *UsersListOrgsOp) Reset()         { *m = UsersListOrgsOp{} }
-func (m *UsersListOrgsOp) String() string { return proto.CompactTextString(m) }
-func (*UsersListOrgsOp) ProtoMessage()    {}
 
 type OrgList struct {
 	Orgs []*Org `protobuf:"bytes,1,rep,name=orgs" json:"orgs,omitempty"`
@@ -3214,6 +3205,8 @@ var _Builds_serviceDesc = grpc.ServiceDesc{
 type OrgsClient interface {
 	// Get fetches an organization.
 	Get(ctx context.Context, in *OrgSpec, opts ...grpc.CallOption) (*Org, error)
+	// List lists organizations that a user is a member of.
+	List(ctx context.Context, in *OrgsListOp, opts ...grpc.CallOption) (*OrgList, error)
 	// ListMembers lists members of an organization.
 	ListMembers(ctx context.Context, in *OrgsListMembersOp, opts ...grpc.CallOption) (*UserList, error)
 }
@@ -3235,6 +3228,15 @@ func (c *orgsClient) Get(ctx context.Context, in *OrgSpec, opts ...grpc.CallOpti
 	return out, nil
 }
 
+func (c *orgsClient) List(ctx context.Context, in *OrgsListOp, opts ...grpc.CallOption) (*OrgList, error) {
+	out := new(OrgList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Orgs/List", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *orgsClient) ListMembers(ctx context.Context, in *OrgsListMembersOp, opts ...grpc.CallOption) (*UserList, error) {
 	out := new(UserList)
 	err := grpc.Invoke(ctx, "/sourcegraph.Orgs/ListMembers", in, out, c.cc, opts...)
@@ -3249,6 +3251,8 @@ func (c *orgsClient) ListMembers(ctx context.Context, in *OrgsListMembersOp, opt
 type OrgsServer interface {
 	// Get fetches an organization.
 	Get(context.Context, *OrgSpec) (*Org, error)
+	// List lists organizations that a user is a member of.
+	List(context.Context, *OrgsListOp) (*OrgList, error)
 	// ListMembers lists members of an organization.
 	ListMembers(context.Context, *OrgsListMembersOp) (*UserList, error)
 }
@@ -3263,6 +3267,18 @@ func _Orgs_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interf
 		return nil, err
 	}
 	out, err := srv.(OrgsServer).Get(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Orgs_List_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(OrgsListOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(OrgsServer).List(ctx, in)
 	if err != nil {
 		return nil, err
 	}
@@ -3288,6 +3304,10 @@ var _Orgs_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Get",
 			Handler:    _Orgs_Get_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _Orgs_List_Handler,
 		},
 		{
 			MethodName: "ListMembers",
@@ -3369,8 +3389,6 @@ type UsersClient interface {
 	ListEmails(ctx context.Context, in *UserSpec, opts ...grpc.CallOption) (*EmailAddrList, error)
 	// List users.
 	List(ctx context.Context, in *UsersListOptions, opts ...grpc.CallOption) (*UserList, error)
-	// ListOrgs lists organizations that a user is a member of.
-	ListOrgs(ctx context.Context, in *UsersListOrgsOp, opts ...grpc.CallOption) (*OrgList, error)
 }
 
 type usersClient struct {
@@ -3408,15 +3426,6 @@ func (c *usersClient) List(ctx context.Context, in *UsersListOptions, opts ...gr
 	return out, nil
 }
 
-func (c *usersClient) ListOrgs(ctx context.Context, in *UsersListOrgsOp, opts ...grpc.CallOption) (*OrgList, error) {
-	out := new(OrgList)
-	err := grpc.Invoke(ctx, "/sourcegraph.Users/ListOrgs", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // Server API for Users service
 
 type UsersServer interface {
@@ -3426,8 +3435,6 @@ type UsersServer interface {
 	ListEmails(context.Context, *UserSpec) (*EmailAddrList, error)
 	// List users.
 	List(context.Context, *UsersListOptions) (*UserList, error)
-	// ListOrgs lists organizations that a user is a member of.
-	ListOrgs(context.Context, *UsersListOrgsOp) (*OrgList, error)
 }
 
 func RegisterUsersServer(s *grpc.Server, srv UsersServer) {
@@ -3470,18 +3477,6 @@ func _Users_List_Handler(srv interface{}, ctx context.Context, buf []byte) (inte
 	return out, nil
 }
 
-func _Users_ListOrgs_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
-	in := new(UsersListOrgsOp)
-	if err := proto.Unmarshal(buf, in); err != nil {
-		return nil, err
-	}
-	out, err := srv.(UsersServer).ListOrgs(ctx, in)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 var _Users_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sourcegraph.Users",
 	HandlerType: (*UsersServer)(nil),
@@ -3497,10 +3492,6 @@ var _Users_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "List",
 			Handler:    _Users_List_Handler,
-		},
-		{
-			MethodName: "ListOrgs",
-			Handler:    _Users_ListOrgs_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},

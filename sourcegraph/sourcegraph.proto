@@ -791,18 +791,13 @@ message UsersListOptions {
 	ListOptions list_options = 4 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
-message UsersListOrgsOptions {
-	ListOptions list_options = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+message OrgsListOp {
+	UserSpec member = 1 [(gogoproto.nullable) = false];
+	ListOptions list_options = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
 message EmailAddrList {
 	repeated EmailAddr email_addrs = 1;
-}
-
-
-message UsersListOrgsOp {
-	UserSpec member = 1 [(gogoproto.nullable) = false];
-	optional UsersListOrgsOptions opt = 2;
 }
 
 message OrgList {
@@ -866,6 +861,9 @@ service Orgs {
 	// Get fetches an organization.
 	rpc Get(OrgSpec) returns (Org);
 
+	// List lists organizations that a user is a member of.
+	rpc List(OrgsListOp) returns (OrgList);
+
 	// ListMembers lists members of an organization.
 	rpc ListMembers(OrgsListMembersOp) returns (UserList);
 }
@@ -890,9 +888,6 @@ service Users {
 
 	// List users.
 	rpc List(UsersListOptions) returns (UserList);
-
-	// ListOrgs lists organizations that a user is a member of.
-	rpc ListOrgs(UsersListOrgsOp) returns (OrgList);
 }
 
 // ExternalUsers manages authentication and registration of external
