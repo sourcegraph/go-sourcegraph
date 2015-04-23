@@ -63,7 +63,7 @@ func (s *UserSpec) PathComponent() string {
 		return s.Login
 	}
 	if s.UID > 0 {
-		return "$" + strconv.Itoa(s.UID)
+		return "$" + strconv.Itoa(int(s.UID))
 	}
 	panic("empty UserSpec")
 }
@@ -80,7 +80,7 @@ func ParseUserSpec(pathComponent string) (UserSpec, error) {
 	}
 	if strings.HasPrefix(pathComponent, "$") {
 		uid, err := strconv.Atoi(pathComponent[1:])
-		return UserSpec{UID: uid}, err
+		return UserSpec{UID: int32(uid)}, err
 	}
 	return UserSpec{Login: pathComponent}, nil
 }

@@ -444,7 +444,7 @@ message BuildConfig {
 
 	// Priority of the build in the queue (higher numbers mean the build is dequeued
 	// sooner).
-	int32 priority = 4 [(gogoproto.customtype) = "int"];
+	int32 priority = 4;
 }
 
 message BuildCreateOptions {
@@ -516,7 +516,7 @@ message BuildTask {
 	// Order is the order in which this task is performed, relative to other tasks in
 	// the same build. Lower-number-ordered tasks are built first. Multiple tasks may
 	// have the same order.
-	int32 order = 7 [(gogoproto.customtype) = "int"];
+	int32 order = 7;
 
 	// CreatedAt is when this task was initially created.
 	pbtypes.Timestamp created_at = 8 [(gogoproto.nullable) = false];
@@ -560,7 +560,7 @@ message BuildUpdate {
 	bool purged = 6;
 	bool failure = 7;
 	bool killed = 8;
-	int32 priority = 9 [(gogoproto.customtype) = "int"];
+	int32 priority = 9;
 }
 
 // BuildsGetRepoBuildInfoOptions sets options for the Repos.GetBuild call.
@@ -667,7 +667,7 @@ message OrgListMembersOptions {
 // nonempty.
 message OrgSpec {
 	string org = 1;
-	int32 uid = 2 [(gogoproto.customname) = "UID", (gogoproto.customtype) = "int"];
+	int32 uid = 2 [(gogoproto.customname) = "UID"];
 }
 
 message OrgsListMembersOp {
@@ -704,7 +704,7 @@ message PersonSpec {
 	string login = 2;
 
 	// UID is a user's UID.
-	int32 uid = 3 [(gogoproto.customname) = "UID", (gogoproto.customtype) = "int"];
+	int32 uid = 3 [(gogoproto.customname) = "UID"];
 }
 
 // RepoBuildInfo holds a repository build (if one exists for the originally
@@ -713,7 +713,7 @@ message PersonSpec {
 message RepoBuildInfo {
 	optional Build exact = 1;
 	optional Build last_successful = 2;
-	int32 commits_behind = 3 [(gogoproto.customtype) = "int"];
+	int32 commits_behind = 3;
 	vcs.Commit last_successful_commit = 4;
 }
 
@@ -733,11 +733,11 @@ message TaskUpdate {
 // User represents a registered user.
 message User {
 	// UID is the numeric primary key for a user.
-	int32 uid = 1 [(gogoproto.customname) = "UID", (gogoproto.customtype) = "int"];
+	int32 uid = 1 [(gogoproto.customname) = "UID"];
 
 	// GitHubID is the numeric ID of the GitHub user account corresponding to this
 	// user.
-	int32 github_id = 2 [(gogoproto.customname) = "GitHubID", (gogoproto.customtype) = "int"];
+	int32 github_id = 2 [(gogoproto.customname) = "GitHubID"];
 
 	// Login is the user's username, which typically corresponds to the user's GitHub
 	// login.
@@ -777,7 +777,7 @@ message UserSpec {
 	string login = 1;
 
 	// UID is a user's UID.
-	int32 uid = 2 [(gogoproto.customname) = "UID", (gogoproto.customtype) = "int"];
+	int32 uid = 2 [(gogoproto.customname) = "UID"];
 }
 
 // UsersListOptions specifies options for the UsersService.List method.

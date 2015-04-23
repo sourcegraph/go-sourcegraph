@@ -667,7 +667,7 @@ type BuildConfig struct {
 	UseCache bool `protobuf:"varint,3,opt,name=use_cache,proto3" json:"use_cache,omitempty"`
 	// Priority of the build in the queue (higher numbers mean the build is dequeued
 	// sooner).
-	Priority int `protobuf:"varint,4,opt,name=priority,proto3,customtype=int" json:"priority,omitempty"`
+	Priority int32 `protobuf:"varint,4,opt,name=priority,proto3" json:"priority,omitempty"`
 }
 
 func (m *BuildConfig) Reset()         { *m = BuildConfig{} }
@@ -752,7 +752,7 @@ type BuildTask struct {
 	// Order is the order in which this task is performed, relative to other tasks in
 	// the same build. Lower-number-ordered tasks are built first. Multiple tasks may
 	// have the same order.
-	Order int `protobuf:"varint,7,opt,name=order,proto3,customtype=int" json:"order,omitempty"`
+	Order int32 `protobuf:"varint,7,opt,name=order,proto3" json:"order,omitempty"`
 	// CreatedAt is when this task was initially created.
 	CreatedAt pbtypes.Timestamp `protobuf:"bytes,8,opt,name=created_at" json:"created_at"`
 	// StartedAt is when this task's execution began.
@@ -798,7 +798,7 @@ type BuildUpdate struct {
 	Purged      bool               `protobuf:"varint,6,opt,name=purged,proto3" json:"purged,omitempty"`
 	Failure     bool               `protobuf:"varint,7,opt,name=failure,proto3" json:"failure,omitempty"`
 	Killed      bool               `protobuf:"varint,8,opt,name=killed,proto3" json:"killed,omitempty"`
-	Priority    int                `protobuf:"varint,9,opt,name=priority,proto3,customtype=int" json:"priority,omitempty"`
+	Priority    int32              `protobuf:"varint,9,opt,name=priority,proto3" json:"priority,omitempty"`
 }
 
 func (m *BuildUpdate) Reset()         { *m = BuildUpdate{} }
@@ -969,7 +969,7 @@ func (*OrgListMembersOptions) ProtoMessage()    {}
 // nonempty.
 type OrgSpec struct {
 	Org string `protobuf:"bytes,1,opt,name=org,proto3" json:"org,omitempty"`
-	UID int    `protobuf:"varint,2,opt,name=uid,proto3,customtype=int" json:"uid,omitempty"`
+	UID int32  `protobuf:"varint,2,opt,name=uid,proto3" json:"uid,omitempty"`
 }
 
 func (m *OrgSpec) Reset()         { *m = OrgSpec{} }
@@ -1018,7 +1018,7 @@ type PersonSpec struct {
 	// Login is a user's login.
 	Login string `protobuf:"bytes,2,opt,name=login,proto3" json:"login,omitempty"`
 	// UID is a user's UID.
-	UID int `protobuf:"varint,3,opt,name=uid,proto3,customtype=int" json:"uid,omitempty"`
+	UID int32 `protobuf:"varint,3,opt,name=uid,proto3" json:"uid,omitempty"`
 }
 
 func (m *PersonSpec) Reset()         { *m = PersonSpec{} }
@@ -1031,7 +1031,7 @@ func (*PersonSpec) ProtoMessage()    {}
 type RepoBuildInfo struct {
 	Exact                *Build      `protobuf:"bytes,1,opt,name=exact" json:"exact,omitempty"`
 	LastSuccessful       *Build      `protobuf:"bytes,2,opt,name=last_successful" json:"last_successful,omitempty"`
-	CommitsBehind        int         `protobuf:"varint,3,opt,name=commits_behind,proto3,customtype=int" json:"commits_behind,omitempty"`
+	CommitsBehind        int32       `protobuf:"varint,3,opt,name=commits_behind,proto3" json:"commits_behind,omitempty"`
 	LastSuccessfulCommit *vcs.Commit `protobuf:"bytes,4,opt,name=last_successful_commit" json:"last_successful_commit,omitempty"`
 }
 
@@ -1063,10 +1063,10 @@ func (*TaskUpdate) ProtoMessage()    {}
 // User represents a registered user.
 type User struct {
 	// UID is the numeric primary key for a user.
-	UID int `protobuf:"varint,1,opt,name=uid,proto3,customtype=int" json:"uid,omitempty"`
+	UID int32 `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
 	// GitHubID is the numeric ID of the GitHub user account corresponding to this
 	// user.
-	GitHubID int `protobuf:"varint,2,opt,name=github_id,proto3,customtype=int" json:"github_id,omitempty"`
+	GitHubID int32 `protobuf:"varint,2,opt,name=github_id,proto3" json:"github_id,omitempty"`
 	// Login is the user's username, which typically corresponds to the user's GitHub
 	// login.
 	Login string `protobuf:"bytes,3,opt,name=login,proto3" json:"login,omitempty"`
@@ -1100,7 +1100,7 @@ type UserSpec struct {
 	// Login is a user's login.
 	Login string `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
 	// UID is a user's UID.
-	UID int `protobuf:"varint,2,opt,name=uid,proto3,customtype=int" json:"uid,omitempty"`
+	UID int32 `protobuf:"varint,2,opt,name=uid,proto3" json:"uid,omitempty"`
 }
 
 func (m *UserSpec) Reset()         { *m = UserSpec{} }

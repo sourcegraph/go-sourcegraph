@@ -41,7 +41,7 @@ func (s *PersonSpec) PathComponent() string {
 		return s.Login
 	}
 	if s.UID > 0 {
-		return "$" + strconv.Itoa(s.UID)
+		return "$" + strconv.Itoa(int(s.UID))
 	}
 	panic("empty PersonSpec")
 }
@@ -55,7 +55,7 @@ func (s *PersonSpec) RouteVars() map[string]string {
 func ParsePersonSpec(pathComponent string) (PersonSpec, error) {
 	if strings.HasPrefix(pathComponent, "$") {
 		uid, err := strconv.Atoi(pathComponent[1:])
-		return PersonSpec{UID: uid}, err
+		return PersonSpec{UID: int32(uid)}, err
 	}
 	if strings.Contains(pathComponent, "@") {
 		return PersonSpec{Email: pathComponent}, nil
