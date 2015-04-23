@@ -359,6 +359,7 @@ type DeltaListFilesOptions struct {
 // DeltaFiles describes files added/changed/deleted in a delta.
 type DeltaFiles struct {
 	FileDiffs []*diff.FileDiff
+	Delta     *Delta
 }
 
 // DiffStat returns a diffstat that is the sum of all of the files'
