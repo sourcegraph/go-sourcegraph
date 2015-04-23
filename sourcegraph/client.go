@@ -48,6 +48,10 @@ type Client struct {
 
 	// HTTP client used to communicate with the Sourcegraph API.
 	httpClient *http.Client
+
+	// gRPC client connection used to communicate with the Sourcegraph
+	// API.
+	Conn *grpc.ClientConn
 }
 
 func NewGRPCClient(conn *grpc.ClientConn) *Client {
@@ -72,6 +76,7 @@ func NewGRPCClient(conn *grpc.ClientConn) *Client {
 	c.Markdown = NewMarkdownClient(conn)
 
 	c.UserAgent = userAgent
+	c.Conn = conn
 
 	return c
 }
