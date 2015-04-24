@@ -889,13 +889,21 @@ service Users {
 
 // UserAuth manages user authentication and registration.
 service UserAuth {
-	// Authenticate associates the provided access token with the
-	// context's current user. If there is no current user, then the
-	// token may be used to create an account. The current user (or
-	// the newly registered user) is returned.
+	// Authenticate associates the provided access token (from an
+	// external service, such as GitHub) with the context's current
+	// user. If there is no current user, then the token may be used
+	// to create an account. The UID of the current user (or the newly
+	// registered user) is returned.
 	rpc Authenticate(UserAuthAuthenticateOp) returns (AuthenticatedUser);
 
-	rpc Get(UserAuthGetOp) returns (UserAuthInfo);
+	// GetExternal returns info about the current user's
+	// authentication with an external service (e.g., the currently
+	// authorized GitHub scope).
+	rpc GetExternal(UserAuthGetExternalOp) returns (ExternalAuthInfo);
+
+	// Identify describes the currently authenticated user (if
+	// any). It is akin to "whoami".
+	rpc Identify(pbtypes.Void) returns (AuthInfo);
 }
 
 // An AuthenticatedUser describes the user that resulted from a UserAuth.Authenticate call.
@@ -915,14 +923,15 @@ message UserAuthAuthenticateOp {
 	AuthEndpointType endpoint_type = 5;
 }
 
-message UserAuthGetOp {
+message UserAuthGetExternalOp {
 	string client_id = 1 [(gogoproto.customname) = "ClientID"];
 	string host = 2;
 	AuthEndpointType endpoint_type = 3;	
 }
 
-// UserAuthInfo describes a user's credentials for a specific service.
-message UserAuthInfo {
+// ExternalAuthInfo describes a user's credentials for a specific
+// external service.
+message ExternalAuthInfo {
 	string scope = 1;
 }
 
@@ -930,6 +939,19 @@ enum AuthEndpointType {
 	Sourcegraph = 0;
 	LDAP = 1;
 	GitHub = 2;
+}
+
+// AuthInfo describes the currently authenticated user (if any).
+message AuthInfo {
+	// UID is the user ID of the currently authenticated user.
+	optional int32 uid = 1 [(gogoproto.customname) = "UID"];
+	
+	// APIKey is the API key for the currently authenticated user.
+	optional string api_key = 2 [(gogoproto.customname) = "APIKey"];
+
+	// Tickets are human-readable descriptions of the explicit
+	// permission grant tickets associated with the current request.
+	repeated string tickets = 3;
 }
 
 message AuthorshipInfo {

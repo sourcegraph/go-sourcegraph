@@ -227,15 +227,20 @@ var _ sourcegraph.UsersServer = (*UsersServer)(nil)
 
 type UserAuthServer struct {
 	Authenticate_ func(v0 context.Context, v1 *sourcegraph.UserAuthAuthenticateOp) (*sourcegraph.AuthenticatedUser, error)
-	Get_          func(v0 context.Context, v1 *sourcegraph.UserAuthGetOp) (*sourcegraph.UserAuthInfo, error)
+	GetExternal_  func(v0 context.Context, v1 *sourcegraph.UserAuthGetExternalOp) (*sourcegraph.ExternalAuthInfo, error)
+	Identify_     func(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.AuthInfo, error)
 }
 
 func (s *UserAuthServer) Authenticate(v0 context.Context, v1 *sourcegraph.UserAuthAuthenticateOp) (*sourcegraph.AuthenticatedUser, error) {
 	return s.Authenticate_(v0, v1)
 }
 
-func (s *UserAuthServer) Get(v0 context.Context, v1 *sourcegraph.UserAuthGetOp) (*sourcegraph.UserAuthInfo, error) {
-	return s.Get_(v0, v1)
+func (s *UserAuthServer) GetExternal(v0 context.Context, v1 *sourcegraph.UserAuthGetExternalOp) (*sourcegraph.ExternalAuthInfo, error) {
+	return s.GetExternal_(v0, v1)
+}
+
+func (s *UserAuthServer) Identify(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.AuthInfo, error) {
+	return s.Identify_(v0, v1)
 }
 
 var _ sourcegraph.UserAuthServer = (*UserAuthServer)(nil)

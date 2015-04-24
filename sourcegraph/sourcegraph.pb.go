@@ -78,8 +78,9 @@ It has these top-level messages:
 	OrgList
 	AuthenticatedUser
 	UserAuthAuthenticateOp
-	UserAuthGetOp
-	UserAuthInfo
+	UserAuthGetExternalOp
+	ExternalAuthInfo
+	AuthInfo
 	AuthorshipInfo
 	Completions
 	Def
@@ -1166,24 +1167,40 @@ func (m *UserAuthAuthenticateOp) Reset()         { *m = UserAuthAuthenticateOp{}
 func (m *UserAuthAuthenticateOp) String() string { return proto.CompactTextString(m) }
 func (*UserAuthAuthenticateOp) ProtoMessage()    {}
 
-type UserAuthGetOp struct {
+type UserAuthGetExternalOp struct {
 	ClientID     string           `protobuf:"bytes,1,opt,name=client_id,proto3" json:"client_id,omitempty"`
 	Host         string           `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
 	EndpointType AuthEndpointType `protobuf:"varint,3,opt,name=endpoint_type,proto3,enum=sourcegraph.AuthEndpointType" json:"endpoint_type,omitempty"`
 }
 
-func (m *UserAuthGetOp) Reset()         { *m = UserAuthGetOp{} }
-func (m *UserAuthGetOp) String() string { return proto.CompactTextString(m) }
-func (*UserAuthGetOp) ProtoMessage()    {}
+func (m *UserAuthGetExternalOp) Reset()         { *m = UserAuthGetExternalOp{} }
+func (m *UserAuthGetExternalOp) String() string { return proto.CompactTextString(m) }
+func (*UserAuthGetExternalOp) ProtoMessage()    {}
 
-// UserAuthInfo describes a user's credentials for a specific service.
-type UserAuthInfo struct {
+// ExternalAuthInfo describes a user's credentials for a specific
+// external service.
+type ExternalAuthInfo struct {
 	Scope string `protobuf:"bytes,1,opt,name=scope,proto3" json:"scope,omitempty"`
 }
 
-func (m *UserAuthInfo) Reset()         { *m = UserAuthInfo{} }
-func (m *UserAuthInfo) String() string { return proto.CompactTextString(m) }
-func (*UserAuthInfo) ProtoMessage()    {}
+func (m *ExternalAuthInfo) Reset()         { *m = ExternalAuthInfo{} }
+func (m *ExternalAuthInfo) String() string { return proto.CompactTextString(m) }
+func (*ExternalAuthInfo) ProtoMessage()    {}
+
+// AuthInfo describes the currently authenticated user (if any).
+type AuthInfo struct {
+	// UID is the user ID of the currently authenticated user.
+	UID int32 `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// APIKey is the API key for the currently authenticated user.
+	APIKey string `protobuf:"bytes,2,opt,name=api_key,proto3" json:"api_key,omitempty"`
+	// Tickets are human-readable descriptions of the explicit
+	// permission grant tickets associated with the current request.
+	Tickets []string `protobuf:"bytes,3,rep,name=tickets" json:"tickets,omitempty"`
+}
+
+func (m *AuthInfo) Reset()         { *m = AuthInfo{} }
+func (m *AuthInfo) String() string { return proto.CompactTextString(m) }
+func (*AuthInfo) ProtoMessage()    {}
 
 type AuthorshipInfo struct {
 	AuthorEmail    string            `protobuf:"bytes,1,opt,name=author_email,proto3" json:"author_email,omitempty"`
@@ -3498,12 +3515,19 @@ var _Users_serviceDesc = grpc.ServiceDesc{
 // Client API for UserAuth service
 
 type UserAuthClient interface {
-	// Authenticate associates the provided access token with the
-	// context's current user. If there is no current user, then the
-	// token may be used to create an account. The current user (or
-	// the newly registered user) is returned.
+	// Authenticate associates the provided access token (from an
+	// external service, such as GitHub) with the context's current
+	// user. If there is no current user, then the token may be used
+	// to create an account. The UID of the current user (or the newly
+	// registered user) is returned.
 	Authenticate(ctx context.Context, in *UserAuthAuthenticateOp, opts ...grpc.CallOption) (*AuthenticatedUser, error)
-	Get(ctx context.Context, in *UserAuthGetOp, opts ...grpc.CallOption) (*UserAuthInfo, error)
+	// GetExternal returns info about the current user's
+	// authentication with an external service (e.g., the currently
+	// authorized GitHub scope).
+	GetExternal(ctx context.Context, in *UserAuthGetExternalOp, opts ...grpc.CallOption) (*ExternalAuthInfo, error)
+	// Identify describes the currently authenticated user (if
+	// any). It is akin to "whoami".
+	Identify(ctx context.Context, in *pbtypes1.Void, opts ...grpc.CallOption) (*AuthInfo, error)
 }
 
 type userAuthClient struct {
@@ -3523,9 +3547,18 @@ func (c *userAuthClient) Authenticate(ctx context.Context, in *UserAuthAuthentic
 	return out, nil
 }
 
-func (c *userAuthClient) Get(ctx context.Context, in *UserAuthGetOp, opts ...grpc.CallOption) (*UserAuthInfo, error) {
-	out := new(UserAuthInfo)
-	err := grpc.Invoke(ctx, "/sourcegraph.UserAuth/Get", in, out, c.cc, opts...)
+func (c *userAuthClient) GetExternal(ctx context.Context, in *UserAuthGetExternalOp, opts ...grpc.CallOption) (*ExternalAuthInfo, error) {
+	out := new(ExternalAuthInfo)
+	err := grpc.Invoke(ctx, "/sourcegraph.UserAuth/GetExternal", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userAuthClient) Identify(ctx context.Context, in *pbtypes1.Void, opts ...grpc.CallOption) (*AuthInfo, error) {
+	out := new(AuthInfo)
+	err := grpc.Invoke(ctx, "/sourcegraph.UserAuth/Identify", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3535,12 +3568,19 @@ func (c *userAuthClient) Get(ctx context.Context, in *UserAuthGetOp, opts ...grp
 // Server API for UserAuth service
 
 type UserAuthServer interface {
-	// Authenticate associates the provided access token with the
-	// context's current user. If there is no current user, then the
-	// token may be used to create an account. The current user (or
-	// the newly registered user) is returned.
+	// Authenticate associates the provided access token (from an
+	// external service, such as GitHub) with the context's current
+	// user. If there is no current user, then the token may be used
+	// to create an account. The UID of the current user (or the newly
+	// registered user) is returned.
 	Authenticate(context.Context, *UserAuthAuthenticateOp) (*AuthenticatedUser, error)
-	Get(context.Context, *UserAuthGetOp) (*UserAuthInfo, error)
+	// GetExternal returns info about the current user's
+	// authentication with an external service (e.g., the currently
+	// authorized GitHub scope).
+	GetExternal(context.Context, *UserAuthGetExternalOp) (*ExternalAuthInfo, error)
+	// Identify describes the currently authenticated user (if
+	// any). It is akin to "whoami".
+	Identify(context.Context, *pbtypes1.Void) (*AuthInfo, error)
 }
 
 func RegisterUserAuthServer(s *grpc.Server, srv UserAuthServer) {
@@ -3559,12 +3599,24 @@ func _UserAuth_Authenticate_Handler(srv interface{}, ctx context.Context, buf []
 	return out, nil
 }
 
-func _UserAuth_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
-	in := new(UserAuthGetOp)
+func _UserAuth_GetExternal_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(UserAuthGetExternalOp)
 	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
-	out, err := srv.(UserAuthServer).Get(ctx, in)
+	out, err := srv.(UserAuthServer).GetExternal(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _UserAuth_Identify_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(pbtypes1.Void)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(UserAuthServer).Identify(ctx, in)
 	if err != nil {
 		return nil, err
 	}
@@ -3580,8 +3632,12 @@ var _UserAuth_serviceDesc = grpc.ServiceDesc{
 			Handler:    _UserAuth_Authenticate_Handler,
 		},
 		{
-			MethodName: "Get",
-			Handler:    _UserAuth_Get_Handler,
+			MethodName: "GetExternal",
+			Handler:    _UserAuth_GetExternal_Handler,
+		},
+		{
+			MethodName: "Identify",
+			Handler:    _UserAuth_Identify_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
