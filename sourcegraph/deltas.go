@@ -365,6 +365,7 @@ type DeltaListFilesOptions struct {
 type DeltaFiles struct {
 	FileDiffs []*FileDiff
 	Delta     *Delta
+	Stat      diff.Stat
 }
 
 // FileDiff holds data about a diff, and additionally stores extended
@@ -372,6 +373,7 @@ type DeltaFiles struct {
 type FileDiff struct {
 	*diff.FileDiff
 	Hunks []*Hunk
+	Stat  diff.Stat
 }
 
 // Hunk holds data about a hunk in a diff.
