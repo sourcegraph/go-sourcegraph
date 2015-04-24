@@ -271,11 +271,11 @@ service RepoBadges {
 }
 
 service RepoStatuses {
-	// Create creates a repository status for the given commit.
-	rpc Create(RepoStatusesCreateOp) returns (RepoStatus);
-
 	// GetCombined fetches the combined repository status for the given commit.
 	rpc GetCombined(RepoRevSpec) returns (CombinedStatus);
+
+	// Create creates a repository status for the given commit.
+	rpc Create(RepoStatusesCreateOp) returns (RepoStatus);
 }
 
 service Repos {

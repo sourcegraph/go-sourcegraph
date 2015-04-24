@@ -2347,10 +2347,10 @@ var _RepoBadges_serviceDesc = grpc.ServiceDesc{
 // Client API for RepoStatuses service
 
 type RepoStatusesClient interface {
-	// Create creates a repository status for the given commit.
-	Create(ctx context.Context, in *RepoStatusesCreateOp, opts ...grpc.CallOption) (*RepoStatus, error)
 	// GetCombined fetches the combined repository status for the given commit.
 	GetCombined(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*CombinedStatus, error)
+	// Create creates a repository status for the given commit.
+	Create(ctx context.Context, in *RepoStatusesCreateOp, opts ...grpc.CallOption) (*RepoStatus, error)
 }
 
 type repoStatusesClient struct {
@@ -2359,15 +2359,6 @@ type repoStatusesClient struct {
 
 func NewRepoStatusesClient(cc *grpc.ClientConn) RepoStatusesClient {
 	return &repoStatusesClient{cc}
-}
-
-func (c *repoStatusesClient) Create(ctx context.Context, in *RepoStatusesCreateOp, opts ...grpc.CallOption) (*RepoStatus, error) {
-	out := new(RepoStatus)
-	err := grpc.Invoke(ctx, "/sourcegraph.RepoStatuses/Create", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *repoStatusesClient) GetCombined(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*CombinedStatus, error) {
@@ -2379,29 +2370,26 @@ func (c *repoStatusesClient) GetCombined(ctx context.Context, in *RepoRevSpec, o
 	return out, nil
 }
 
-// Server API for RepoStatuses service
-
-type RepoStatusesServer interface {
-	// Create creates a repository status for the given commit.
-	Create(context.Context, *RepoStatusesCreateOp) (*RepoStatus, error)
-	// GetCombined fetches the combined repository status for the given commit.
-	GetCombined(context.Context, *RepoRevSpec) (*CombinedStatus, error)
-}
-
-func RegisterRepoStatusesServer(s *grpc.Server, srv RepoStatusesServer) {
-	s.RegisterService(&_RepoStatuses_serviceDesc, srv)
-}
-
-func _RepoStatuses_Create_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
-	in := new(RepoStatusesCreateOp)
-	if err := proto.Unmarshal(buf, in); err != nil {
-		return nil, err
-	}
-	out, err := srv.(RepoStatusesServer).Create(ctx, in)
+func (c *repoStatusesClient) Create(ctx context.Context, in *RepoStatusesCreateOp, opts ...grpc.CallOption) (*RepoStatus, error) {
+	out := new(RepoStatus)
+	err := grpc.Invoke(ctx, "/sourcegraph.RepoStatuses/Create", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
+}
+
+// Server API for RepoStatuses service
+
+type RepoStatusesServer interface {
+	// GetCombined fetches the combined repository status for the given commit.
+	GetCombined(context.Context, *RepoRevSpec) (*CombinedStatus, error)
+	// Create creates a repository status for the given commit.
+	Create(context.Context, *RepoStatusesCreateOp) (*RepoStatus, error)
+}
+
+func RegisterRepoStatusesServer(s *grpc.Server, srv RepoStatusesServer) {
+	s.RegisterService(&_RepoStatuses_serviceDesc, srv)
 }
 
 func _RepoStatuses_GetCombined_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
@@ -2416,17 +2404,29 @@ func _RepoStatuses_GetCombined_Handler(srv interface{}, ctx context.Context, buf
 	return out, nil
 }
 
+func _RepoStatuses_Create_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(RepoStatusesCreateOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RepoStatusesServer).Create(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 var _RepoStatuses_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sourcegraph.RepoStatuses",
 	HandlerType: (*RepoStatusesServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Create",
-			Handler:    _RepoStatuses_Create_Handler,
-		},
-		{
 			MethodName: "GetCombined",
 			Handler:    _RepoStatuses_GetCombined_Handler,
+		},
+		{
+			MethodName: "Create",
+			Handler:    _RepoStatuses_Create_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},

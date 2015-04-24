@@ -36,16 +36,16 @@ func (s *RepoBadgesServer) CountHits(v0 context.Context, v1 *sourcegraph.RepoBad
 var _ sourcegraph.RepoBadgesServer = (*RepoBadgesServer)(nil)
 
 type RepoStatusesServer struct {
-	Create_      func(v0 context.Context, v1 *sourcegraph.RepoStatusesCreateOp) (*sourcegraph.RepoStatus, error)
 	GetCombined_ func(v0 context.Context, v1 *sourcegraph.RepoRevSpec) (*sourcegraph.CombinedStatus, error)
-}
-
-func (s *RepoStatusesServer) Create(v0 context.Context, v1 *sourcegraph.RepoStatusesCreateOp) (*sourcegraph.RepoStatus, error) {
-	return s.Create_(v0, v1)
+	Create_      func(v0 context.Context, v1 *sourcegraph.RepoStatusesCreateOp) (*sourcegraph.RepoStatus, error)
 }
 
 func (s *RepoStatusesServer) GetCombined(v0 context.Context, v1 *sourcegraph.RepoRevSpec) (*sourcegraph.CombinedStatus, error) {
 	return s.GetCombined_(v0, v1)
+}
+
+func (s *RepoStatusesServer) Create(v0 context.Context, v1 *sourcegraph.RepoStatusesCreateOp) (*sourcegraph.RepoStatus, error) {
+	return s.Create_(v0, v1)
 }
 
 var _ sourcegraph.RepoStatusesServer = (*RepoStatusesServer)(nil)
