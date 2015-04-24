@@ -403,10 +403,9 @@ type Hunk struct {
 func (d *DeltaFiles) DiffStat() diff.Stat {
 	ds := diff.Stat{}
 	for _, fd := range d.FileDiffs {
-		st := fd.FileDiff.Stat()
-		ds.Added += st.Added
-		ds.Changed += st.Changed
-		ds.Deleted += st.Deleted
+		ds.Added += fd.Stats.Added
+		ds.Changed += fd.Stats.Changed
+		ds.Deleted += fd.Stats.Deleted
 	}
 	return ds
 }
