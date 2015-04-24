@@ -465,8 +465,6 @@ func (*RepoSpec) ProtoMessage()    {}
 // RepoStatus is the status of the repository at a specific rev (in a single
 // context).
 type RepoStatus struct {
-	// CommitID is the full commit ID of the commit this status describes.
-	CommitID string `protobuf:"bytes,1,opt,name=commit_id,proto3" json:"commit_id,omitempty"`
 	// State is the current status of the repository. Possible values are: pending,
 	// success, error, or failure.
 	State string `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`

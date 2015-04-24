@@ -226,9 +226,6 @@ message RepoSpec {
 // RepoStatus is the status of the repository at a specific rev (in a single
 // context).
 message RepoStatus {
-	// CommitID is the full commit ID of the commit this status describes.
-	string commit_id = 1 [(gogoproto.customname) = "CommitID"];
-
 	// State is the current status of the repository. Possible values are: pending,
 	// success, error, or failure.
 	string state = 2;
