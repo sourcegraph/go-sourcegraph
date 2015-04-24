@@ -353,12 +353,47 @@ type DeltaListFilesOptions struct {
 	// Filter filters the list of returned files to those whose name matches Filter.
 	Filter string `url:",omitempty"`
 
+	// Tokenized, when set, will tokenize the whole source code contained in the diff,
+	// returning 3 versions for each hunk: Head revision, Base revision and Hunk body.
+	// For more information, see sourcegraph.Hunk.
+	Tokenized bool `url:",omitempty"`
+
 	DeltaFilter
 }
 
 // DeltaFiles describes files added/changed/deleted in a delta.
 type DeltaFiles struct {
-	FileDiffs []*diff.FileDiff
+	FileDiffs []*FileDiff
+	Delta     *Delta
+}
+
+// FileDiff holds data about a diff, and additionally stores extended
+// information about its hunks.
+type FileDiff struct {
+	*diff.FileDiff
+	Hunks []*Hunk
+}
+
+// Hunk holds data about a hunk in a diff.
+type Hunk struct {
+	*diff.Hunk
+
+	// LinePrefixes holds a string where each character's index corresponds
+	// to a line in the BodySource, and it's value reflects whether the line
+	// is an addition, deletion, or change ('+', '-', ' ')
+	LinePrefixes string `json:",omitempty"`
+
+	// BaseSource holds the source code for the original hunk, having all
+	// lines starting from the original line down to the end of the hunk.
+	BaseSource *SourceCode `json:",omitempty"`
+
+	// HeadSource contains the source code for the new hunk, holding
+	// all consecutive lines from the start to the end.
+	HeadSource *SourceCode `json:",omitempty"`
+
+	// BodySource contains the source code for the Hunk body and is a mix
+	// of both additions and deletions.
+	BodySource *SourceCode `json:",omitempty"`
 }
 
 // DiffStat returns a diffstat that is the sum of all of the files'
