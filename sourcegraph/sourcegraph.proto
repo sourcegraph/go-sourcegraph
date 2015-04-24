@@ -919,16 +919,6 @@ message ExternalUsersAuthenticateOp {
 	Service service = 5;
 }
 
-message AugmentedDefAuthor {
-	optional Person person = 1;
-	optional DefAuthor def_author = 2 [(gogoproto.embed) = true];
-}
-
-message AugmentedDefClient {
-	optional Person person = 1;
-	optional DefClient def_client = 2 [(gogoproto.embed) = true];
-}
-
 message AuthorshipInfo {
 	string author_email = 1;
 	pbtypes.Timestamp last_commit_date = 2 [(gogoproto.nullable) = false];
@@ -1146,17 +1136,9 @@ message DefsListAuthorsOp {
 	optional DefListAuthorsOptions opt = 2;
 }
 
-message AugmentedDefAuthorList {
-	repeated AugmentedDefAuthor augmented_def_authors = 1;
-}
-
 message DefsListClientsOp {
 	DefSpec def = 1 [(gogoproto.nullable) = false];
 	optional DefListClientsOptions opt = 2;
-}
-
-message AugmentedDefClientList {
-	repeated AugmentedDefClient augmented_def_clients = 1;
 }
 
 // Delta represents the difference between two commits (possibly in 2 separate
@@ -1569,6 +1551,13 @@ message RepoSourceUnitList {
 	repeated unit.RepoSourceUnit units = 1;
 }
 
+message DefAuthorList {
+	repeated DefAuthor def_authors = 1;
+}
+
+message DefClientList {
+	repeated DefClient def_clients = 1;
+}
 
 // DefsService communicates with the def- and graph-related endpoints in the
 // Sourcegraph API.
@@ -1586,10 +1575,10 @@ service Defs {
 	rpc ListExamples(DefsListExamplesOp) returns (ExampleList);
 
 	// ListExamples lists people who committed parts of def's definition.
-	rpc ListAuthors(DefsListAuthorsOp) returns (AugmentedDefAuthorList);
+	rpc ListAuthors(DefsListAuthorsOp) returns (DefAuthorList);
 
 	// ListClients lists people who use def in their code.
-	rpc ListClients(DefsListClientsOp) returns (AugmentedDefClientList);
+	rpc ListClients(DefsListClientsOp) returns (DefClientList);
 }
 
 // DeltasService interacts with the delta-related endpoints of the Sourcegraph API.

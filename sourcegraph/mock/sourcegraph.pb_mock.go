@@ -240,8 +240,8 @@ type DefsServer struct {
 	List_         func(v0 context.Context, v1 *sourcegraph.DefListOptions) (*sourcegraph.DefList, error)
 	ListRefs_     func(v0 context.Context, v1 *sourcegraph.DefsListRefsOp) (*sourcegraph.RefList, error)
 	ListExamples_ func(v0 context.Context, v1 *sourcegraph.DefsListExamplesOp) (*sourcegraph.ExampleList, error)
-	ListAuthors_  func(v0 context.Context, v1 *sourcegraph.DefsListAuthorsOp) (*sourcegraph.AugmentedDefAuthorList, error)
-	ListClients_  func(v0 context.Context, v1 *sourcegraph.DefsListClientsOp) (*sourcegraph.AugmentedDefClientList, error)
+	ListAuthors_  func(v0 context.Context, v1 *sourcegraph.DefsListAuthorsOp) (*sourcegraph.DefAuthorList, error)
+	ListClients_  func(v0 context.Context, v1 *sourcegraph.DefsListClientsOp) (*sourcegraph.DefClientList, error)
 }
 
 func (s *DefsServer) Get(v0 context.Context, v1 *sourcegraph.DefsGetOp) (*sourcegraph.Def, error) {
@@ -260,11 +260,11 @@ func (s *DefsServer) ListExamples(v0 context.Context, v1 *sourcegraph.DefsListEx
 	return s.ListExamples_(v0, v1)
 }
 
-func (s *DefsServer) ListAuthors(v0 context.Context, v1 *sourcegraph.DefsListAuthorsOp) (*sourcegraph.AugmentedDefAuthorList, error) {
+func (s *DefsServer) ListAuthors(v0 context.Context, v1 *sourcegraph.DefsListAuthorsOp) (*sourcegraph.DefAuthorList, error) {
 	return s.ListAuthors_(v0, v1)
 }
 
-func (s *DefsServer) ListClients(v0 context.Context, v1 *sourcegraph.DefsListClientsOp) (*sourcegraph.AugmentedDefClientList, error) {
+func (s *DefsServer) ListClients(v0 context.Context, v1 *sourcegraph.DefsListClientsOp) (*sourcegraph.DefClientList, error) {
 	return s.ListClients_(v0, v1)
 }
 

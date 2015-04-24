@@ -78,8 +78,6 @@ It has these top-level messages:
 	OrgList
 	ExternalUser
 	ExternalUsersAuthenticateOp
-	AugmentedDefAuthor
-	AugmentedDefClient
 	AuthorshipInfo
 	Completions
 	Def
@@ -102,9 +100,7 @@ It has these top-level messages:
 	DefsListExamplesOp
 	ExampleList
 	DefsListAuthorsOp
-	AugmentedDefAuthorList
 	DefsListClientsOp
-	AugmentedDefClientList
 	Delta
 	DeltaAffectedPerson
 	DeltaDefs
@@ -150,6 +146,8 @@ It has these top-level messages:
 	UnitListOptions
 	UnitSpec
 	RepoSourceUnitList
+	DefAuthorList
+	DefClientList
 	Checklist
 	FileToken
 	Plan
@@ -1169,24 +1167,6 @@ func (m *ExternalUsersAuthenticateOp) Reset()         { *m = ExternalUsersAuthen
 func (m *ExternalUsersAuthenticateOp) String() string { return proto.CompactTextString(m) }
 func (*ExternalUsersAuthenticateOp) ProtoMessage()    {}
 
-type AugmentedDefAuthor struct {
-	Person     *Person `protobuf:"bytes,1,opt,name=person" json:"person,omitempty"`
-	*DefAuthor `protobuf:"bytes,2,opt,name=def_author,embedded=def_author" json:"def_author,omitempty"`
-}
-
-func (m *AugmentedDefAuthor) Reset()         { *m = AugmentedDefAuthor{} }
-func (m *AugmentedDefAuthor) String() string { return proto.CompactTextString(m) }
-func (*AugmentedDefAuthor) ProtoMessage()    {}
-
-type AugmentedDefClient struct {
-	Person     *Person `protobuf:"bytes,1,opt,name=person" json:"person,omitempty"`
-	*DefClient `protobuf:"bytes,2,opt,name=def_client,embedded=def_client" json:"def_client,omitempty"`
-}
-
-func (m *AugmentedDefClient) Reset()         { *m = AugmentedDefClient{} }
-func (m *AugmentedDefClient) String() string { return proto.CompactTextString(m) }
-func (*AugmentedDefClient) ProtoMessage()    {}
-
 type AuthorshipInfo struct {
 	AuthorEmail    string            `protobuf:"bytes,1,opt,name=author_email,proto3" json:"author_email,omitempty"`
 	LastCommitDate pbtypes.Timestamp `protobuf:"bytes,2,opt,name=last_commit_date" json:"last_commit_date"`
@@ -1467,14 +1447,6 @@ func (m *DefsListAuthorsOp) Reset()         { *m = DefsListAuthorsOp{} }
 func (m *DefsListAuthorsOp) String() string { return proto.CompactTextString(m) }
 func (*DefsListAuthorsOp) ProtoMessage()    {}
 
-type AugmentedDefAuthorList struct {
-	AugmentedDefAuthors []*AugmentedDefAuthor `protobuf:"bytes,1,rep,name=augmented_def_authors" json:"augmented_def_authors,omitempty"`
-}
-
-func (m *AugmentedDefAuthorList) Reset()         { *m = AugmentedDefAuthorList{} }
-func (m *AugmentedDefAuthorList) String() string { return proto.CompactTextString(m) }
-func (*AugmentedDefAuthorList) ProtoMessage()    {}
-
 type DefsListClientsOp struct {
 	Def DefSpec                `protobuf:"bytes,1,opt,name=def" json:"def"`
 	Opt *DefListClientsOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
@@ -1483,14 +1455,6 @@ type DefsListClientsOp struct {
 func (m *DefsListClientsOp) Reset()         { *m = DefsListClientsOp{} }
 func (m *DefsListClientsOp) String() string { return proto.CompactTextString(m) }
 func (*DefsListClientsOp) ProtoMessage()    {}
-
-type AugmentedDefClientList struct {
-	AugmentedDefClients []*AugmentedDefClient `protobuf:"bytes,1,rep,name=augmented_def_clients" json:"augmented_def_clients,omitempty"`
-}
-
-func (m *AugmentedDefClientList) Reset()         { *m = AugmentedDefClientList{} }
-func (m *AugmentedDefClientList) String() string { return proto.CompactTextString(m) }
-func (*AugmentedDefClientList) ProtoMessage()    {}
 
 // Delta represents the difference between two commits (possibly in 2 separate
 // repositories).
@@ -2046,6 +2010,22 @@ type RepoSourceUnitList struct {
 func (m *RepoSourceUnitList) Reset()         { *m = RepoSourceUnitList{} }
 func (m *RepoSourceUnitList) String() string { return proto.CompactTextString(m) }
 func (*RepoSourceUnitList) ProtoMessage()    {}
+
+type DefAuthorList struct {
+	DefAuthors []*DefAuthor `protobuf:"bytes,1,rep,name=def_authors" json:"def_authors,omitempty"`
+}
+
+func (m *DefAuthorList) Reset()         { *m = DefAuthorList{} }
+func (m *DefAuthorList) String() string { return proto.CompactTextString(m) }
+func (*DefAuthorList) ProtoMessage()    {}
+
+type DefClientList struct {
+	DefClients []*DefClient `protobuf:"bytes,1,rep,name=def_clients" json:"def_clients,omitempty"`
+}
+
+func (m *DefClientList) Reset()         { *m = DefClientList{} }
+func (m *DefClientList) String() string { return proto.CompactTextString(m) }
+func (*DefClientList) ProtoMessage()    {}
 
 type Checklist struct {
 	// number of tasks to be done (unchecked)
@@ -3566,9 +3546,9 @@ type DefsClient interface {
 	// ListExamples lists examples for def.
 	ListExamples(ctx context.Context, in *DefsListExamplesOp, opts ...grpc.CallOption) (*ExampleList, error)
 	// ListExamples lists people who committed parts of def's definition.
-	ListAuthors(ctx context.Context, in *DefsListAuthorsOp, opts ...grpc.CallOption) (*AugmentedDefAuthorList, error)
+	ListAuthors(ctx context.Context, in *DefsListAuthorsOp, opts ...grpc.CallOption) (*DefAuthorList, error)
 	// ListClients lists people who use def in their code.
-	ListClients(ctx context.Context, in *DefsListClientsOp, opts ...grpc.CallOption) (*AugmentedDefClientList, error)
+	ListClients(ctx context.Context, in *DefsListClientsOp, opts ...grpc.CallOption) (*DefClientList, error)
 }
 
 type defsClient struct {
@@ -3615,8 +3595,8 @@ func (c *defsClient) ListExamples(ctx context.Context, in *DefsListExamplesOp, o
 	return out, nil
 }
 
-func (c *defsClient) ListAuthors(ctx context.Context, in *DefsListAuthorsOp, opts ...grpc.CallOption) (*AugmentedDefAuthorList, error) {
-	out := new(AugmentedDefAuthorList)
+func (c *defsClient) ListAuthors(ctx context.Context, in *DefsListAuthorsOp, opts ...grpc.CallOption) (*DefAuthorList, error) {
+	out := new(DefAuthorList)
 	err := grpc.Invoke(ctx, "/sourcegraph.Defs/ListAuthors", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
@@ -3624,8 +3604,8 @@ func (c *defsClient) ListAuthors(ctx context.Context, in *DefsListAuthorsOp, opt
 	return out, nil
 }
 
-func (c *defsClient) ListClients(ctx context.Context, in *DefsListClientsOp, opts ...grpc.CallOption) (*AugmentedDefClientList, error) {
-	out := new(AugmentedDefClientList)
+func (c *defsClient) ListClients(ctx context.Context, in *DefsListClientsOp, opts ...grpc.CallOption) (*DefClientList, error) {
+	out := new(DefClientList)
 	err := grpc.Invoke(ctx, "/sourcegraph.Defs/ListClients", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
@@ -3645,9 +3625,9 @@ type DefsServer interface {
 	// ListExamples lists examples for def.
 	ListExamples(context.Context, *DefsListExamplesOp) (*ExampleList, error)
 	// ListExamples lists people who committed parts of def's definition.
-	ListAuthors(context.Context, *DefsListAuthorsOp) (*AugmentedDefAuthorList, error)
+	ListAuthors(context.Context, *DefsListAuthorsOp) (*DefAuthorList, error)
 	// ListClients lists people who use def in their code.
-	ListClients(context.Context, *DefsListClientsOp) (*AugmentedDefClientList, error)
+	ListClients(context.Context, *DefsListClientsOp) (*DefClientList, error)
 }
 
 func RegisterDefsServer(s *grpc.Server, srv DefsServer) {
