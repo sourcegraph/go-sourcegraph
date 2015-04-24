@@ -887,19 +887,23 @@ service Users {
 	rpc List(UsersListOptions) returns (UserList);
 }
 
-// ExternalUsers manages authentication and registration of external
-// users.
-service ExternalUsers {
-	rpc Authenticate(ExternalUsersAuthenticateOp) returns (ExternalUser);
+// UserAuth manages user authentication and registration.
+service UserAuth {
+	// Authenticate associates the provided access token with the
+	// context's current user. If there is no current user, then the
+	// token may be used to create an account. The current user (or
+	// the newly registered user) is returned.
+	rpc Authenticate(UserAuthAuthenticateOp) returns (AuthenticatedUser);
+
+	rpc Get(UserAuthGetOp) returns (UserAuthInfo);
 }
 
-// An ExternalUser represents a user on an external service (GitHub,
-// LDAP, etc.).
-message ExternalUser {
-	User user = 1;
+// An AuthenticatedUser describes the user that resulted from a UserAuth.Authenticate call.
+message AuthenticatedUser {
+	int32 uid = 1 [(gogoproto.customname) = "UID"];
 }
 
-message ExternalUsersAuthenticateOp {
+message UserAuthAuthenticateOp {
 	string client_id = 1 [(gogoproto.customname) = "ClientID"];
 	string access_token = 2;
 	string scope = 3;
@@ -908,12 +912,24 @@ message ExternalUsersAuthenticateOp {
 	// github.example.com).
 	string host = 4;
 
-	enum Service {
-		Sourcegraph = 0;
-		LDAP = 1;
-		GitHub = 2;
-	}
-	Service service = 5;
+	AuthEndpointType endpoint_type = 5;
+}
+
+message UserAuthGetOp {
+	string client_id = 1 [(gogoproto.customname) = "ClientID"];
+	string host = 2;
+	AuthEndpointType endpoint_type = 3;	
+}
+
+// UserAuthInfo describes a user's credentials for a specific service.
+message UserAuthInfo {
+	string scope = 1;
+}
+
+enum AuthEndpointType {
+	Sourcegraph = 0;
+	LDAP = 1;
+	GitHub = 2;
 }
 
 message AuthorshipInfo {

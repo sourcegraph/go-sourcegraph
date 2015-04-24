@@ -76,8 +76,10 @@ It has these top-level messages:
 	OrgsListOp
 	EmailAddrList
 	OrgList
-	ExternalUser
-	ExternalUsersAuthenticateOp
+	AuthenticatedUser
+	UserAuthAuthenticateOp
+	UserAuthGetOp
+	UserAuthInfo
 	AuthorshipInfo
 	Completions
 	Def
@@ -189,27 +191,27 @@ var _ grpc.ClientConn
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 
-type ExternalUsersAuthenticateOp_Service int32
+type AuthEndpointType int32
 
 const (
-	ExternalUsersAuthenticateOp_Sourcegraph ExternalUsersAuthenticateOp_Service = 0
-	ExternalUsersAuthenticateOp_LDAP        ExternalUsersAuthenticateOp_Service = 1
-	ExternalUsersAuthenticateOp_GitHub      ExternalUsersAuthenticateOp_Service = 2
+	AuthEndpointType_Sourcegraph AuthEndpointType = 0
+	AuthEndpointType_LDAP        AuthEndpointType = 1
+	AuthEndpointType_GitHub      AuthEndpointType = 2
 )
 
-var ExternalUsersAuthenticateOp_Service_name = map[int32]string{
+var AuthEndpointType_name = map[int32]string{
 	0: "Sourcegraph",
 	1: "LDAP",
 	2: "GitHub",
 }
-var ExternalUsersAuthenticateOp_Service_value = map[string]int32{
+var AuthEndpointType_value = map[string]int32{
 	"Sourcegraph": 0,
 	"LDAP":        1,
 	"GitHub":      2,
 }
 
-func (x ExternalUsersAuthenticateOp_Service) String() string {
-	return proto.EnumName(ExternalUsersAuthenticateOp_Service_name, int32(x))
+func (x AuthEndpointType) String() string {
+	return proto.EnumName(AuthEndpointType_name, int32(x))
 }
 
 type Badge struct {
@@ -1141,29 +1143,47 @@ func (m *OrgList) Reset()         { *m = OrgList{} }
 func (m *OrgList) String() string { return proto.CompactTextString(m) }
 func (*OrgList) ProtoMessage()    {}
 
-// An ExternalUser represents a user on an external service (GitHub,
-// LDAP, etc.).
-type ExternalUser struct {
-	User *User `protobuf:"bytes,1,opt,name=user" json:"user,omitempty"`
+// An AuthenticatedUser describes the user that resulted from a UserAuth.Authenticate call.
+type AuthenticatedUser struct {
+	UID int32 `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
 }
 
-func (m *ExternalUser) Reset()         { *m = ExternalUser{} }
-func (m *ExternalUser) String() string { return proto.CompactTextString(m) }
-func (*ExternalUser) ProtoMessage()    {}
+func (m *AuthenticatedUser) Reset()         { *m = AuthenticatedUser{} }
+func (m *AuthenticatedUser) String() string { return proto.CompactTextString(m) }
+func (*AuthenticatedUser) ProtoMessage()    {}
 
-type ExternalUsersAuthenticateOp struct {
+type UserAuthAuthenticateOp struct {
 	ClientID    string `protobuf:"bytes,1,opt,name=client_id,proto3" json:"client_id,omitempty"`
 	AccessToken string `protobuf:"bytes,2,opt,name=access_token,proto3" json:"access_token,omitempty"`
 	Scope       string `protobuf:"bytes,3,opt,name=scope,proto3" json:"scope,omitempty"`
 	// Host is the hostname of the external service (e.g., github.com,
 	// github.example.com).
-	Host    string                              `protobuf:"bytes,4,opt,name=host,proto3" json:"host,omitempty"`
-	Service ExternalUsersAuthenticateOp_Service `protobuf:"varint,5,opt,name=service,proto3,enum=sourcegraph.ExternalUsersAuthenticateOp_Service" json:"service,omitempty"`
+	Host         string           `protobuf:"bytes,4,opt,name=host,proto3" json:"host,omitempty"`
+	EndpointType AuthEndpointType `protobuf:"varint,5,opt,name=endpoint_type,proto3,enum=sourcegraph.AuthEndpointType" json:"endpoint_type,omitempty"`
 }
 
-func (m *ExternalUsersAuthenticateOp) Reset()         { *m = ExternalUsersAuthenticateOp{} }
-func (m *ExternalUsersAuthenticateOp) String() string { return proto.CompactTextString(m) }
-func (*ExternalUsersAuthenticateOp) ProtoMessage()    {}
+func (m *UserAuthAuthenticateOp) Reset()         { *m = UserAuthAuthenticateOp{} }
+func (m *UserAuthAuthenticateOp) String() string { return proto.CompactTextString(m) }
+func (*UserAuthAuthenticateOp) ProtoMessage()    {}
+
+type UserAuthGetOp struct {
+	ClientID     string           `protobuf:"bytes,1,opt,name=client_id,proto3" json:"client_id,omitempty"`
+	Host         string           `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
+	EndpointType AuthEndpointType `protobuf:"varint,3,opt,name=endpoint_type,proto3,enum=sourcegraph.AuthEndpointType" json:"endpoint_type,omitempty"`
+}
+
+func (m *UserAuthGetOp) Reset()         { *m = UserAuthGetOp{} }
+func (m *UserAuthGetOp) String() string { return proto.CompactTextString(m) }
+func (*UserAuthGetOp) ProtoMessage()    {}
+
+// UserAuthInfo describes a user's credentials for a specific service.
+type UserAuthInfo struct {
+	Scope string `protobuf:"bytes,1,opt,name=scope,proto3" json:"scope,omitempty"`
+}
+
+func (m *UserAuthInfo) Reset()         { *m = UserAuthInfo{} }
+func (m *UserAuthInfo) String() string { return proto.CompactTextString(m) }
+func (*UserAuthInfo) ProtoMessage()    {}
 
 type AuthorshipInfo struct {
 	AuthorEmail    string            `protobuf:"bytes,1,opt,name=author_email,proto3" json:"author_email,omitempty"`
@@ -2191,7 +2211,7 @@ func (m *PBToken) String() string { return proto.CompactTextString(m) }
 func (*PBToken) ProtoMessage()    {}
 
 func init() {
-	proto.RegisterEnum("sourcegraph.ExternalUsersAuthenticateOp_Service", ExternalUsersAuthenticateOp_Service_name, ExternalUsersAuthenticateOp_Service_value)
+	proto.RegisterEnum("sourcegraph.AuthEndpointType", AuthEndpointType_name, AuthEndpointType_value)
 }
 
 // Client API for RepoBadges service
@@ -3475,58 +3495,93 @@ var _Users_serviceDesc = grpc.ServiceDesc{
 	Streams: []grpc.StreamDesc{},
 }
 
-// Client API for ExternalUsers service
+// Client API for UserAuth service
 
-type ExternalUsersClient interface {
-	Authenticate(ctx context.Context, in *ExternalUsersAuthenticateOp, opts ...grpc.CallOption) (*ExternalUser, error)
+type UserAuthClient interface {
+	// Authenticate associates the provided access token with the
+	// context's current user. If there is no current user, then the
+	// token may be used to create an account. The current user (or
+	// the newly registered user) is returned.
+	Authenticate(ctx context.Context, in *UserAuthAuthenticateOp, opts ...grpc.CallOption) (*AuthenticatedUser, error)
+	Get(ctx context.Context, in *UserAuthGetOp, opts ...grpc.CallOption) (*UserAuthInfo, error)
 }
 
-type externalUsersClient struct {
+type userAuthClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewExternalUsersClient(cc *grpc.ClientConn) ExternalUsersClient {
-	return &externalUsersClient{cc}
+func NewUserAuthClient(cc *grpc.ClientConn) UserAuthClient {
+	return &userAuthClient{cc}
 }
 
-func (c *externalUsersClient) Authenticate(ctx context.Context, in *ExternalUsersAuthenticateOp, opts ...grpc.CallOption) (*ExternalUser, error) {
-	out := new(ExternalUser)
-	err := grpc.Invoke(ctx, "/sourcegraph.ExternalUsers/Authenticate", in, out, c.cc, opts...)
+func (c *userAuthClient) Authenticate(ctx context.Context, in *UserAuthAuthenticateOp, opts ...grpc.CallOption) (*AuthenticatedUser, error) {
+	out := new(AuthenticatedUser)
+	err := grpc.Invoke(ctx, "/sourcegraph.UserAuth/Authenticate", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Server API for ExternalUsers service
-
-type ExternalUsersServer interface {
-	Authenticate(context.Context, *ExternalUsersAuthenticateOp) (*ExternalUser, error)
+func (c *userAuthClient) Get(ctx context.Context, in *UserAuthGetOp, opts ...grpc.CallOption) (*UserAuthInfo, error) {
+	out := new(UserAuthInfo)
+	err := grpc.Invoke(ctx, "/sourcegraph.UserAuth/Get", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
-func RegisterExternalUsersServer(s *grpc.Server, srv ExternalUsersServer) {
-	s.RegisterService(&_ExternalUsers_serviceDesc, srv)
+// Server API for UserAuth service
+
+type UserAuthServer interface {
+	// Authenticate associates the provided access token with the
+	// context's current user. If there is no current user, then the
+	// token may be used to create an account. The current user (or
+	// the newly registered user) is returned.
+	Authenticate(context.Context, *UserAuthAuthenticateOp) (*AuthenticatedUser, error)
+	Get(context.Context, *UserAuthGetOp) (*UserAuthInfo, error)
 }
 
-func _ExternalUsers_Authenticate_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
-	in := new(ExternalUsersAuthenticateOp)
+func RegisterUserAuthServer(s *grpc.Server, srv UserAuthServer) {
+	s.RegisterService(&_UserAuth_serviceDesc, srv)
+}
+
+func _UserAuth_Authenticate_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(UserAuthAuthenticateOp)
 	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
-	out, err := srv.(ExternalUsersServer).Authenticate(ctx, in)
+	out, err := srv.(UserAuthServer).Authenticate(ctx, in)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-var _ExternalUsers_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "sourcegraph.ExternalUsers",
-	HandlerType: (*ExternalUsersServer)(nil),
+func _UserAuth_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(UserAuthGetOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(UserAuthServer).Get(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _UserAuth_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.UserAuth",
+	HandlerType: (*UserAuthServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Authenticate",
-			Handler:    _ExternalUsers_Authenticate_Handler,
+			Handler:    _UserAuth_Authenticate_Handler,
+		},
+		{
+			MethodName: "Get",
+			Handler:    _UserAuth_Get_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
