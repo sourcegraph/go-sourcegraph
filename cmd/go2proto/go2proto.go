@@ -676,7 +676,6 @@ const timestampTypeName = "pbtypes.Timestamp"
 // type expr.
 var customTypeMapping = map[string]protoFieldType{
 	"time.Time":                protoFieldType{typeName: timestampTypeName, nonNullable: true, origin: timestampProtoFile},
-	"db_common.NullTime":       protoFieldType{typeName: timestampTypeName, optional: true, origin: timestampProtoFile},
 	"template.HTML":            protoFieldType{typeName: "string", customType: "template.HTML"},
 	"graph.Def":                protoFieldType{typeName: "graph.Def", origin: "sourcegraph.com/sourcegraph/srclib/graph/def.proto"},
 	"graph.DefKey":             protoFieldType{typeName: "graph.DefKey", origin: "sourcegraph.com/sourcegraph//srclib/graph/def.proto"},
