@@ -25,19 +25,20 @@ const (
 type Client struct {
 	// Services used to communicate with different parts of the Sourcegraph API.
 	Builds       BuildsClient
+	Defs         DefsClient
 	Deltas       DeltasClient
-	UserAuth     UserAuthClient
+	Markdown     MarkdownClient
+	MirrorRepos  MirrorReposClient
 	Orgs         OrgsClient
 	People       PeopleClient
-	Repos        ReposClient
-	RepoStatuses RepoStatusesClient
 	RepoBadges   RepoBadgesClient
+	RepoStatuses RepoStatusesClient
 	RepoTree     RepoTreeClient
+	Repos        ReposClient
 	Search       SearchClient
 	Units        UnitsClient
+	UserAuth     UserAuthClient
 	Users        UsersClient
-	Defs         DefsClient
-	Markdown     MarkdownClient
 
 	// Base URL for API requests, which should have a trailing slash.
 	BaseURL *url.URL
@@ -60,19 +61,20 @@ func NewGRPCClient(conn *grpc.ClientConn) *Client {
 
 	c := new(Client)
 	c.Builds = NewBuildsClient(conn)
+	c.Defs = NewDefsClient(conn)
 	c.Deltas = NewDeltasClient(conn)
-	c.UserAuth = NewUserAuthClient(conn)
+	c.Markdown = NewMarkdownClient(conn)
+	c.MirrorRepos = NewMirrorReposClient(conn)
 	c.Orgs = NewOrgsClient(conn)
 	c.People = NewPeopleClient(conn)
-	c.Repos = NewReposClient(conn)
-	c.RepoStatuses = NewRepoStatusesClient(conn)
 	c.RepoBadges = NewRepoBadgesClient(conn)
+	c.RepoStatuses = NewRepoStatusesClient(conn)
 	c.RepoTree = NewRepoTreeClient(conn)
+	c.Repos = NewReposClient(conn)
 	c.Search = NewSearchClient(conn)
 	c.Units = NewUnitsClient(conn)
+	c.UserAuth = NewUserAuthClient(conn)
 	c.Users = NewUsersClient(conn)
-	c.Defs = NewDefsClient(conn)
-	c.Markdown = NewMarkdownClient(conn)
 
 	c.UserAgent = userAgent
 	c.Conn = conn
