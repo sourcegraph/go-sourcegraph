@@ -10,3 +10,5 @@ package sourcegraph
 //go:generate sed -i "s#pbtypes1#pbtypes#g" mock/sourcegraph.pb_mock.go
 
 //go:generate goimports -w mock/sourcegraph.pb_mock.go
+
+//go:generate go generate ./mock
