@@ -191,6 +191,36 @@ func (s *ReposServer) ListTags(v0 context.Context, v1 *sourcegraph.ReposListTags
 
 var _ sourcegraph.ReposServer = (*ReposServer)(nil)
 
+type HostedReposClient struct {
+	Create_ func(ctx context.Context, in *sourcegraph.HostedReposCreateOp) (*sourcegraph.Repo, error)
+	Delete_ func(ctx context.Context, in *sourcegraph.RepoSpec) (*pbtypes.Void, error)
+}
+
+func (s *HostedReposClient) Create(ctx context.Context, in *sourcegraph.HostedReposCreateOp, opts ...grpc.CallOption) (*sourcegraph.Repo, error) {
+	return s.Create_(ctx, in)
+}
+
+func (s *HostedReposClient) Delete(ctx context.Context, in *sourcegraph.RepoSpec, opts ...grpc.CallOption) (*pbtypes.Void, error) {
+	return s.Delete_(ctx, in)
+}
+
+var _ sourcegraph.HostedReposClient = (*HostedReposClient)(nil)
+
+type HostedReposServer struct {
+	Create_ func(v0 context.Context, v1 *sourcegraph.HostedReposCreateOp) (*sourcegraph.Repo, error)
+	Delete_ func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error)
+}
+
+func (s *HostedReposServer) Create(v0 context.Context, v1 *sourcegraph.HostedReposCreateOp) (*sourcegraph.Repo, error) {
+	return s.Create_(v0, v1)
+}
+
+func (s *HostedReposServer) Delete(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error) {
+	return s.Delete_(v0, v1)
+}
+
+var _ sourcegraph.HostedReposServer = (*HostedReposServer)(nil)
+
 type MirrorReposClient struct {
 	RefreshVCS_ func(ctx context.Context, in *sourcegraph.RepoSpec) (*pbtypes.Void, error)
 }

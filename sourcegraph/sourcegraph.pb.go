@@ -37,6 +37,7 @@ It has these top-level messages:
 	ReposListTagsOp
 	RepoListTagsOptions
 	TagList
+	HostedReposCreateOp
 	Build
 	BuildConfig
 	BuildCreateOptions
@@ -579,6 +580,18 @@ type TagList struct {
 func (m *TagList) Reset()         { *m = TagList{} }
 func (m *TagList) String() string { return proto.CompactTextString(m) }
 func (*TagList) ProtoMessage()    {}
+
+type HostedReposCreateOp struct {
+	// URI is the desired URI of the new repository.
+	URI string `protobuf:"bytes,1,opt,name=uri,proto3" json:"uri,omitempty"`
+	// VCS is the desired VCS type of the new repository (only "git"
+	// is currently supported).
+	VCS string `protobuf:"bytes,2,opt,name=vcs,proto3" json:"vcs,omitempty"`
+}
+
+func (m *HostedReposCreateOp) Reset()         { *m = HostedReposCreateOp{} }
+func (m *HostedReposCreateOp) String() string { return proto.CompactTextString(m) }
+func (*HostedReposCreateOp) ProtoMessage()    {}
 
 // A Build represents a scheduled, completed, or failed repository analysis and
 // import job.
@@ -2749,6 +2762,96 @@ var _Repos_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListTags",
 			Handler:    _Repos_ListTags_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for HostedRepos service
+
+type HostedReposClient interface {
+	// Create "git init"s a new locally hosted repository.
+	Create(ctx context.Context, in *HostedReposCreateOp, opts ...grpc.CallOption) (*Repo, error)
+	// Delete removes a locally hosted repository and its .git
+	// directory.
+	Delete(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error)
+}
+
+type hostedReposClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewHostedReposClient(cc *grpc.ClientConn) HostedReposClient {
+	return &hostedReposClient{cc}
+}
+
+func (c *hostedReposClient) Create(ctx context.Context, in *HostedReposCreateOp, opts ...grpc.CallOption) (*Repo, error) {
+	out := new(Repo)
+	err := grpc.Invoke(ctx, "/sourcegraph.HostedRepos/Create", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *hostedReposClient) Delete(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
+	err := grpc.Invoke(ctx, "/sourcegraph.HostedRepos/Delete", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for HostedRepos service
+
+type HostedReposServer interface {
+	// Create "git init"s a new locally hosted repository.
+	Create(context.Context, *HostedReposCreateOp) (*Repo, error)
+	// Delete removes a locally hosted repository and its .git
+	// directory.
+	Delete(context.Context, *RepoSpec) (*pbtypes1.Void, error)
+}
+
+func RegisterHostedReposServer(s *grpc.Server, srv HostedReposServer) {
+	s.RegisterService(&_HostedRepos_serviceDesc, srv)
+}
+
+func _HostedRepos_Create_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(HostedReposCreateOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(HostedReposServer).Create(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _HostedRepos_Delete_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(RepoSpec)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(HostedReposServer).Delete(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _HostedRepos_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.HostedRepos",
+	HandlerType: (*HostedReposServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Create",
+			Handler:    _HostedRepos_Create_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _HostedRepos_Delete_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},

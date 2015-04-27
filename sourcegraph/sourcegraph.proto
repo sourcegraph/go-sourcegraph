@@ -278,6 +278,8 @@ service RepoStatuses {
 	rpc Create(RepoStatusesCreateOp) returns (RepoStatus);
 }
 
+// Repos exposes information about and actions on both locally hosted
+// and remote repositories.
 service Repos {
 	// Get fetches a repository.
 	rpc Get(RepoSpec) returns (Repo);
@@ -340,6 +342,27 @@ message RepoListTagsOptions {
 
 message TagList {
 	repeated vcs.Tag tags = 1;
+}
+
+// HostedRepos manages repositories that the local Sourcegraph
+// instance hosts (as opposed to repos that exist on external services
+// or other Sourcegraphs).
+service HostedRepos {
+	// Create "git init"s a new locally hosted repository.
+	rpc Create(HostedReposCreateOp) returns (Repo);
+
+	// Delete removes a locally hosted repository and its .git
+	// directory.
+	rpc Delete(RepoSpec) returns (pbtypes.Void);
+}
+
+message HostedReposCreateOp {
+	// URI is the desired URI of the new repository.
+	string uri = 1 [(gogoproto.customname) = "URI"];
+
+	// VCS is the desired VCS type of the new repository (only "git"
+	// is currently supported).
+	string vcs = 2 [(gogoproto.customname) = "VCS"];
 }
 
 // MirrorRepos handles operations related to maintaining mirrors on

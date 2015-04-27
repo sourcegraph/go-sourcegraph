@@ -27,6 +27,7 @@ type Client struct {
 	Builds       BuildsClient
 	Defs         DefsClient
 	Deltas       DeltasClient
+	HostedRepos  HostedReposClient
 	Markdown     MarkdownClient
 	MirrorRepos  MirrorReposClient
 	Orgs         OrgsClient
@@ -63,6 +64,7 @@ func NewGRPCClient(conn *grpc.ClientConn) *Client {
 	c.Builds = NewBuildsClient(conn)
 	c.Defs = NewDefsClient(conn)
 	c.Deltas = NewDeltasClient(conn)
+	c.HostedRepos = NewHostedReposClient(conn)
 	c.Markdown = NewMarkdownClient(conn)
 	c.MirrorRepos = NewMirrorReposClient(conn)
 	c.Orgs = NewOrgsClient(conn)
