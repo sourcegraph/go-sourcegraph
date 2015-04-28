@@ -1248,7 +1248,7 @@ func (*Completions) ProtoMessage()    {}
 
 // Def is a code def returned by the Sourcegraph API.
 type Def struct {
-	graph.Def  `protobuf:"bytes,1,opt,name=def,embedded=def" json:"def"`
+	graph.Def  `protobuf:"bytes,1,opt,name=def,embedded=def" json:""`
 	DocHTML    string            `protobuf:"bytes,2,opt,name=doc_html,proto3" json:"doc_html,omitempty"`
 	FmtStrings *DefFormatStrings `protobuf:"bytes,3,opt,name=fmt_strings" json:"fmt_strings,omitempty"`
 }
@@ -1788,7 +1788,7 @@ func (m *QualFormatStrings) String() string { return proto.CompactTextString(m) 
 func (*QualFormatStrings) ProtoMessage()    {}
 
 type Ref struct {
-	*graph1.Ref `protobuf:"bytes,1,opt,name=ref,embedded=ref" json:"ref,omitempty"`
+	*graph1.Ref `protobuf:"bytes,1,opt,name=ref,embedded=ref" json:""`
 	Authorship  *AuthorshipInfo `protobuf:"bytes,2,opt,name=authorship" json:"authorship,omitempty"`
 }
 
@@ -1986,7 +1986,7 @@ func (*SourceCodeToken) ProtoMessage()    {}
 // TreeEntry is a file or directory in a repository, with additional feedback from
 // the formatting operation (if Formatted is true in the options).
 type TreeEntry struct {
-	*vcsclient.TreeEntry `protobuf:"bytes,1,opt,name=tree_entry,embedded=tree_entry" json:"tree_entry,omitempty"`
+	*vcsclient.TreeEntry `protobuf:"bytes,1,opt,name=tree_entry,embedded=tree_entry" json:""`
 	*vcsclient.FileRange `protobuf:"bytes,2,opt,name=file_range,embedded=file_range" json:"file_range,omitempty"`
 	ContentsString       string `protobuf:"bytes,3,opt,name=contents_string,proto3" json:"contents_string,omitempty"`
 	// SourceCode is set when TokenizedSource is enabled in RepoTreeGetOptions.

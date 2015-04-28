@@ -1004,7 +1004,7 @@ message Completions {
 
 // Def is a code def returned by the Sourcegraph API.
 message Def {
-	graph.Def def = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+	graph.Def def = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true, (gogoproto.jsontag) = ""];
 	string doc_html = 2 [(gogoproto.customname) = "DocHTML"];
 	optional DefFormatStrings fmt_strings = 3;
 }
@@ -1393,7 +1393,7 @@ message QualFormatStrings {
 }
 
 message Ref {
-	graph.Ref ref = 1 [(gogoproto.embed) = true];
+	graph.Ref ref = 1 [(gogoproto.embed) = true, (gogoproto.jsontag) = ""];
 	optional AuthorshipInfo authorship = 2;
 }
 
@@ -1553,7 +1553,7 @@ message SourceCodeToken {
 // TreeEntry is a file or directory in a repository, with additional feedback from
 // the formatting operation (if Formatted is true in the options).
 message TreeEntry {
-	vcsclient.TreeEntry tree_entry = 1 [(gogoproto.embed) = true];
+	vcsclient.TreeEntry tree_entry = 1 [(gogoproto.embed) = true, (gogoproto.jsontag) = ""];
 	vcsclient.FileRange file_range = 2 [(gogoproto.embed) = true];
 	string contents_string = 3;
 
