@@ -14,7 +14,7 @@ definition file to generate Go structs as well as
 [gRPC](http://grpc.io) clients and servers for various service
 interfaces.
 
-### First-time installation of protobuf tools
+### First-time installation of protobuf and other codegen tools
 
 You need to install and run the protobuf compiler before you can
 regenerate Go code after you change the `sourcegraph.proto` file.
@@ -36,6 +36,11 @@ regenerate Go code after you change the `sourcegraph.proto` file.
    cd $GOPATH/github.com/gogo/protobuf
    git checkout proto3
    go install ./...
+   ```
+1. **Install [gen-mocks](https://sourcegraph.com/sourcegraph/gen-mocks)** by running:
+
+   ```
+   go get -u sourcegraph.com/sourcegraph/gen-mocks
    ```
 
 ### Regenerating Go code after changing `sourcegraph.proto`
