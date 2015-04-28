@@ -138,6 +138,10 @@ message Repo {
 	optional GitHubRepo github = 19 [(gogoproto.customname) = "GitHub"];
 
 	optional RepoConfig config = 20;
+
+	// Hosted indicates whether this repo was created on and
+	// originates from the current Sourcegraph instance.
+	bool hosted = 21;
 }
 
 message BadgeList {

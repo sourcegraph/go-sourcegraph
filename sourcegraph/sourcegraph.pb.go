@@ -347,6 +347,9 @@ type Repo struct {
 	Permissions *RepoPermissions `protobuf:"bytes,18,opt,name=permissions" json:"permissions,omitempty"`
 	GitHub      *GitHubRepo      `protobuf:"bytes,19,opt,name=github" json:"github,omitempty"`
 	Config      *RepoConfig      `protobuf:"bytes,20,opt,name=config" json:"config,omitempty"`
+	// Hosted indicates whether this repo was created on and
+	// originates from the current Sourcegraph instance.
+	Hosted bool `protobuf:"varint,21,opt,name=hosted,proto3" json:"hosted,omitempty"`
 }
 
 func (m *Repo) Reset()         { *m = Repo{} }
