@@ -142,7 +142,7 @@ It has these top-level messages:
 	SuggestionList
 	SourceCode
 	SourceCodeLine
-	SourceCodeLineTokenOrString
+	SourceCodeTokenOrString
 	SourceCodeToken
 	TreeEntry
 	TreeEntrySpec
@@ -1940,27 +1940,28 @@ type SourceCodeLine struct {
 	EndByte   int32 `protobuf:"varint,2,opt,name=end_byte,proto3" json:"end_byte,omitempty"`
 	// Tokens contains any tokens that may be on this line, including whitespace. New
 	// lines ('\n') are not present.
-	Tokens []SourceCodeLineTokenOrString `protobuf:"bytes,3,rep,name=tokens" json:"tokens"`
+	Tokens []SourceCodeTokenOrString `protobuf:"bytes,3,rep,name=tokens" json:"tokens"`
 }
 
 func (m *SourceCodeLine) Reset()         { *m = SourceCodeLine{} }
 func (m *SourceCodeLine) String() string { return proto.CompactTextString(m) }
 func (*SourceCodeLine) ProtoMessage()    {}
 
-// SourceCodeLineTokenOrString is either a whitespace token (stored as an HTML
-// encoded "string") or a SourceCodeToken. Exactly one field is nonempty.
+// SourceCodeTokenOrString is either a whitespace token (stored as an
+// HTML encoded "string") or a SourceCodeToken. Exactly one field is
+// nonempty.
 //
 // TODO(sqs) TODO(perf): space- and memory-optimize this (by making it implement
 // json.Marshaler, for example) - it's an inefficient hack to make it
 // protobuf-serializable.
-type SourceCodeLineTokenOrString struct {
-	Whitespace string           `protobuf:"bytes,1,opt,name=whitespace,proto3" json:"whitespace,omitempty"`
-	Token      *SourceCodeToken `protobuf:"bytes,2,opt,name=token" json:"token,omitempty"`
+type SourceCodeTokenOrString struct {
+	Str   string           `protobuf:"bytes,1,opt,name=str,proto3" json:"str,omitempty"`
+	Token *SourceCodeToken `protobuf:"bytes,2,opt,name=token" json:"token,omitempty"`
 }
 
-func (m *SourceCodeLineTokenOrString) Reset()         { *m = SourceCodeLineTokenOrString{} }
-func (m *SourceCodeLineTokenOrString) String() string { return proto.CompactTextString(m) }
-func (*SourceCodeLineTokenOrString) ProtoMessage()    {}
+func (m *SourceCodeTokenOrString) Reset()         { *m = SourceCodeTokenOrString{} }
+func (m *SourceCodeTokenOrString) String() string { return proto.CompactTextString(m) }
+func (*SourceCodeTokenOrString) ProtoMessage()    {}
 
 // SourceCodeToken contains information about a code token.
 type SourceCodeToken struct {
