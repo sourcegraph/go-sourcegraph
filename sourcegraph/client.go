@@ -21,10 +21,13 @@ const (
 	userAgent      = "sourcegraph-client/" + libraryVersion
 )
 
-// A Client communicates with the Sourcegraph API.
+// A Client communicates with the Sourcegraph API. All communication
+// is done using gRPC over HTTP/2 except for BuildData (which uses
+// HTTP/1).
 type Client struct {
 	// Services used to communicate with different parts of the Sourcegraph API.
 	Builds       BuildsClient
+	BuildData    BuildDataService
 	Defs         DefsClient
 	Deltas       DeltasClient
 	HostedRepos  HostedReposClient
@@ -41,10 +44,10 @@ type Client struct {
 	UserAuth     UserAuthClient
 	Users        UsersClient
 
-	// Base URL for API requests, which should have a trailing slash.
+	// Base URL for HTTP/1.1 requests, which should have a trailing slash.
 	BaseURL *url.URL
 
-	// User agent used for HTTP requests to the Sourcegraph API.
+	// User agent used for HTTP/1.1 requests to the Sourcegraph API.
 	UserAgent string
 
 	// HTTP client used to communicate with the Sourcegraph API.
@@ -55,12 +58,24 @@ type Client struct {
 	Conn *grpc.ClientConn
 }
 
-func NewGRPCClient(conn *grpc.ClientConn) *Client {
-	if conn == nil {
-		panic("conn == nil")
-	}
-
+// NewClient returns a Sourcegraph API client. The gRPC conn is used
+// for all services except for BuildData (which uses the
+// httpClient). If httpClient is nil, http.DefaultClient is used.
+func NewClient(httpClient *http.Client, conn *grpc.ClientConn) *Client {
 	c := new(Client)
+
+	// HTTP/1
+	if httpClient == nil {
+		cloned := *http.DefaultClient
+		httpClient = &cloned
+	}
+	c.httpClient = httpClient
+	c.BaseURL = &url.URL{Scheme: "https", Host: "sourcegraph.com", Path: "/api/"}
+	c.UserAgent = userAgent
+	c.BuildData = &buildDataService{c}
+
+	// gRPC (HTTP/2)
+	c.Conn = conn
 	c.Builds = NewBuildsClient(conn)
 	c.Defs = NewDefsClient(conn)
 	c.Deltas = NewDeltasClient(conn)
@@ -77,30 +92,6 @@ func NewGRPCClient(conn *grpc.ClientConn) *Client {
 	c.Units = NewUnitsClient(conn)
 	c.UserAuth = NewUserAuthClient(conn)
 	c.Users = NewUsersClient(conn)
-
-	c.UserAgent = userAgent
-	c.Conn = conn
-
-	return c
-}
-
-// NewClient returns a new Sourcegraph API client. If httpClient is nil,
-// http.DefaultClient is used.
-func NewClient(httpClient *http.Client) *Client {
-	if httpClient == nil {
-		cloned := *http.DefaultClient
-		httpClient = &cloned
-	}
-
-	// TODO(sqs!nodb-ctx): this needs to be filled in to use the
-	// grpc-gateway client impls, if we go that route
-
-	c := new(Client)
-	c.httpClient = httpClient
-
-	c.BaseURL = &url.URL{Scheme: "https", Host: "sourcegraph.com", Path: "/api/"}
-
-	c.UserAgent = userAgent
 
 	return c
 }
