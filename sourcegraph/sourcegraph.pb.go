@@ -61,6 +61,7 @@ It has these top-level messages:
 	BuildsGetLogOp
 	BuildsGetTaskLogOp
 	BuildsDequeueNextOp
+	BuildsDequeueNextTaskOp
 	EmailAddr
 	LogEntries
 	Org
@@ -956,6 +957,13 @@ type BuildsDequeueNextOp struct {
 func (m *BuildsDequeueNextOp) Reset()         { *m = BuildsDequeueNextOp{} }
 func (m *BuildsDequeueNextOp) String() string { return proto.CompactTextString(m) }
 func (*BuildsDequeueNextOp) ProtoMessage()    {}
+
+type BuildsDequeueNextTaskOp struct {
+}
+
+func (m *BuildsDequeueNextTaskOp) Reset()         { *m = BuildsDequeueNextTaskOp{} }
+func (m *BuildsDequeueNextTaskOp) String() string { return proto.CompactTextString(m) }
+func (*BuildsDequeueNextTaskOp) ProtoMessage()    {}
 
 // EmailAddr is an email address associated with a user.
 type EmailAddr struct {
@@ -3081,15 +3089,26 @@ type BuildsClient interface {
 	GetLog(ctx context.Context, in *BuildsGetLogOp, opts ...grpc.CallOption) (*LogEntries, error)
 	// GetTaskLog gets log entries associated with a task.
 	GetTaskLog(ctx context.Context, in *BuildsGetTaskLogOp, opts ...grpc.CallOption) (*LogEntries, error)
-	// DequeueNext returns the next queued build and marks it as having started
-	// (atomically). It is not considered an error if there are no builds in the queue;
-	// in that case, a nil build and error are returned.
+	// DequeueNext returns the next queued build and marks it as
+	// having started (atomically). If there are no builds in the
+	// queue, a NotFound error is returned.
 	//
-	// The HTTP response may contain tickets that grant the necessary permissions to
-	// build and upload build data for the build's repository. Call
-	// auth.SignedTicketStrings on the response's HTTP response field to obtain the
-	// tickets.
+	// TODO(sqs!nodb): implement this: The response may contain
+	// tickets that grant the necessary permissions to build and
+	// upload build data for the build's repository. Call
+	// auth.SignedTicketStrings on the response's HTTP response field
+	// to obtain the tickets.
 	DequeueNext(ctx context.Context, in *BuildsDequeueNextOp, opts ...grpc.CallOption) (*Build, error)
+	// DequeueNextTask returns the next queued build task and marks it
+	// as having started (atomically). If there are no build tasks in
+	// the queue, a NotFound error is returned.
+	//
+	// TODO(sqs!nodb): implement this: The response may contain
+	// tickets that grant the necessary permissions to build and
+	// upload build data for the build's repository. Call
+	// auth.SignedTicketStrings on the response's HTTP response field
+	// to obtain the tickets.
+	DequeueNextTask(ctx context.Context, in *BuildsDequeueNextTaskOp, opts ...grpc.CallOption) (*BuildTask, error)
 }
 
 type buildsClient struct {
@@ -3199,6 +3218,15 @@ func (c *buildsClient) DequeueNext(ctx context.Context, in *BuildsDequeueNextOp,
 	return out, nil
 }
 
+func (c *buildsClient) DequeueNextTask(ctx context.Context, in *BuildsDequeueNextTaskOp, opts ...grpc.CallOption) (*BuildTask, error) {
+	out := new(BuildTask)
+	err := grpc.Invoke(ctx, "/sourcegraph.Builds/DequeueNextTask", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Builds service
 
 type BuildsServer interface {
@@ -3228,15 +3256,26 @@ type BuildsServer interface {
 	GetLog(context.Context, *BuildsGetLogOp) (*LogEntries, error)
 	// GetTaskLog gets log entries associated with a task.
 	GetTaskLog(context.Context, *BuildsGetTaskLogOp) (*LogEntries, error)
-	// DequeueNext returns the next queued build and marks it as having started
-	// (atomically). It is not considered an error if there are no builds in the queue;
-	// in that case, a nil build and error are returned.
+	// DequeueNext returns the next queued build and marks it as
+	// having started (atomically). If there are no builds in the
+	// queue, a NotFound error is returned.
 	//
-	// The HTTP response may contain tickets that grant the necessary permissions to
-	// build and upload build data for the build's repository. Call
-	// auth.SignedTicketStrings on the response's HTTP response field to obtain the
-	// tickets.
+	// TODO(sqs!nodb): implement this: The response may contain
+	// tickets that grant the necessary permissions to build and
+	// upload build data for the build's repository. Call
+	// auth.SignedTicketStrings on the response's HTTP response field
+	// to obtain the tickets.
 	DequeueNext(context.Context, *BuildsDequeueNextOp) (*Build, error)
+	// DequeueNextTask returns the next queued build task and marks it
+	// as having started (atomically). If there are no build tasks in
+	// the queue, a NotFound error is returned.
+	//
+	// TODO(sqs!nodb): implement this: The response may contain
+	// tickets that grant the necessary permissions to build and
+	// upload build data for the build's repository. Call
+	// auth.SignedTicketStrings on the response's HTTP response field
+	// to obtain the tickets.
+	DequeueNextTask(context.Context, *BuildsDequeueNextTaskOp) (*BuildTask, error)
 }
 
 func RegisterBuildsServer(s *grpc.Server, srv BuildsServer) {
@@ -3375,6 +3414,18 @@ func _Builds_DequeueNext_Handler(srv interface{}, ctx context.Context, buf []byt
 	return out, nil
 }
 
+func _Builds_DequeueNextTask_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(BuildsDequeueNextTaskOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(BuildsServer).DequeueNextTask(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 var _Builds_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sourcegraph.Builds",
 	HandlerType: (*BuildsServer)(nil),
@@ -3422,6 +3473,10 @@ var _Builds_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DequeueNext",
 			Handler:    _Builds_DequeueNext_Handler,
+		},
+		{
+			MethodName: "DequeueNextTask",
+			Handler:    _Builds_DequeueNextTask_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
