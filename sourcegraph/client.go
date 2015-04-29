@@ -26,23 +26,24 @@ const (
 // HTTP/1).
 type Client struct {
 	// Services used to communicate with different parts of the Sourcegraph API.
-	Builds       BuildsClient
-	BuildData    BuildDataService
-	Defs         DefsClient
-	Deltas       DeltasClient
-	HostedRepos  HostedReposClient
-	Markdown     MarkdownClient
-	MirrorRepos  MirrorReposClient
-	Orgs         OrgsClient
-	People       PeopleClient
-	RepoBadges   RepoBadgesClient
-	RepoStatuses RepoStatusesClient
-	RepoTree     RepoTreeClient
-	Repos        ReposClient
-	Search       SearchClient
-	Units        UnitsClient
-	UserAuth     UserAuthClient
-	Users        UsersClient
+	Builds              BuildsClient
+	BuildData           BuildDataService
+	Defs                DefsClient
+	Deltas              DeltasClient
+	HostedRepos         HostedReposClient
+	Markdown            MarkdownClient
+	MirrorRepos         MirrorReposClient
+	MirroredRepoSSHKeys MirroredRepoSSHKeysClient
+	Orgs                OrgsClient
+	People              PeopleClient
+	RepoBadges          RepoBadgesClient
+	RepoStatuses        RepoStatusesClient
+	RepoTree            RepoTreeClient
+	Repos               ReposClient
+	Search              SearchClient
+	Units               UnitsClient
+	UserAuth            UserAuthClient
+	Users               UsersClient
 
 	// Base URL for HTTP/1.1 requests, which should have a trailing slash.
 	BaseURL *url.URL
@@ -82,6 +83,7 @@ func NewClient(httpClient *http.Client, conn *grpc.ClientConn) *Client {
 	c.HostedRepos = NewHostedReposClient(conn)
 	c.Markdown = NewMarkdownClient(conn)
 	c.MirrorRepos = NewMirrorReposClient(conn)
+	c.MirroredRepoSSHKeys = NewMirroredRepoSSHKeysClient(conn)
 	c.Orgs = NewOrgsClient(conn)
 	c.People = NewPeopleClient(conn)
 	c.RepoBadges = NewRepoBadgesClient(conn)

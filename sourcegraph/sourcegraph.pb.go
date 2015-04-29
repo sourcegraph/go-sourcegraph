@@ -38,6 +38,8 @@ It has these top-level messages:
 	RepoListTagsOptions
 	TagList
 	HostedReposCreateOp
+	MirroredRepoSSHKeysCreateOp
+	SSHPrivateKey
 	Build
 	BuildConfig
 	BuildCreateOptions
@@ -595,6 +597,25 @@ type HostedReposCreateOp struct {
 func (m *HostedReposCreateOp) Reset()         { *m = HostedReposCreateOp{} }
 func (m *HostedReposCreateOp) String() string { return proto.CompactTextString(m) }
 func (*HostedReposCreateOp) ProtoMessage()    {}
+
+type MirroredRepoSSHKeysCreateOp struct {
+	Repo RepoSpec      `protobuf:"bytes,1,opt,name=repo" json:"repo"`
+	Key  SSHPrivateKey `protobuf:"bytes,2,opt,name=key" json:"key"`
+}
+
+func (m *MirroredRepoSSHKeysCreateOp) Reset()         { *m = MirroredRepoSSHKeysCreateOp{} }
+func (m *MirroredRepoSSHKeysCreateOp) String() string { return proto.CompactTextString(m) }
+func (*MirroredRepoSSHKeysCreateOp) ProtoMessage()    {}
+
+// An SSHPrivateKey is an SSH key used to access a repository.
+type SSHPrivateKey struct {
+	// PEM is the encoded key.
+	PEM []byte `protobuf:"bytes,2,opt,name=pem,proto3" json:"pem,omitempty"`
+}
+
+func (m *SSHPrivateKey) Reset()         { *m = SSHPrivateKey{} }
+func (m *SSHPrivateKey) String() string { return proto.CompactTextString(m) }
+func (*SSHPrivateKey) ProtoMessage()    {}
 
 // A Build represents a scheduled, completed, or failed repository analysis and
 // import job.
@@ -2915,6 +2936,117 @@ var _MirrorRepos_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RefreshVCS",
 			Handler:    _MirrorRepos_RefreshVCS_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for MirroredRepoSSHKeys service
+
+type MirroredRepoSSHKeysClient interface {
+	Create(ctx context.Context, in *MirroredRepoSSHKeysCreateOp, opts ...grpc.CallOption) (*pbtypes1.Void, error)
+	Get(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*SSHPrivateKey, error)
+	Delete(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error)
+}
+
+type mirroredRepoSSHKeysClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewMirroredRepoSSHKeysClient(cc *grpc.ClientConn) MirroredRepoSSHKeysClient {
+	return &mirroredRepoSSHKeysClient{cc}
+}
+
+func (c *mirroredRepoSSHKeysClient) Create(ctx context.Context, in *MirroredRepoSSHKeysCreateOp, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
+	err := grpc.Invoke(ctx, "/sourcegraph.MirroredRepoSSHKeys/Create", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mirroredRepoSSHKeysClient) Get(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*SSHPrivateKey, error) {
+	out := new(SSHPrivateKey)
+	err := grpc.Invoke(ctx, "/sourcegraph.MirroredRepoSSHKeys/Get", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mirroredRepoSSHKeysClient) Delete(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
+	err := grpc.Invoke(ctx, "/sourcegraph.MirroredRepoSSHKeys/Delete", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for MirroredRepoSSHKeys service
+
+type MirroredRepoSSHKeysServer interface {
+	Create(context.Context, *MirroredRepoSSHKeysCreateOp) (*pbtypes1.Void, error)
+	Get(context.Context, *RepoSpec) (*SSHPrivateKey, error)
+	Delete(context.Context, *RepoSpec) (*pbtypes1.Void, error)
+}
+
+func RegisterMirroredRepoSSHKeysServer(s *grpc.Server, srv MirroredRepoSSHKeysServer) {
+	s.RegisterService(&_MirroredRepoSSHKeys_serviceDesc, srv)
+}
+
+func _MirroredRepoSSHKeys_Create_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(MirroredRepoSSHKeysCreateOp)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(MirroredRepoSSHKeysServer).Create(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _MirroredRepoSSHKeys_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(RepoSpec)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(MirroredRepoSSHKeysServer).Get(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _MirroredRepoSSHKeys_Delete_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(RepoSpec)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(MirroredRepoSSHKeysServer).Delete(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _MirroredRepoSSHKeys_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.MirroredRepoSSHKeys",
+	HandlerType: (*MirroredRepoSSHKeysServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Create",
+			Handler:    _MirroredRepoSSHKeys_Create_Handler,
+		},
+		{
+			MethodName: "Get",
+			Handler:    _MirroredRepoSSHKeys_Get_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _MirroredRepoSSHKeys_Delete_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},

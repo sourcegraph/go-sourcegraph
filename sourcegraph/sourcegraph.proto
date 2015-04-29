@@ -376,6 +376,27 @@ service MirrorRepos {
 	rpc RefreshVCS(RepoSpec) returns (pbtypes.Void);
 }
 
+
+// MirroredRepoSSHKeys stores repository SSH keys (e.g., to access
+// private repos on some external origin that we mirror).
+service MirroredRepoSSHKeys {
+	rpc Create(MirroredRepoSSHKeysCreateOp) returns (pbtypes.Void);
+	rpc Get(RepoSpec) returns (SSHPrivateKey);
+	rpc Delete(RepoSpec) returns (pbtypes.Void);
+}
+
+message MirroredRepoSSHKeysCreateOp {
+	RepoSpec repo = 1 [(gogoproto.nullable) = false];
+	SSHPrivateKey key = 2 [(gogoproto.nullable) = false];
+}
+
+// An SSHPrivateKey is an SSH key used to access a repository.
+message SSHPrivateKey {
+	// PEM is the encoded key.
+	bytes pem = 2 [(gogoproto.customname) = "PEM"];
+}
+
+
 // A Build represents a scheduled, completed, or failed repository analysis and
 // import job.
 // 
