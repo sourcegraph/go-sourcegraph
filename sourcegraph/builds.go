@@ -562,7 +562,7 @@ func (s *buildsService) DequeueNext() (*Build, Response, error) {
 	var build_ *Build
 	resp, err := s.client.Do(req, &build_)
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
+		if resp_, ok := resp.(*HTTPResponse); ok && resp_.StatusCode == http.StatusNotFound {
 			return nil, resp, nil
 		}
 		return nil, resp, err
