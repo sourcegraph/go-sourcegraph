@@ -8,7 +8,7 @@ import (
 )
 
 func (s *BuildSpec) RouteVars() map[string]string {
-	m := s.Repo.RouteVars()
+	m := s.RepoRev.RouteVars()
 	m["BID"] = fmt.Sprintf("%d", s.BID)
 	return m
 }
@@ -19,7 +19,15 @@ func (s *TaskSpec) RouteVars() map[string]string {
 	return v
 }
 
-func (b *Build) Spec() BuildSpec { return BuildSpec{Repo: RepoSpec{URI: b.Repo}, BID: b.BID} }
+func (b *Build) Spec() BuildSpec {
+	return BuildSpec{
+		RepoRev: RepoRevSpec{
+			RepoSpec: RepoSpec{URI: b.Repo},
+			CommitID: b.CommitID,
+		},
+		BID: b.BID,
+	}
+}
 
 // IDString returns a succinct string that uniquely identifies this build.
 func (b BuildSpec) IDString() string { return buildIDString(b.BID) }
@@ -32,7 +40,35 @@ const (
 )
 
 func (t *BuildTask) Spec() TaskSpec {
-	return TaskSpec{BuildSpec: BuildSpec{Repo: RepoSpec{URI: t.Repo}, BID: t.BID}, TaskID: t.TaskID}
+	return TaskSpec{
+		BuildSpec: BuildSpec{
+			BID: t.BID,
+			RepoRev: RepoRevSpec{
+				RepoSpec: RepoSpec{URI: t.Repo},
+				CommitID: t.CommitID,
+			},
+		},
+		TaskID: t.TaskID,
+	}
+}
+
+// Update sets each field on t that is non-nil in update.
+func (t *BuildTask) Update(update TaskUpdate) {
+	if update.StartedAt != nil {
+		tmp := *update.StartedAt // Copy
+		t.StartedAt = &tmp
+	}
+	if update.EndedAt != nil {
+		tmp := *update.EndedAt // Copy
+		t.EndedAt = &tmp
+	}
+	// SAMER: figure out this logic.
+	// if update.Success != nil {
+	// 	t.Success = *update.Success
+	// }
+	// if update.Failure != nil {
+	// 	t.Failure = *update.Failure
+	// }
 }
 
 // IDString returns a succinct string that uniquely identifies this build task.

@@ -756,8 +756,8 @@ func (m *BuildListOptions) String() string { return proto.CompactTextString(m) }
 func (*BuildListOptions) ProtoMessage()    {}
 
 type BuildSpec struct {
-	BID  int64    `protobuf:"varint,1,opt,name=bid,proto3" json:"bid,omitempty"`
-	Repo RepoSpec `protobuf:"bytes,2,opt,name=repo" json:"repo"`
+	BID     int64       `protobuf:"varint,1,opt,name=bid,proto3" json:"bid,omitempty"`
+	RepoRev RepoRevSpec `protobuf:"bytes,2,opt,name=repo_rev" json:"repo_rev"`
 }
 
 func (m *BuildSpec) Reset()         { *m = BuildSpec{} }
@@ -810,6 +810,8 @@ type BuildTask struct {
 	Success bool `protobuf:"varint,12,opt,name=success,proto3" json:"success,omitempty"`
 	// Failure is whether this task's execution failed.
 	Failure bool `protobuf:"varint,13,opt,name=failure,proto3" json:"failure,omitempty"`
+	// CommitID is the commit id that this task's build is for.
+	CommitID string `protobuf:"bytes,14,opt,name=commit_id,proto3" json:"commit_id,omitempty" url:",omitempty"`
 }
 
 func (m *BuildTask) Reset()         { *m = BuildTask{} }

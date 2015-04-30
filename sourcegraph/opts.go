@@ -25,3 +25,13 @@ func (o ListOptions) Limit() int { return o.PerPageOrDefault() }
 func (o ListOptions) Offset() int {
 	return (o.PageOrDefault() - 1) * o.PerPageOrDefault()
 }
+
+// SAMER: document this.
+func (o ListOptions) Iterate(fn func(i int) error) error {
+	for i := o.Offset(); i < o.Limit(); i++ {
+		if err := fn(i); err != nil {
+			return err
+		}
+	}
+	return nil
+}
