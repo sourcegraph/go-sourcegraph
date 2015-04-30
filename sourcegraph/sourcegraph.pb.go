@@ -290,8 +290,29 @@ func (m *GitHubRepo) Reset()         { *m = GitHubRepo{} }
 func (m *GitHubRepo) String() string { return proto.CompactTextString(m) }
 func (*GitHubRepo) ProtoMessage()    {}
 
+// RepoConfig describes a repository's config. This config is
+// Sourcegraph-specific and is persisted locally.
+//
+// Note: See the RepoOrigins doc for more information on the split
+// between Sourcegraph-specific data and origin-specific data.
 type RepoConfig struct {
+	// Enabled is whether this repository has been enabled for use on
+	// Sourcegraph by a repository owner or a site admin.
 	Enabled bool `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	// LastAdminUID is the UID of the last repo admin user to modify
+	// this repo's settings (for mirrored repos only). When
+	// Sourcegraph needs to perform actions on mirrored GitHub repos
+	// that require OAuth authorization outside of an authorized HTTP
+	// request (e.g., during builds or asynchronous operations), it
+	// consults the repo's LastAdminUID to determine whose identity it
+	// should assume to perform the operation.
+	//
+	// If the LastAdminUID refers to a user who no longer has
+	// permissions to perform the action, GitHub will refuse to
+	// perform the operation. In that case, another admin of the
+	// repository needs to update the settings so that she will become
+	// the new LastAdminUID.
+	LastAdminUID int32 `protobuf:"varint,2,opt,name=last_admin_uid,proto3" json:"last_admin_uid,omitempty"`
 }
 
 func (m *RepoConfig) Reset()         { *m = RepoConfig{} }
@@ -2528,7 +2549,9 @@ type ReposClient interface {
 	Enable(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error)
 	// Disable disables the specified repository.
 	Disable(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error)
-	// GetConfig retrieves the configuration for a repository.
+	// GetConfig retrieves the configuration for a repository. To
+	// update the config, use Enable or Disable (direct updating is
+	// not currently supported).
 	GetConfig(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*RepoConfig, error)
 	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
 	GetCommit(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*vcs.Commit, error)
@@ -2648,7 +2671,9 @@ type ReposServer interface {
 	Enable(context.Context, *RepoSpec) (*pbtypes1.Void, error)
 	// Disable disables the specified repository.
 	Disable(context.Context, *RepoSpec) (*pbtypes1.Void, error)
-	// GetConfig retrieves the configuration for a repository.
+	// GetConfig retrieves the configuration for a repository. To
+	// update the config, use Enable or Disable (direct updating is
+	// not currently supported).
 	GetConfig(context.Context, *RepoSpec) (*RepoConfig, error)
 	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
 	GetCommit(context.Context, *RepoRevSpec) (*vcs.Commit, error)
