@@ -80,6 +80,7 @@ It has these top-level messages:
 	OrgsListOp
 	EmailAddrList
 	OrgList
+	NewAccount
 	AuthenticatedUser
 	UserAuthAuthenticateOp
 	UserAuthGetExternalOp
@@ -1209,6 +1210,15 @@ type OrgList struct {
 func (m *OrgList) Reset()         { *m = OrgList{} }
 func (m *OrgList) String() string { return proto.CompactTextString(m) }
 func (*OrgList) ProtoMessage()    {}
+
+type NewAccount struct {
+	// Login is the desired login for the new user account.
+	Login string `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
+}
+
+func (m *NewAccount) Reset()         { *m = NewAccount{} }
+func (m *NewAccount) String() string { return proto.CompactTextString(m) }
+func (*NewAccount) ProtoMessage()    {}
 
 // An AuthenticatedUser describes the user that resulted from a UserAuth.Authenticate call.
 type AuthenticatedUser struct {
@@ -3711,6 +3721,65 @@ var _People_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Get",
 			Handler:    _People_Get_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for Accounts service
+
+type AccountsClient interface {
+	// Create creates a new user account.
+	Create(ctx context.Context, in *NewAccount, opts ...grpc.CallOption) (*UserSpec, error)
+}
+
+type accountsClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewAccountsClient(cc *grpc.ClientConn) AccountsClient {
+	return &accountsClient{cc}
+}
+
+func (c *accountsClient) Create(ctx context.Context, in *NewAccount, opts ...grpc.CallOption) (*UserSpec, error) {
+	out := new(UserSpec)
+	err := grpc.Invoke(ctx, "/sourcegraph.Accounts/Create", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for Accounts service
+
+type AccountsServer interface {
+	// Create creates a new user account.
+	Create(context.Context, *NewAccount) (*UserSpec, error)
+}
+
+func RegisterAccountsServer(s *grpc.Server, srv AccountsServer) {
+	s.RegisterService(&_Accounts_serviceDesc, srv)
+}
+
+func _Accounts_Create_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(NewAccount)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(AccountsServer).Create(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _Accounts_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.Accounts",
+	HandlerType: (*AccountsServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Create",
+			Handler:    _Accounts_Create_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},

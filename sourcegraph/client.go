@@ -26,6 +26,7 @@ const (
 // HTTP/1).
 type Client struct {
 	// Services used to communicate with different parts of the Sourcegraph API.
+	Accounts            AccountsClient
 	Builds              BuildsClient
 	BuildData           BuildDataService
 	Defs                DefsClient
@@ -77,6 +78,7 @@ func NewClient(httpClient *http.Client, conn *grpc.ClientConn) *Client {
 
 	// gRPC (HTTP/2)
 	c.Conn = conn
+	c.Accounts = NewAccountsClient(conn)
 	c.Builds = NewBuildsClient(conn)
 	c.Defs = NewDefsClient(conn)
 	c.Deltas = NewDeltasClient(conn)

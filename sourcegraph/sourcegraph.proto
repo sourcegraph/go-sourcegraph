@@ -962,6 +962,23 @@ service People {
 	rpc Get(PersonSpec) returns (Person);
 }
 
+// Accounts communicates with the account-related endpoints in the
+// Sourcegraph API.
+//
+// For each account, there is also a corresponding user, but there is
+// not an account for every user. This is because users may represent
+// accounts on external services that Sourcegraph doesn't manage (and
+// can't create/update information about).
+service Accounts {
+	// Create creates a new user account.
+	rpc Create(NewAccount) returns (UserSpec);
+}
+
+message NewAccount {
+	// Login is the desired login for the new user account.
+	string login = 1;
+}
+
 // UsersService communicates with the users-related endpoints in the Sourcegraph
 // API.
 service Users {
