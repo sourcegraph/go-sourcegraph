@@ -1599,7 +1599,7 @@ type DeltaDefs struct {
 	// added/changed/deleted defs
 	Defs []*DefDelta `protobuf:"bytes,1,rep,name=defs" json:"defs,omitempty"`
 	// overall diffstat (not subject to pagination)
-	DiffStat *diff.Stat `protobuf:"bytes,2,opt,name=diff_stat" json:"diff_stat,omitempty"`
+	DiffStat diff.Stat `protobuf:"bytes,2,opt,name=diff_stat" json:"diff_stat"`
 }
 
 func (m *DeltaDefs) Reset()         { *m = DeltaDefs{} }

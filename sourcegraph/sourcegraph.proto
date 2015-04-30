@@ -1300,7 +1300,7 @@ message DeltaDefs {
 	repeated DefDelta defs = 1;
 
 	// overall diffstat (not subject to pagination)
-	diff.Stat diff_stat = 2;
+	diff.Stat diff_stat = 2 [(gogoproto.nullable) = false];
 }
 
 // DeltaFiles describes files added/changed/deleted in a delta.
