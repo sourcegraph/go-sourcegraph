@@ -22,7 +22,6 @@ const (
 	User               = "user"
 	UserOrgs           = "user.orgs"
 	UserEmails         = "user.emails"
-	UserRefreshProfile = "user.refresh-profile"
 	UserSettings       = "user.settings"
 	UserSettingsUpdate = "user.settings.update"
 
@@ -166,7 +165,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	user := base.PathPrefix(userPath).Subrouter()
 	user.Path("/orgs").Methods("GET").Name(UserOrgs)
 	user.Path("/emails").Methods("GET").Name(UserEmails)
-	user.Path("/external-profile").Methods("PUT").Name(UserRefreshProfile)
 	user.Path("/settings").Methods("GET").Name(UserSettings)
 	user.Path("/settings").Methods("PUT").Name(UserSettingsUpdate)
 
