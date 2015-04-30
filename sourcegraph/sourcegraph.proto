@@ -1479,7 +1479,8 @@ message RepoTreeGetOptions {
 	bool tokenized_source = 3 [(gogoproto.moretags) = "url:\",omitempty\""];
 
 	bool contents_as_string = 4 [(gogoproto.moretags) = "url:\",omitempty\""];
-	vcsclient.GetFileOptions get_file_options = 5 [(gogoproto.embed) = true];
+
+	vcsclient.GetFileOptions get_file_options = 5 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
 message RepoTreeSearchOptions {

@@ -1860,9 +1860,9 @@ type RepoTreeGetOptions struct {
 	//
 	// This is useful when the client wants to take full control of rendering and
 	// manipulating the contents.
-	TokenizedSource           bool `protobuf:"varint,3,opt,name=tokenized_source,proto3" json:"tokenized_source,omitempty" url:",omitempty"`
-	ContentsAsString          bool `protobuf:"varint,4,opt,name=contents_as_string,proto3" json:"contents_as_string,omitempty" url:",omitempty"`
-	*vcsclient.GetFileOptions `protobuf:"bytes,5,opt,name=get_file_options,embedded=get_file_options" json:"get_file_options,omitempty"`
+	TokenizedSource          bool `protobuf:"varint,3,opt,name=tokenized_source,proto3" json:"tokenized_source,omitempty" url:",omitempty"`
+	ContentsAsString         bool `protobuf:"varint,4,opt,name=contents_as_string,proto3" json:"contents_as_string,omitempty" url:",omitempty"`
+	vcsclient.GetFileOptions `protobuf:"bytes,5,opt,name=get_file_options,embedded=get_file_options" json:"get_file_options"`
 }
 
 func (m *RepoTreeGetOptions) Reset()         { *m = RepoTreeGetOptions{} }
