@@ -2528,6 +2528,8 @@ type ReposClient interface {
 	Enable(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error)
 	// Disable disables the specified repository.
 	Disable(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error)
+	// GetConfig retrieves the configuration for a repository.
+	GetConfig(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*RepoConfig, error)
 	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
 	GetCommit(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*vcs.Commit, error)
 	ListCommits(ctx context.Context, in *ReposListCommitsOp, opts ...grpc.CallOption) (*CommitList, error)
@@ -2588,6 +2590,15 @@ func (c *reposClient) Disable(ctx context.Context, in *RepoSpec, opts ...grpc.Ca
 	return out, nil
 }
 
+func (c *reposClient) GetConfig(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*RepoConfig, error) {
+	out := new(RepoConfig)
+	err := grpc.Invoke(ctx, "/sourcegraph.Repos/GetConfig", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *reposClient) GetCommit(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*vcs.Commit, error) {
 	out := new(vcs.Commit)
 	err := grpc.Invoke(ctx, "/sourcegraph.Repos/GetCommit", in, out, c.cc, opts...)
@@ -2637,6 +2648,8 @@ type ReposServer interface {
 	Enable(context.Context, *RepoSpec) (*pbtypes1.Void, error)
 	// Disable disables the specified repository.
 	Disable(context.Context, *RepoSpec) (*pbtypes1.Void, error)
+	// GetConfig retrieves the configuration for a repository.
+	GetConfig(context.Context, *RepoSpec) (*RepoConfig, error)
 	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
 	GetCommit(context.Context, *RepoRevSpec) (*vcs.Commit, error)
 	ListCommits(context.Context, *ReposListCommitsOp) (*CommitList, error)
@@ -2702,6 +2715,18 @@ func _Repos_Disable_Handler(srv interface{}, ctx context.Context, buf []byte) (i
 		return nil, err
 	}
 	out, err := srv.(ReposServer).Disable(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Repos_GetConfig_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(RepoSpec)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(ReposServer).GetConfig(ctx, in)
 	if err != nil {
 		return nil, err
 	}
@@ -2779,6 +2804,10 @@ var _Repos_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Disable",
 			Handler:    _Repos_Disable_Handler,
+		},
+		{
+			MethodName: "GetConfig",
+			Handler:    _Repos_GetConfig_Handler,
 		},
 		{
 			MethodName: "GetCommit",

@@ -97,6 +97,7 @@ type ReposClient struct {
 	GetReadme_    func(ctx context.Context, in *sourcegraph.RepoRevSpec) (*sourcegraph.Readme, error)
 	Enable_       func(ctx context.Context, in *sourcegraph.RepoSpec) (*pbtypes.Void, error)
 	Disable_      func(ctx context.Context, in *sourcegraph.RepoSpec) (*pbtypes.Void, error)
+	GetConfig_    func(ctx context.Context, in *sourcegraph.RepoSpec) (*sourcegraph.RepoConfig, error)
 	GetCommit_    func(ctx context.Context, in *sourcegraph.RepoRevSpec) (*vcs.Commit, error)
 	ListCommits_  func(ctx context.Context, in *sourcegraph.ReposListCommitsOp) (*sourcegraph.CommitList, error)
 	ListBranches_ func(ctx context.Context, in *sourcegraph.ReposListBranchesOp) (*sourcegraph.BranchList, error)
@@ -123,6 +124,10 @@ func (s *ReposClient) Disable(ctx context.Context, in *sourcegraph.RepoSpec, opt
 	return s.Disable_(ctx, in)
 }
 
+func (s *ReposClient) GetConfig(ctx context.Context, in *sourcegraph.RepoSpec, opts ...grpc.CallOption) (*sourcegraph.RepoConfig, error) {
+	return s.GetConfig_(ctx, in)
+}
+
 func (s *ReposClient) GetCommit(ctx context.Context, in *sourcegraph.RepoRevSpec, opts ...grpc.CallOption) (*vcs.Commit, error) {
 	return s.GetCommit_(ctx, in)
 }
@@ -147,6 +152,7 @@ type ReposServer struct {
 	GetReadme_    func(v0 context.Context, v1 *sourcegraph.RepoRevSpec) (*sourcegraph.Readme, error)
 	Enable_       func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error)
 	Disable_      func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error)
+	GetConfig_    func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*sourcegraph.RepoConfig, error)
 	GetCommit_    func(v0 context.Context, v1 *sourcegraph.RepoRevSpec) (*vcs.Commit, error)
 	ListCommits_  func(v0 context.Context, v1 *sourcegraph.ReposListCommitsOp) (*sourcegraph.CommitList, error)
 	ListBranches_ func(v0 context.Context, v1 *sourcegraph.ReposListBranchesOp) (*sourcegraph.BranchList, error)
@@ -171,6 +177,10 @@ func (s *ReposServer) Enable(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbt
 
 func (s *ReposServer) Disable(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error) {
 	return s.Disable_(v0, v1)
+}
+
+func (s *ReposServer) GetConfig(v0 context.Context, v1 *sourcegraph.RepoSpec) (*sourcegraph.RepoConfig, error) {
+	return s.GetConfig_(v0, v1)
 }
 
 func (s *ReposServer) GetCommit(v0 context.Context, v1 *sourcegraph.RepoRevSpec) (*vcs.Commit, error) {

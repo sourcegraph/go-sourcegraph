@@ -300,6 +300,9 @@ service Repos {
 	// Disable disables the specified repository.
     rpc Disable(RepoSpec) returns (pbtypes.Void);
 
+	// GetConfig retrieves the configuration for a repository.
+	rpc GetConfig(RepoSpec) returns (RepoConfig);
+
 	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
 	rpc GetCommit(RepoRevSpec) returns (vcs.Commit);
 	rpc ListCommits(ReposListCommitsOp) returns (CommitList);
