@@ -35,8 +35,14 @@ type TicketAuth struct {
 	Transport http.RoundTripper
 }
 
+func (t TicketAuth) NewTransport(underlying http.RoundTripper) http.RoundTripper {
+	// Non-pointer method, so we don't modify.
+	t.Transport = underlying
+	return t
+}
+
 // RoundTrip implements http.RoundTripper.
-func (t *TicketAuth) RoundTrip(req *http.Request) (*http.Response, error) {
+func (t TicketAuth) RoundTrip(req *http.Request) (*http.Response, error) {
 	var transport http.RoundTripper
 	if t.Transport != nil {
 		transport = t.Transport
