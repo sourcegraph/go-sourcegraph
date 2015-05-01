@@ -840,3 +840,33 @@ func (s *UnitsServer) List(v0 context.Context, v1 *sourcegraph.UnitListOptions) 
 }
 
 var _ sourcegraph.UnitsServer = (*UnitsServer)(nil)
+
+type MetaClient struct {
+	Status_ func(ctx context.Context, in *pbtypes.Void) (*sourcegraph.ServerStatus, error)
+	Config_ func(ctx context.Context, in *pbtypes.Void) (*sourcegraph.ServerConfig, error)
+}
+
+func (s *MetaClient) Status(ctx context.Context, in *pbtypes.Void, opts ...grpc.CallOption) (*sourcegraph.ServerStatus, error) {
+	return s.Status_(ctx, in)
+}
+
+func (s *MetaClient) Config(ctx context.Context, in *pbtypes.Void, opts ...grpc.CallOption) (*sourcegraph.ServerConfig, error) {
+	return s.Config_(ctx, in)
+}
+
+var _ sourcegraph.MetaClient = (*MetaClient)(nil)
+
+type MetaServer struct {
+	Status_ func(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.ServerStatus, error)
+	Config_ func(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.ServerConfig, error)
+}
+
+func (s *MetaServer) Status(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.ServerStatus, error) {
+	return s.Status_(v0, v1)
+}
+
+func (s *MetaServer) Config(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.ServerConfig, error) {
+	return s.Config_(v0, v1)
+}
+
+var _ sourcegraph.MetaServer = (*MetaServer)(nil)

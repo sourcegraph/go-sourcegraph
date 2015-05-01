@@ -168,6 +168,8 @@ It has these top-level messages:
 	UserToken
 	TokenError
 	PBToken
+	ServerStatus
+	ServerConfig
 */
 package sourcegraph
 
@@ -2303,6 +2305,28 @@ type PBToken struct {
 func (m *PBToken) Reset()         { *m = PBToken{} }
 func (m *PBToken) String() string { return proto.CompactTextString(m) }
 func (*PBToken) ProtoMessage()    {}
+
+// ServerStatus describes the server's status.
+type ServerStatus struct {
+	// Info contains arbitrary human-readable status information about
+	// the server.
+	Info string `protobuf:"bytes,1,opt,name=info,proto3" json:"info,omitempty"`
+}
+
+func (m *ServerStatus) Reset()         { *m = ServerStatus{} }
+func (m *ServerStatus) String() string { return proto.CompactTextString(m) }
+func (*ServerStatus) ProtoMessage()    {}
+
+// ServerConfig describes the server's configuration.
+type ServerConfig struct {
+	// AppURL is the base URL of the user-facing web application
+	// (e.g., "https://sourcegraph.com").
+	AppURL string `protobuf:"bytes,1,opt,name=app_url,proto3" json:"app_url,omitempty"`
+}
+
+func (m *ServerConfig) Reset()         { *m = ServerConfig{} }
+func (m *ServerConfig) String() string { return proto.CompactTextString(m) }
+func (*ServerConfig) ProtoMessage()    {}
 
 func init() {
 	proto.RegisterEnum("sourcegraph.AuthEndpointType", AuthEndpointType_name, AuthEndpointType_value)
@@ -4788,6 +4812,96 @@ var _Units_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "List",
 			Handler:    _Units_List_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for Meta service
+
+type MetaClient interface {
+	// Status returns status information from the server's point of
+	// view.
+	Status(ctx context.Context, in *pbtypes1.Void, opts ...grpc.CallOption) (*ServerStatus, error)
+	// Config returns the server's configuration.
+	Config(ctx context.Context, in *pbtypes1.Void, opts ...grpc.CallOption) (*ServerConfig, error)
+}
+
+type metaClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewMetaClient(cc *grpc.ClientConn) MetaClient {
+	return &metaClient{cc}
+}
+
+func (c *metaClient) Status(ctx context.Context, in *pbtypes1.Void, opts ...grpc.CallOption) (*ServerStatus, error) {
+	out := new(ServerStatus)
+	err := grpc.Invoke(ctx, "/sourcegraph.Meta/Status", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *metaClient) Config(ctx context.Context, in *pbtypes1.Void, opts ...grpc.CallOption) (*ServerConfig, error) {
+	out := new(ServerConfig)
+	err := grpc.Invoke(ctx, "/sourcegraph.Meta/Config", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for Meta service
+
+type MetaServer interface {
+	// Status returns status information from the server's point of
+	// view.
+	Status(context.Context, *pbtypes1.Void) (*ServerStatus, error)
+	// Config returns the server's configuration.
+	Config(context.Context, *pbtypes1.Void) (*ServerConfig, error)
+}
+
+func RegisterMetaServer(s *grpc.Server, srv MetaServer) {
+	s.RegisterService(&_Meta_serviceDesc, srv)
+}
+
+func _Meta_Status_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(pbtypes1.Void)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(MetaServer).Status(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Meta_Config_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
+	in := new(pbtypes1.Void)
+	if err := proto.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(MetaServer).Config(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _Meta_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.Meta",
+	HandlerType: (*MetaServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Status",
+			Handler:    _Meta_Status_Handler,
+		},
+		{
+			MethodName: "Config",
+			Handler:    _Meta_Config_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},

@@ -1915,3 +1915,27 @@ message PBToken {
 		UserToken user_token = 7;
 	}
 }
+
+// Meta provides meta-information about Sourcegraph.
+service Meta {
+	// Status returns status information from the server's point of
+	// view.
+	rpc Status(pbtypes.Void) returns (ServerStatus);
+
+	// Config returns the server's configuration.
+	rpc Config(pbtypes.Void) returns (ServerConfig);
+}
+
+// ServerStatus describes the server's status.
+message ServerStatus {
+	// Info contains arbitrary human-readable status information about
+	// the server.
+	string info = 1;
+}
+
+// ServerConfig describes the server's configuration.
+message ServerConfig {
+	// AppURL is the base URL of the user-facing web application
+	// (e.g., "https://sourcegraph.com").
+	string app_url = 1 [(gogoproto.customname) = "AppURL"];
+}

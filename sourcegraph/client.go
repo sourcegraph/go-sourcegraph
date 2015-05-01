@@ -33,6 +33,7 @@ type Client struct {
 	Deltas              DeltasClient
 	HostedRepos         HostedReposClient
 	Markdown            MarkdownClient
+	Meta                MetaClient
 	MirrorRepos         MirrorReposClient
 	MirroredRepoSSHKeys MirroredRepoSSHKeysClient
 	Orgs                OrgsClient
@@ -84,6 +85,7 @@ func NewClient(httpClient *http.Client, conn *grpc.ClientConn) *Client {
 	c.Deltas = NewDeltasClient(conn)
 	c.HostedRepos = NewHostedReposClient(conn)
 	c.Markdown = NewMarkdownClient(conn)
+	c.Meta = NewMetaClient(conn)
 	c.MirrorRepos = NewMirrorReposClient(conn)
 	c.MirroredRepoSSHKeys = NewMirroredRepoSSHKeysClient(conn)
 	c.Orgs = NewOrgsClient(conn)
