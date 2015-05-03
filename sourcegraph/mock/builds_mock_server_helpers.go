@@ -34,3 +34,12 @@ func (s *BuildsServer) MockList(t *testing.T, want ...*sourcegraph.Build) (calle
 	}
 	return
 }
+
+func (s *BuildsServer) MockListBuildTasks(t *testing.T, want ...*sourcegraph.BuildTask) (called *bool) {
+	called = new(bool)
+	s.ListBuildTasks_ = func(ctx context.Context, op *sourcegraph.BuildsListBuildTasksOp) (*sourcegraph.BuildTaskList, error) {
+		*called = true
+		return &sourcegraph.BuildTaskList{BuildTasks: want}, nil
+	}
+	return
+}
