@@ -1657,7 +1657,7 @@ message SourceCodeToken {
 
 	// If the token is a reference URL contains the DefKey-based URLs for all the
 	// definitions at this position.
-	repeated string url = 3 [(gogoproto.customname) = "URL"];
+	repeated string url = 3 [(gogoproto.customname) = "URL", (gogoproto.jsontag) = ",omitempty"];
 
 	// IsDef specifies whether the token is a definition.
 	bool is_def = 4;

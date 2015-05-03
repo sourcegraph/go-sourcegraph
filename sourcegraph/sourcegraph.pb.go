@@ -2075,7 +2075,7 @@ type SourceCodeToken struct {
 	EndByte   int32 `protobuf:"varint,2,opt,name=end_byte,proto3" json:"end_byte,omitempty"`
 	// If the token is a reference URL contains the DefKey-based URLs for all the
 	// definitions at this position.
-	URL []string `protobuf:"bytes,3,rep,name=url" json:"url,omitempty"`
+	URL []string `protobuf:"bytes,3,rep,name=url" json:",omitempty"`
 	// IsDef specifies whether the token is a definition.
 	IsDef bool `protobuf:"varint,4,opt,name=is_def,proto3" json:"is_def,omitempty"`
 	// Class specifies the token type as per
