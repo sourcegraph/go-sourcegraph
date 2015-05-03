@@ -1320,9 +1320,41 @@ message DeltaDefs {
 	diff.Stat diff_stat = 2 [(gogoproto.nullable) = false];
 }
 
+// FileDiff holds data about a diff, and additionally stores extended
+// information about its hunks.
+message FileDiff {
+	diff.FileDiff file_diff = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+	repeated Hunk hunks = 2;
+	diff.Stat stats = 3 [(gogoproto.nullable) = false];
+}
+
+// Hunk holds data about a hunk in a diff.
+message Hunk {
+	diff.Hunk hunk = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+
+	// LinePrefixes holds a string where each character's index corresponds
+	// to a line in the BodySource, and its value reflects whether the line
+	// is an addition, deletion, or change ('+', '-', ' ').
+	string line_prefixes = 2;
+
+	// BaseSource holds the source code for the original hunk, having all
+	// lines starting from the original line down to the end of the hunk.
+	SourceCode base_source = 3;
+
+	// HeadSource contains the source code for the new hunk, holding
+	// all consecutive lines from the start to the end.
+	SourceCode head_source = 4;
+
+	// BodySource contains the source code for the Hunk body and is a mix
+	// of both additions and deletions.
+	SourceCode body_source = 5;
+}
+
 // DeltaFiles describes files added/changed/deleted in a delta.
 message DeltaFiles {
-	repeated diff.FileDiff file_diffs = 1;
+	repeated FileDiff file_diffs = 1;
+	Delta delta = 2;
+	diff.Stat stats = 3 [(gogoproto.nullable) = false];
 }
 
 // DeltaFilter specifies criteria by which to filter results from DeltaListXxx
@@ -1359,7 +1391,13 @@ message DeltaListFilesOptions {
 	// Filter filters the list of returned files to those whose name matches Filter.
 	string filter = 2 [(gogoproto.moretags) = "url:\",omitempty\""];
 
-	DeltaFilter delta_filter = 3 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+	// Tokenized, when set, will tokenize the whole source code
+	// contained in the diff, returning 3 versions for each hunk: Head
+	// revision, Base revision and Hunk body. For more information,
+	// see sourcegraph.Hunk.
+    bool tokenized = 3 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	DeltaFilter delta_filter = 4 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
 // DeltaListUnitsOptions specifies options for ListUnits.

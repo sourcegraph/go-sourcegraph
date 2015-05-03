@@ -112,6 +112,8 @@ It has these top-level messages:
 	Delta
 	DeltaAffectedPerson
 	DeltaDefs
+	FileDiff
+	Hunk
 	DeltaFiles
 	DeltaFilter
 	DeltaListAffectedAuthorsOptions
@@ -1618,9 +1620,45 @@ func (m *DeltaDefs) Reset()         { *m = DeltaDefs{} }
 func (m *DeltaDefs) String() string { return proto.CompactTextString(m) }
 func (*DeltaDefs) ProtoMessage()    {}
 
+// FileDiff holds data about a diff, and additionally stores extended
+// information about its hunks.
+type FileDiff struct {
+	diff.FileDiff `protobuf:"bytes,1,opt,name=file_diff,embedded=file_diff" json:"file_diff"`
+	Hunks         []*Hunk   `protobuf:"bytes,2,rep,name=hunks" json:"hunks,omitempty"`
+	Stats         diff.Stat `protobuf:"bytes,3,opt,name=stats" json:"stats"`
+}
+
+func (m *FileDiff) Reset()         { *m = FileDiff{} }
+func (m *FileDiff) String() string { return proto.CompactTextString(m) }
+func (*FileDiff) ProtoMessage()    {}
+
+// Hunk holds data about a hunk in a diff.
+type Hunk struct {
+	diff.Hunk `protobuf:"bytes,1,opt,name=hunk,embedded=hunk" json:"hunk"`
+	// LinePrefixes holds a string where each character's index corresponds
+	// to a line in the BodySource, and its value reflects whether the line
+	// is an addition, deletion, or change ('+', '-', ' ').
+	LinePrefixes string `protobuf:"bytes,2,opt,name=line_prefixes,proto3" json:"line_prefixes,omitempty"`
+	// BaseSource holds the source code for the original hunk, having all
+	// lines starting from the original line down to the end of the hunk.
+	BaseSource *SourceCode `protobuf:"bytes,3,opt,name=base_source" json:"base_source,omitempty"`
+	// HeadSource contains the source code for the new hunk, holding
+	// all consecutive lines from the start to the end.
+	HeadSource *SourceCode `protobuf:"bytes,4,opt,name=head_source" json:"head_source,omitempty"`
+	// BodySource contains the source code for the Hunk body and is a mix
+	// of both additions and deletions.
+	BodySource *SourceCode `protobuf:"bytes,5,opt,name=body_source" json:"body_source,omitempty"`
+}
+
+func (m *Hunk) Reset()         { *m = Hunk{} }
+func (m *Hunk) String() string { return proto.CompactTextString(m) }
+func (*Hunk) ProtoMessage()    {}
+
 // DeltaFiles describes files added/changed/deleted in a delta.
 type DeltaFiles struct {
-	FileDiffs []*diff.FileDiff `protobuf:"bytes,1,rep,name=file_diffs" json:"file_diffs,omitempty"`
+	FileDiffs []*FileDiff `protobuf:"bytes,1,rep,name=file_diffs" json:"file_diffs,omitempty"`
+	Delta     *Delta      `protobuf:"bytes,2,opt,name=delta" json:"delta,omitempty"`
+	Stats     diff.Stat   `protobuf:"bytes,3,opt,name=stats" json:"stats"`
 }
 
 func (m *DeltaFiles) Reset()         { *m = DeltaFiles{} }
@@ -1674,8 +1712,13 @@ type DeltaListFilesOptions struct {
 	// (syntax-highlighted and reference-linked) if they contain code.
 	Formatted bool `protobuf:"varint,1,opt,name=formatted,proto3" json:"formatted,omitempty" url:",omitempty"`
 	// Filter filters the list of returned files to those whose name matches Filter.
-	Filter      string `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty" url:",omitempty"`
-	DeltaFilter `protobuf:"bytes,3,opt,name=delta_filter,embedded=delta_filter" json:"delta_filter"`
+	Filter string `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty" url:",omitempty"`
+	// Tokenized, when set, will tokenize the whole source code
+	// contained in the diff, returning 3 versions for each hunk: Head
+	// revision, Base revision and Hunk body. For more information,
+	// see sourcegraph.Hunk.
+	Tokenized   bool `protobuf:"varint,3,opt,name=tokenized,proto3" json:"tokenized,omitempty" url:",omitempty"`
+	DeltaFilter `protobuf:"bytes,4,opt,name=delta_filter,embedded=delta_filter" json:"delta_filter"`
 }
 
 func (m *DeltaListFilesOptions) Reset()         { *m = DeltaListFilesOptions{} }

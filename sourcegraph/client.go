@@ -204,7 +204,10 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 }
 
 // newResponse creates a new Response for the provided http.Response.
-func newResponse(r *http.Response) *HTTPResponse {
+func newResponse(r *http.Response) Response {
+	if r == nil {
+		return nil
+	}
 	return &HTTPResponse{Response: r}
 }
 
@@ -254,8 +257,8 @@ const preserveBody doKey = iota // when passed as v to (*Client).Do, the resp bo
 // returned as an error if an API error has occurred. If v is
 // preserveBody, then the HTTP response body is not closed by Do; the
 // caller is responsible for closing it.
-func (c *Client) Do(req *http.Request, v interface{}) (*HTTPResponse, error) {
-	var resp *HTTPResponse
+func (c *Client) Do(req *http.Request, v interface{}) (Response, error) {
+	var resp Response
 	rawResp, err := c.httpClient.Do(req)
 	if rawResp != nil {
 		if v != preserveBody && rawResp.Body != nil {
