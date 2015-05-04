@@ -106,3 +106,34 @@ func TestPBToken_Token(t *testing.T) {
 		}
 	}
 }
+
+func TestPBTokens_JSON(t *testing.T) {
+	pbtoks := []PBToken{
+		PBTokenWrap(Term("t")),
+		PBTokenWrap(AnyToken("t")),
+		PBTokenWrap(RepoToken{URI: "r"}),
+		PBTokenWrap(RevToken{Rev: "v"}),
+		PBTokenWrap(FileToken{Path: "p"}),
+		PBTokenWrap(UserToken{Login: "u"}),
+		PBTokenWrap(&RepoToken{URI: "r"}),
+		PBTokenWrap(&RevToken{Rev: "v"}),
+		PBTokenWrap(&FileToken{Path: "p"}),
+		PBTokenWrap(&UserToken{Login: "u"}),
+	}
+
+	b, err := json.Marshal(pbtoks)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log(string(b))
+
+	var pbtoks2 []PBToken
+	if err := json.Unmarshal(b, &pbtoks2); err != nil {
+		t.Fatal(err)
+	}
+
+	if !reflect.DeepEqual(pbtoks2, pbtoks) {
+		t.Errorf("got %+v, want %+v", pbtoks2, pbtoks)
+	}
+}

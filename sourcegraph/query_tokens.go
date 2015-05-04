@@ -161,6 +161,20 @@ func TokenType(tok Token) string {
 	return strings.Replace(strings.Replace(reflect.ValueOf(tok).Type().String(), "*", "", -1), "sourcegraph.", "", -1)
 }
 
+func (t PBToken) MarshalJSON() ([]byte, error) {
+	jt := jsonToken{t.Token()}
+	return jt.MarshalJSON()
+}
+
+func (t *PBToken) UnmarshalJSON(b []byte) error {
+	var jt jsonToken
+	if err := json.Unmarshal(b, &jt); err != nil {
+		return err
+	}
+	*t = PBTokenWrap(jt.Token)
+	return nil
+}
+
 // Token returns the Token that the PBToken wraps.
 func (t *PBToken) Token() Token {
 	switch {
