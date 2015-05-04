@@ -1511,7 +1511,7 @@ message QualFormatStrings {
 }
 
 message Ref {
-	graph.Ref ref = 1 [(gogoproto.embed) = true, (gogoproto.jsontag) = ""];
+	graph.Ref ref = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true, (gogoproto.jsontag) = ""];
 	optional AuthorshipInfo authorship = 2;
 }
 

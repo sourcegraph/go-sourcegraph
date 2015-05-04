@@ -1893,8 +1893,8 @@ func (m *QualFormatStrings) String() string { return proto.CompactTextString(m) 
 func (*QualFormatStrings) ProtoMessage()    {}
 
 type Ref struct {
-	*graph1.Ref `protobuf:"bytes,1,opt,name=ref,embedded=ref" json:""`
-	Authorship  *AuthorshipInfo `protobuf:"bytes,2,opt,name=authorship" json:"authorship,omitempty"`
+	graph1.Ref `protobuf:"bytes,1,opt,name=ref,embedded=ref" json:""`
+	Authorship *AuthorshipInfo `protobuf:"bytes,2,opt,name=authorship" json:"authorship,omitempty"`
 }
 
 func (m *Ref) Reset()         { *m = Ref{} }
