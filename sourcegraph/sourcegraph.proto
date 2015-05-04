@@ -1445,15 +1445,15 @@ message DeltasListAffectedClientsOp {
 
 // Example is a usage example of a def.
 message Example {
-	graph.Ref ref = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+	graph.Ref ref = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true, (gogoproto.jsontag) = ""];
 
 	// SrcHTML is the formatted HTML source code of the example, with links to
 	// definitions.
-	string src_html = 2 [(gogoproto.customname) = "SrcHTML", (gogoproto.customtype) = "html/template.HTML"];
+	string src_html = 2 [(gogoproto.customname) = "SrcHTML"];
 
 	// SourceCode contains the parsed source for this example, if requested via
 	// DefListExamplesOptions.
-	optional SourceCode source_code = 3;
+	SourceCode source_code = 3;
 
 	// The line that the given example starts on
 	int32 start_line = 4;

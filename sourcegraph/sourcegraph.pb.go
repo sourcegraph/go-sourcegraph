@@ -187,8 +187,6 @@ import vcsclient "sourcegraph.com/sourcegraph/vcsstore/vcsclient"
 import pbtypes "sourcegraph.com/sqs/pbtypes"
 import pbtypes1 "sourcegraph.com/sqs/pbtypes"
 
-import html_template "html/template"
-
 import (
 	context "golang.org/x/net/context"
 	grpc "google.golang.org/grpc"
@@ -1806,10 +1804,10 @@ func (*DeltasListAffectedClientsOp) ProtoMessage()    {}
 
 // Example is a usage example of a def.
 type Example struct {
-	graph1.Ref `protobuf:"bytes,1,opt,name=ref,embedded=ref" json:"ref"`
+	graph1.Ref `protobuf:"bytes,1,opt,name=ref,embedded=ref" json:""`
 	// SrcHTML is the formatted HTML source code of the example, with links to
 	// definitions.
-	SrcHTML html_template.HTML `protobuf:"bytes,2,opt,name=src_html,proto3,customtype=html/template.HTML" json:"src_html,omitempty"`
+	SrcHTML string `protobuf:"bytes,2,opt,name=src_html,proto3" json:"src_html,omitempty"`
 	// SourceCode contains the parsed source for this example, if requested via
 	// DefListExamplesOptions.
 	SourceCode *SourceCode `protobuf:"bytes,3,opt,name=source_code" json:"source_code,omitempty"`
