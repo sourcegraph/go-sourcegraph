@@ -132,7 +132,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 
 	repoRev.Path("/.build").Methods("GET").Name(RepoBuildInfo)
 	repoRev.Path("/.builds").Methods("POST").Name(RepoBuildsCreate)
-	buildPath := "/{BID}"
+	buildPath := "/.builds/{BID}"
 	repo.Path(buildPath).Methods("GET").Name(Build)
 	repo.Path(buildPath).Methods("PUT").Name(BuildUpdate)
 	build := repo.PathPrefix(buildPath).Subrouter()
