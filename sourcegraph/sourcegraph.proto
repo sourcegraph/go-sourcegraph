@@ -1445,7 +1445,7 @@ message DeltasListAffectedClientsOp {
 
 // Example is a usage example of a def.
 message Example {
-	graph.Ref ref = 1 [(gogoproto.embed) = true];
+	graph.Ref ref = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 
 	// SrcHTML is the formatted HTML source code of the example, with links to
 	// definitions.

@@ -1806,7 +1806,7 @@ func (*DeltasListAffectedClientsOp) ProtoMessage()    {}
 
 // Example is a usage example of a def.
 type Example struct {
-	*graph1.Ref `protobuf:"bytes,1,opt,name=ref,embedded=ref" json:"ref,omitempty"`
+	graph1.Ref `protobuf:"bytes,1,opt,name=ref,embedded=ref" json:"ref"`
 	// SrcHTML is the formatted HTML source code of the example, with links to
 	// definitions.
 	SrcHTML html_template.HTML `protobuf:"bytes,2,opt,name=src_html,proto3,customtype=html/template.HTML" json:"src_html,omitempty"`
