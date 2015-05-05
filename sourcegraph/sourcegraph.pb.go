@@ -1715,8 +1715,11 @@ type DeltaListFilesOptions struct {
 	// contained in the diff, returning 3 versions for each hunk: Head
 	// revision, Base revision and Hunk body. For more information,
 	// see sourcegraph.Hunk.
-	Tokenized   bool `protobuf:"varint,3,opt,name=tokenized,proto3" json:"tokenized,omitempty" url:",omitempty"`
-	DeltaFilter `protobuf:"bytes,4,opt,name=delta_filter,embedded=delta_filter" json:"delta_filter"`
+	Tokenized bool `protobuf:"varint,3,opt,name=tokenized,proto3" json:"tokenized,omitempty" url:",omitempty"`
+	// MaxSize stores the maximum number of bytes that will be accepted as a
+	// response for this delta. If exceeded, all the diff bodies will be nil.
+	MaxSize     int32 `protobuf:"varint,4,opt,name=max_size,proto3" json:"max_size,omitempty" url:",omitempty"`
+	DeltaFilter `protobuf:"bytes,5,opt,name=delta_filter,embedded=delta_filter" json:"delta_filter"`
 }
 
 func (m *DeltaListFilesOptions) Reset()         { *m = DeltaListFilesOptions{} }

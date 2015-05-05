@@ -1397,7 +1397,11 @@ message DeltaListFilesOptions {
 	// see sourcegraph.Hunk.
     bool tokenized = 3 [(gogoproto.moretags) = "url:\",omitempty\""];
 
-	DeltaFilter delta_filter = 4 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+	// MaxSize stores the maximum number of bytes that will be accepted as a
+	// response for this delta. If exceeded, all the diff bodies will be nil.
+	int32 max_size = 4 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	DeltaFilter delta_filter = 5 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
 // DeltaListUnitsOptions specifies options for ListUnits.
