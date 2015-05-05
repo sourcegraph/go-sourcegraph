@@ -1657,6 +1657,9 @@ type DeltaFiles struct {
 	FileDiffs []*FileDiff `protobuf:"bytes,1,rep,name=file_diffs" json:"file_diffs,omitempty"`
 	Delta     *Delta      `protobuf:"bytes,2,opt,name=delta" json:"delta,omitempty"`
 	Stats     diff.Stat   `protobuf:"bytes,3,opt,name=stats" json:"stats"`
+	// IsTokenized will be true when the source code contents of the diff
+	// have been tokenized (and potentially linked).
+	IsTokenized bool `protobuf:"varint,4,opt,name=is_tokenized,proto3" json:"is_tokenized,omitempty"`
 }
 
 func (m *DeltaFiles) Reset()         { *m = DeltaFiles{} }
@@ -1716,8 +1719,12 @@ type DeltaListFilesOptions struct {
 	// revision, Base revision and Hunk body. For more information,
 	// see sourcegraph.Hunk.
 	Tokenized bool `protobuf:"varint,3,opt,name=tokenized,proto3" json:"tokenized,omitempty" url:",omitempty"`
-	// MaxSize stores the maximum number of bytes that will be accepted as a
-	// response for this delta. If exceeded, all the diff bodies will be nil.
+	// MaxSize stores the maximum number of bytes that will be accepted for tokenizing
+	// the diff. If the size of the diff exceeds this value, the returned structure
+	// will not contain the linked and tokenized source code.
+	// This option is useful when one wishes to present the data in a browser and it
+	// may be too large for that. DeltaFiles structure size can be up to 4 times the
+	// size of the raw diff when tokenized and linked.
 	MaxSize     int32 `protobuf:"varint,4,opt,name=max_size,proto3" json:"max_size,omitempty" url:",omitempty"`
 	DeltaFilter `protobuf:"bytes,5,opt,name=delta_filter,embedded=delta_filter" json:"delta_filter"`
 }
