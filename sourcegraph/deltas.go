@@ -142,7 +142,6 @@ func (d *DeltaFiles) DiffStat() diff.Stat {
 		ds.Added += st.Added
 		ds.Changed += st.Changed
 		ds.Deleted += st.Deleted
-		ds.ByteSize += st.ByteSize
 	}
 	return ds
 }
