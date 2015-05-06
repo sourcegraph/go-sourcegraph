@@ -1657,9 +1657,10 @@ type DeltaFiles struct {
 	FileDiffs []*FileDiff `protobuf:"bytes,1,rep,name=file_diffs" json:"file_diffs,omitempty"`
 	Delta     *Delta      `protobuf:"bytes,2,opt,name=delta" json:"delta,omitempty"`
 	Stats     diff.Stat   `protobuf:"bytes,3,opt,name=stats" json:"stats"`
-	// IsTokenized will be true when the source code contents of the diff
-	// have been tokenized (and potentially linked).
-	IsTokenized bool `protobuf:"varint,4,opt,name=is_tokenized,proto3" json:"is_tokenized,omitempty"`
+	// OverThreshold will be true when the source code contents of the diff
+	// have not been tokenized and linked. This occurs when the 'MaxSize'
+	// limit in DeltaListFilesOptions has been met.
+	OverThreshold bool `protobuf:"varint,4,opt,name=over_threshold,proto3" json:"over_threshold,omitempty"`
 }
 
 func (m *DeltaFiles) Reset()         { *m = DeltaFiles{} }

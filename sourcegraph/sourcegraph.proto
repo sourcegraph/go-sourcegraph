@@ -1356,9 +1356,10 @@ message DeltaFiles {
 	Delta delta = 2;
 	diff.Stat stats = 3 [(gogoproto.nullable) = false];
 
-	// IsTokenized will be true when the source code contents of the diff
-	// have been tokenized (and potentially linked).
-	bool is_tokenized = 4;
+	// OverThreshold will be true when the source code contents of the diff
+	// have not been tokenized and linked. This occurs when the 'MaxSize'
+	// limit in DeltaListFilesOptions has been met.
+	bool over_threshold = 4;
 }
 
 // DeltaFilter specifies criteria by which to filter results from DeltaListXxx
