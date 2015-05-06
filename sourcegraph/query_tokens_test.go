@@ -2,10 +2,8 @@ package sourcegraph
 
 import (
 	"encoding/json"
-	"math"
 	"reflect"
 	"testing"
-	"time"
 )
 
 func TestTokens_JSON(t *testing.T) {
@@ -13,7 +11,7 @@ func TestTokens_JSON(t *testing.T) {
 		AnyToken("a"),
 		Term("b"),
 		Term(""),
-		RepoToken{URI: "r", Repo: &Repo{RID: math.MaxInt32 - 1}},
+		RepoToken{URI: "r"},
 		RevToken{Rev: "v"},
 		FileToken{Path: "p"},
 		UserToken{Login: "u"},
@@ -38,46 +36,19 @@ func TestTokens_JSON(t *testing.T) {
     "Type": "Term"
   },
   {
-    "URI": "r",
-    "Repo": {
-      "RID": 2147483646,
-      "URI": "",
-      "URIAlias": null,
-      "Name": "",
-      "OwnerUserID": 0,
-      "VCS": "",
-      "HTTPCloneURL": "",
-      "SSHCloneURL": null,
-      "HomepageURL": null,
-      "DefaultBranch": "",
-      "Language": "",
-      "GitHubStars": 0,
-      "Deprecated": false,
-      "Fork": false,
-      "Mirror": false,
-      "Private": false,
-      "CreatedAt": "0001-01-01T00:00:00Z",
-      "UpdatedAt": "0001-01-01T00:00:00Z",
-      "PushedAt": "0001-01-01T00:00:00Z",
-      "Permissions": {
-        "Read": false,
-        "Write": false,
-        "Admin": false
-      }
-    },
+    "uri": "r",
     "Type": "RepoToken"
   },
   {
-    "Rev": "v",
+    "rev": "v",
     "Type": "RevToken"
   },
   {
-    "Path": "p",
-    "Entry": null,
+    "path": "p",
     "Type": "FileToken"
   },
   {
-    "Login": "u",
+    "login": "u",
     "Type": "UserToken"
   }
 ]`
@@ -89,19 +60,6 @@ func TestTokens_JSON(t *testing.T) {
 	if err := json.Unmarshal(b, &tokens2); err != nil {
 		t.Fatal(err)
 	}
-
-	// Normalize tokens for comparison.
-	normTok := func(toks ...Token) {
-		for _, tok := range toks {
-			if tok, ok := tok.(RepoToken); ok {
-				tok.Repo.CreatedAt = time.Time{}
-				tok.Repo.UpdatedAt = time.Time{}
-				tok.Repo.PushedAt = time.Time{}
-			}
-		}
-	}
-	normTok(tokens2...)
-	normTok(tokens...)
 
 	if !reflect.DeepEqual(tokens2, tokens) {
 		t.Errorf("got tokens\n%+v\n\nwant tokens\n%+v", tokens2, tokens)
@@ -119,5 +77,63 @@ func TestTokens_nil(t *testing.T) {
 	wantJSON := `[]`
 	if string(b) != wantJSON {
 		t.Errorf("got JSON\n%s\n\nwant JSON\n%s", b, wantJSON)
+	}
+}
+
+func TestPBToken_Token(t *testing.T) {
+	tests := []struct {
+		pb   PBToken
+		want Token
+	}{
+		{PBTokenWrap(Term("t")), Term("t")},
+		{PBTokenWrap(AnyToken("t")), AnyToken("t")},
+		{PBTokenWrap(RepoToken{URI: "r"}), RepoToken{URI: "r"}},
+		{PBTokenWrap(RevToken{Rev: "v"}), RevToken{Rev: "v"}},
+		{PBTokenWrap(FileToken{Path: "p"}), FileToken{Path: "p"}},
+		{PBTokenWrap(UserToken{Login: "u"}), UserToken{Login: "u"}},
+		{PBTokenWrap(&RepoToken{URI: "r"}), RepoToken{URI: "r"}},
+		{PBTokenWrap(&RevToken{Rev: "v"}), RevToken{Rev: "v"}},
+		{PBTokenWrap(&FileToken{Path: "p"}), FileToken{Path: "p"}},
+		{PBTokenWrap(&UserToken{Login: "u"}), UserToken{Login: "u"}},
+
+		{PBTokenWrap(nil), Term("")},
+		{PBTokenWrap(Term("")), Term("")},
+	}
+	for _, test := range tests {
+		tok := test.pb.Token()
+		if !reflect.DeepEqual(tok, test.want) {
+			t.Errorf("got %#v, want %#v", tok, test.want)
+		}
+	}
+}
+
+func TestPBTokens_JSON(t *testing.T) {
+	pbtoks := []PBToken{
+		PBTokenWrap(Term("t")),
+		PBTokenWrap(AnyToken("t")),
+		PBTokenWrap(RepoToken{URI: "r"}),
+		PBTokenWrap(RevToken{Rev: "v"}),
+		PBTokenWrap(FileToken{Path: "p"}),
+		PBTokenWrap(UserToken{Login: "u"}),
+		PBTokenWrap(&RepoToken{URI: "r"}),
+		PBTokenWrap(&RevToken{Rev: "v"}),
+		PBTokenWrap(&FileToken{Path: "p"}),
+		PBTokenWrap(&UserToken{Login: "u"}),
+	}
+
+	b, err := json.Marshal(pbtoks)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log(string(b))
+
+	var pbtoks2 []PBToken
+	if err := json.Unmarshal(b, &pbtoks2); err != nil {
+		t.Fatal(err)
+	}
+
+	if !reflect.DeepEqual(pbtoks2, pbtoks) {
+		t.Errorf("got %+v, want %+v", pbtoks2, pbtoks)
 	}
 }

@@ -35,7 +35,7 @@ func setup() {
 	server = httptest.NewServer(mux)
 
 	// sourcegraph client configured to use test server
-	client = NewClient(nil)
+	client = NewClient(nil, nil)
 	url, _ := url.Parse(server.URL)
 	client.BaseURL = url
 }
@@ -122,7 +122,7 @@ func TestClient_URL(t *testing.T) {
 	}}
 	for _, test := range tests {
 		func() {
-			c := NewClient(nil)
+			c := NewClient(nil, nil)
 			baseURL, err := url.Parse(test.base)
 			if err != nil {
 				t.Fatal(err)

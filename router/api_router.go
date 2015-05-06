@@ -18,46 +18,18 @@ const (
 	OrgSettings       = "org.settings"
 	OrgSettingsUpdate = "org.settings.update"
 
-	Users                 = "users"
-	User                  = "user"
-	UserOrgs              = "user.orgs"
-	UserAuthors           = "user.authors"
-	UserClients           = "user.clients"
-	UserEmails            = "user.emails"
-	UserFromGitHub        = "user.from-github"
-	UserRepoContributions = "user.repo-contributions"
-	UserRepoDependencies  = "user.repo-dependencies"
-	UserRepoDependents    = "user.repo-dependents"
-	UserRefreshProfile    = "user.refresh-profile"
-	UserSettings          = "user.settings"
-	UserSettingsUpdate    = "user.settings.update"
-	UserComputeStats      = "user.compute-stats"
+	Users              = "users"
+	User               = "user"
+	UserOrgs           = "user.orgs"
+	UserEmails         = "user.emails"
+	UserSettings       = "user.settings"
+	UserSettingsUpdate = "user.settings.update"
 
 	Person = "person"
 
-	RepoPullRequests              = "repo.pull-requests"
-	RepoPullRequest               = "repo.pull-request"
-	RepoPullRequestMerge          = "repo.pull-request.merge"
-	RepoPullRequestComments       = "repo.pull-request.comments"
-	RepoPullRequestCommentsCreate = "repo.pull-request.comments.create"
-	RepoPullRequestCommentsEdit   = "repo.pull-request.comments.edit"
-	RepoPullRequestCommentsDelete = "repo.pull-request.comments.delete"
-
-	RepoIssues              = "repo.issues"
-	RepoIssue               = "repo.issue"
-	RepoIssueComments       = "repo.issue.comments"
-	RepoIssueCommentsCreate = "repo.issue.comments.create"
-	RepoIssueCommentsEdit   = "repo.issue.comments.edit"
-	RepoIssueCommentsDelete = "repo.issue.comments.delete"
-
 	Repos              = "repos"
 	ReposCreate        = "repos.create"
-	ReposGetOrCreate   = "repos.get-or-create"
 	Repo               = "repo"
-	RepoAuthors        = "repo.authors"
-	RepoClients        = "repo.clients"
-	RepoDependents     = "repo.dependents"
-	RepoDependencies   = "repo.dependencies"
 	RepoBadge          = "repo.badge"
 	RepoBadges         = "repo.badges"
 	RepoCounter        = "repo.counter"
@@ -67,18 +39,15 @@ const (
 	RepoBuildDataEntry = "repo.build-data.entry"
 	RepoTreeEntry      = "repo.tree.entry"
 	RepoTreeSearch     = "repo.tree.search"
-	RepoRefreshProfile = "repo.refresh-profile"
 	RepoRefreshVCSData = "repo.refresh-vcs-data"
-	RepoComputeStats   = "repo.compute-stats"
 
 	RepoSettings       = "repo.settings"
 	RepoSettingsUpdate = "repo.settings.update"
 
-	RepoStats          = "repo.stats"
 	RepoCombinedStatus = "repo.combined-status"
 	RepoStatusCreate   = "repo.status.create"
 
-	RepoBuild = "repo.build"
+	RepoBuildInfo = "repo.build"
 
 	RepoCommits        = "repo.commits"
 	RepoCommit         = "repo.commit"
@@ -91,27 +60,19 @@ const (
 
 	SearchSuggestions = "search.suggestions"
 
-	Snippet = "snippet"
+	Defs        = "defs"
+	Def         = "def"
+	DefRefs     = "def.refs"
+	DefExamples = "def.examples"
+	DefAuthors  = "def.authors"
+	DefClients  = "def.clients"
 
-	Defs          = "defs"
-	Def           = "def"
-	DefRefs       = "def.refs"
-	DefExamples   = "def.examples"
-	DefAuthors    = "def.authors"
-	DefClients    = "def.clients"
-	DefDependents = "def.dependents"
-	DefVersions   = "def.versions"
-
-	Delta                   = "delta"
-	DeltaUnits              = "delta.units"
-	DeltaDefs               = "delta.defs"
-	DeltaDependencies       = "delta.dependencies"
-	DeltaFiles              = "delta.files"
-	DeltaAffectedAuthors    = "delta.affected-authors"
-	DeltaAffectedClients    = "delta.affected-clients"
-	DeltaAffectedDependents = "delta.affected-dependents"
-	DeltaReviewers          = "delta.reviewers"
-	DeltasIncoming          = "deltas.incoming"
+	Delta                = "delta"
+	DeltaUnits           = "delta.units"
+	DeltaDefs            = "delta.defs"
+	DeltaFiles           = "delta.files"
+	DeltaAffectedAuthors = "delta.affected-authors"
+	DeltaAffectedClients = "delta.affected-clients"
 
 	Unit  = "unit"
 	Units = "units"
@@ -140,15 +101,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	base.Path("/builds").Methods("GET").Name(Builds)
 	builds := base.PathPrefix("/builds").Subrouter()
 	builds.Path("/next").Methods("POST").Name(BuildDequeueNext)
-	buildPath := "/{BID}"
-	builds.Path(buildPath).Methods("GET").Name(Build)
-	builds.Path(buildPath).Methods("PUT").Name(BuildUpdate)
-	build := builds.PathPrefix(buildPath).Subrouter()
-	build.Path("/log").Methods("GET").Name(BuildLog)
-	build.Path("/tasks").Methods("GET").Name(BuildTasks)
-	build.Path("/tasks").Methods("POST").Name(BuildTasksCreate)
-	build.Path("/tasks/{TaskID}").Methods("PUT").Name(BuildTaskUpdate)
-	build.Path("/tasks/{TaskID}/log").Methods("GET").Name(BuildTaskLog)
 
 	base.Path("/repos").Methods("GET").Name(Repos)
 	base.Path("/repos").Methods("POST").Name(ReposCreate)
@@ -156,26 +108,16 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	base.Path("/repos/github.com/{owner:[^/]+}/{repo:[^/]+}/{what:(?:badges|counters)}/{which}.{Format}").Methods("GET").Name(RedirectOldRepoBadgesAndCounters)
 
 	repoRev := base.PathPrefix(`/repos/` + RepoRevSpecPattern).PostMatchFunc(FixRepoRevSpecVars).BuildVarsFunc(PrepareRepoRevSpecRouteVars).Subrouter()
-	repoRev.Path("/.stats").Methods("PUT").Name(RepoComputeStats)
-	repoRev.Path("/.stats").Methods("GET").Name(RepoStats)
 	repoRev.Path("/.status").Methods("GET").Name(RepoCombinedStatus)
 	repoRev.Path("/.status").Methods("POST").Name(RepoStatusCreate)
-	repoRev.Path("/.authors").Methods("GET").Name(RepoAuthors)
 	repoRev.Path("/.readme").Methods("GET").Name(RepoReadme)
-	repoRev.Path("/.build").Methods("GET").Name(RepoBuild)
-	repoRev.Path("/.builds").Methods("POST").Name(RepoBuildsCreate)
-	repoRev.Path("/.dependencies").Methods("GET").Name(RepoDependencies)
 	repoRev.PathPrefix("/.build-data"+TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET", "HEAD", "PUT", "DELETE").Name(RepoBuildDataEntry)
 	repoRev.Path("/.badges/{Badge}.{Format}").Methods("GET").Name(RepoBadge)
 
 	// repo contains routes that are NOT specific to a revision. In these routes, the URL may not contain a revspec after the repo (that is, no "github.com/foo/bar@myrevspec").
 	repoPath := `/repos/` + RepoSpecPathPattern
 	base.Path(repoPath).Methods("GET").Name(Repo)
-	base.Path(repoPath).Methods("PUT").Name(ReposGetOrCreate)
 	repo := base.PathPrefix(repoPath).Subrouter()
-	repo.Path("/.clients").Methods("GET").Name(RepoClients)
-	repo.Path("/.dependents").Methods("GET").Name(RepoDependents)
-	repo.Path("/.external-profile").Methods("PUT").Name(RepoRefreshProfile)
 	repo.Path("/.vcs-data").Methods("PUT").Name(RepoRefreshVCSData)
 	repo.Path("/.settings").Methods("GET").Name(RepoSettings)
 	repo.Path("/.settings").Methods("PUT").Name(RepoSettingsUpdate)
@@ -188,38 +130,26 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	repo.Path("/.counters").Methods("GET").Name(RepoCounters)
 	repo.Path("/.counters/{Counter}.{Format}").Methods("GET").Name(RepoCounter)
 
-	repo.Path("/.pulls").Methods("GET").Name(RepoPullRequests)
-	pullPath := "/.pulls/{Pull}"
-	repo.Path(pullPath).Methods("GET").Name(RepoPullRequest)
-	pull := repo.PathPrefix(pullPath).Subrouter()
-	pull.Path("/merge").Methods("PUT").Name(RepoPullRequestMerge)
-	pull.Path("/comments").Methods("GET").Name(RepoPullRequestComments)
-	pull.Path("/comments").Methods("POST").Name(RepoPullRequestCommentsCreate)
-	pull.Path("/comments/{CommentID}").Methods("PATCH", "PUT").Name(RepoPullRequestCommentsEdit)
-	pull.Path("/comments/{CommentID}").Methods("DELETE").Name(RepoPullRequestCommentsDelete)
-
-	repo.Path("/.issues").Methods("GET").Name(RepoIssues)
-	issuePath := "/.issues/{Issue}"
-	repo.Path(issuePath).Methods("GET").Name(RepoIssue)
-	issue := repo.PathPrefix(issuePath).Subrouter()
-	issue.Path("/comments").Methods("GET").Name(RepoIssueComments)
-	issue.Path("/comments").Methods("POST").Name(RepoIssueCommentsCreate)
-	issue.Path("/comments/{CommentID}").Methods("PATCH", "PUT").Name(RepoIssueCommentsEdit)
-	issue.Path("/comments/{CommentID}").Methods("DELETE").Name(RepoIssueCommentsDelete)
+	repoRev.Path("/.build").Methods("GET").Name(RepoBuildInfo)
+	repoRev.Path("/.builds").Methods("POST").Name(RepoBuildsCreate)
+	buildPath := "/.builds/{BID}"
+	repo.Path(buildPath).Methods("GET").Name(Build)
+	repo.Path(buildPath).Methods("PUT").Name(BuildUpdate)
+	build := repo.PathPrefix(buildPath).Subrouter()
+	build.Path("/log").Methods("GET").Name(BuildLog)
+	build.Path("/tasks").Methods("GET").Name(BuildTasks)
+	build.Path("/tasks").Methods("POST").Name(BuildTasksCreate)
+	build.Path("/tasks/{TaskID}").Methods("PUT").Name(BuildTaskUpdate)
+	build.Path("/tasks/{TaskID}/log").Methods("GET").Name(BuildTaskLog)
 
 	deltaPath := "/.deltas/{Rev:.+}..{DeltaHeadRev:" + PathComponentNoLeadingDot + "}"
 	repo.Path(deltaPath).Methods("GET").Name(Delta)
 	deltas := repo.PathPrefix(deltaPath).Subrouter()
 	deltas.Path("/.units").Methods("GET").Name(DeltaUnits)
 	deltas.Path("/.defs").Methods("GET").Name(DeltaDefs)
-	deltas.Path("/.dependencies").Methods("GET").Name(DeltaDependencies)
 	deltas.Path("/.files").Methods("GET").Name(DeltaFiles)
 	deltas.Path("/.affected-authors").Methods("GET").Name(DeltaAffectedAuthors)
 	deltas.Path("/.affected-clients").Methods("GET").Name(DeltaAffectedClients)
-	deltas.Path("/.affected-dependents").Methods("GET").Name(DeltaAffectedDependents)
-	deltas.Path("/.reviewers").Methods("GET").Name(DeltaReviewers)
-
-	repo.Path("/.deltas-incoming").Methods("GET").Name(DeltasIncoming)
 
 	// See router_util/tree_route.go for an explanation of how we match tree
 	// entry routes.
@@ -234,17 +164,9 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	base.Path(userPath).Methods("GET").Name(User)
 	user := base.PathPrefix(userPath).Subrouter()
 	user.Path("/orgs").Methods("GET").Name(UserOrgs)
-	user.Path("/clients").Methods("GET").Name(UserClients)
-	user.Path("/authors").Methods("GET").Name(UserAuthors)
 	user.Path("/emails").Methods("GET").Name(UserEmails)
-	user.Path("/repo-contributions").Methods("GET").Name(UserRepoContributions)
-	user.Path("/repo-dependencies").Methods("GET").Name(UserRepoDependencies)
-	user.Path("/repo-dependents").Methods("GET").Name(UserRepoDependents)
-	user.Path("/external-profile").Methods("PUT").Name(UserRefreshProfile)
-	user.Path("/stats").Methods("PUT").Name(UserComputeStats)
 	user.Path("/settings").Methods("GET").Name(UserSettings)
 	user.Path("/settings").Methods("PUT").Name(UserSettingsUpdate)
-	base.Path("/external-users/github/{GitHubUserSpec}").Methods("GET").Name(UserFromGitHub)
 
 	orgPath := "/orgs/{OrgSpec}"
 	base.Path(orgPath).Methods("GET").Name(Org)
@@ -257,8 +179,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	base.Path("/search/complete").Methods("GET").Name(SearchComplete)
 	base.Path("/search/suggestions").Methods("GET").Name(SearchSuggestions)
 
-	base.Path("/snippet").Methods("GET", "POST", "ORIGIN").Name(Snippet)
-
 	base.Path("/.defs").Methods("GET").Name(Defs)
 
 	// See router_util/def_route.go for an explanation of how we match def
@@ -270,8 +190,6 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	def.Path("/.examples").Methods("GET").Name(DefExamples)
 	def.Path("/.authors").Methods("GET").Name(DefAuthors)
 	def.Path("/.clients").Methods("GET").Name(DefClients)
-	def.Path("/.dependents").Methods("GET").Name(DefDependents)
-	def.Path("/.versions").Methods("GET").Name(DefVersions)
 
 	base.Path("/.units").Methods("GET").Name(Units)
 	unitPath := `/.units/{UnitType}/{Unit:.*}`

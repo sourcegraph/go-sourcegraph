@@ -8,7 +8,7 @@ import (
 )
 
 // RepoSpecPattern is the path pattern for encoding RepoSpec.
-var RepoSpecPathPattern = `{RepoSpec:(?:(?:[^/.@][^/@]*/)+(?:[^/.@][^/@]*))|(?:R\$\d+)}`
+var RepoSpecPathPattern = `{RepoSpec:(?:[^/.@][^/@]*/)+(?:[^/.@][^/@]*)}`
 
 // RepoRevSpecPattern is the path pattern for encoding RepoRevSpec.
 var RepoRevSpecPattern = RepoSpecPathPattern + `{Rev:(?:@` + PathComponentNoLeadingDot + `)?}`

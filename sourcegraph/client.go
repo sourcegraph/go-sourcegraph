@@ -1,4 +1,3 @@
-//go:generate gen-mocks -p sourcegraph.com/sourcegraph/go-sourcegraph/sourcegraph -n sourcegraph -o . -w
 package sourcegraph
 
 import (
@@ -13,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/google/go-querystring/query"
+	"google.golang.org/grpc"
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
 )
 
@@ -21,62 +21,92 @@ const (
 	userAgent      = "sourcegraph-client/" + libraryVersion
 )
 
-// A Client communicates with the Sourcegraph API.
+// A Client communicates with the Sourcegraph API. All communication
+// is done using gRPC over HTTP/2 except for BuildData (which uses
+// HTTP/1).
 type Client struct {
 	// Services used to communicate with different parts of the Sourcegraph API.
-	BuildData    BuildDataService
-	Builds       BuildsService
-	Deltas       DeltasService
-	Issues       IssuesService
-	Orgs         OrgsService
-	People       PeopleService
-	PullRequests PullRequestsService
-	Repos        ReposService
-	RepoTree     RepoTreeService
-	Search       SearchService
-	Units        UnitsService
-	Users        UsersService
-	Defs         DefsService
-	Markdown     MarkdownService
+	Accounts            AccountsClient
+	Builds              BuildsClient
+	BuildData           BuildDataService
+	Defs                DefsClient
+	Deltas              DeltasClient
+	HostedRepos         HostedReposClient
+	Markdown            MarkdownClient
+	Meta                MetaClient
+	MirrorRepos         MirrorReposClient
+	MirroredRepoSSHKeys MirroredRepoSSHKeysClient
+	Orgs                OrgsClient
+	People              PeopleClient
+	RepoBadges          RepoBadgesClient
+	RepoStatuses        RepoStatusesClient
+	RepoTree            RepoTreeClient
+	Repos               ReposClient
+	Search              SearchClient
+	Units               UnitsClient
+	UserAuth            UserAuthClient
+	Users               UsersClient
 
-	// Base URL for API requests, which should have a trailing slash.
+	// Base URL for HTTP/1.1 requests, which should have a trailing slash.
 	BaseURL *url.URL
 
-	// User agent used for HTTP requests to the Sourcegraph API.
+	// User agent used for HTTP/1.1 requests to the Sourcegraph API.
 	UserAgent string
 
 	// HTTP client used to communicate with the Sourcegraph API.
 	httpClient *http.Client
+
+	// gRPC client connection used to communicate with the Sourcegraph
+	// API.
+	Conn *grpc.ClientConn
 }
 
-// NewClient returns a new Sourcegraph API client. If httpClient is nil,
-// http.DefaultClient is used.
-func NewClient(httpClient *http.Client) *Client {
+// Close closes the gRPC client connection.
+func (c *Client) Close() error {
+	if conn := c.Conn; conn != nil {
+		c.Conn = nil
+		return conn.Close()
+	}
+	return nil
+}
+
+// NewClient returns a Sourcegraph API client. The gRPC conn is used
+// for all services except for BuildData (which uses the
+// httpClient). If httpClient is nil, http.DefaultClient is used.
+func NewClient(httpClient *http.Client, conn *grpc.ClientConn) *Client {
+	c := new(Client)
+
+	// HTTP/1
 	if httpClient == nil {
 		cloned := *http.DefaultClient
 		httpClient = &cloned
 	}
-
-	c := new(Client)
 	c.httpClient = httpClient
-	c.BuildData = &buildDataService{c}
-	c.Builds = &buildsService{c}
-	c.Deltas = &deltasService{c}
-	c.Issues = &issuesService{c}
-	c.Orgs = &orgsService{c}
-	c.People = &peopleService{c}
-	c.PullRequests = &pullRequestsService{c}
-	c.Repos = &repositoriesService{c}
-	c.RepoTree = &repoTreeService{c}
-	c.Search = &searchService{c}
-	c.Units = &unitsService{c}
-	c.Users = &usersService{c}
-	c.Defs = &defsService{c}
-	c.Markdown = &markdownService{c}
-
 	c.BaseURL = &url.URL{Scheme: "https", Host: "sourcegraph.com", Path: "/api/"}
-
 	c.UserAgent = userAgent
+	c.BuildData = &buildDataService{c}
+
+	// gRPC (HTTP/2)
+	c.Conn = conn
+	c.Accounts = NewAccountsClient(conn)
+	c.Builds = NewBuildsClient(conn)
+	c.Defs = NewDefsClient(conn)
+	c.Deltas = NewDeltasClient(conn)
+	c.HostedRepos = NewHostedReposClient(conn)
+	c.Markdown = NewMarkdownClient(conn)
+	c.Meta = NewMetaClient(conn)
+	c.MirrorRepos = NewMirrorReposClient(conn)
+	c.MirroredRepoSSHKeys = NewMirroredRepoSSHKeysClient(conn)
+	c.Orgs = NewOrgsClient(conn)
+	c.People = NewPeopleClient(conn)
+	c.RepoBadges = NewRepoBadgesClient(conn)
+	c.RepoStatuses = NewRepoStatusesClient(conn)
+	c.RepoTree = NewRepoTreeClient(conn)
+	c.Repos = NewReposClient(conn)
+	c.Search = NewSearchClient(conn)
+	c.Units = NewUnitsClient(conn)
+	c.UserAuth = NewUserAuthClient(conn)
+	c.Users = NewUsersClient(conn)
 
 	return c
 }
@@ -201,8 +231,6 @@ func (r *HTTPResponse) TotalCount() int {
 	return n
 }
 
-type MockResponse struct{}
-
 // Response is a response from the Sourcegraph API. When using the HTTP API,
 // API methods return *HTTPResponse values that implement Response.
 type Response interface {
@@ -213,38 +241,12 @@ type Response interface {
 	TotalCount() int
 }
 
-// ListOptions specifies general pagination options for fetching a list of
-// results.
-type ListOptions struct {
-	PerPage int `url:",omitempty" json:",omitempty"`
-	Page    int `url:",omitempty" json:",omitempty"`
+// SimpleResponse implements Response.
+type SimpleResponse struct {
+	Total int // see (Response).TotalCount()
 }
 
-const DefaultPerPage = 10
-
-func (o ListOptions) PageOrDefault() int {
-	if o.Page <= 0 {
-		return 1
-	}
-	return o.Page
-}
-
-func (o ListOptions) PerPageOrDefault() int {
-	if o.PerPage <= 0 {
-		return DefaultPerPage
-	}
-	return o.PerPage
-}
-
-// Limit returns the number of items to fetch.
-func (o ListOptions) Limit() int { return o.PerPageOrDefault() }
-
-// Offset returns the 0-indexed offset of the first item that appears on this
-// page, based on the PerPage and Page values (which are given default values if
-// they are zero).
-func (o ListOptions) Offset() int {
-	return (o.PageOrDefault() - 1) * o.PerPageOrDefault()
-}
+func (r *SimpleResponse) TotalCount() int { return r.Total }
 
 type doKey int // sentinel value type for (*Client).Do v parameter
 
@@ -306,23 +308,4 @@ func addOptions(u *url.URL, opt interface{}) error {
 
 	u.RawQuery = qs.Encode()
 	return nil
-}
-
-// NewMockClient returns a mockable Client for use in tests.
-func NewMockClient() *Client {
-	return &Client{
-		BuildData:    &MockBuildDataService{},
-		Builds:       &MockBuildsService{},
-		Deltas:       &MockDeltasService{},
-		Issues:       &MockIssuesService{},
-		Orgs:         &MockOrgsService{},
-		People:       &MockPeopleService{},
-		PullRequests: &MockPullRequestsService{},
-		Repos:        &MockReposService{},
-		RepoTree:     &MockRepoTreeService{},
-		Search:       &MockSearchService{},
-		Units:        &MockUnitsService{},
-		Users:        &MockUsersService{},
-		Defs:         &MockDefsService{},
-	}
 }
