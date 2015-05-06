@@ -571,7 +571,9 @@ func (m *ReposListBranchesOp) String() string { return proto.CompactTextString(m
 func (*ReposListBranchesOp) ProtoMessage()    {}
 
 type RepoListBranchesOptions struct {
-	ListOptions `protobuf:"bytes,3,opt,name=list_options,embedded=list_options" json:"list_options"`
+	IncludeCommit     bool   `protobuf:"varint,4,opt,name=include_commit,proto3" json:"include_commit,omitempty"`
+	BehindAheadBranch string `protobuf:"bytes,5,opt,name=behind_ahead_branch,proto3" json:"behind_ahead_branch,omitempty"`
+	ListOptions       `protobuf:"bytes,3,opt,name=list_options,embedded=list_options" json:"list_options"`
 }
 
 func (m *RepoListBranchesOptions) Reset()         { *m = RepoListBranchesOptions{} }
