@@ -355,6 +355,8 @@ message ReposListBranchesOp {
 }
 
 message RepoListBranchesOptions {
+	bool include_commit = 4;
+	string behind_ahead_branch = 5;
 	ListOptions list_options = 3 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
