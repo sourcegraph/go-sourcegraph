@@ -1354,11 +1354,16 @@ message Hunk {
 
 	// WordDiff maps relative line numbers in the BodySource to more token specific
 	// change positions on those lines.
-	map<int32, LineChanges> word_diff = 6;
+	WordDiff word_diff = 6;
+}
+
+message WordDiff {
+	repeated int32 offsets = 1;
+	repeated LineChanges changes = 2;
 }
 
 // LineChanges maps token positions on a line to the number of changes that have
-// occurred at that position.
+// occurred starting at that position.
 message LineChanges {
 	map<int32, int32> changes = 1;
 }

@@ -114,6 +114,7 @@ It has these top-level messages:
 	DeltaDefs
 	FileDiff
 	Hunk
+	WordDiff
 	LineChanges
 	DeltaFiles
 	DeltaFilter
@@ -1652,15 +1653,24 @@ type Hunk struct {
 	BodySource *SourceCode `protobuf:"bytes,5,opt,name=body_source" json:"body_source,omitempty"`
 	// WordDiff maps relative line numbers in the BodySource to more token specific
 	// change positions on those lines.
-	WordDiff map[int32]*LineChanges `protobuf:"bytes,6,rep,name=word_diff" json:"word_diff,omitempty" protobuf_key:"varint,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value"`
+	WordDiff *WordDiff `protobuf:"bytes,6,opt,name=word_diff" json:"word_diff,omitempty"`
 }
 
 func (m *Hunk) Reset()         { *m = Hunk{} }
 func (m *Hunk) String() string { return proto.CompactTextString(m) }
 func (*Hunk) ProtoMessage()    {}
 
+type WordDiff struct {
+	Offsets []int32        `protobuf:"varint,1,rep,name=offsets" json:"offsets,omitempty"`
+	Changes []*LineChanges `protobuf:"bytes,2,rep,name=changes" json:"changes,omitempty"`
+}
+
+func (m *WordDiff) Reset()         { *m = WordDiff{} }
+func (m *WordDiff) String() string { return proto.CompactTextString(m) }
+func (*WordDiff) ProtoMessage()    {}
+
 // LineChanges maps token positions on a line to the number of changes that have
-// occurred at that position.
+// occurred starting at that position.
 type LineChanges struct {
 	Changes map[int32]int32 `protobuf:"bytes,1,rep,name=changes" json:"changes,omitempty" protobuf_key:"varint,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3"`
 }
