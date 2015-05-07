@@ -1352,20 +1352,18 @@ message Hunk {
 	// of both additions and deletions.
 	SourceCode body_source = 5;
 
-	// WordDiff maps relative line numbers in the BodySource to more token specific
-	// change positions on those lines.
-	WordDiff word_diff = 6;
+	repeated WordChanges word_diff = 6;
 }
 
-message WordDiff {
-	repeated int32 offsets = 1;
-	repeated LineChanges changes = 2;
+message WordChanges {
+	repeated WordChange changes = 1;
 }
 
-// LineChanges maps token positions on a line to the number of changes that have
-// occurred starting at that position.
-message LineChanges {
-	map<int32, int32> changes = 1;
+message WordChange {
+	int32 a = 1;
+	int32 b = 2;
+	int32 count_a = 3;
+	int32 count_b = 4;
 }
 
 // DeltaFiles describes files added/changed/deleted in a delta.

@@ -114,8 +114,8 @@ It has these top-level messages:
 	DeltaDefs
 	FileDiff
 	Hunk
-	WordDiff
-	LineChanges
+	WordChanges
+	WordChange
 	DeltaFiles
 	DeltaFilter
 	DeltaListAffectedAuthorsOptions
@@ -1650,34 +1650,32 @@ type Hunk struct {
 	HeadSource *SourceCode `protobuf:"bytes,4,opt,name=head_source" json:"head_source,omitempty"`
 	// BodySource contains the source code for the Hunk body and is a mix
 	// of both additions and deletions.
-	BodySource *SourceCode `protobuf:"bytes,5,opt,name=body_source" json:"body_source,omitempty"`
-	// WordDiff maps relative line numbers in the BodySource to more token specific
-	// change positions on those lines.
-	WordDiff *WordDiff `protobuf:"bytes,6,opt,name=word_diff" json:"word_diff,omitempty"`
+	BodySource *SourceCode    `protobuf:"bytes,5,opt,name=body_source" json:"body_source,omitempty"`
+	WordDiff   []*WordChanges `protobuf:"bytes,6,rep,name=word_diff" json:"word_diff,omitempty"`
 }
 
 func (m *Hunk) Reset()         { *m = Hunk{} }
 func (m *Hunk) String() string { return proto.CompactTextString(m) }
 func (*Hunk) ProtoMessage()    {}
 
-type WordDiff struct {
-	Offsets []int32        `protobuf:"varint,1,rep,name=offsets" json:"offsets,omitempty"`
-	Changes []*LineChanges `protobuf:"bytes,2,rep,name=changes" json:"changes,omitempty"`
+type WordChanges struct {
+	Changes []*WordChange `protobuf:"bytes,1,rep,name=changes" json:"changes,omitempty"`
 }
 
-func (m *WordDiff) Reset()         { *m = WordDiff{} }
-func (m *WordDiff) String() string { return proto.CompactTextString(m) }
-func (*WordDiff) ProtoMessage()    {}
+func (m *WordChanges) Reset()         { *m = WordChanges{} }
+func (m *WordChanges) String() string { return proto.CompactTextString(m) }
+func (*WordChanges) ProtoMessage()    {}
 
-// LineChanges maps token positions on a line to the number of changes that have
-// occurred starting at that position.
-type LineChanges struct {
-	Changes map[int32]int32 `protobuf:"bytes,1,rep,name=changes" json:"changes,omitempty" protobuf_key:"varint,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3"`
+type WordChange struct {
+	A      int32 `protobuf:"varint,1,opt,name=a,proto3" json:"a,omitempty"`
+	B      int32 `protobuf:"varint,2,opt,name=b,proto3" json:"b,omitempty"`
+	CountA int32 `protobuf:"varint,3,opt,name=count_a,proto3" json:"count_a,omitempty"`
+	CountB int32 `protobuf:"varint,4,opt,name=count_b,proto3" json:"count_b,omitempty"`
 }
 
-func (m *LineChanges) Reset()         { *m = LineChanges{} }
-func (m *LineChanges) String() string { return proto.CompactTextString(m) }
-func (*LineChanges) ProtoMessage()    {}
+func (m *WordChange) Reset()         { *m = WordChange{} }
+func (m *WordChange) String() string { return proto.CompactTextString(m) }
+func (*WordChange) ProtoMessage()    {}
 
 // DeltaFiles describes files added/changed/deleted in a delta.
 type DeltaFiles struct {
