@@ -114,6 +114,7 @@ It has these top-level messages:
 	DeltaDefs
 	FileDiff
 	Hunk
+	LineChanges
 	DeltaFiles
 	DeltaFilter
 	DeltaListAffectedAuthorsOptions
@@ -1649,11 +1650,24 @@ type Hunk struct {
 	// BodySource contains the source code for the Hunk body and is a mix
 	// of both additions and deletions.
 	BodySource *SourceCode `protobuf:"bytes,5,opt,name=body_source" json:"body_source,omitempty"`
+	// WordDiff maps relative line numbers in the BodySource to more token specific
+	// change positions on those lines.
+	WordDiff map[int32]*LineChanges `protobuf:"bytes,6,rep,name=word_diff" json:"word_diff,omitempty" protobuf_key:"varint,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value"`
 }
 
 func (m *Hunk) Reset()         { *m = Hunk{} }
 func (m *Hunk) String() string { return proto.CompactTextString(m) }
 func (*Hunk) ProtoMessage()    {}
+
+// LineChanges maps token positions on a line to the number of changes that have
+// occurred at that position.
+type LineChanges struct {
+	Changes map[int32]int32 `protobuf:"bytes,1,rep,name=changes" json:"changes,omitempty" protobuf_key:"varint,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3"`
+}
+
+func (m *LineChanges) Reset()         { *m = LineChanges{} }
+func (m *LineChanges) String() string { return proto.CompactTextString(m) }
+func (*LineChanges) ProtoMessage()    {}
 
 // DeltaFiles describes files added/changed/deleted in a delta.
 type DeltaFiles struct {

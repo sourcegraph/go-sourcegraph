@@ -1351,6 +1351,16 @@ message Hunk {
 	// BodySource contains the source code for the Hunk body and is a mix
 	// of both additions and deletions.
 	SourceCode body_source = 5;
+
+	// WordDiff maps relative line numbers in the BodySource to more token specific
+	// change positions on those lines.
+	map<int32, LineChanges> word_diff = 6;
+}
+
+// LineChanges maps token positions on a line to the number of changes that have
+// occurred at that position.
+message LineChanges {
+	map<int32, int32> changes = 1;
 }
 
 // DeltaFiles describes files added/changed/deleted in a delta.
