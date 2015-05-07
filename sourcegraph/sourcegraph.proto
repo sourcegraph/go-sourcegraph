@@ -343,6 +343,7 @@ message RepoListCommitsOptions {
 	string head = 1;
 	string base = 2;
 	ListOptions list_options = 3 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+	string path = 4;
 }
 
 message CommitList {

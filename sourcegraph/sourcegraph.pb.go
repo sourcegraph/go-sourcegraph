@@ -547,6 +547,7 @@ type RepoListCommitsOptions struct {
 	Head        string `protobuf:"bytes,1,opt,name=head,proto3" json:"head,omitempty"`
 	Base        string `protobuf:"bytes,2,opt,name=base,proto3" json:"base,omitempty"`
 	ListOptions `protobuf:"bytes,3,opt,name=list_options,embedded=list_options" json:"list_options"`
+	Path        string `protobuf:"bytes,4,opt,name=path,proto3" json:"path,omitempty"`
 }
 
 func (m *RepoListCommitsOptions) Reset()         { *m = RepoListCommitsOptions{} }
