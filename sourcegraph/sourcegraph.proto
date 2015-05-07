@@ -1360,8 +1360,8 @@ message WordChanges {
 }
 
 message WordChange {
-	int32 offset = 1;
-	int32 count = 2;
+	int32 offset = 1 [(gogoproto.jsontag) = ""];
+	int32 count = 2 [(gogoproto.jsontag) = ""];
 }
 
 // DeltaFiles describes files added/changed/deleted in a delta.
