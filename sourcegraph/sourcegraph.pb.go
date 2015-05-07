@@ -1667,10 +1667,8 @@ func (m *WordChanges) String() string { return proto.CompactTextString(m) }
 func (*WordChanges) ProtoMessage()    {}
 
 type WordChange struct {
-	A      int32 `protobuf:"varint,1,opt,name=a,proto3" json:"a,omitempty"`
-	B      int32 `protobuf:"varint,2,opt,name=b,proto3" json:"b,omitempty"`
-	CountA int32 `protobuf:"varint,3,opt,name=count_a,proto3" json:"count_a,omitempty"`
-	CountB int32 `protobuf:"varint,4,opt,name=count_b,proto3" json:"count_b,omitempty"`
+	Offset int32 `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
+	Count  int32 `protobuf:"varint,2,opt,name=count,proto3" json:"count,omitempty"`
 }
 
 func (m *WordChange) Reset()         { *m = WordChange{} }

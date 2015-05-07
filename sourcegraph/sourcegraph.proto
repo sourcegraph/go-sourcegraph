@@ -1360,10 +1360,8 @@ message WordChanges {
 }
 
 message WordChange {
-	int32 a = 1;
-	int32 b = 2;
-	int32 count_a = 3;
-	int32 count_b = 4;
+	int32 offset = 1;
+	int32 count = 2;
 }
 
 // DeltaFiles describes files added/changed/deleted in a delta.
