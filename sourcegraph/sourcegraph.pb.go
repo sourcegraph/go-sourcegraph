@@ -150,7 +150,6 @@ It has these top-level messages:
 	SuggestionList
 	SourceCode
 	SourceCodeLine
-	SourceCodeTokenOrString
 	SourceCodeToken
 	TreeEntry
 	TreeEntrySpec
@@ -2087,44 +2086,32 @@ type SourceCodeLine struct {
 	EndByte   int32 `protobuf:"varint,2,opt,name=end_byte,proto3" json:"end_byte,omitempty"`
 	// Tokens contains any tokens that may be on this line, including whitespace. New
 	// lines ('\n') are not present.
-	Tokens []SourceCodeTokenOrString `protobuf:"bytes,3,rep,name=tokens" json:"tokens"`
+	Tokens []*SourceCodeToken `protobuf:"bytes,3,rep,name=tokens" json:"tokens,omitempty"`
 }
 
 func (m *SourceCodeLine) Reset()         { *m = SourceCodeLine{} }
 func (m *SourceCodeLine) String() string { return proto.CompactTextString(m) }
 func (*SourceCodeLine) ProtoMessage()    {}
 
-// SourceCodeTokenOrString is either a whitespace token (stored as an
-// HTML encoded "string") or a SourceCodeToken. Exactly one field is
-// nonempty.
-//
-// TODO(sqs) TODO(perf): space- and memory-optimize this (by making it implement
-// json.Marshaler, for example) - it's an inefficient hack to make it
-// protobuf-serializable.
-type SourceCodeTokenOrString struct {
-	Str   string           `protobuf:"bytes,1,opt,name=str,proto3" json:"str,omitempty"`
-	Token *SourceCodeToken `protobuf:"bytes,2,opt,name=token" json:"token,omitempty"`
-}
-
-func (m *SourceCodeTokenOrString) Reset()         { *m = SourceCodeTokenOrString{} }
-func (m *SourceCodeTokenOrString) String() string { return proto.CompactTextString(m) }
-func (*SourceCodeTokenOrString) ProtoMessage()    {}
-
 // SourceCodeToken contains information about a code token.
 type SourceCodeToken struct {
 	// Start and end byte offsets in original file.
-	StartByte int32 `protobuf:"varint,1,opt,name=start_byte,proto3" json:"start_byte,omitempty"`
-	EndByte   int32 `protobuf:"varint,2,opt,name=end_byte,proto3" json:"end_byte,omitempty"`
+	StartByte int32 `protobuf:"varint,1,opt,name=start_byte,proto3" json:"-"`
+	EndByte   int32 `protobuf:"varint,2,opt,name=end_byte,proto3" json:"-"`
 	// If the token is a reference URL contains the DefKey-based URLs for all the
 	// definitions at this position.
 	URL []string `protobuf:"bytes,3,rep,name=url" json:",omitempty"`
 	// IsDef specifies whether the token is a definition.
-	IsDef bool `protobuf:"varint,4,opt,name=is_def,proto3" json:"is_def,omitempty"`
+	IsDef bool `protobuf:"varint,4,opt,name=is_def,proto3" json:",omitempty"`
 	// Class specifies the token type as per
 	// [google-code-prettify](https://code.google.com/p/google-code-prettify/).
-	Class string `protobuf:"bytes,5,opt,name=class,proto3" json:"class,omitempty"`
+	// All tokens except Whitespace will have this field.
+	Class string `protobuf:"bytes,5,opt,name=class,proto3" json:",omitempty"`
+	// ExtraClasses may additionally contain other classes for this token, such as
+	// for example highlighting in a diff.
+	ExtraClasses string `protobuf:"bytes,6,opt,name=extraClasses,proto3" json:",omitempty"`
 	// Label is non-whitespace HTML encoded source code.
-	Label string `protobuf:"bytes,6,opt,name=label,proto3" json:"label,omitempty"`
+	Label string `protobuf:"bytes,7,opt,name=label,proto3" json:"label,omitempty"`
 }
 
 func (m *SourceCodeToken) Reset()         { *m = SourceCodeToken{} }
@@ -2495,9 +2482,9 @@ func RegisterRepoBadgesServer(s *grpc.Server, srv RepoBadgesServer) {
 	s.RegisterService(&_RepoBadges_serviceDesc, srv)
 }
 
-func _RepoBadges_ListBadges_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _RepoBadges_ListBadges_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(RepoBadgesServer).ListBadges(ctx, in)
@@ -2507,9 +2494,9 @@ func _RepoBadges_ListBadges_Handler(srv interface{}, ctx context.Context, codec 
 	return out, nil
 }
 
-func _RepoBadges_ListCounters_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _RepoBadges_ListCounters_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(RepoBadgesServer).ListCounters(ctx, in)
@@ -2519,9 +2506,9 @@ func _RepoBadges_ListCounters_Handler(srv interface{}, ctx context.Context, code
 	return out, nil
 }
 
-func _RepoBadges_RecordHit_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _RepoBadges_RecordHit_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(RepoBadgesServer).RecordHit(ctx, in)
@@ -2531,9 +2518,9 @@ func _RepoBadges_RecordHit_Handler(srv interface{}, ctx context.Context, codec g
 	return out, nil
 }
 
-func _RepoBadges_CountHits_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _RepoBadges_CountHits_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoBadgesCountHitsOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(RepoBadgesServer).CountHits(ctx, in)
@@ -2615,9 +2602,9 @@ func RegisterRepoStatusesServer(s *grpc.Server, srv RepoStatusesServer) {
 	s.RegisterService(&_RepoStatuses_serviceDesc, srv)
 }
 
-func _RepoStatuses_GetCombined_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _RepoStatuses_GetCombined_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoRevSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(RepoStatusesServer).GetCombined(ctx, in)
@@ -2627,9 +2614,9 @@ func _RepoStatuses_GetCombined_Handler(srv interface{}, ctx context.Context, cod
 	return out, nil
 }
 
-func _RepoStatuses_Create_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _RepoStatuses_Create_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoStatusesCreateOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(RepoStatusesServer).Create(ctx, in)
@@ -2805,9 +2792,9 @@ func RegisterReposServer(s *grpc.Server, srv ReposServer) {
 	s.RegisterService(&_Repos_serviceDesc, srv)
 }
 
-func _Repos_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Repos_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(ReposServer).Get(ctx, in)
@@ -2817,9 +2804,9 @@ func _Repos_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, 
 	return out, nil
 }
 
-func _Repos_List_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Repos_List_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoListOptions)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(ReposServer).List(ctx, in)
@@ -2829,9 +2816,9 @@ func _Repos_List_Handler(srv interface{}, ctx context.Context, codec grpc.Codec,
 	return out, nil
 }
 
-func _Repos_GetReadme_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Repos_GetReadme_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoRevSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(ReposServer).GetReadme(ctx, in)
@@ -2841,9 +2828,9 @@ func _Repos_GetReadme_Handler(srv interface{}, ctx context.Context, codec grpc.C
 	return out, nil
 }
 
-func _Repos_Enable_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Repos_Enable_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(ReposServer).Enable(ctx, in)
@@ -2853,9 +2840,9 @@ func _Repos_Enable_Handler(srv interface{}, ctx context.Context, codec grpc.Code
 	return out, nil
 }
 
-func _Repos_Disable_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Repos_Disable_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(ReposServer).Disable(ctx, in)
@@ -2865,9 +2852,9 @@ func _Repos_Disable_Handler(srv interface{}, ctx context.Context, codec grpc.Cod
 	return out, nil
 }
 
-func _Repos_GetConfig_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Repos_GetConfig_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(ReposServer).GetConfig(ctx, in)
@@ -2877,9 +2864,9 @@ func _Repos_GetConfig_Handler(srv interface{}, ctx context.Context, codec grpc.C
 	return out, nil
 }
 
-func _Repos_GetCommit_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Repos_GetCommit_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoRevSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(ReposServer).GetCommit(ctx, in)
@@ -2889,9 +2876,9 @@ func _Repos_GetCommit_Handler(srv interface{}, ctx context.Context, codec grpc.C
 	return out, nil
 }
 
-func _Repos_ListCommits_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Repos_ListCommits_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(ReposListCommitsOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(ReposServer).ListCommits(ctx, in)
@@ -2901,9 +2888,9 @@ func _Repos_ListCommits_Handler(srv interface{}, ctx context.Context, codec grpc
 	return out, nil
 }
 
-func _Repos_ListBranches_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Repos_ListBranches_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(ReposListBranchesOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(ReposServer).ListBranches(ctx, in)
@@ -2913,9 +2900,9 @@ func _Repos_ListBranches_Handler(srv interface{}, ctx context.Context, codec grp
 	return out, nil
 }
 
-func _Repos_ListTags_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Repos_ListTags_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(ReposListTagsOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(ReposServer).ListTags(ctx, in)
@@ -3023,9 +3010,9 @@ func RegisterHostedReposServer(s *grpc.Server, srv HostedReposServer) {
 	s.RegisterService(&_HostedRepos_serviceDesc, srv)
 }
 
-func _HostedRepos_Create_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _HostedRepos_Create_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(HostedReposCreateOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(HostedReposServer).Create(ctx, in)
@@ -3035,9 +3022,9 @@ func _HostedRepos_Create_Handler(srv interface{}, ctx context.Context, codec grp
 	return out, nil
 }
 
-func _HostedRepos_Delete_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _HostedRepos_Delete_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(HostedReposServer).Delete(ctx, in)
@@ -3098,9 +3085,9 @@ func RegisterMirrorReposServer(s *grpc.Server, srv MirrorReposServer) {
 	s.RegisterService(&_MirrorRepos_serviceDesc, srv)
 }
 
-func _MirrorRepos_RefreshVCS_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _MirrorRepos_RefreshVCS_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(MirrorReposServer).RefreshVCS(ctx, in)
@@ -3177,9 +3164,9 @@ func RegisterMirroredRepoSSHKeysServer(s *grpc.Server, srv MirroredRepoSSHKeysSe
 	s.RegisterService(&_MirroredRepoSSHKeys_serviceDesc, srv)
 }
 
-func _MirroredRepoSSHKeys_Create_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _MirroredRepoSSHKeys_Create_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(MirroredRepoSSHKeysCreateOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(MirroredRepoSSHKeysServer).Create(ctx, in)
@@ -3189,9 +3176,9 @@ func _MirroredRepoSSHKeys_Create_Handler(srv interface{}, ctx context.Context, c
 	return out, nil
 }
 
-func _MirroredRepoSSHKeys_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _MirroredRepoSSHKeys_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(MirroredRepoSSHKeysServer).Get(ctx, in)
@@ -3201,9 +3188,9 @@ func _MirroredRepoSSHKeys_Get_Handler(srv interface{}, ctx context.Context, code
 	return out, nil
 }
 
-func _MirroredRepoSSHKeys_Delete_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _MirroredRepoSSHKeys_Delete_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(MirroredRepoSSHKeysServer).Delete(ctx, in)
@@ -3455,9 +3442,9 @@ func RegisterBuildsServer(s *grpc.Server, srv BuildsServer) {
 	s.RegisterService(&_Builds_serviceDesc, srv)
 }
 
-func _Builds_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Builds_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(BuildSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(BuildsServer).Get(ctx, in)
@@ -3467,9 +3454,9 @@ func _Builds_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec,
 	return out, nil
 }
 
-func _Builds_GetRepoBuildInfo_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Builds_GetRepoBuildInfo_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(BuildsGetRepoBuildInfoOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(BuildsServer).GetRepoBuildInfo(ctx, in)
@@ -3479,9 +3466,9 @@ func _Builds_GetRepoBuildInfo_Handler(srv interface{}, ctx context.Context, code
 	return out, nil
 }
 
-func _Builds_List_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Builds_List_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(BuildListOptions)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(BuildsServer).List(ctx, in)
@@ -3491,9 +3478,9 @@ func _Builds_List_Handler(srv interface{}, ctx context.Context, codec grpc.Codec
 	return out, nil
 }
 
-func _Builds_Create_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Builds_Create_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(BuildsCreateOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(BuildsServer).Create(ctx, in)
@@ -3503,9 +3490,9 @@ func _Builds_Create_Handler(srv interface{}, ctx context.Context, codec grpc.Cod
 	return out, nil
 }
 
-func _Builds_Update_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Builds_Update_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(BuildsUpdateOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(BuildsServer).Update(ctx, in)
@@ -3515,9 +3502,9 @@ func _Builds_Update_Handler(srv interface{}, ctx context.Context, codec grpc.Cod
 	return out, nil
 }
 
-func _Builds_ListBuildTasks_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Builds_ListBuildTasks_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(BuildsListBuildTasksOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(BuildsServer).ListBuildTasks(ctx, in)
@@ -3527,9 +3514,9 @@ func _Builds_ListBuildTasks_Handler(srv interface{}, ctx context.Context, codec 
 	return out, nil
 }
 
-func _Builds_CreateTasks_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Builds_CreateTasks_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(BuildsCreateTasksOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(BuildsServer).CreateTasks(ctx, in)
@@ -3539,9 +3526,9 @@ func _Builds_CreateTasks_Handler(srv interface{}, ctx context.Context, codec grp
 	return out, nil
 }
 
-func _Builds_UpdateTask_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Builds_UpdateTask_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(BuildsUpdateTaskOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(BuildsServer).UpdateTask(ctx, in)
@@ -3551,9 +3538,9 @@ func _Builds_UpdateTask_Handler(srv interface{}, ctx context.Context, codec grpc
 	return out, nil
 }
 
-func _Builds_GetLog_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Builds_GetLog_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(BuildsGetLogOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(BuildsServer).GetLog(ctx, in)
@@ -3563,9 +3550,9 @@ func _Builds_GetLog_Handler(srv interface{}, ctx context.Context, codec grpc.Cod
 	return out, nil
 }
 
-func _Builds_GetTaskLog_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Builds_GetTaskLog_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(BuildsGetTaskLogOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(BuildsServer).GetTaskLog(ctx, in)
@@ -3575,9 +3562,9 @@ func _Builds_GetTaskLog_Handler(srv interface{}, ctx context.Context, codec grpc
 	return out, nil
 }
 
-func _Builds_DequeueNext_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Builds_DequeueNext_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(BuildsDequeueNextOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(BuildsServer).DequeueNext(ctx, in)
@@ -3587,9 +3574,9 @@ func _Builds_DequeueNext_Handler(srv interface{}, ctx context.Context, codec grp
 	return out, nil
 }
 
-func _Builds_DequeueNextTask_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Builds_DequeueNextTask_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(BuildsDequeueNextTaskOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(BuildsServer).DequeueNextTask(ctx, in)
@@ -3716,9 +3703,9 @@ func RegisterOrgsServer(s *grpc.Server, srv OrgsServer) {
 	s.RegisterService(&_Orgs_serviceDesc, srv)
 }
 
-func _Orgs_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Orgs_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(OrgSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(OrgsServer).Get(ctx, in)
@@ -3728,9 +3715,9 @@ func _Orgs_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, b
 	return out, nil
 }
 
-func _Orgs_List_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Orgs_List_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(OrgsListOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(OrgsServer).List(ctx, in)
@@ -3740,9 +3727,9 @@ func _Orgs_List_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, 
 	return out, nil
 }
 
-func _Orgs_ListMembers_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Orgs_ListMembers_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(OrgsListMembersOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(OrgsServer).ListMembers(ctx, in)
@@ -3811,9 +3798,9 @@ func RegisterPeopleServer(s *grpc.Server, srv PeopleServer) {
 	s.RegisterService(&_People_serviceDesc, srv)
 }
 
-func _People_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _People_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(PersonSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(PeopleServer).Get(ctx, in)
@@ -3870,9 +3857,9 @@ func RegisterAccountsServer(s *grpc.Server, srv AccountsServer) {
 	s.RegisterService(&_Accounts_serviceDesc, srv)
 }
 
-func _Accounts_Create_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Accounts_Create_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(NewAccount)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(AccountsServer).Create(ctx, in)
@@ -3955,9 +3942,9 @@ func RegisterUsersServer(s *grpc.Server, srv UsersServer) {
 	s.RegisterService(&_Users_serviceDesc, srv)
 }
 
-func _Users_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Users_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(UserSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(UsersServer).Get(ctx, in)
@@ -3967,9 +3954,9 @@ func _Users_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, 
 	return out, nil
 }
 
-func _Users_ListEmails_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Users_ListEmails_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(UserSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(UsersServer).ListEmails(ctx, in)
@@ -3979,9 +3966,9 @@ func _Users_ListEmails_Handler(srv interface{}, ctx context.Context, codec grpc.
 	return out, nil
 }
 
-func _Users_List_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Users_List_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(UsersListOptions)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(UsersServer).List(ctx, in)
@@ -4086,9 +4073,9 @@ func RegisterUserAuthServer(s *grpc.Server, srv UserAuthServer) {
 	s.RegisterService(&_UserAuth_serviceDesc, srv)
 }
 
-func _UserAuth_Authenticate_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _UserAuth_Authenticate_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(UserAuthAuthenticateOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(UserAuthServer).Authenticate(ctx, in)
@@ -4098,9 +4085,9 @@ func _UserAuth_Authenticate_Handler(srv interface{}, ctx context.Context, codec 
 	return out, nil
 }
 
-func _UserAuth_GetExternal_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _UserAuth_GetExternal_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(UserAuthGetExternalOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(UserAuthServer).GetExternal(ctx, in)
@@ -4110,9 +4097,9 @@ func _UserAuth_GetExternal_Handler(srv interface{}, ctx context.Context, codec g
 	return out, nil
 }
 
-func _UserAuth_Identify_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _UserAuth_Identify_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(pbtypes1.Void)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(UserAuthServer).Identify(ctx, in)
@@ -4242,9 +4229,9 @@ func RegisterDefsServer(s *grpc.Server, srv DefsServer) {
 	s.RegisterService(&_Defs_serviceDesc, srv)
 }
 
-func _Defs_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Defs_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(DefsGetOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(DefsServer).Get(ctx, in)
@@ -4254,9 +4241,9 @@ func _Defs_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, b
 	return out, nil
 }
 
-func _Defs_List_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Defs_List_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(DefListOptions)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(DefsServer).List(ctx, in)
@@ -4266,9 +4253,9 @@ func _Defs_List_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, 
 	return out, nil
 }
 
-func _Defs_ListRefs_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Defs_ListRefs_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(DefsListRefsOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(DefsServer).ListRefs(ctx, in)
@@ -4278,9 +4265,9 @@ func _Defs_ListRefs_Handler(srv interface{}, ctx context.Context, codec grpc.Cod
 	return out, nil
 }
 
-func _Defs_ListExamples_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Defs_ListExamples_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(DefsListExamplesOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(DefsServer).ListExamples(ctx, in)
@@ -4290,9 +4277,9 @@ func _Defs_ListExamples_Handler(srv interface{}, ctx context.Context, codec grpc
 	return out, nil
 }
 
-func _Defs_ListAuthors_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Defs_ListAuthors_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(DefsListAuthorsOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(DefsServer).ListAuthors(ctx, in)
@@ -4302,9 +4289,9 @@ func _Defs_ListAuthors_Handler(srv interface{}, ctx context.Context, codec grpc.
 	return out, nil
 }
 
-func _Defs_ListClients_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Defs_ListClients_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(DefsListClientsOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(DefsServer).ListClients(ctx, in)
@@ -4448,9 +4435,9 @@ func RegisterDeltasServer(s *grpc.Server, srv DeltasServer) {
 	s.RegisterService(&_Deltas_serviceDesc, srv)
 }
 
-func _Deltas_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Deltas_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(DeltaSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(DeltasServer).Get(ctx, in)
@@ -4460,9 +4447,9 @@ func _Deltas_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec,
 	return out, nil
 }
 
-func _Deltas_ListUnits_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Deltas_ListUnits_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(DeltasListUnitsOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(DeltasServer).ListUnits(ctx, in)
@@ -4472,9 +4459,9 @@ func _Deltas_ListUnits_Handler(srv interface{}, ctx context.Context, codec grpc.
 	return out, nil
 }
 
-func _Deltas_ListDefs_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Deltas_ListDefs_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(DeltasListDefsOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(DeltasServer).ListDefs(ctx, in)
@@ -4484,9 +4471,9 @@ func _Deltas_ListDefs_Handler(srv interface{}, ctx context.Context, codec grpc.C
 	return out, nil
 }
 
-func _Deltas_ListFiles_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Deltas_ListFiles_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(DeltasListFilesOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(DeltasServer).ListFiles(ctx, in)
@@ -4496,9 +4483,9 @@ func _Deltas_ListFiles_Handler(srv interface{}, ctx context.Context, codec grpc.
 	return out, nil
 }
 
-func _Deltas_ListAffectedAuthors_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Deltas_ListAffectedAuthors_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(DeltasListAffectedAuthorsOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(DeltasServer).ListAffectedAuthors(ctx, in)
@@ -4508,9 +4495,9 @@ func _Deltas_ListAffectedAuthors_Handler(srv interface{}, ctx context.Context, c
 	return out, nil
 }
 
-func _Deltas_ListAffectedClients_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Deltas_ListAffectedClients_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(DeltasListAffectedClientsOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(DeltasServer).ListAffectedClients(ctx, in)
@@ -4585,9 +4572,9 @@ func RegisterMarkdownServer(s *grpc.Server, srv MarkdownServer) {
 	s.RegisterService(&_Markdown_serviceDesc, srv)
 }
 
-func _Markdown_Render_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Markdown_Render_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(MarkdownRenderOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(MarkdownServer).Render(ctx, in)
@@ -4653,9 +4640,9 @@ func RegisterRepoTreeServer(s *grpc.Server, srv RepoTreeServer) {
 	s.RegisterService(&_RepoTree_serviceDesc, srv)
 }
 
-func _RepoTree_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _RepoTree_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoTreeGetOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(RepoTreeServer).Get(ctx, in)
@@ -4665,9 +4652,9 @@ func _RepoTree_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Code
 	return out, nil
 }
 
-func _RepoTree_Search_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _RepoTree_Search_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RepoTreeSearchOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(RepoTreeServer).Search(ctx, in)
@@ -4758,9 +4745,9 @@ func RegisterSearchServer(s *grpc.Server, srv SearchServer) {
 	s.RegisterService(&_Search_serviceDesc, srv)
 }
 
-func _Search_Search_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Search_Search_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(SearchOptions)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(SearchServer).Search(ctx, in)
@@ -4770,9 +4757,9 @@ func _Search_Search_Handler(srv interface{}, ctx context.Context, codec grpc.Cod
 	return out, nil
 }
 
-func _Search_Complete_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Search_Complete_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RawQuery)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(SearchServer).Complete(ctx, in)
@@ -4782,9 +4769,9 @@ func _Search_Complete_Handler(srv interface{}, ctx context.Context, codec grpc.C
 	return out, nil
 }
 
-func _Search_Suggest_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Search_Suggest_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(RawQuery)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(SearchServer).Suggest(ctx, in)
@@ -4862,9 +4849,9 @@ func RegisterUnitsServer(s *grpc.Server, srv UnitsServer) {
 	s.RegisterService(&_Units_serviceDesc, srv)
 }
 
-func _Units_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Units_Get_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(UnitSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(UnitsServer).Get(ctx, in)
@@ -4874,9 +4861,9 @@ func _Units_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, 
 	return out, nil
 }
 
-func _Units_List_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Units_List_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(UnitListOptions)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(UnitsServer).List(ctx, in)
@@ -4952,9 +4939,9 @@ func RegisterMetaServer(s *grpc.Server, srv MetaServer) {
 	s.RegisterService(&_Meta_serviceDesc, srv)
 }
 
-func _Meta_Status_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Meta_Status_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(pbtypes1.Void)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(MetaServer).Status(ctx, in)
@@ -4964,9 +4951,9 @@ func _Meta_Status_Handler(srv interface{}, ctx context.Context, codec grpc.Codec
 	return out, nil
 }
 
-func _Meta_Config_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Meta_Config_Handler(srv interface{}, ctx context.Context, buf []byte) (interface{}, error) {
 	in := new(pbtypes1.Void)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := proto.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(MetaServer).Config(ctx, in)
