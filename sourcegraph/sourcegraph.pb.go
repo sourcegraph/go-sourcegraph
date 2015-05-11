@@ -114,8 +114,6 @@ It has these top-level messages:
 	DeltaDefs
 	FileDiff
 	Hunk
-	WordChanges
-	WordChange
 	DeltaFiles
 	DeltaFilter
 	DeltaListAffectedAuthorsOptions
@@ -1650,39 +1648,11 @@ type Hunk struct {
 	// BodySource contains the source code for the Hunk body and is a mix
 	// of both additions and deletions.
 	BodySource *SourceCode `protobuf:"bytes,5,opt,name=body_source" json:"body_source,omitempty"`
-	// WordDiff holds all the changes present in this hunk at the level of
-	// tokens where each entry in the array corresponds by index to the line
-	// it represents.
-	WordDiff []*WordChanges `protobuf:"bytes,6,rep,name=word_diff" json:"word_diff,omitempty"`
 }
 
 func (m *Hunk) Reset()         { *m = Hunk{} }
 func (m *Hunk) String() string { return proto.CompactTextString(m) }
 func (*Hunk) ProtoMessage()    {}
-
-// WordChanges holds a list of changes that have occurred on a line of code
-// in a diff.
-type WordChanges struct {
-	Changes []*WordChange `protobuf:"bytes,1,rep,name=changes" json:"changes,omitempty"`
-}
-
-func (m *WordChanges) Reset()         { *m = WordChanges{} }
-func (m *WordChanges) String() string { return proto.CompactTextString(m) }
-func (*WordChanges) ProtoMessage()    {}
-
-// WordChange holds a set of consecutive changes at a given offset on a line
-// of code within a diff.
-type WordChange struct {
-	// Offset represents the token by index where the first change occurred.
-	Offset int32 `protobuf:"varint,1,opt,name=offset,proto3" json:""`
-	// Count represents the number of consecutive changes that have occurred
-	// starting at the offset.
-	Count int32 `protobuf:"varint,2,opt,name=count,proto3" json:""`
-}
-
-func (m *WordChange) Reset()         { *m = WordChange{} }
-func (m *WordChange) String() string { return proto.CompactTextString(m) }
-func (*WordChange) ProtoMessage()    {}
 
 // DeltaFiles describes files added/changed/deleted in a delta.
 type DeltaFiles struct {
