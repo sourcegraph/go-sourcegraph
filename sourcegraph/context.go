@@ -86,15 +86,6 @@ func clientCredentialsFromContext(ctx context.Context) []Credentials {
 var NewClientFromContext = func(ctx context.Context) *Client {
 	transport := http.DefaultTransport
 
-	// TODO(sqs!): make appdash work with gRPC
-	// if spanID := traceutil.SpanID(r); spanID.Trace != 0 {
-	// 	// Add appdash tracing info.
-	// 	transport = &httptrace.Transport{
-	// 		Recorder:  traceutil.Recorder(spanID),
-	// 		Transport: transport,
-	// 	}
-	// }
-
 	opts := []grpc.DialOption{
 		grpc.WithCodec(GRPCCodec),
 	}
