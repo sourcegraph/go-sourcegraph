@@ -96,15 +96,31 @@ var NewClientFromContext = func(ctx context.Context) *Client {
 	}
 
 	for _, cred := range clientCredentialsFromContext(ctx) {
-		opts = append(opts, grpc.WithPerRPCCredentials(cred))
 		transport = cred.NewTransport(transport)
 	}
+	opts = append(opts, grpc.WithPerRPCCredentials(contextCredentials{}))
 
-	conn, err := grpc.Dial(grpcEndpoint.Host, opts...)
+	conn, err := pooledGRPCDial(grpcEndpoint.Host, opts...)
 	if err != nil {
 		panic(err)
 	}
 	c := NewClient(&http.Client{Transport: transport}, conn)
 	c.BaseURL = HTTPEndpoint(ctx)
 	return c
+}
+
+type contextCredentials struct{}
+
+func (contextCredentials) GetRequestMetadata(ctx context.Context) (map[string]string, error) {
+	md := map[string]string{}
+	for _, cred := range clientCredentialsFromContext(ctx) {
+		credMD, err := cred.GetRequestMetadata(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for k, v := range credMD {
+			md[k] = v
+		}
+	}
+	return md, nil
 }

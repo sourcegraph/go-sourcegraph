@@ -63,6 +63,9 @@ type Client struct {
 
 // Close closes the gRPC client connection.
 func (c *Client) Close() error {
+	// TODO(sqs): remove the Close altogether since we use connection
+	// pooling, or something?
+	return nil
 	if conn := c.Conn; conn != nil {
 		c.Conn = nil
 		return conn.Close()
