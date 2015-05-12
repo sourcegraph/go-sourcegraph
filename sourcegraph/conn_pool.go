@@ -7,8 +7,8 @@ import (
 )
 
 var (
+	connsMu sync.Mutex
 	conns   map[string]*grpc.ClientConn
-	connsMu sync.Mutex // guards conns
 )
 
 // pooledGRPCDial is a global connection pool for grpc.Dial.
