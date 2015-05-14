@@ -114,8 +114,6 @@ It has these top-level messages:
 	DeltaDefs
 	FileDiff
 	Hunk
-	WordChanges
-	WordChange
 	DeltaFiles
 	DeltaFilter
 	DeltaListAffectedAuthorsOptions
@@ -150,7 +148,6 @@ It has these top-level messages:
 	SuggestionList
 	SourceCode
 	SourceCodeLine
-	SourceCodeTokenOrString
 	SourceCodeToken
 	TreeEntry
 	TreeEntrySpec
@@ -1651,39 +1648,11 @@ type Hunk struct {
 	// BodySource contains the source code for the Hunk body and is a mix
 	// of both additions and deletions.
 	BodySource *SourceCode `protobuf:"bytes,5,opt,name=body_source" json:"body_source,omitempty"`
-	// WordDiff holds all the changes present in this hunk at the level of
-	// tokens where each entry in the array corresponds by index to the line
-	// it represents.
-	WordDiff []*WordChanges `protobuf:"bytes,6,rep,name=word_diff" json:"word_diff,omitempty"`
 }
 
 func (m *Hunk) Reset()         { *m = Hunk{} }
 func (m *Hunk) String() string { return proto.CompactTextString(m) }
 func (*Hunk) ProtoMessage()    {}
-
-// WordChanges holds a list of changes that have occurred on a line of code
-// in a diff.
-type WordChanges struct {
-	Changes []*WordChange `protobuf:"bytes,1,rep,name=changes" json:"changes,omitempty"`
-}
-
-func (m *WordChanges) Reset()         { *m = WordChanges{} }
-func (m *WordChanges) String() string { return proto.CompactTextString(m) }
-func (*WordChanges) ProtoMessage()    {}
-
-// WordChange holds a set of consecutive changes at a given offset on a line
-// of code within a diff.
-type WordChange struct {
-	// Offset represents the token by index where the first change occurred.
-	Offset int32 `protobuf:"varint,1,opt,name=offset,proto3" json:""`
-	// Count represents the number of consecutive changes that have occurred
-	// starting at the offset.
-	Count int32 `protobuf:"varint,2,opt,name=count,proto3" json:""`
-}
-
-func (m *WordChange) Reset()         { *m = WordChange{} }
-func (m *WordChange) String() string { return proto.CompactTextString(m) }
-func (*WordChange) ProtoMessage()    {}
 
 // DeltaFiles describes files added/changed/deleted in a delta.
 type DeltaFiles struct {
@@ -2087,44 +2056,32 @@ type SourceCodeLine struct {
 	EndByte   int32 `protobuf:"varint,2,opt,name=end_byte,proto3" json:"end_byte,omitempty"`
 	// Tokens contains any tokens that may be on this line, including whitespace. New
 	// lines ('\n') are not present.
-	Tokens []SourceCodeTokenOrString `protobuf:"bytes,3,rep,name=tokens" json:"tokens"`
+	Tokens []*SourceCodeToken `protobuf:"bytes,3,rep,name=tokens" json:"tokens,omitempty"`
 }
 
 func (m *SourceCodeLine) Reset()         { *m = SourceCodeLine{} }
 func (m *SourceCodeLine) String() string { return proto.CompactTextString(m) }
 func (*SourceCodeLine) ProtoMessage()    {}
 
-// SourceCodeTokenOrString is either a whitespace token (stored as an
-// HTML encoded "string") or a SourceCodeToken. Exactly one field is
-// nonempty.
-//
-// TODO(sqs) TODO(perf): space- and memory-optimize this (by making it implement
-// json.Marshaler, for example) - it's an inefficient hack to make it
-// protobuf-serializable.
-type SourceCodeTokenOrString struct {
-	Str   string           `protobuf:"bytes,1,opt,name=str,proto3" json:"str,omitempty"`
-	Token *SourceCodeToken `protobuf:"bytes,2,opt,name=token" json:"token,omitempty"`
-}
-
-func (m *SourceCodeTokenOrString) Reset()         { *m = SourceCodeTokenOrString{} }
-func (m *SourceCodeTokenOrString) String() string { return proto.CompactTextString(m) }
-func (*SourceCodeTokenOrString) ProtoMessage()    {}
-
 // SourceCodeToken contains information about a code token.
 type SourceCodeToken struct {
 	// Start and end byte offsets in original file.
-	StartByte int32 `protobuf:"varint,1,opt,name=start_byte,proto3" json:"start_byte,omitempty"`
-	EndByte   int32 `protobuf:"varint,2,opt,name=end_byte,proto3" json:"end_byte,omitempty"`
+	StartByte int32 `protobuf:"varint,1,opt,name=start_byte,proto3" json:"-"`
+	EndByte   int32 `protobuf:"varint,2,opt,name=end_byte,proto3" json:"-"`
 	// If the token is a reference URL contains the DefKey-based URLs for all the
 	// definitions at this position.
 	URL []string `protobuf:"bytes,3,rep,name=url" json:",omitempty"`
 	// IsDef specifies whether the token is a definition.
-	IsDef bool `protobuf:"varint,4,opt,name=is_def,proto3" json:"is_def,omitempty"`
+	IsDef bool `protobuf:"varint,4,opt,name=is_def,proto3" json:",omitempty"`
 	// Class specifies the token type as per
 	// [google-code-prettify](https://code.google.com/p/google-code-prettify/).
-	Class string `protobuf:"bytes,5,opt,name=class,proto3" json:"class,omitempty"`
+	// All tokens except Whitespace will have this field.
+	Class string `protobuf:"bytes,5,opt,name=class,proto3" json:",omitempty"`
+	// ExtraClasses may additionally contain other classes for this token, such as
+	// for example highlighting in a diff.
+	ExtraClasses string `protobuf:"bytes,6,opt,name=extraClasses,proto3" json:",omitempty"`
 	// Label is non-whitespace HTML encoded source code.
-	Label string `protobuf:"bytes,6,opt,name=label,proto3" json:"label,omitempty"`
+	Label string `protobuf:"bytes,7,opt,name=label,proto3" json:"label,omitempty"`
 }
 
 func (m *SourceCodeToken) Reset()         { *m = SourceCodeToken{} }

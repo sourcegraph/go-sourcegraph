@@ -1351,28 +1351,6 @@ message Hunk {
 	// BodySource contains the source code for the Hunk body and is a mix
 	// of both additions and deletions.
 	SourceCode body_source = 5;
-
-	// WordDiff holds all the changes present in this hunk at the level of
-	// tokens where each entry in the array corresponds by index to the line
-	// it represents.
-	repeated WordChanges word_diff = 6;
-}
-
-// WordChanges holds a list of changes that have occurred on a line of code
-// in a diff.
-message WordChanges {
-	repeated WordChange changes = 1;
-}
-
-// WordChange holds a set of consecutive changes at a given offset on a line
-// of code within a diff.
-message WordChange {
-	// Offset represents the token by index where the first change occurred.
-	int32 offset = 1 [(gogoproto.jsontag) = ""];
-
-	// Count represents the number of consecutive changes that have occurred
-	// starting at the offset.
-	int32 count = 2 [(gogoproto.jsontag) = ""];
 }
 
 // DeltaFiles describes files added/changed/deleted in a delta.
@@ -1671,41 +1649,34 @@ message SourceCodeLine {
 
 	// Tokens contains any tokens that may be on this line, including whitespace. New
 	// lines ('\n') are not present.
-	repeated SourceCodeTokenOrString tokens = 3 [(gogoproto.nullable) = false];
-}
-
-// SourceCodeTokenOrString is either a whitespace token (stored as an
-// HTML encoded "string") or a SourceCodeToken. Exactly one field is
-// nonempty.
-//
-// TODO(sqs) TODO(perf): space- and memory-optimize this (by making it implement
-// json.Marshaler, for example) - it's an inefficient hack to make it
-// protobuf-serializable.
-message SourceCodeTokenOrString {
-	string str = 1;
-	optional SourceCodeToken token = 2;
+	repeated SourceCodeToken tokens = 3;
 }
 
 // SourceCodeToken contains information about a code token.
 message SourceCodeToken {
 	// Start and end byte offsets in original file.
-	int32 start_byte = 1;
+	int32 start_byte = 1 [(gogoproto.jsontag) = "-"];
 
-	int32 end_byte = 2;
+	int32 end_byte = 2 [(gogoproto.jsontag) = "-"];
 
 	// If the token is a reference URL contains the DefKey-based URLs for all the
 	// definitions at this position.
 	repeated string url = 3 [(gogoproto.customname) = "URL", (gogoproto.jsontag) = ",omitempty"];
 
 	// IsDef specifies whether the token is a definition.
-	bool is_def = 4;
+	bool is_def = 4 [(gogoproto.jsontag) = ",omitempty"];
 
 	// Class specifies the token type as per
 	// [google-code-prettify](https://code.google.com/p/google-code-prettify/).
-	string class = 5;
+	// All tokens except Whitespace will have this field.
+	string class = 5 [(gogoproto.jsontag) = ",omitempty"];
+
+	// ExtraClasses may additionally contain other classes for this token, such as
+	// for example highlighting in a diff.
+	string extraClasses = 6 [(gogoproto.jsontag) = ",omitempty"];
 
 	// Label is non-whitespace HTML encoded source code.
-	string label = 6;
+	string label = 7;
 }
 
 // TreeEntry is a file or directory in a repository, with additional feedback from
