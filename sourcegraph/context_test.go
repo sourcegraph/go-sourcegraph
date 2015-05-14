@@ -86,7 +86,6 @@ func TestPerRPCCredentials(t *testing.T) {
 			ctx = WithClientCredentials(ctx, &APIKeyAuth{Key: key})
 			ctx = metadata.NewContext(ctx, metadata.MD{"want-x-sourcegraph-key": key})
 			c := NewClientFromContext(ctx)
-			defer c.Close()
 			if _, err := c.Meta.Status(ctx, &pbtypes.Void{}); err != nil {
 				t.Fatal(err)
 			}
