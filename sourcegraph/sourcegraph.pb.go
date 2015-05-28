@@ -683,8 +683,9 @@ func (*SSHPrivateKey) ProtoMessage()    {}
 // behavior. As we encounter new requirements for the build system, they may
 // evolve.
 type Build struct {
-	// BID is the unique identifier for the build.
-	BID int64 `protobuf:"varint,1,opt,name=bid,proto3" json:"bid,omitempty"`
+	// Attempt is the 1-indexed number representing sequential attempts at building
+	// this repository.
+	Attempt uint32 `protobuf:"varint,1,opt,name=attempt,proto3" json:"attempt,omitempty"`
 	// Repo is the URI of the repository this build is for.
 	Repo string `protobuf:"bytes,2,opt,name=repo,proto3" json:"repo,omitempty"`
 	// CommitID is the full resolved commit ID to build.

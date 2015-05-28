@@ -466,8 +466,9 @@ message SSHPrivateKey {
 // behavior. As we encounter new requirements for the build system, they may
 // evolve.
 message Build {
-	// BID is the unique identifier for the build.
-	int64 bid = 1 [(gogoproto.customname) = "BID"];
+	// Attempt is the 1-indexed number representing sequential attempts at building
+	// this repository.
+	uint32 attempt = 1;
 
 	// Repo is the URI of the repository this build is for.
 	string repo = 2;
