@@ -30,7 +30,7 @@ func (b *Build) Spec() BuildSpec {
 
 // IDString returns a succinct string that uniquely identifies this build.
 func (b BuildSpec) IDString() string {
-	return fmt.Sprintf("B%s/%s/%d", b.Repo.URI, b.CommitID, b.Attempt)
+	return fmt.Sprintf("%s/%s/%d", b.Repo.URI, b.CommitID, b.Attempt)
 }
 
 // Build task ops.
