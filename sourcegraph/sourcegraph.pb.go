@@ -783,8 +783,9 @@ func (m *BuildListOptions) String() string { return proto.CompactTextString(m) }
 func (*BuildListOptions) ProtoMessage()    {}
 
 type BuildSpec struct {
-	BID  int64    `protobuf:"varint,1,opt,name=bid,proto3" json:"bid,omitempty"`
-	Repo RepoSpec `protobuf:"bytes,2,opt,name=repo" json:"repo"`
+	CommitID string   `protobuf:"bytes,1,opt,name=commit_id,proto3" json:"commit_id,omitempty"`
+	Attempt  uint32   `protobuf:"varint,2,opt,name=attempt,proto3" json:"attempt,omitempty"`
+	Repo     RepoSpec `protobuf:"bytes,3,opt,name=repo" json:"repo"`
 }
 
 func (m *BuildSpec) Reset()         { *m = BuildSpec{} }
@@ -800,29 +801,29 @@ type BuildTask struct {
 	// tasks in the same build.
 	TaskID int64 `protobuf:"varint,1,opt,name=task_id,proto3" json:"task_id,omitempty"`
 	// Repo is the URI of the repository that this task's build is for.
-	Repo string `protobuf:"bytes,2,opt,name=repo,proto3" json:"repo,omitempty"`
-	// BID is the build that this task is a part of.
-	BID int64 `protobuf:"varint,3,opt,name=bid,proto3" json:"bid,omitempty"`
+	Repo     string `protobuf:"bytes,2,opt,name=repo,proto3" json:"repo,omitempty"`
+	CommitID string `protobuf:"bytes,3,opt,name=commit_id,proto3" json:"commit_id,omitempty"`
+	Attempt  uint32 `protobuf:"varint,4,opt,name=attempt,proto3" json:"attempt,omitempty"`
 	// UnitType is the srclib source unit type of the source unit that this task is
 	// associated with.
-	UnitType string `protobuf:"bytes,4,opt,name=unit_type,proto3" json:"unit_type,omitempty"`
+	UnitType string `protobuf:"bytes,5,opt,name=unit_type,proto3" json:"unit_type,omitempty"`
 	// Unit is the srclib source unit name of the source unit that this task is
 	// associated with.
-	Unit string `protobuf:"bytes,5,opt,name=unit,proto3" json:"unit,omitempty"`
+	Unit string `protobuf:"bytes,6,opt,name=unit,proto3" json:"unit,omitempty"`
 	// Op is the srclib toolchain operation (graph, depresolve, etc.) that this task
 	// performs.
-	Op string `protobuf:"bytes,6,opt,name=op,proto3" json:"op,omitempty"`
+	Op string `protobuf:"bytes,7,opt,name=op,proto3" json:"op,omitempty"`
 	// Order is the order in which this task is performed, relative to other tasks in
 	// the same build. Lower-number-ordered tasks are built first. Multiple tasks may
 	// have the same order.
-	Order int32 `protobuf:"varint,7,opt,name=order,proto3" json:"order,omitempty"`
+	Order int32 `protobuf:"varint,8,opt,name=order,proto3" json:"order,omitempty"`
 	// CreatedAt is when this task was initially created.
-	CreatedAt pbtypes.Timestamp `protobuf:"bytes,8,opt,name=created_at" json:"created_at"`
+	CreatedAt pbtypes.Timestamp `protobuf:"bytes,9,opt,name=created_at" json:"created_at"`
 	// StartedAt is when this task's execution began.
-	StartedAt *pbtypes.Timestamp `protobuf:"bytes,9,opt,name=started_at" json:"started_at,omitempty"`
+	StartedAt *pbtypes.Timestamp `protobuf:"bytes,10,opt,name=started_at" json:"started_at,omitempty"`
 	// EndedAt is when this task's execution ended (whether because it succeeded or
 	// failed).
-	EndedAt *pbtypes.Timestamp `protobuf:"bytes,10,opt,name=ended_at" json:"ended_at,omitempty"`
+	EndedAt *pbtypes.Timestamp `protobuf:"bytes,11,opt,name=ended_at" json:"ended_at,omitempty"`
 	// Queue is whether this task should be performed by queue task remote workers on
 	// the central server. If true, then it will be performed remotely. If false, it
 	// should be performed locally by the process that created this task.
@@ -832,11 +833,11 @@ type BuildTask struct {
 	//
 	// See the documentation for Build for more discussion about queued builds and
 	// tasks (and how they relate).
-	Queue bool `protobuf:"varint,11,opt,name=queue,proto3" json:"queue,omitempty"`
+	Queue bool `protobuf:"varint,12,opt,name=queue,proto3" json:"queue,omitempty"`
 	// Success is whether this task's execution succeeded.
-	Success bool `protobuf:"varint,12,opt,name=success,proto3" json:"success,omitempty"`
+	Success bool `protobuf:"varint,13,opt,name=success,proto3" json:"success,omitempty"`
 	// Failure is whether this task's execution failed.
-	Failure bool `protobuf:"varint,13,opt,name=failure,proto3" json:"failure,omitempty"`
+	Failure bool `protobuf:"varint,14,opt,name=failure,proto3" json:"failure,omitempty"`
 }
 
 func (m *BuildTask) Reset()         { *m = BuildTask{} }
