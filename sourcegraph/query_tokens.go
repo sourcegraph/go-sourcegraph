@@ -6,82 +6,44 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
-
-	"sourcegraph.com/sourcegraph/srclib/unit"
-	"sourcegraph.com/sourcegraph/vcsstore/vcsclient"
 )
 
 // A Token is the smallest indivisible component of a query, either a
 // term or a "field:val" specifier (e.g., "repo:example.com/myrepo").
 type Token interface {
-	// String returns the string representation of the term.
-	String() string
+	// Token returns the string representation of the token.
+	Token() string
 }
 
 // A Term is a query term token. It is either a word or an arbitrary
 // string (if quoted in the raw query).
 type Term string
 
-func (t Term) String() string {
+func (t Term) Token() string {
 	if strings.Contains(string(t), " ") {
 		return `"` + string(t) + `"`
 	}
 	return string(t)
 }
 
-func (t Term) UnquotedString() string { return string(t) }
+func (t Term) UnquotedToken() string { return string(t) }
 
 // An AnyToken is a token that has not yet been resolved into another
 // token type. It resolves to Term if it can't be resolved to another
 // token type.
 type AnyToken string
 
-func (u AnyToken) String() string { return string(u) }
+func (u AnyToken) Token() string { return string(u) }
 
-// A RepoToken represents a repository, although it does not
-// necessarily uniquely identify the repository. It consists of any
-// number of slash-separated path components, such as "a/b" or
-// "github.com/foo/bar".
-type RepoToken struct {
-	URI string
-
-	Repo *Repo `json:",omitempty"`
-}
-
-func (t RepoToken) String() string { return t.URI }
+func (t RepoToken) Token() string { return t.URI }
 
 func (t RepoToken) Spec() RepoSpec {
-	var rid int
-	if t.Repo != nil {
-		rid = t.Repo.RID
-	}
-	return RepoSpec{URI: t.URI, RID: rid}
+	return RepoSpec{URI: t.URI}
 }
 
-// A RevToken represents a specific revision (either a revspec or a
-// commit ID) of a repository (which must be specified by a previous
-// RepoToken in the query).
-type RevToken struct {
-	Rev string // Rev is either a revspec or commit ID
+func (t RevToken) Token() string { return ":" + t.Rev }
 
-	Commit *Commit `json:",omitempty"`
-}
-
-func (t RevToken) String() string { return ":" + t.Rev }
-
-// A UnitToken represents a source unit in a repository.
-type UnitToken struct {
-	// UnitType is the type of the source unit (e.g., GoPackage).
-	UnitType string
-
-	// Name is the name of the source unit (e.g., mypkg).
-	Name string
-
-	// Unit is the source unit object.
-	Unit *unit.RepoSourceUnit
-}
-
-func (t UnitToken) String() string {
+func (t UnitToken) Token() string {
 	s := "~" + t.Name
 	if t.UnitType != "" {
 		s += "@" + t.UnitType
@@ -89,24 +51,9 @@ func (t UnitToken) String() string {
 	return s
 }
 
-type FileToken struct {
-	Path string
+func (t FileToken) Token() string { return "/" + filepath.Clean(t.Path) }
 
-	Entry *vcsclient.TreeEntry
-}
-
-func (t FileToken) String() string { return "/" + filepath.Clean(t.Path) }
-
-// A UserToken represents a user or org, although it does not
-// necessarily uniquely identify one. It consists of the string "@"
-// followed by a full or partial user/org login.
-type UserToken struct {
-	Login string
-
-	User *User `json:",omitempty"`
-}
-
-func (t UserToken) String() string { return "@" + t.Login }
+func (t UserToken) Token() string { return "@" + t.Login }
 
 // Tokens wraps a list of tokens and adds some helper methods. It also
 // serializes to JSON with "Type" fields added to each token and
@@ -137,7 +84,7 @@ func (d *Tokens) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (d Tokens) RawQueryString() string { return Join(d).String }
+func (d Tokens) RawQueryString() string { return Join(d).Text }
 
 type jsonToken struct {
 	Token `json:",omitempty"`
@@ -212,4 +159,85 @@ func (t *jsonToken) UnmarshalJSON(b []byte) error {
 
 func TokenType(tok Token) string {
 	return strings.Replace(strings.Replace(reflect.ValueOf(tok).Type().String(), "*", "", -1), "sourcegraph.", "", -1)
+}
+
+func (t PBToken) MarshalJSON() ([]byte, error) {
+	jt := jsonToken{t.Token()}
+	return jt.MarshalJSON()
+}
+
+func (t *PBToken) UnmarshalJSON(b []byte) error {
+	var jt jsonToken
+	if err := json.Unmarshal(b, &jt); err != nil {
+		return err
+	}
+	*t = PBTokenWrap(jt.Token)
+	return nil
+}
+
+// Token returns the Token that the PBToken wraps.
+func (t *PBToken) Token() Token {
+	switch {
+	case t.Term != "":
+		return Term(t.Term)
+	case t.AnyToken != "":
+		return AnyToken(t.AnyToken)
+	case t.RepoToken != nil:
+		return *t.RepoToken
+	case t.RevToken != nil:
+		return *t.RevToken
+	case t.FileToken != nil:
+		return *t.FileToken
+	case t.UserToken != nil:
+		return *t.UserToken
+	default:
+		// empty
+		return Term("")
+	}
+}
+
+func PBTokenWrap(t Token) PBToken {
+	var pb PBToken
+	switch t := t.(type) {
+	case Term:
+		pb.Term = string(t)
+	case AnyToken:
+		pb.AnyToken = string(t)
+	case RepoToken:
+		pb.RepoToken = &t
+	case RevToken:
+		pb.RevToken = &t
+	case FileToken:
+		pb.FileToken = &t
+	case UserToken:
+		pb.UserToken = &t
+	case *RepoToken:
+		pb.RepoToken = t
+	case *RevToken:
+		pb.RevToken = t
+	case *FileToken:
+		pb.FileToken = t
+	case *UserToken:
+		pb.UserToken = t
+	default:
+		// empty
+	}
+	return pb
+}
+
+func PBTokensWrap(toks []Token) []PBToken {
+	pbtoks := make([]PBToken, len(toks))
+	for i, tok := range toks {
+		pbtoks[i] = PBTokenWrap(tok)
+	}
+	return pbtoks
+}
+
+// PBTokens converts []PBToken to Tokens.
+func PBTokens(pbtoks []PBToken) Tokens {
+	toks := make(Tokens, len(pbtoks))
+	for i, pbtok := range pbtoks {
+		toks[i] = pbtok.Token()
+	}
+	return toks
 }

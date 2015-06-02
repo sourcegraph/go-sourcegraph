@@ -9,11 +9,11 @@ func TestJoin(t *testing.T) {
 	}{
 		{
 			tokens: []Token{},
-			want:   RawQuery{String: "", InsertionPoint: 0},
+			want:   RawQuery{Text: "", InsertionPoint: 0},
 		},
 		{
 			tokens: []Token{Term("a"), Term("b")},
-			want:   RawQuery{String: "a b", InsertionPoint: 4},
+			want:   RawQuery{Text: "a b", InsertionPoint: 4},
 		},
 	}
 	for _, test := range tests {
