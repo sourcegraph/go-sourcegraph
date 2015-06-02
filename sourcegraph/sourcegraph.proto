@@ -353,6 +353,11 @@ message ReposCreateOp {
 	// VCS is the desired VCS type of the new repository (only "git"
 	// is currently supported).
 	string vcs = 2 [(gogoproto.customname) = "VCS"];
+
+	// CloneURL is the clone URL of the repository for mirrored
+	// repositories. If blank, a new hosted repository is created
+	// (i.e., a repo whose origin is on the server).
+	string clone_url = 3 [(gogoproto.customname) = "CloneURL"];
 }
 
 message ReposListCommitsOp {

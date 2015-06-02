@@ -550,6 +550,10 @@ type ReposCreateOp struct {
 	// VCS is the desired VCS type of the new repository (only "git"
 	// is currently supported).
 	VCS string `protobuf:"bytes,2,opt,name=vcs,proto3" json:"vcs,omitempty"`
+	// CloneURL is the clone URL of the repository for mirrored
+	// repositories. If blank, a new hosted repository is created
+	// (i.e., a repo whose origin is on the server).
+	CloneURL string `protobuf:"bytes,3,opt,name=clone_url,proto3" json:"clone_url,omitempty"`
 }
 
 func (m *ReposCreateOp) Reset()         { *m = ReposCreateOp{} }
