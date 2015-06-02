@@ -29,6 +29,7 @@ It has these top-level messages:
 	RepoStatus
 	RepoStatusesCreateOp
 	RepoList
+	ReposCreateOp
 	ReposListCommitsOp
 	RepoListCommitsOptions
 	CommitList
@@ -38,7 +39,6 @@ It has these top-level messages:
 	ReposListTagsOp
 	RepoListTagsOptions
 	TagList
-	HostedReposCreateOp
 	MirroredRepoSSHKeysCreateOp
 	SSHPrivateKey
 	Build
@@ -544,6 +544,18 @@ func (m *RepoList) Reset()         { *m = RepoList{} }
 func (m *RepoList) String() string { return proto.CompactTextString(m) }
 func (*RepoList) ProtoMessage()    {}
 
+type ReposCreateOp struct {
+	// URI is the desired URI of the new repository.
+	URI string `protobuf:"bytes,1,opt,name=uri,proto3" json:"uri,omitempty"`
+	// VCS is the desired VCS type of the new repository (only "git"
+	// is currently supported).
+	VCS string `protobuf:"bytes,2,opt,name=vcs,proto3" json:"vcs,omitempty"`
+}
+
+func (m *ReposCreateOp) Reset()         { *m = ReposCreateOp{} }
+func (m *ReposCreateOp) String() string { return proto.CompactTextString(m) }
+func (*ReposCreateOp) ProtoMessage()    {}
+
 type ReposListCommitsOp struct {
 	Repo RepoSpec                `protobuf:"bytes,1,opt,name=repo" json:"repo"`
 	Opt  *RepoListCommitsOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
@@ -626,18 +638,6 @@ type TagList struct {
 func (m *TagList) Reset()         { *m = TagList{} }
 func (m *TagList) String() string { return proto.CompactTextString(m) }
 func (*TagList) ProtoMessage()    {}
-
-type HostedReposCreateOp struct {
-	// URI is the desired URI of the new repository.
-	URI string `protobuf:"bytes,1,opt,name=uri,proto3" json:"uri,omitempty"`
-	// VCS is the desired VCS type of the new repository (only "git"
-	// is currently supported).
-	VCS string `protobuf:"bytes,2,opt,name=vcs,proto3" json:"vcs,omitempty"`
-}
-
-func (m *HostedReposCreateOp) Reset()         { *m = HostedReposCreateOp{} }
-func (m *HostedReposCreateOp) String() string { return proto.CompactTextString(m) }
-func (*HostedReposCreateOp) ProtoMessage()    {}
 
 type MirroredRepoSSHKeysCreateOp struct {
 	Repo RepoSpec      `protobuf:"bytes,1,opt,name=repo" json:"repo"`
@@ -2633,6 +2633,10 @@ type ReposClient interface {
 	Get(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*Repo, error)
 	// List repositories.
 	List(ctx context.Context, in *RepoListOptions, opts ...grpc.CallOption) (*RepoList, error)
+	// Create creates a new repository.
+	Create(ctx context.Context, in *ReposCreateOp, opts ...grpc.CallOption) (*Repo, error)
+	// Delete removes a repository.
+	Delete(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error)
 	// GetReadme fetches the formatted README file for a repository.
 	GetReadme(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*Readme, error)
 	// Enable enables the specified repository.
@@ -2670,6 +2674,24 @@ func (c *reposClient) Get(ctx context.Context, in *RepoSpec, opts ...grpc.CallOp
 func (c *reposClient) List(ctx context.Context, in *RepoListOptions, opts ...grpc.CallOption) (*RepoList, error) {
 	out := new(RepoList)
 	err := grpc.Invoke(ctx, "/sourcegraph.Repos/List", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reposClient) Create(ctx context.Context, in *ReposCreateOp, opts ...grpc.CallOption) (*Repo, error) {
+	out := new(Repo)
+	err := grpc.Invoke(ctx, "/sourcegraph.Repos/Create", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *reposClient) Delete(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
+	err := grpc.Invoke(ctx, "/sourcegraph.Repos/Delete", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -2755,6 +2777,10 @@ type ReposServer interface {
 	Get(context.Context, *RepoSpec) (*Repo, error)
 	// List repositories.
 	List(context.Context, *RepoListOptions) (*RepoList, error)
+	// Create creates a new repository.
+	Create(context.Context, *ReposCreateOp) (*Repo, error)
+	// Delete removes a repository.
+	Delete(context.Context, *RepoSpec) (*pbtypes1.Void, error)
 	// GetReadme fetches the formatted README file for a repository.
 	GetReadme(context.Context, *RepoRevSpec) (*Readme, error)
 	// Enable enables the specified repository.
@@ -2794,6 +2820,30 @@ func _Repos_List_Handler(srv interface{}, ctx context.Context, codec grpc.Codec,
 		return nil, err
 	}
 	out, err := srv.(ReposServer).List(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Repos_Create_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(ReposCreateOp)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(ReposServer).Create(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Repos_Delete_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(RepoSpec)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(ReposServer).Delete(ctx, in)
 	if err != nil {
 		return nil, err
 	}
@@ -2909,6 +2959,14 @@ var _Repos_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Repos_List_Handler,
 		},
 		{
+			MethodName: "Create",
+			Handler:    _Repos_Create_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _Repos_Delete_Handler,
+		},
+		{
 			MethodName: "GetReadme",
 			Handler:    _Repos_GetReadme_Handler,
 		},
@@ -2939,96 +2997,6 @@ var _Repos_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListTags",
 			Handler:    _Repos_ListTags_Handler,
-		},
-	},
-	Streams: []grpc.StreamDesc{},
-}
-
-// Client API for HostedRepos service
-
-type HostedReposClient interface {
-	// Create "git init"s a new locally hosted repository.
-	Create(ctx context.Context, in *HostedReposCreateOp, opts ...grpc.CallOption) (*Repo, error)
-	// Delete removes a locally hosted repository and its .git
-	// directory.
-	Delete(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error)
-}
-
-type hostedReposClient struct {
-	cc *grpc.ClientConn
-}
-
-func NewHostedReposClient(cc *grpc.ClientConn) HostedReposClient {
-	return &hostedReposClient{cc}
-}
-
-func (c *hostedReposClient) Create(ctx context.Context, in *HostedReposCreateOp, opts ...grpc.CallOption) (*Repo, error) {
-	out := new(Repo)
-	err := grpc.Invoke(ctx, "/sourcegraph.HostedRepos/Create", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *hostedReposClient) Delete(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
-	out := new(pbtypes1.Void)
-	err := grpc.Invoke(ctx, "/sourcegraph.HostedRepos/Delete", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// Server API for HostedRepos service
-
-type HostedReposServer interface {
-	// Create "git init"s a new locally hosted repository.
-	Create(context.Context, *HostedReposCreateOp) (*Repo, error)
-	// Delete removes a locally hosted repository and its .git
-	// directory.
-	Delete(context.Context, *RepoSpec) (*pbtypes1.Void, error)
-}
-
-func RegisterHostedReposServer(s *grpc.Server, srv HostedReposServer) {
-	s.RegisterService(&_HostedRepos_serviceDesc, srv)
-}
-
-func _HostedRepos_Create_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(HostedReposCreateOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
-		return nil, err
-	}
-	out, err := srv.(HostedReposServer).Create(ctx, in)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func _HostedRepos_Delete_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(RepoSpec)
-	if err := codec.Unmarshal(buf, in); err != nil {
-		return nil, err
-	}
-	out, err := srv.(HostedReposServer).Delete(ctx, in)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-var _HostedRepos_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "sourcegraph.HostedRepos",
-	HandlerType: (*HostedReposServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "Create",
-			Handler:    _HostedRepos_Create_Handler,
-		},
-		{
-			MethodName: "Delete",
-			Handler:    _HostedRepos_Delete_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},

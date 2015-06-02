@@ -31,7 +31,6 @@ type Client struct {
 	BuildData           BuildDataService
 	Defs                DefsClient
 	Deltas              DeltasClient
-	HostedRepos         HostedReposClient
 	Markdown            MarkdownClient
 	Meta                MetaClient
 	MirrorRepos         MirrorReposClient
@@ -83,7 +82,6 @@ func NewClient(httpClient *http.Client, conn *grpc.ClientConn) *Client {
 	c.Builds = NewBuildsClient(conn)
 	c.Defs = NewDefsClient(conn)
 	c.Deltas = NewDeltasClient(conn)
-	c.HostedRepos = NewHostedReposClient(conn)
 	c.Markdown = NewMarkdownClient(conn)
 	c.Meta = NewMetaClient(conn)
 	c.MirrorRepos = NewMirrorReposClient(conn)
