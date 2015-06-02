@@ -15,6 +15,8 @@ import (
 	"testing"
 
 	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"sourcegraph.com/sourcegraph/go-sourcegraph/sourcegraph"
 	"sourcegraph.com/sourcegraph/srclib/graph"
 )
@@ -26,7 +28,7 @@ func (s *DefsClient) MockGet(t *testing.T, wantDef sourcegraph.DefSpec) (called 
 		def := op.Def
 		if def != wantDef {
 			t.Errorf("got def %+v, want %+v", def, wantDef)
-			return nil, sourcegraph.ErrNotExist
+			return nil, grpc.Errorf(codes.NotFound, "def %v not found", wantDef)
 		}
 		return &sourcegraph.Def{Def: graph.Def{DefKey: def.DefKey()}}, nil
 	}
@@ -40,7 +42,7 @@ func (s *DefsClient) MockGet_Return(t *testing.T, wantDef *sourcegraph.Def) (cal
 		def := op.Def
 		if def != wantDef.DefSpec() {
 			t.Errorf("got def %+v, want %+v", def, wantDef.DefSpec())
-			return nil, sourcegraph.ErrNotExist
+			return nil, grpc.Errorf(codes.NotFound, "def %v not found", wantDef.DefKey)
 		}
 		return wantDef, nil
 	}

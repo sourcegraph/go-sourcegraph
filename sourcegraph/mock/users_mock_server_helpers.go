@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"sourcegraph.com/sourcegraph/go-sourcegraph/sourcegraph"
 )
 
@@ -13,7 +15,7 @@ func (s *UsersServer) MockGet(t *testing.T, wantUser string) (called *bool) {
 		*called = true
 		if user.Login != wantUser {
 			t.Errorf("got user %q, want %q", user.Login, wantUser)
-			return nil, sourcegraph.ErrNotExist
+			return nil, grpc.Errorf(codes.NotFound, "user %v not found", wantUser)
 		}
 		return &sourcegraph.User{Login: user.Login}, nil
 	}
@@ -26,7 +28,7 @@ func (s *UsersServer) MockGet_Return(t *testing.T, returns *sourcegraph.User) (c
 		*called = true
 		if user.Login != returns.Login {
 			t.Errorf("got user %q, want %q", user.Login, returns.Login)
-			return nil, sourcegraph.ErrNotExist
+			return nil, grpc.Errorf(codes.NotFound, "user %v not found", returns.Login)
 		}
 		return returns, nil
 	}
