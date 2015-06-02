@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"sourcegraph.com/sourcegraph/go-sourcegraph/sourcegraph"
 	"sourcegraph.com/sourcegraph/go-vcs/vcs"
 )
@@ -14,7 +16,7 @@ func (s *ReposServer) MockGet(t *testing.T, wantRepo string) (called *bool) {
 		*called = true
 		if repo.URI != wantRepo {
 			t.Errorf("got repo %q, want %q", repo.URI, wantRepo)
-			return nil, sourcegraph.ErrNotExist
+			return nil, grpc.Errorf(codes.NotFound, "repo %s not found", wantRepo)
 		}
 		return &sourcegraph.Repo{URI: repo.URI}, nil
 	}
@@ -27,7 +29,7 @@ func (s *ReposServer) MockGet_Return(t *testing.T, returns *sourcegraph.Repo) (c
 		*called = true
 		if repo.URI != returns.URI {
 			t.Errorf("got repo %q, want %q", repo.URI, returns.URI)
-			return nil, sourcegraph.ErrNotExist
+			return nil, grpc.Errorf(codes.NotFound, "repo %s not found", returns.URI)
 		}
 		return returns, nil
 	}
