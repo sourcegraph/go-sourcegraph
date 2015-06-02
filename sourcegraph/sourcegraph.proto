@@ -49,6 +49,12 @@ message ListOptions {
 	int32 page = 2 [(gogoproto.moretags) = "url:\",omitempty\""];
 }
 
+// ListResponse specifies general pagination response when fetching a list of results.
+message ListResponse {
+	// HasMore is true if there are more entries available after the returned page.
+	bool has_more = 1 [(gogoproto.moretags) = "url:\",omitempty\""];
+}
+
 // A Readme represents a formatted "README"-type file in a repository.
 message Readme {
 	// Path is the relative path of this readme file from the repository root.
@@ -348,6 +354,7 @@ message RepoListCommitsOptions {
 
 message CommitList {
 	repeated vcs.Commit commits = 1;
+	ListResponse list_response = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
 message ReposListBranchesOp {
@@ -363,6 +370,7 @@ message RepoListBranchesOptions {
 
 message BranchList {
 	repeated vcs.Branch branches = 1;
+	ListResponse list_response = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
 message ReposListTagsOp {
@@ -376,6 +384,7 @@ message RepoListTagsOptions {
 
 message TagList {
 	repeated vcs.Tag tags = 1;
+	ListResponse list_response = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
 // HostedRepos manages repositories that the local Sourcegraph

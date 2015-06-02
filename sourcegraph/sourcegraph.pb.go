@@ -13,6 +13,7 @@ It has these top-level messages:
 	CombinedStatus
 	Counter
 	ListOptions
+	ListResponse
 	Readme
 	GitHubRepo
 	RepoConfig
@@ -270,6 +271,16 @@ type ListOptions struct {
 func (m *ListOptions) Reset()         { *m = ListOptions{} }
 func (m *ListOptions) String() string { return proto.CompactTextString(m) }
 func (*ListOptions) ProtoMessage()    {}
+
+// ListResponse specifies general pagination response when fetching a list of results.
+type ListResponse struct {
+	// HasMore is true if there are more entries available after the returned page.
+	HasMore bool `protobuf:"varint,1,opt,name=has_more,proto3" json:"has_more,omitempty" url:",omitempty"`
+}
+
+func (m *ListResponse) Reset()         { *m = ListResponse{} }
+func (m *ListResponse) String() string { return proto.CompactTextString(m) }
+func (*ListResponse) ProtoMessage()    {}
 
 // A Readme represents a formatted "README"-type file in a repository.
 type Readme struct {
@@ -554,7 +565,8 @@ func (m *RepoListCommitsOptions) String() string { return proto.CompactTextStrin
 func (*RepoListCommitsOptions) ProtoMessage()    {}
 
 type CommitList struct {
-	Commits []*vcs.Commit `protobuf:"bytes,1,rep,name=commits" json:"commits,omitempty"`
+	Commits      []*vcs.Commit `protobuf:"bytes,1,rep,name=commits" json:"commits,omitempty"`
+	ListResponse `protobuf:"bytes,2,opt,name=list_response,embedded=list_response" json:"list_response"`
 }
 
 func (m *CommitList) Reset()         { *m = CommitList{} }
@@ -581,7 +593,8 @@ func (m *RepoListBranchesOptions) String() string { return proto.CompactTextStri
 func (*RepoListBranchesOptions) ProtoMessage()    {}
 
 type BranchList struct {
-	Branches []*vcs.Branch `protobuf:"bytes,1,rep,name=branches" json:"branches,omitempty"`
+	Branches     []*vcs.Branch `protobuf:"bytes,1,rep,name=branches" json:"branches,omitempty"`
+	ListResponse `protobuf:"bytes,2,opt,name=list_response,embedded=list_response" json:"list_response"`
 }
 
 func (m *BranchList) Reset()         { *m = BranchList{} }
@@ -606,7 +619,8 @@ func (m *RepoListTagsOptions) String() string { return proto.CompactTextString(m
 func (*RepoListTagsOptions) ProtoMessage()    {}
 
 type TagList struct {
-	Tags []*vcs.Tag `protobuf:"bytes,1,rep,name=tags" json:"tags,omitempty"`
+	Tags         []*vcs.Tag `protobuf:"bytes,1,rep,name=tags" json:"tags,omitempty"`
+	ListResponse `protobuf:"bytes,2,opt,name=list_response,embedded=list_response" json:"list_response"`
 }
 
 func (m *TagList) Reset()         { *m = TagList{} }
