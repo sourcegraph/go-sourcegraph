@@ -94,6 +94,8 @@ var _ sourcegraph.RepoStatusesServer = (*RepoStatusesServer)(nil)
 type ReposClient struct {
 	Get_          func(ctx context.Context, in *sourcegraph.RepoSpec) (*sourcegraph.Repo, error)
 	List_         func(ctx context.Context, in *sourcegraph.RepoListOptions) (*sourcegraph.RepoList, error)
+	Create_       func(ctx context.Context, in *sourcegraph.ReposCreateOp) (*sourcegraph.Repo, error)
+	Delete_       func(ctx context.Context, in *sourcegraph.RepoSpec) (*pbtypes.Void, error)
 	GetReadme_    func(ctx context.Context, in *sourcegraph.RepoRevSpec) (*sourcegraph.Readme, error)
 	Enable_       func(ctx context.Context, in *sourcegraph.RepoSpec) (*pbtypes.Void, error)
 	Disable_      func(ctx context.Context, in *sourcegraph.RepoSpec) (*pbtypes.Void, error)
@@ -110,6 +112,14 @@ func (s *ReposClient) Get(ctx context.Context, in *sourcegraph.RepoSpec, opts ..
 
 func (s *ReposClient) List(ctx context.Context, in *sourcegraph.RepoListOptions, opts ...grpc.CallOption) (*sourcegraph.RepoList, error) {
 	return s.List_(ctx, in)
+}
+
+func (s *ReposClient) Create(ctx context.Context, in *sourcegraph.ReposCreateOp, opts ...grpc.CallOption) (*sourcegraph.Repo, error) {
+	return s.Create_(ctx, in)
+}
+
+func (s *ReposClient) Delete(ctx context.Context, in *sourcegraph.RepoSpec, opts ...grpc.CallOption) (*pbtypes.Void, error) {
+	return s.Delete_(ctx, in)
 }
 
 func (s *ReposClient) GetReadme(ctx context.Context, in *sourcegraph.RepoRevSpec, opts ...grpc.CallOption) (*sourcegraph.Readme, error) {
@@ -149,6 +159,8 @@ var _ sourcegraph.ReposClient = (*ReposClient)(nil)
 type ReposServer struct {
 	Get_          func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*sourcegraph.Repo, error)
 	List_         func(v0 context.Context, v1 *sourcegraph.RepoListOptions) (*sourcegraph.RepoList, error)
+	Create_       func(v0 context.Context, v1 *sourcegraph.ReposCreateOp) (*sourcegraph.Repo, error)
+	Delete_       func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error)
 	GetReadme_    func(v0 context.Context, v1 *sourcegraph.RepoRevSpec) (*sourcegraph.Readme, error)
 	Enable_       func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error)
 	Disable_      func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error)
@@ -165,6 +177,14 @@ func (s *ReposServer) Get(v0 context.Context, v1 *sourcegraph.RepoSpec) (*source
 
 func (s *ReposServer) List(v0 context.Context, v1 *sourcegraph.RepoListOptions) (*sourcegraph.RepoList, error) {
 	return s.List_(v0, v1)
+}
+
+func (s *ReposServer) Create(v0 context.Context, v1 *sourcegraph.ReposCreateOp) (*sourcegraph.Repo, error) {
+	return s.Create_(v0, v1)
+}
+
+func (s *ReposServer) Delete(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error) {
+	return s.Delete_(v0, v1)
 }
 
 func (s *ReposServer) GetReadme(v0 context.Context, v1 *sourcegraph.RepoRevSpec) (*sourcegraph.Readme, error) {
@@ -200,36 +220,6 @@ func (s *ReposServer) ListTags(v0 context.Context, v1 *sourcegraph.ReposListTags
 }
 
 var _ sourcegraph.ReposServer = (*ReposServer)(nil)
-
-type HostedReposClient struct {
-	Create_ func(ctx context.Context, in *sourcegraph.HostedReposCreateOp) (*sourcegraph.Repo, error)
-	Delete_ func(ctx context.Context, in *sourcegraph.RepoSpec) (*pbtypes.Void, error)
-}
-
-func (s *HostedReposClient) Create(ctx context.Context, in *sourcegraph.HostedReposCreateOp, opts ...grpc.CallOption) (*sourcegraph.Repo, error) {
-	return s.Create_(ctx, in)
-}
-
-func (s *HostedReposClient) Delete(ctx context.Context, in *sourcegraph.RepoSpec, opts ...grpc.CallOption) (*pbtypes.Void, error) {
-	return s.Delete_(ctx, in)
-}
-
-var _ sourcegraph.HostedReposClient = (*HostedReposClient)(nil)
-
-type HostedReposServer struct {
-	Create_ func(v0 context.Context, v1 *sourcegraph.HostedReposCreateOp) (*sourcegraph.Repo, error)
-	Delete_ func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error)
-}
-
-func (s *HostedReposServer) Create(v0 context.Context, v1 *sourcegraph.HostedReposCreateOp) (*sourcegraph.Repo, error) {
-	return s.Create_(v0, v1)
-}
-
-func (s *HostedReposServer) Delete(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error) {
-	return s.Delete_(v0, v1)
-}
-
-var _ sourcegraph.HostedReposServer = (*HostedReposServer)(nil)
 
 type MirrorReposClient struct {
 	RefreshVCS_ func(ctx context.Context, in *sourcegraph.RepoSpec) (*pbtypes.Void, error)
