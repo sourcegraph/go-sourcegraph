@@ -10,7 +10,7 @@ import (
 func (s *BuildSpec) RouteVars() map[string]string {
 	m := s.Repo.RouteVars()
 	m["Attempt"] = fmt.Sprintf("%d", s.Attempt)
-	m["CommitID"] = fmt.Sprintf("%s", s.CommitID)
+	m["CommitID"] = s.CommitID
 	return m
 }
 
