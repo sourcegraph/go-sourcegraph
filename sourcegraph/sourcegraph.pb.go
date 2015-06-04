@@ -2054,7 +2054,7 @@ func (*SuggestionList) ProtoMessage()    {}
 //
 // This data structure is useful when one desires to take full control of rendering
 // and manipulating the contents of the requested TreeEntry or snippet, rather than
-// dealing with an (annotated) string or parsing text. To obtain this strcture in
+// dealing with an (annotated) string or parsing text. To obtain this structure in
 // the TreeEntry, TokenizedSource must be set to "true" in the RepoTreeGetOptions.
 type SourceCode struct {
 	// Lines contains all the lines of the contained code snippet.
