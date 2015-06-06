@@ -1,8 +1,10 @@
 package sourcegraph
 
 import (
+	"net"
 	"net/http"
 	"net/url"
+	"time"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -84,7 +86,21 @@ func clientCredentialsFromContext(ctx context.Context) []Credentials {
 // using the context (e.g., authenticated using the context's
 // credentials (actor & tickets)).
 var NewClientFromContext = func(ctx context.Context) *Client {
-	transport := http.DefaultTransport
+	var transport http.RoundTripper = &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		Dial: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout: 10 * time.Second,
+
+		// Allow more keep-alive connections per host to avoid
+		// ephemeral port exhaustion due to getting stuck in
+		// TIME_WAIT. Some systems have a very limited ephemeral port
+		// supply (~1024). 20 connections is perfectly reasonable,
+		// since this client will only ever hit one host.
+		MaxIdleConnsPerHost: 20,
+	}
 
 	opts := []grpc.DialOption{
 		grpc.WithCodec(GRPCCodec),
