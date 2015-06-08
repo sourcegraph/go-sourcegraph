@@ -289,18 +289,34 @@ message RepoList {
 
 service RepoBadges {
 	// ListBadges lists the available badges for repo.
-	rpc ListBadges(RepoSpec) returns (BadgeList);
+	rpc ListBadges(RepoSpec) returns (BadgeList) {
+		option (google.api.http) = {
+			get: "/v1/repo_badges/list_badges"
+		};
+	};
 
 	// ListCounters lists the available counters for repo.
-	rpc ListCounters(RepoSpec) returns (CounterList);
+	rpc ListCounters(RepoSpec) returns (CounterList) {
+		option (google.api.http) = {
+			get: "/v1/repo_badges/list_counters"
+		};
+	};
 
 	// RecordHit records a visit to a repo (that will be reflected in
 	// its counter).
-	rpc RecordHit(RepoSpec) returns (pbtypes.Void);
+	rpc RecordHit(RepoSpec) returns (pbtypes.Void) {
+		option (google.api.http) = {
+			post: "/v1/repo_badges/record_hit"
+		};
+	};
 
 	// CountHits returns the hit count (optionally in a recent time
 	// period).
-	rpc CountHits(RepoBadgesCountHitsOp) returns (RepoBadgesCountHitsResult);
+	rpc CountHits(RepoBadgesCountHitsOp) returns (RepoBadgesCountHitsResult) {
+		option (google.api.http) = {
+			get: "/v1/repo_badges/count_hits"
+		};
+	};
 }
 
 service RepoStatuses {
