@@ -1050,7 +1050,11 @@ service People {
 // can't create/update information about).
 service Accounts {
 	// Create creates a new user account.
-	rpc Create(NewAccount) returns (UserSpec);
+	rpc Create(NewAccount) returns (UserSpec) {
+		option (google.api.http) = {
+			post: "/v1/accounts/create"
+		};
+	};
 }
 
 message NewAccount {
