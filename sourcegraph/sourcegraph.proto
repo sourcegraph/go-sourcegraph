@@ -323,7 +323,7 @@ service RepoStatuses {
 	// GetCombined fetches the combined repository status for the given commit.
 	rpc GetCombined(RepoRevSpec) returns (CombinedStatus) {
 		option (google.api.http) = {
-			get: "/v1/repo_statuses/get_combined"
+			post: "/v1/repo_statuses/get_combined"
 		};
 	};
 
@@ -341,14 +341,14 @@ service Repos {
 	// Get fetches a repository.
 	rpc Get(RepoSpec) returns (Repo) {
 		option (google.api.http) = {
-			get: "/v1/repos/get"
+			post: "/v1/repos/get"
 		};
 	};
 
 	// List repositories.
 	rpc List(RepoListOptions) returns (RepoList) {
 		option (google.api.http) = {
-			get: "/v1/repos/list"
+			post: "/v1/repos/list"
 		};
 	};
 
@@ -369,7 +369,7 @@ service Repos {
 	// GetReadme fetches the formatted README file for a repository.
 	rpc GetReadme(RepoRevSpec) returns (Readme) {
 		option (google.api.http) = {
-			get: "/v1/repos/get_readme"
+			post: "/v1/repos/get_readme"
 		};
 	};
 
@@ -392,7 +392,7 @@ service Repos {
 	// not currently supported).
 	rpc GetConfig(RepoSpec) returns (RepoConfig) {
 		option (google.api.http) = {
-			get: "/v1/repos/get_config"
+			post: "/v1/repos/get_config"
 		};
 	};
 
@@ -488,7 +488,7 @@ service MirroredRepoSSHKeys {
 
 	rpc Get(RepoSpec) returns (SSHPrivateKey) {
 		option (google.api.http) = {
-			get: "/v1/mirrored_repo_ssh_keys/get"
+			post: "/v1/mirrored_repo_ssh_keys/get"
 		};
 	};
 
@@ -974,7 +974,7 @@ service Builds {
 	// Get fetches a build.
 	rpc Get(BuildSpec) returns (Build) {
 		option (google.api.http) = {
-			get: "/v1/builds/get"
+			post: "/v1/builds/get"
 		};
 	};
 
@@ -984,14 +984,14 @@ service Builds {
 	// controls what is returned in this case.
 	rpc GetRepoBuildInfo(BuildsGetRepoBuildInfoOp) returns (RepoBuildInfo) {
 		option (google.api.http) = {
-			get: "/v1/builds/get_repo_build_info"
+			post: "/v1/builds/get_repo_build_info"
 		};
 	};
 
 	// List builds.
 	rpc List(BuildListOptions) returns (BuildList) {
 		option (google.api.http) = {
-			get: "/v1/builds/list"
+			post: "/v1/builds/list"
 		};
 	};
 
@@ -1014,7 +1014,7 @@ service Builds {
 	// ListBuildTasks lists the tasks associated with a build.
 	rpc ListBuildTasks(BuildsListBuildTasksOp) returns (BuildTaskList) {
 		option (google.api.http) = {
-			get: "/v1/builds/list_build_tasks"
+			post: "/v1/builds/list_build_tasks"
 		};
 	};
 
@@ -1036,14 +1036,14 @@ service Builds {
 	// GetLog gets log entries associated with a build.
 	rpc GetLog(BuildsGetLogOp) returns (LogEntries) {
 		option (google.api.http) = {
-			get: "/v1/builds/get_log"
+			post: "/v1/builds/get_log"
 		};
 	};
 
 	// GetTaskLog gets log entries associated with a task.
 	rpc GetTaskLog(BuildsGetTaskLogOp) returns (LogEntries) {
 		option (google.api.http) = {
-			get: "/v1/builds/get_task_log"
+			post: "/v1/builds/get_task_log"
 		};
 	};
 
@@ -1058,7 +1058,7 @@ service Builds {
 	// to obtain the tickets.
 	rpc DequeueNext(BuildsDequeueNextOp) returns (Build) {
 		option (google.api.http) = {
-			get: "/v1/builds/dequeue_next"
+			post: "/v1/builds/dequeue_next"
 		};
 	};
 
@@ -1073,7 +1073,7 @@ service Builds {
 	// to obtain the tickets.
 	rpc DequeueNextTask(BuildsDequeueNextTaskOp) returns (BuildTask) {
 		option (google.api.http) = {
-			get: "/v1/builds/dequeue_next_task"
+			post: "/v1/builds/dequeue_next_task"
 		};
 	};
 }
@@ -1084,21 +1084,21 @@ service Orgs {
 	// Get fetches an organization.
 	rpc Get(OrgSpec) returns (Org) {
 		option (google.api.http) = {
-			get: "/v1/orgs/get"
+			post: "/v1/orgs/get"
 		};
 	};
 
 	// List lists organizations that a user is a member of.
 	rpc List(OrgsListOp) returns (OrgList) {
 		option (google.api.http) = {
-			get: "/v1/orgs/list"
+			post: "/v1/orgs/list"
 		};
 	};
 
 	// ListMembers lists members of an organization.
 	rpc ListMembers(OrgsListMembersOp) returns (UserList) {
 		option (google.api.http) = {
-			get: "/v1/orgs/list_members"
+			post: "/v1/orgs/list_members"
 		};
 	};
 }
@@ -1111,7 +1111,7 @@ service People {
 	// and returned.
 	rpc Get(PersonSpec) returns (Person) {
 		option (google.api.http) = {
-			get: "/v1/people/get"
+			post: "/v1/people/get"
 		};
 	};
 }
@@ -1143,21 +1143,21 @@ service Users {
 	// Get fetches a user.
 	rpc Get(UserSpec) returns (User) {
 		option (google.api.http) = {
-			get: "/v1/users/get"
+			post: "/v1/users/get"
 		};
 	};
 
 	// ListEmails returns a list of a user's email addresses.
 	rpc ListEmails(UserSpec) returns (EmailAddrList) {
 		option (google.api.http) = {
-			get: "/v1/users/list_emails"
+			post: "/v1/users/list_emails"
 		};
 	};
 
 	// List users.
 	rpc List(UsersListOptions) returns (UserList) {
 		option (google.api.http) = {
-			get: "/v1/users/list"
+			post: "/v1/users/list"
 		};
 	};
 }
@@ -1180,7 +1180,7 @@ service UserAuth {
 	// authorized GitHub scope).
 	rpc GetExternal(UserAuthGetExternalOp) returns (ExternalAuthInfo) {
 		option (google.api.http) = {
-			get: "/v1/user_auth/get_external"
+			post: "/v1/user_auth/get_external"
 		};
 	};
 
@@ -1933,42 +1933,42 @@ service Defs {
 	// Get fetches a def.
 	rpc Get(DefsGetOp) returns (Def) {
 		option (google.api.http) = {
-			get: "/v1/defs/get"
+			post: "/v1/defs/get"
 		};
 	};
 
 	// List defs.
 	rpc List(DefListOptions) returns (DefList) {
 		option (google.api.http) = {
-			get: "/v1/defs/list"
+			post: "/v1/defs/list"
 		};
 	};
 
 	// ListRefs lists references to def.
 	rpc ListRefs(DefsListRefsOp) returns (RefList) {
 		option (google.api.http) = {
-			get: "/v1/defs/list_refs"
+			post: "/v1/defs/list_refs"
 		};
 	};
 
 	// ListExamples lists examples for def.
 	rpc ListExamples(DefsListExamplesOp) returns (ExampleList) {
 		option (google.api.http) = {
-			get: "/v1/defs/list_examples"
+			post: "/v1/defs/list_examples"
 		};
 	};
 
 	// ListExamples lists people who committed parts of def's definition.
 	rpc ListAuthors(DefsListAuthorsOp) returns (DefAuthorList) {
 		option (google.api.http) = {
-			get: "/v1/defs/list_authors"
+			post: "/v1/defs/list_authors"
 		};
 	};
 
 	// ListClients lists people who use def in their code.
 	rpc ListClients(DefsListClientsOp) returns (DefClientList) {
 		option (google.api.http) = {
-			get: "/v1/defs/list_clients"
+			post: "/v1/defs/list_clients"
 		};
 	};
 }
@@ -1981,28 +1981,28 @@ service Deltas {
 	// Get fetches a summary of a delta.
 	rpc Get(DeltaSpec) returns (Delta) {
 		option (google.api.http) = {
-			get: "/v1/deltas/get"
+			post: "/v1/deltas/get"
 		};
 	};
 
 	// ListUnits lists units added/changed/deleted in a delta.
 	rpc ListUnits(DeltasListUnitsOp) returns (UnitDeltaList) {
 		option (google.api.http) = {
-			get: "/v1/deltas/list_units"
+			post: "/v1/deltas/list_units"
 		};
 	};
 
 	// ListDefs lists definitions added/changed/deleted in a delta.
 	rpc ListDefs(DeltasListDefsOp) returns (DeltaDefs) {
 		option (google.api.http) = {
-			get: "/v1/deltas/list_defs"
+			post: "/v1/deltas/list_defs"
 		};
 	};
 
 	// ListFiles fetches the file diff for a delta.
 	rpc ListFiles(DeltasListFilesOp) returns (DeltaFiles) {
 		option (google.api.http) = {
-			get: "/v1/deltas/list_files"
+			post: "/v1/deltas/list_files"
 		};
 	};
 
@@ -2010,14 +2010,14 @@ service Deltas {
 	// delta.
 	rpc ListAffectedAuthors(DeltasListAffectedAuthorsOp) returns (DeltaAffectedPersonList) {
 		option (google.api.http) = {
-			get: "/v1/deltas/list_affected_authors"
+			post: "/v1/deltas/list_affected_authors"
 		};
 	};
 
 	// ListAffectedClients lists clients whose code is affected by a delta.
 	rpc ListAffectedClients(DeltasListAffectedClientsOp) returns (DeltaAffectedPersonList) {
 		option (google.api.http) = {
-			get: "/v1/deltas/list_affected_clients"
+			post: "/v1/deltas/list_affected_clients"
 		};
 	};
 }
@@ -2025,7 +2025,7 @@ service Deltas {
 service Markdown {
 	rpc Render(MarkdownRenderOp) returns (MarkdownData) {
 		option (google.api.http) = {
-			get: "/v1/markdown/render"
+			post: "/v1/markdown/render"
 		};
 	};
 }
@@ -2035,7 +2035,7 @@ service Markdown {
 service RepoTree {
 	rpc Get(RepoTreeGetOp) returns (TreeEntry) {
 		option (google.api.http) = {
-			get: "/v1/repo_tree/get"
+			post: "/v1/repo_tree/get"
 		};
 	};
 
@@ -2068,7 +2068,7 @@ service Search {
 	// orgs, etc.
 	rpc Suggest(RawQuery) returns (SuggestionList) {
 		option (google.api.http) = {
-			get: "/v1/search/suggest"
+			post: "/v1/search/suggest"
 		};
 	};
 }
@@ -2079,14 +2079,14 @@ service Units {
 	// Get fetches a unit.
 	rpc Get(UnitSpec) returns (unit.RepoSourceUnit) {
 		option (google.api.http) = {
-			get: "/v1/units/get"
+			post: "/v1/units/get"
 		};
 	};
 
 	// List units.
 	rpc List(UnitListOptions) returns (RepoSourceUnitList) {
 		option (google.api.http) = {
-			get: "/v1/units/list"
+			post: "/v1/units/list"
 		};
 	};
 }
