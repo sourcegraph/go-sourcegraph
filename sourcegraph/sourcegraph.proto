@@ -1904,23 +1904,47 @@ service Defs {
 // diffs, affected author/repo impact information, etc.
 service Deltas {
 	// Get fetches a summary of a delta.
-	rpc Get(DeltaSpec) returns (Delta);
+	rpc Get(DeltaSpec) returns (Delta) {
+		option (google.api.http) = {
+			get: "/v1/deltas/get"
+		};
+	};
 
 	// ListUnits lists units added/changed/deleted in a delta.
-	rpc ListUnits(DeltasListUnitsOp) returns (UnitDeltaList);
+	rpc ListUnits(DeltasListUnitsOp) returns (UnitDeltaList) {
+		option (google.api.http) = {
+			get: "/v1/deltas/list_units"
+		};
+	};
 
 	// ListDefs lists definitions added/changed/deleted in a delta.
-	rpc ListDefs(DeltasListDefsOp) returns (DeltaDefs);
+	rpc ListDefs(DeltasListDefsOp) returns (DeltaDefs) {
+		option (google.api.http) = {
+			get: "/v1/deltas/list_defs"
+		};
+	};
 
 	// ListFiles fetches the file diff for a delta.
-	rpc ListFiles(DeltasListFilesOp) returns (DeltaFiles);
+	rpc ListFiles(DeltasListFilesOp) returns (DeltaFiles) {
+		option (google.api.http) = {
+			get: "/v1/deltas/list_files"
+		};
+	};
 
 	// ListAffectedAuthors lists authors whose code is added/deleted/changed in a
 	// delta.
-	rpc ListAffectedAuthors(DeltasListAffectedAuthorsOp) returns (DeltaAffectedPersonList);
+	rpc ListAffectedAuthors(DeltasListAffectedAuthorsOp) returns (DeltaAffectedPersonList) {
+		option (google.api.http) = {
+			get: "/v1/deltas/list_affected_authors"
+		};
+	};
 
 	// ListAffectedClients lists clients whose code is affected by a delta.
-	rpc ListAffectedClients(DeltasListAffectedClientsOp) returns (DeltaAffectedPersonList);
+	rpc ListAffectedClients(DeltasListAffectedClientsOp) returns (DeltaAffectedPersonList) {
+		option (google.api.http) = {
+			get: "/v1/deltas/list_affected_clients"
+		};
+	};
 }
 
 service Markdown {
