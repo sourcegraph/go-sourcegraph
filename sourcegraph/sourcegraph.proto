@@ -10,6 +10,7 @@ import "sourcegraph.com/sourcegraph/srclib/unit/unit.proto";
 import "sourcegraph.com/sourcegraph/vcsstore/vcsclient/vcsclient.proto";
 import "sourcegraph.com/sqs/pbtypes/timestamp.proto";
 import "sourcegraph.com/sqs/pbtypes/void.proto";
+import "google/api/annotations.proto";
 
 option (gogoproto.goproto_getters_all) = false;
 
@@ -893,40 +894,80 @@ message OrgList {
 // API.
 service Builds {
 	// Get fetches a build.
-	rpc Get(BuildSpec) returns (Build);
+	rpc Get(BuildSpec) returns (Build) {
+		option (google.api.http) = {
+			get: "/v1/builds/get"
+		};
+	};
 
 	// GetRepoBuildInfo gets the best-match build for a specific repo revspec. It
 	// returns additional information about the build, such as whether it is exactly
 	// up-to-date with the revspec or a few commits behind the revspec. The opt param
 	// controls what is returned in this case.
-	rpc GetRepoBuildInfo(BuildsGetRepoBuildInfoOp) returns (RepoBuildInfo);
+	rpc GetRepoBuildInfo(BuildsGetRepoBuildInfoOp) returns (RepoBuildInfo) {
+		option (google.api.http) = {
+			get: "/v1/builds/get_repo_build_info"
+		};
+	};
 
 	// List builds.
-	rpc List(BuildListOptions) returns (BuildList);
+	rpc List(BuildListOptions) returns (BuildList) {
+		option (google.api.http) = {
+			get: "/v1/builds/list"
+		};
+	};
 
 	// Create a new build. The build will run asynchronously (Create does not wait for
 	// it to return. To monitor the build's status, use Get.)
-	rpc Create(BuildsCreateOp) returns (Build);
+	rpc Create(BuildsCreateOp) returns (Build) {
+		option (google.api.http) = {
+			post: "/v1/builds/create"
+		};
+	};
 
 	// Update updates information about a build and returns the build after the update
 	// has been applied.
-	rpc Update(BuildsUpdateOp) returns (Build);
+	rpc Update(BuildsUpdateOp) returns (Build) {
+		option (google.api.http) = {
+			post: "/v1/builds/update"
+		};
+	};
 
 	// ListBuildTasks lists the tasks associated with a build.
-	rpc ListBuildTasks(BuildsListBuildTasksOp) returns (BuildTaskList);
+	rpc ListBuildTasks(BuildsListBuildTasksOp) returns (BuildTaskList) {
+		option (google.api.http) = {
+			get: "/v1/builds/list_build_tasks"
+		};
+	};
 
 	// CreateTasks creates tasks associated with a build and returns them with their
 	// TID fields set.
-	rpc CreateTasks(BuildsCreateTasksOp) returns (BuildTaskList);
+	rpc CreateTasks(BuildsCreateTasksOp) returns (BuildTaskList) {
+		option (google.api.http) = {
+			post: "/v1/builds/create_tasks"
+		};
+	};
 
 	// UpdateTask updates a task associated with a build.
-	rpc UpdateTask(BuildsUpdateTaskOp) returns (BuildTask);
+	rpc UpdateTask(BuildsUpdateTaskOp) returns (BuildTask) {
+		option (google.api.http) = {
+			post: "/v1/builds/update_task"
+		};
+	};
 
 	// GetLog gets log entries associated with a build.
-	rpc GetLog(BuildsGetLogOp) returns (LogEntries);
+	rpc GetLog(BuildsGetLogOp) returns (LogEntries) {
+		option (google.api.http) = {
+			get: "/v1/builds/get_log"
+		};
+	};
 
 	// GetTaskLog gets log entries associated with a task.
-	rpc GetTaskLog(BuildsGetTaskLogOp) returns (LogEntries);
+	rpc GetTaskLog(BuildsGetTaskLogOp) returns (LogEntries) {
+		option (google.api.http) = {
+			get: "/v1/builds/get_task_log"
+		};
+	};
 
 	// DequeueNext returns the next queued build and marks it as
 	// having started (atomically). If there are no builds in the
@@ -937,7 +978,11 @@ service Builds {
 	// upload build data for the build's repository. Call
 	// auth.SignedTicketStrings on the response's HTTP response field
 	// to obtain the tickets.
-	rpc DequeueNext(BuildsDequeueNextOp) returns (Build);
+	rpc DequeueNext(BuildsDequeueNextOp) returns (Build) {
+		option (google.api.http) = {
+			get: "/v1/builds/dequeue_next"
+		};
+	};
 
 	// DequeueNextTask returns the next queued build task and marks it
 	// as having started (atomically). If there are no build tasks in
@@ -948,7 +993,11 @@ service Builds {
 	// upload build data for the build's repository. Call
 	// auth.SignedTicketStrings on the response's HTTP response field
 	// to obtain the tickets.
-	rpc DequeueNextTask(BuildsDequeueNextTaskOp) returns (BuildTask);
+	rpc DequeueNextTask(BuildsDequeueNextTaskOp) returns (BuildTask) {
+		option (google.api.http) = {
+			get: "/v1/builds/dequeue_next_task"
+		};
+	};
 }
 
 // OrgsService communicates with the organizations-related endpoints in the
