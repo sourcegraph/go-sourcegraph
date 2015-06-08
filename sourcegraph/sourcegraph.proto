@@ -469,7 +469,11 @@ message TagList {
 // Sourcegraph of repositories hosted elsewhere.
 service MirrorRepos {
 	// Refresh fetches the newest VCS data from the repo's origin.
-	rpc RefreshVCS(RepoSpec) returns (pbtypes.Void);
+	rpc RefreshVCS(RepoSpec) returns (pbtypes.Void) {
+		option (google.api.http) = {
+			put: "/v1/mirror_repos/refresh_vcs"
+		};
+	};
 }
 
 
