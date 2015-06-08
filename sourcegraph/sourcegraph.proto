@@ -1066,13 +1066,25 @@ message NewAccount {
 // API.
 service Users {
 	// Get fetches a user.
-	rpc Get(UserSpec) returns (User);
+	rpc Get(UserSpec) returns (User) {
+		option (google.api.http) = {
+			get: "/v1/users/get"
+		};
+	};
 
 	// ListEmails returns a list of a user's email addresses.
-	rpc ListEmails(UserSpec) returns (EmailAddrList);
+	rpc ListEmails(UserSpec) returns (EmailAddrList) {
+		option (google.api.http) = {
+			post: "/v1/users/list_emails"
+		};
+	};
 
 	// List users.
-	rpc List(UsersListOptions) returns (UserList);
+	rpc List(UsersListOptions) returns (UserList) {
+		option (google.api.http) = {
+			post: "/v1/users/list"
+		};
+	};
 }
 
 // UserAuth manages user authentication and registration.
