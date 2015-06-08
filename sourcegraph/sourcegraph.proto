@@ -480,9 +480,23 @@ service MirrorRepos {
 // MirroredRepoSSHKeys stores repository SSH keys (e.g., to access
 // private repos on some external origin that we mirror).
 service MirroredRepoSSHKeys {
-	rpc Create(MirroredRepoSSHKeysCreateOp) returns (pbtypes.Void);
-	rpc Get(RepoSpec) returns (SSHPrivateKey);
-	rpc Delete(RepoSpec) returns (pbtypes.Void);
+	rpc Create(MirroredRepoSSHKeysCreateOp) returns (pbtypes.Void) {
+		option (google.api.http) = {
+			post: "/v1/mirrored_repo_ssh_keys/create"
+		};
+	};
+
+	rpc Get(RepoSpec) returns (SSHPrivateKey) {
+		option (google.api.http) = {
+			get: "/v1/mirrored_repo_ssh_keys/get"
+		};
+	};
+
+	rpc Delete(RepoSpec) returns (pbtypes.Void) {
+		option (google.api.http) = {
+			delete: "/v1/mirrored_repo_ssh_keys/delete"
+		};
+	};
 }
 
 message MirroredRepoSSHKeysCreateOp {
