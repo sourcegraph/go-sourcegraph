@@ -84,7 +84,7 @@ func clientCredentialsFromContext(ctx context.Context) []Credentials {
 // using the context (e.g., authenticated using the context's
 // credentials (actor & tickets)).
 var NewClientFromContext = func(ctx context.Context) *Client {
-	transport := http.DefaultTransport
+	transport := keepAliveTransport()
 
 	opts := []grpc.DialOption{
 		grpc.WithCodec(GRPCCodec),

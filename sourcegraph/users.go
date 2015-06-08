@@ -1,7 +1,6 @@
 package sourcegraph
 
 import (
-	"errors"
 	"fmt"
 
 	"strconv"
@@ -83,21 +82,4 @@ func ParseUserSpec(pathComponent string) (UserSpec, error) {
 		return UserSpec{UID: int32(uid)}, err
 	}
 	return UserSpec{Login: pathComponent}, nil
-}
-
-// ErrUserNotExist is an error indicating that no such user exists.
-var ErrUserNotExist = errors.New("user does not exist")
-
-// ErrUserRenamed is an error type that indicates that a user account was renamed
-// from OldLogin to NewLogin.
-type ErrUserRenamed struct {
-	// OldLogin is the previous login name.
-	OldLogin string
-
-	// NewLogin is what the old login was renamed to.
-	NewLogin string
-}
-
-func (e ErrUserRenamed) Error() string {
-	return fmt.Sprintf("login %q was renamed to %q; use the new name", e.OldLogin, e.NewLogin)
 }

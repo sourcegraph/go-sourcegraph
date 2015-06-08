@@ -475,8 +475,9 @@ message SSHPrivateKey {
 // behavior. As we encounter new requirements for the build system, they may
 // evolve.
 message Build {
-	// BID is the unique identifier for the build.
-	int64 bid = 1 [(gogoproto.customname) = "BID"];
+	// Attempt is the 1-indexed number representing sequential attempts at building
+	// this repository.
+	uint32 attempt = 1;
 
 	// Repo is the URI of the repository this build is for.
 	string repo = 2;
@@ -564,8 +565,9 @@ message BuildListOptions {
 }
 
 message BuildSpec {
-	int64 bid = 1 [(gogoproto.customname) = "BID"];
-	RepoSpec repo = 2 [(gogoproto.nullable) = false];
+	string commit_id = 1 [(gogoproto.customname) = "CommitID"];
+	uint32 attempt = 2;
+	RepoSpec repo = 3 [(gogoproto.nullable) = false];
 }
 
 // A BuildTask represents an individual step of a build.
@@ -580,35 +582,36 @@ message BuildTask {
 	// Repo is the URI of the repository that this task's build is for.
 	string repo = 2;
 
-	// BID is the build that this task is a part of.
-	int64 bid = 3 [(gogoproto.customname) = "BID"];
+	string commit_id = 3 [(gogoproto.customname) = "CommitID"];
+
+	uint32 attempt = 4;
 
 	// UnitType is the srclib source unit type of the source unit that this task is
 	// associated with.
-	string unit_type = 4;
+	string unit_type = 5;
 
 	// Unit is the srclib source unit name of the source unit that this task is
 	// associated with.
-	string unit = 5;
+	string unit = 6;
 
 	// Op is the srclib toolchain operation (graph, depresolve, etc.) that this task
 	// performs.
-	string op = 6;
+	string op = 7;
 
 	// Order is the order in which this task is performed, relative to other tasks in
 	// the same build. Lower-number-ordered tasks are built first. Multiple tasks may
 	// have the same order.
-	int32 order = 7;
+	int32 order = 8;
 
 	// CreatedAt is when this task was initially created.
-	pbtypes.Timestamp created_at = 8 [(gogoproto.nullable) = false];
+	pbtypes.Timestamp created_at = 9 [(gogoproto.nullable) = false];
 
 	// StartedAt is when this task's execution began.
-	optional pbtypes.Timestamp started_at = 9;
+	optional pbtypes.Timestamp started_at = 10;
 
 	// EndedAt is when this task's execution ended (whether because it succeeded or
 	// failed).
-	optional pbtypes.Timestamp ended_at = 10;
+	optional pbtypes.Timestamp ended_at = 11;
 
 	// Queue is whether this task should be performed by queue task remote workers on
 	// the central server. If true, then it will be performed remotely. If false, it
@@ -619,13 +622,13 @@ message BuildTask {
 	//
 	// See the documentation for Build for more discussion about queued builds and
 	// tasks (and how they relate).
-	bool queue = 11;
+	bool queue = 12;
 
 	// Success is whether this task's execution succeeded.
-	bool success = 12;
+	bool success = 13;
 
 	// Failure is whether this task's execution failed.
-	bool failure = 13;
+	bool failure = 14;
 }
 
 message BuildTaskListOptions {
@@ -1697,7 +1700,7 @@ message SuggestionList {
 //
 // This data structure is useful when one desires to take full control of rendering
 // and manipulating the contents of the requested TreeEntry or snippet, rather than
-// dealing with an (annotated) string or parsing text. To obtain this strcture in
+// dealing with an (annotated) string or parsing text. To obtain this structure in
 // the TreeEntry, TokenizedSource must be set to "true" in the RepoTreeGetOptions.
 message SourceCode {
 	// Lines contains all the lines of the contained code snippet.
