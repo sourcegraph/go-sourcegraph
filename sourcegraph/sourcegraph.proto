@@ -306,7 +306,7 @@ service RepoBadges {
 	// its counter).
 	rpc RecordHit(RepoSpec) returns (pbtypes.Void) {
 		option (google.api.http) = {
-			post: "/v1/repo_badges/record_hit"
+			put: "/v1/repo_badges/record_hit"
 		};
 	};
 
@@ -1007,7 +1007,7 @@ service Builds {
 	// has been applied.
 	rpc Update(BuildsUpdateOp) returns (Build) {
 		option (google.api.http) = {
-			post: "/v1/builds/update"
+			put: "/v1/builds/update"
 		};
 	};
 
@@ -1029,7 +1029,7 @@ service Builds {
 	// UpdateTask updates a task associated with a build.
 	rpc UpdateTask(BuildsUpdateTaskOp) returns (BuildTask) {
 		option (google.api.http) = {
-			post: "/v1/builds/update_task"
+			put: "/v1/builds/update_task"
 		};
 	};
 
@@ -1150,14 +1150,14 @@ service Users {
 	// ListEmails returns a list of a user's email addresses.
 	rpc ListEmails(UserSpec) returns (EmailAddrList) {
 		option (google.api.http) = {
-			post: "/v1/users/list_emails"
+			get: "/v1/users/list_emails"
 		};
 	};
 
 	// List users.
 	rpc List(UsersListOptions) returns (UserList) {
 		option (google.api.http) = {
-			post: "/v1/users/list"
+			get: "/v1/users/list"
 		};
 	};
 }
