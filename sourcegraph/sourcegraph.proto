@@ -1034,7 +1034,11 @@ service People {
 	// Get gets a person. If an email is provided and it resolves to a registered user,
 	// information about that user is returned. Otherwise a transient person is created
 	// and returned.
-	rpc Get(PersonSpec) returns (Person);
+	rpc Get(PersonSpec) returns (Person) {
+		option (google.api.http) = {
+			get: "/v1/people/get"
+		};
+	};
 }
 
 // Accounts communicates with the account-related endpoints in the
