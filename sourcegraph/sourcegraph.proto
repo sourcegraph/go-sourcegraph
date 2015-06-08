@@ -1948,7 +1948,11 @@ service Deltas {
 }
 
 service Markdown {
-	rpc Render(MarkdownRenderOp) returns (MarkdownData);
+	rpc Render(MarkdownRenderOp) returns (MarkdownData) {
+		option (google.api.http) = {
+			get: "/v1/markdown/render"
+		};
+	};
 }
 
 // RepoTreeService communicates with the Sourcegraph API endpoints that fetch file
