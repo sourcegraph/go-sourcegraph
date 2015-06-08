@@ -321,10 +321,18 @@ service RepoBadges {
 
 service RepoStatuses {
 	// GetCombined fetches the combined repository status for the given commit.
-	rpc GetCombined(RepoRevSpec) returns (CombinedStatus);
+	rpc GetCombined(RepoRevSpec) returns (CombinedStatus) {
+		option (google.api.http) = {
+			get: "/v1/repo_statuses/get_combined"
+		};
+	};
 
 	// Create creates a repository status for the given commit.
-	rpc Create(RepoStatusesCreateOp) returns (RepoStatus);
+	rpc Create(RepoStatusesCreateOp) returns (RepoStatus) {
+		option (google.api.http) = {
+			post: "/v1/repo_statuses/post"
+		};
+	};
 }
 
 // Repos exposes information about and actions on both locally hosted
