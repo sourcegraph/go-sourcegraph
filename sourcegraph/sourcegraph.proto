@@ -2002,10 +2002,18 @@ service Search {
 // Sourcegraph API.
 service Units {
 	// Get fetches a unit.
-	rpc Get(UnitSpec) returns (unit.RepoSourceUnit);
+	rpc Get(UnitSpec) returns (unit.RepoSourceUnit) {
+		option (google.api.http) = {
+			get: "/v1/units/get"
+		};
+	};
 
 	// List units.
-	rpc List(UnitListOptions) returns (RepoSourceUnitList);
+	rpc List(UnitListOptions) returns (RepoSourceUnitList) {
+		option (google.api.http) = {
+			get: "/v1/units/list"
+		};
+	};
 }
 
 message Checklist {
