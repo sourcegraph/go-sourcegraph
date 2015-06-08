@@ -1094,16 +1094,28 @@ service UserAuth {
 	// user. If there is no current user, then the token may be used
 	// to create an account. The UID of the current user (or the newly
 	// registered user) is returned.
-	rpc Authenticate(UserAuthAuthenticateOp) returns (AuthenticatedUser);
+	rpc Authenticate(UserAuthAuthenticateOp) returns (AuthenticatedUser) {
+		option (google.api.http) = {
+			post: "/v1/user_auth/authenticate"
+		};
+	};
 
 	// GetExternal returns info about the current user's
 	// authentication with an external service (e.g., the currently
 	// authorized GitHub scope).
-	rpc GetExternal(UserAuthGetExternalOp) returns (ExternalAuthInfo);
+	rpc GetExternal(UserAuthGetExternalOp) returns (ExternalAuthInfo) {
+		option (google.api.http) = {
+			get: "/v1/user_auth/get_external"
+		};
+	};
 
 	// Identify describes the currently authenticated user (if
 	// any). It is akin to "whoami".
-	rpc Identify(pbtypes.Void) returns (AuthInfo);
+	rpc Identify(pbtypes.Void) returns (AuthInfo) {
+		option (google.api.http) = {
+			get: "/v1/user_auth/identify"
+		};
+	};
 }
 
 // An AuthenticatedUser describes the user that resulted from a UserAuth.Authenticate call.
