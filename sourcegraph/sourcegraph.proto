@@ -1004,13 +1004,25 @@ service Builds {
 // Sourcegraph API.
 service Orgs {
 	// Get fetches an organization.
-	rpc Get(OrgSpec) returns (Org);
+	rpc Get(OrgSpec) returns (Org) {
+		option (google.api.http) = {
+			get: "/v1/orgs/get"
+		};
+	};
 
 	// List lists organizations that a user is a member of.
-	rpc List(OrgsListOp) returns (OrgList);
+	rpc List(OrgsListOp) returns (OrgList) {
+		option (google.api.http) = {
+			get: "/v1/orgs/list"
+		};
+	};
 
 	// ListMembers lists members of an organization.
-	rpc ListMembers(OrgsListMembersOp) returns (UserList);
+	rpc ListMembers(OrgsListMembersOp) returns (UserList) {
+		option (google.api.http) = {
+			get: "/v1/orgs/list_members"
+		};
+	};
 }
 
 // PeopleService communicates with the people-related endpoints in the Sourcegraph
