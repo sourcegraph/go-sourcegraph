@@ -2152,10 +2152,18 @@ message PBToken {
 service Meta {
 	// Status returns status information from the server's point of
 	// view.
-	rpc Status(pbtypes.Void) returns (ServerStatus);
+	rpc Status(pbtypes.Void) returns (ServerStatus) {
+		option (google.api.http) = {
+			get: "/v1/meta/status"
+		};
+	};
 
 	// Config returns the server's configuration.
-	rpc Config(pbtypes.Void) returns (ServerConfig);
+	rpc Config(pbtypes.Void) returns (ServerConfig) {
+		option (google.api.http) = {
+			get: "/v1/meta/config"
+		};
+	};
 }
 
 // ServerStatus describes the server's status.
