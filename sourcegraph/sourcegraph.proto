@@ -1975,15 +1975,27 @@ service RepoTree {
 // API.
 service Search {
 	// Search searches the full index.
-	rpc Search(SearchOptions) returns (SearchResults);
+	rpc Search(SearchOptions) returns (SearchResults) {
+		option (google.api.http) = {
+			post: "/v1/search/search"
+		};
+	};
 
 	// Complete completes the token at the RawQuery's InsertionPoint.
-	rpc Complete(RawQuery) returns (Completions);
+	rpc Complete(RawQuery) returns (Completions) {
+		option (google.api.http) = {
+			post: "/v1/search/complete"
+		};
+	};
 
 	// Suggest suggests queries given an existing query. It can be called with an empty
 	// query to get example queries that pertain to the current user's repositories,
 	// orgs, etc.
-	rpc Suggest(RawQuery) returns (SuggestionList);
+	rpc Suggest(RawQuery) returns (SuggestionList) {
+		option (google.api.http) = {
+			get: "/v1/search/suggest"
+		};
+	};
 }
 
 // UnitsService communicates with the source unit-related endpoints in the
