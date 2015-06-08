@@ -339,32 +339,65 @@ service RepoStatuses {
 // and remote repositories.
 service Repos {
 	// Get fetches a repository.
-	rpc Get(RepoSpec) returns (Repo);
+	rpc Get(RepoSpec) returns (Repo) {
+		option (google.api.http) = {
+			get: "/v1/repos/get"
+		};
+	};
 
 	// List repositories.
-	rpc List(RepoListOptions) returns (RepoList);
+	rpc List(RepoListOptions) returns (RepoList) {
+		option (google.api.http) = {
+			get: "/v1/repos/list"
+		};
+	};
 
 	// Create creates a new repository.
-	rpc Create(ReposCreateOp) returns (Repo);
+	rpc Create(ReposCreateOp) returns (Repo) {
+		option (google.api.http) = {
+			post: "/v1/repos/create"
+		};
+	};
 
 	// Delete removes a repository.
-	rpc Delete(RepoSpec) returns (pbtypes.Void);
+	rpc Delete(RepoSpec) returns (pbtypes.Void) {
+		option (google.api.http) = {
+			delete: "/v1/repos/delete"
+		};
+	};
 
 	// GetReadme fetches the formatted README file for a repository.
-	rpc GetReadme(RepoRevSpec) returns (Readme);
+	rpc GetReadme(RepoRevSpec) returns (Readme) {
+		option (google.api.http) = {
+			get: "/v1/repos/get_readme"
+		};
+	};
 
 	// Enable enables the specified repository.
-	rpc Enable(RepoSpec) returns (pbtypes.Void);
+	rpc Enable(RepoSpec) returns (pbtypes.Void) {
+		option (google.api.http) = {
+			put: "/v1/repos/enable"
+		};
+	};
 
 	// Disable disables the specified repository.
-	rpc Disable(RepoSpec) returns (pbtypes.Void);
+	rpc Disable(RepoSpec) returns (pbtypes.Void) {
+		option (google.api.http) = {
+			put: "/v1/repos/disable"
+		};
+	};
 
 	// GetConfig retrieves the configuration for a repository. To
 	// update the config, use Enable or Disable (direct updating is
 	// not currently supported).
-	rpc GetConfig(RepoSpec) returns (RepoConfig);
+	rpc GetConfig(RepoSpec) returns (RepoConfig) {
+		option (google.api.http) = {
+			get: "/v1/repos/get_config"
+		};
+	};
 
 	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
+	// TODO(slimsag): add google.api.http annotations to these once moved
 	rpc GetCommit(RepoRevSpec) returns (vcs.Commit);
 	rpc ListCommits(ReposListCommitsOp) returns (CommitList);
 	rpc ListBranches(ReposListBranchesOp) returns (BranchList);
