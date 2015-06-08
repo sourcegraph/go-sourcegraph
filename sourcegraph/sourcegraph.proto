@@ -1856,22 +1856,46 @@ message DefClientList {
 // Sourcegraph API.
 service Defs {
 	// Get fetches a def.
-	rpc Get(DefsGetOp) returns (Def);
+	rpc Get(DefsGetOp) returns (Def) {
+		option (google.api.http) = {
+			get: "/v1/defs/get"
+		};
+	};
 
 	// List defs.
-	rpc List(DefListOptions) returns (DefList);
+	rpc List(DefListOptions) returns (DefList) {
+		option (google.api.http) = {
+			get: "/v1/defs/list"
+		};
+	};
 
 	// ListRefs lists references to def.
-	rpc ListRefs(DefsListRefsOp) returns (RefList);
+	rpc ListRefs(DefsListRefsOp) returns (RefList) {
+		option (google.api.http) = {
+			get: "/v1/defs/list_refs"
+		};
+	};
 
 	// ListExamples lists examples for def.
-	rpc ListExamples(DefsListExamplesOp) returns (ExampleList);
+	rpc ListExamples(DefsListExamplesOp) returns (ExampleList) {
+		option (google.api.http) = {
+			get: "/v1/defs/list_examples"
+		};
+	};
 
 	// ListExamples lists people who committed parts of def's definition.
-	rpc ListAuthors(DefsListAuthorsOp) returns (DefAuthorList);
+	rpc ListAuthors(DefsListAuthorsOp) returns (DefAuthorList) {
+		option (google.api.http) = {
+			get: "/v1/defs/list_authors"
+		};
+	};
 
 	// ListClients lists people who use def in their code.
-	rpc ListClients(DefsListClientsOp) returns (DefClientList);
+	rpc ListClients(DefsListClientsOp) returns (DefClientList) {
+		option (google.api.http) = {
+			get: "/v1/defs/list_clients"
+		};
+	};
 }
 
 // DeltasService interacts with the delta-related endpoints of the Sourcegraph API.
