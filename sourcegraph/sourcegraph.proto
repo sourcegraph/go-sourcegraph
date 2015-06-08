@@ -1958,8 +1958,17 @@ service Markdown {
 // RepoTreeService communicates with the Sourcegraph API endpoints that fetch file
 // and directory entries in repositories.
 service RepoTree {
-	rpc Get(RepoTreeGetOp) returns (TreeEntry);
-	rpc Search(RepoTreeSearchOp) returns (VCSSearchResultList);
+	rpc Get(RepoTreeGetOp) returns (TreeEntry) {
+		option (google.api.http) = {
+			get: "/v1/repo_tree/get"
+		};
+	};
+
+	rpc Search(RepoTreeSearchOp) returns (VCSSearchResultList) {
+		option (google.api.http) = {
+			post: "/v1/repo_tree/search"
+		};
+	};
 }
 
 // SearchService communicates with the search-related endpoints in the Sourcegraph
