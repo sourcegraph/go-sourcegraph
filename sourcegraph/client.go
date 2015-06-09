@@ -43,6 +43,7 @@ type Client struct {
 	RepoStatuses        RepoStatusesClient
 	RepoTree            RepoTreeClient
 	Repos               ReposClient
+	Changesets          ChangesetsClient
 	Search              SearchClient
 	Units               UnitsClient
 	UserAuth            UserAuthClient
