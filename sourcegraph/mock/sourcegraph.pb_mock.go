@@ -92,20 +92,18 @@ func (s *RepoStatusesServer) Create(v0 context.Context, v1 *sourcegraph.RepoStat
 var _ sourcegraph.RepoStatusesServer = (*RepoStatusesServer)(nil)
 
 type ReposClient struct {
-	Get_             func(ctx context.Context, in *sourcegraph.RepoSpec) (*sourcegraph.Repo, error)
-	List_            func(ctx context.Context, in *sourcegraph.RepoListOptions) (*sourcegraph.RepoList, error)
-	Create_          func(ctx context.Context, in *sourcegraph.ReposCreateOp) (*sourcegraph.Repo, error)
-	Delete_          func(ctx context.Context, in *sourcegraph.RepoSpec) (*pbtypes.Void, error)
-	GetReadme_       func(ctx context.Context, in *sourcegraph.RepoRevSpec) (*sourcegraph.Readme, error)
-	Enable_          func(ctx context.Context, in *sourcegraph.RepoSpec) (*pbtypes.Void, error)
-	Disable_         func(ctx context.Context, in *sourcegraph.RepoSpec) (*pbtypes.Void, error)
-	GetConfig_       func(ctx context.Context, in *sourcegraph.RepoSpec) (*sourcegraph.RepoConfig, error)
-	CreateChangeset_ func(ctx context.Context, in *sourcegraph.ChangesetCreateOp) (*sourcegraph.Changeset, error)
-	GetChangeset_    func(ctx context.Context, in *sourcegraph.ChangesetGetOp) (*sourcegraph.Changeset, error)
-	GetCommit_       func(ctx context.Context, in *sourcegraph.RepoRevSpec) (*vcs.Commit, error)
-	ListCommits_     func(ctx context.Context, in *sourcegraph.ReposListCommitsOp) (*sourcegraph.CommitList, error)
-	ListBranches_    func(ctx context.Context, in *sourcegraph.ReposListBranchesOp) (*sourcegraph.BranchList, error)
-	ListTags_        func(ctx context.Context, in *sourcegraph.ReposListTagsOp) (*sourcegraph.TagList, error)
+	Get_          func(ctx context.Context, in *sourcegraph.RepoSpec) (*sourcegraph.Repo, error)
+	List_         func(ctx context.Context, in *sourcegraph.RepoListOptions) (*sourcegraph.RepoList, error)
+	Create_       func(ctx context.Context, in *sourcegraph.ReposCreateOp) (*sourcegraph.Repo, error)
+	Delete_       func(ctx context.Context, in *sourcegraph.RepoSpec) (*pbtypes.Void, error)
+	GetReadme_    func(ctx context.Context, in *sourcegraph.RepoRevSpec) (*sourcegraph.Readme, error)
+	Enable_       func(ctx context.Context, in *sourcegraph.RepoSpec) (*pbtypes.Void, error)
+	Disable_      func(ctx context.Context, in *sourcegraph.RepoSpec) (*pbtypes.Void, error)
+	GetConfig_    func(ctx context.Context, in *sourcegraph.RepoSpec) (*sourcegraph.RepoConfig, error)
+	GetCommit_    func(ctx context.Context, in *sourcegraph.RepoRevSpec) (*vcs.Commit, error)
+	ListCommits_  func(ctx context.Context, in *sourcegraph.ReposListCommitsOp) (*sourcegraph.CommitList, error)
+	ListBranches_ func(ctx context.Context, in *sourcegraph.ReposListBranchesOp) (*sourcegraph.BranchList, error)
+	ListTags_     func(ctx context.Context, in *sourcegraph.ReposListTagsOp) (*sourcegraph.TagList, error)
 }
 
 func (s *ReposClient) Get(ctx context.Context, in *sourcegraph.RepoSpec, opts ...grpc.CallOption) (*sourcegraph.Repo, error) {
@@ -140,14 +138,6 @@ func (s *ReposClient) GetConfig(ctx context.Context, in *sourcegraph.RepoSpec, o
 	return s.GetConfig_(ctx, in)
 }
 
-func (s *ReposClient) CreateChangeset(ctx context.Context, in *sourcegraph.ChangesetCreateOp, opts ...grpc.CallOption) (*sourcegraph.Changeset, error) {
-	return s.CreateChangeset_(ctx, in)
-}
-
-func (s *ReposClient) GetChangeset(ctx context.Context, in *sourcegraph.ChangesetGetOp, opts ...grpc.CallOption) (*sourcegraph.Changeset, error) {
-	return s.GetChangeset_(ctx, in)
-}
-
 func (s *ReposClient) GetCommit(ctx context.Context, in *sourcegraph.RepoRevSpec, opts ...grpc.CallOption) (*vcs.Commit, error) {
 	return s.GetCommit_(ctx, in)
 }
@@ -167,20 +157,18 @@ func (s *ReposClient) ListTags(ctx context.Context, in *sourcegraph.ReposListTag
 var _ sourcegraph.ReposClient = (*ReposClient)(nil)
 
 type ReposServer struct {
-	Get_             func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*sourcegraph.Repo, error)
-	List_            func(v0 context.Context, v1 *sourcegraph.RepoListOptions) (*sourcegraph.RepoList, error)
-	Create_          func(v0 context.Context, v1 *sourcegraph.ReposCreateOp) (*sourcegraph.Repo, error)
-	Delete_          func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error)
-	GetReadme_       func(v0 context.Context, v1 *sourcegraph.RepoRevSpec) (*sourcegraph.Readme, error)
-	Enable_          func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error)
-	Disable_         func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error)
-	GetConfig_       func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*sourcegraph.RepoConfig, error)
-	CreateChangeset_ func(v0 context.Context, v1 *sourcegraph.ChangesetCreateOp) (*sourcegraph.Changeset, error)
-	GetChangeset_    func(v0 context.Context, v1 *sourcegraph.ChangesetGetOp) (*sourcegraph.Changeset, error)
-	GetCommit_       func(v0 context.Context, v1 *sourcegraph.RepoRevSpec) (*vcs.Commit, error)
-	ListCommits_     func(v0 context.Context, v1 *sourcegraph.ReposListCommitsOp) (*sourcegraph.CommitList, error)
-	ListBranches_    func(v0 context.Context, v1 *sourcegraph.ReposListBranchesOp) (*sourcegraph.BranchList, error)
-	ListTags_        func(v0 context.Context, v1 *sourcegraph.ReposListTagsOp) (*sourcegraph.TagList, error)
+	Get_          func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*sourcegraph.Repo, error)
+	List_         func(v0 context.Context, v1 *sourcegraph.RepoListOptions) (*sourcegraph.RepoList, error)
+	Create_       func(v0 context.Context, v1 *sourcegraph.ReposCreateOp) (*sourcegraph.Repo, error)
+	Delete_       func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error)
+	GetReadme_    func(v0 context.Context, v1 *sourcegraph.RepoRevSpec) (*sourcegraph.Readme, error)
+	Enable_       func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error)
+	Disable_      func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error)
+	GetConfig_    func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*sourcegraph.RepoConfig, error)
+	GetCommit_    func(v0 context.Context, v1 *sourcegraph.RepoRevSpec) (*vcs.Commit, error)
+	ListCommits_  func(v0 context.Context, v1 *sourcegraph.ReposListCommitsOp) (*sourcegraph.CommitList, error)
+	ListBranches_ func(v0 context.Context, v1 *sourcegraph.ReposListBranchesOp) (*sourcegraph.BranchList, error)
+	ListTags_     func(v0 context.Context, v1 *sourcegraph.ReposListTagsOp) (*sourcegraph.TagList, error)
 }
 
 func (s *ReposServer) Get(v0 context.Context, v1 *sourcegraph.RepoSpec) (*sourcegraph.Repo, error) {
@@ -215,14 +203,6 @@ func (s *ReposServer) GetConfig(v0 context.Context, v1 *sourcegraph.RepoSpec) (*
 	return s.GetConfig_(v0, v1)
 }
 
-func (s *ReposServer) CreateChangeset(v0 context.Context, v1 *sourcegraph.ChangesetCreateOp) (*sourcegraph.Changeset, error) {
-	return s.CreateChangeset_(v0, v1)
-}
-
-func (s *ReposServer) GetChangeset(v0 context.Context, v1 *sourcegraph.ChangesetGetOp) (*sourcegraph.Changeset, error) {
-	return s.GetChangeset_(v0, v1)
-}
-
 func (s *ReposServer) GetCommit(v0 context.Context, v1 *sourcegraph.RepoRevSpec) (*vcs.Commit, error) {
 	return s.GetCommit_(v0, v1)
 }
@@ -240,6 +220,36 @@ func (s *ReposServer) ListTags(v0 context.Context, v1 *sourcegraph.ReposListTags
 }
 
 var _ sourcegraph.ReposServer = (*ReposServer)(nil)
+
+type ChangesetsClient struct {
+	Create_ func(ctx context.Context, in *sourcegraph.ChangesetCreateOp) (*sourcegraph.Changeset, error)
+	Get_    func(ctx context.Context, in *sourcegraph.ChangesetGetOp) (*sourcegraph.Changeset, error)
+}
+
+func (s *ChangesetsClient) Create(ctx context.Context, in *sourcegraph.ChangesetCreateOp, opts ...grpc.CallOption) (*sourcegraph.Changeset, error) {
+	return s.Create_(ctx, in)
+}
+
+func (s *ChangesetsClient) Get(ctx context.Context, in *sourcegraph.ChangesetGetOp, opts ...grpc.CallOption) (*sourcegraph.Changeset, error) {
+	return s.Get_(ctx, in)
+}
+
+var _ sourcegraph.ChangesetsClient = (*ChangesetsClient)(nil)
+
+type ChangesetsServer struct {
+	Create_ func(v0 context.Context, v1 *sourcegraph.ChangesetCreateOp) (*sourcegraph.Changeset, error)
+	Get_    func(v0 context.Context, v1 *sourcegraph.ChangesetGetOp) (*sourcegraph.Changeset, error)
+}
+
+func (s *ChangesetsServer) Create(v0 context.Context, v1 *sourcegraph.ChangesetCreateOp) (*sourcegraph.Changeset, error) {
+	return s.Create_(v0, v1)
+}
+
+func (s *ChangesetsServer) Get(v0 context.Context, v1 *sourcegraph.ChangesetGetOp) (*sourcegraph.Changeset, error) {
+	return s.Get_(v0, v1)
+}
+
+var _ sourcegraph.ChangesetsServer = (*ChangesetsServer)(nil)
 
 type MirrorReposClient struct {
 	RefreshVCS_ func(ctx context.Context, in *sourcegraph.RepoSpec) (*pbtypes.Void, error)

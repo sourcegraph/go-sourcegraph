@@ -2734,11 +2734,6 @@ type ReposClient interface {
 	// update the config, use Enable or Disable (direct updating is
 	// not currently supported).
 	GetConfig(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*RepoConfig, error)
-	// CreateChangeset creates a new Changeset and returns it, populating
-	// its fields, such as ID and CreatedAt.
-	CreateChangeset(ctx context.Context, in *ChangesetCreateOp, opts ...grpc.CallOption) (*Changeset, error)
-	// GetChangeset returns the changeset by RepoSpec and ID.
-	GetChangeset(ctx context.Context, in *ChangesetGetOp, opts ...grpc.CallOption) (*Changeset, error)
 	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
 	GetCommit(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*vcs.Commit, error)
 	ListCommits(ctx context.Context, in *ReposListCommitsOp, opts ...grpc.CallOption) (*CommitList, error)
@@ -2826,24 +2821,6 @@ func (c *reposClient) GetConfig(ctx context.Context, in *RepoSpec, opts ...grpc.
 	return out, nil
 }
 
-func (c *reposClient) CreateChangeset(ctx context.Context, in *ChangesetCreateOp, opts ...grpc.CallOption) (*Changeset, error) {
-	out := new(Changeset)
-	err := grpc.Invoke(ctx, "/sourcegraph.Repos/CreateChangeset", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *reposClient) GetChangeset(ctx context.Context, in *ChangesetGetOp, opts ...grpc.CallOption) (*Changeset, error) {
-	out := new(Changeset)
-	err := grpc.Invoke(ctx, "/sourcegraph.Repos/GetChangeset", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *reposClient) GetCommit(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*vcs.Commit, error) {
 	out := new(vcs.Commit)
 	err := grpc.Invoke(ctx, "/sourcegraph.Repos/GetCommit", in, out, c.cc, opts...)
@@ -2901,11 +2878,6 @@ type ReposServer interface {
 	// update the config, use Enable or Disable (direct updating is
 	// not currently supported).
 	GetConfig(context.Context, *RepoSpec) (*RepoConfig, error)
-	// CreateChangeset creates a new Changeset and returns it, populating
-	// its fields, such as ID and CreatedAt.
-	CreateChangeset(context.Context, *ChangesetCreateOp) (*Changeset, error)
-	// GetChangeset returns the changeset by RepoSpec and ID.
-	GetChangeset(context.Context, *ChangesetGetOp) (*Changeset, error)
 	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
 	GetCommit(context.Context, *RepoRevSpec) (*vcs.Commit, error)
 	ListCommits(context.Context, *ReposListCommitsOp) (*CommitList, error)
@@ -3013,30 +2985,6 @@ func _Repos_GetConfig_Handler(srv interface{}, ctx context.Context, codec grpc.C
 	return out, nil
 }
 
-func _Repos_CreateChangeset_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(ChangesetCreateOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
-		return nil, err
-	}
-	out, err := srv.(ReposServer).CreateChangeset(ctx, in)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func _Repos_GetChangeset_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(ChangesetGetOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
-		return nil, err
-	}
-	out, err := srv.(ReposServer).GetChangeset(ctx, in)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func _Repos_GetCommit_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
 	in := new(RepoRevSpec)
 	if err := codec.Unmarshal(buf, in); err != nil {
@@ -3122,14 +3070,6 @@ var _Repos_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Repos_GetConfig_Handler,
 		},
 		{
-			MethodName: "CreateChangeset",
-			Handler:    _Repos_CreateChangeset_Handler,
-		},
-		{
-			MethodName: "GetChangeset",
-			Handler:    _Repos_GetChangeset_Handler,
-		},
-		{
 			MethodName: "GetCommit",
 			Handler:    _Repos_GetCommit_Handler,
 		},
@@ -3144,6 +3084,96 @@ var _Repos_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListTags",
 			Handler:    _Repos_ListTags_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for Changesets service
+
+type ChangesetsClient interface {
+	// CreateChangeset creates a new Changeset and returns it, populating
+	// its fields, such as ID and CreatedAt.
+	Create(ctx context.Context, in *ChangesetCreateOp, opts ...grpc.CallOption) (*Changeset, error)
+	// GetChangeset returns the changeset by RepoSpec and ID.
+	Get(ctx context.Context, in *ChangesetGetOp, opts ...grpc.CallOption) (*Changeset, error)
+}
+
+type changesetsClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewChangesetsClient(cc *grpc.ClientConn) ChangesetsClient {
+	return &changesetsClient{cc}
+}
+
+func (c *changesetsClient) Create(ctx context.Context, in *ChangesetCreateOp, opts ...grpc.CallOption) (*Changeset, error) {
+	out := new(Changeset)
+	err := grpc.Invoke(ctx, "/sourcegraph.Changesets/Create", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *changesetsClient) Get(ctx context.Context, in *ChangesetGetOp, opts ...grpc.CallOption) (*Changeset, error) {
+	out := new(Changeset)
+	err := grpc.Invoke(ctx, "/sourcegraph.Changesets/Get", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for Changesets service
+
+type ChangesetsServer interface {
+	// CreateChangeset creates a new Changeset and returns it, populating
+	// its fields, such as ID and CreatedAt.
+	Create(context.Context, *ChangesetCreateOp) (*Changeset, error)
+	// GetChangeset returns the changeset by RepoSpec and ID.
+	Get(context.Context, *ChangesetGetOp) (*Changeset, error)
+}
+
+func RegisterChangesetsServer(s *grpc.Server, srv ChangesetsServer) {
+	s.RegisterService(&_Changesets_serviceDesc, srv)
+}
+
+func _Changesets_Create_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(ChangesetCreateOp)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(ChangesetsServer).Create(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Changesets_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(ChangesetGetOp)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(ChangesetsServer).Get(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _Changesets_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.Changesets",
+	HandlerType: (*ChangesetsServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Create",
+			Handler:    _Changesets_Create_Handler,
+		},
+		{
+			MethodName: "Get",
+			Handler:    _Changesets_Get_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},

@@ -405,18 +405,20 @@ service Repos {
 	// not currently supported).
 	rpc GetConfig(RepoSpec) returns (RepoConfig);
 
-	// CreateChangeset creates a new Changeset and returns it, populating
-	// its fields, such as ID and CreatedAt.
-	rpc CreateChangeset(ChangesetCreateOp) returns (Changeset);
-
-	// GetChangeset returns the changeset by RepoSpec and ID.
-	rpc GetChangeset(ChangesetGetOp) returns (Changeset);
-
 	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
 	rpc GetCommit(RepoRevSpec) returns (vcs.Commit);
 	rpc ListCommits(ReposListCommitsOp) returns (CommitList);
 	rpc ListBranches(ReposListBranchesOp) returns (BranchList);
 	rpc ListTags(ReposListTagsOp) returns (TagList);
+}
+
+service Changesets {
+	// CreateChangeset creates a new Changeset and returns it, populating
+	// its fields, such as ID and CreatedAt.
+	rpc Create(ChangesetCreateOp) returns (Changeset);
+
+	// GetChangeset returns the changeset by RepoSpec and ID.
+	rpc Get(ChangesetGetOp) returns (Changeset);
 }
 
 message ReposCreateOp {
