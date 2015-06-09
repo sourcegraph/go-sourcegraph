@@ -39,6 +39,7 @@ It has these top-level messages:
 	RepoListBranchesOptions
 	BranchList
 	ReposListTagsOp
+	ChangesetCreateOp
 	RepoListTagsOptions
 	TagList
 	MirroredRepoSSHKeysCreateOp
@@ -684,6 +685,15 @@ type ReposListTagsOp struct {
 func (m *ReposListTagsOp) Reset()         { *m = ReposListTagsOp{} }
 func (m *ReposListTagsOp) String() string { return proto.CompactTextString(m) }
 func (*ReposListTagsOp) ProtoMessage()    {}
+
+type ChangesetCreateOp struct {
+	Repo      RepoSpec   `protobuf:"bytes,1,opt,name=repo" json:"repo"`
+	Changeset *Changeset `protobuf:"bytes,2,opt,name=changeset" json:"changeset,omitempty"`
+}
+
+func (m *ChangesetCreateOp) Reset()         { *m = ChangesetCreateOp{} }
+func (m *ChangesetCreateOp) String() string { return proto.CompactTextString(m) }
+func (*ChangesetCreateOp) ProtoMessage()    {}
 
 type RepoListTagsOptions struct {
 	ListOptions `protobuf:"bytes,3,opt,name=list_options,embedded=list_options" json:"list_options"`
@@ -2712,6 +2722,9 @@ type ReposClient interface {
 	// update the config, use Enable or Disable (direct updating is
 	// not currently supported).
 	GetConfig(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*RepoConfig, error)
+	// CreateChangeset creates a new Changeset and returns it, populating
+	// its fields, such as ID and CreatedAt.
+	CreateChangeset(ctx context.Context, in *ChangesetCreateOp, opts ...grpc.CallOption) (*Changeset, error)
 	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
 	GetCommit(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*vcs.Commit, error)
 	ListCommits(ctx context.Context, in *ReposListCommitsOp, opts ...grpc.CallOption) (*CommitList, error)
@@ -2799,6 +2812,15 @@ func (c *reposClient) GetConfig(ctx context.Context, in *RepoSpec, opts ...grpc.
 	return out, nil
 }
 
+func (c *reposClient) CreateChangeset(ctx context.Context, in *ChangesetCreateOp, opts ...grpc.CallOption) (*Changeset, error) {
+	out := new(Changeset)
+	err := grpc.Invoke(ctx, "/sourcegraph.Repos/CreateChangeset", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *reposClient) GetCommit(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*vcs.Commit, error) {
 	out := new(vcs.Commit)
 	err := grpc.Invoke(ctx, "/sourcegraph.Repos/GetCommit", in, out, c.cc, opts...)
@@ -2856,6 +2878,9 @@ type ReposServer interface {
 	// update the config, use Enable or Disable (direct updating is
 	// not currently supported).
 	GetConfig(context.Context, *RepoSpec) (*RepoConfig, error)
+	// CreateChangeset creates a new Changeset and returns it, populating
+	// its fields, such as ID and CreatedAt.
+	CreateChangeset(context.Context, *ChangesetCreateOp) (*Changeset, error)
 	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
 	GetCommit(context.Context, *RepoRevSpec) (*vcs.Commit, error)
 	ListCommits(context.Context, *ReposListCommitsOp) (*CommitList, error)
@@ -2963,6 +2988,18 @@ func _Repos_GetConfig_Handler(srv interface{}, ctx context.Context, codec grpc.C
 	return out, nil
 }
 
+func _Repos_CreateChangeset_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(ChangesetCreateOp)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(ReposServer).CreateChangeset(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func _Repos_GetCommit_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
 	in := new(RepoRevSpec)
 	if err := codec.Unmarshal(buf, in); err != nil {
@@ -3046,6 +3083,10 @@ var _Repos_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetConfig",
 			Handler:    _Repos_GetConfig_Handler,
+		},
+		{
+			MethodName: "CreateChangeset",
+			Handler:    _Repos_CreateChangeset_Handler,
 		},
 		{
 			MethodName: "GetCommit",
