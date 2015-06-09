@@ -101,6 +101,7 @@ type ReposClient struct {
 	Disable_         func(ctx context.Context, in *sourcegraph.RepoSpec) (*pbtypes.Void, error)
 	GetConfig_       func(ctx context.Context, in *sourcegraph.RepoSpec) (*sourcegraph.RepoConfig, error)
 	CreateChangeset_ func(ctx context.Context, in *sourcegraph.ChangesetCreateOp) (*sourcegraph.Changeset, error)
+	GetChangeset_    func(ctx context.Context, in *sourcegraph.ChangesetGetOp) (*sourcegraph.Changeset, error)
 	GetCommit_       func(ctx context.Context, in *sourcegraph.RepoRevSpec) (*vcs.Commit, error)
 	ListCommits_     func(ctx context.Context, in *sourcegraph.ReposListCommitsOp) (*sourcegraph.CommitList, error)
 	ListBranches_    func(ctx context.Context, in *sourcegraph.ReposListBranchesOp) (*sourcegraph.BranchList, error)
@@ -143,6 +144,10 @@ func (s *ReposClient) CreateChangeset(ctx context.Context, in *sourcegraph.Chang
 	return s.CreateChangeset_(ctx, in)
 }
 
+func (s *ReposClient) GetChangeset(ctx context.Context, in *sourcegraph.ChangesetGetOp, opts ...grpc.CallOption) (*sourcegraph.Changeset, error) {
+	return s.GetChangeset_(ctx, in)
+}
+
 func (s *ReposClient) GetCommit(ctx context.Context, in *sourcegraph.RepoRevSpec, opts ...grpc.CallOption) (*vcs.Commit, error) {
 	return s.GetCommit_(ctx, in)
 }
@@ -171,6 +176,7 @@ type ReposServer struct {
 	Disable_         func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error)
 	GetConfig_       func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*sourcegraph.RepoConfig, error)
 	CreateChangeset_ func(v0 context.Context, v1 *sourcegraph.ChangesetCreateOp) (*sourcegraph.Changeset, error)
+	GetChangeset_    func(v0 context.Context, v1 *sourcegraph.ChangesetGetOp) (*sourcegraph.Changeset, error)
 	GetCommit_       func(v0 context.Context, v1 *sourcegraph.RepoRevSpec) (*vcs.Commit, error)
 	ListCommits_     func(v0 context.Context, v1 *sourcegraph.ReposListCommitsOp) (*sourcegraph.CommitList, error)
 	ListBranches_    func(v0 context.Context, v1 *sourcegraph.ReposListBranchesOp) (*sourcegraph.BranchList, error)
@@ -211,6 +217,10 @@ func (s *ReposServer) GetConfig(v0 context.Context, v1 *sourcegraph.RepoSpec) (*
 
 func (s *ReposServer) CreateChangeset(v0 context.Context, v1 *sourcegraph.ChangesetCreateOp) (*sourcegraph.Changeset, error) {
 	return s.CreateChangeset_(v0, v1)
+}
+
+func (s *ReposServer) GetChangeset(v0 context.Context, v1 *sourcegraph.ChangesetGetOp) (*sourcegraph.Changeset, error) {
+	return s.GetChangeset_(v0, v1)
 }
 
 func (s *ReposServer) GetCommit(v0 context.Context, v1 *sourcegraph.RepoRevSpec) (*vcs.Commit, error) {

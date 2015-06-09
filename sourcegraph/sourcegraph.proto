@@ -409,6 +409,9 @@ service Repos {
 	// its fields, such as ID and CreatedAt.
 	rpc CreateChangeset(ChangesetCreateOp) returns (Changeset);
 
+	// GetChangeset returns the changeset by RepoSpec and ID.
+	rpc GetChangeset(ChangesetGetOp) returns (Changeset);
+
 	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
 	rpc GetCommit(RepoRevSpec) returns (vcs.Commit);
 	rpc ListCommits(ReposListCommitsOp) returns (CommitList);
@@ -471,6 +474,11 @@ message ReposListTagsOp {
 message ChangesetCreateOp {
 	RepoSpec repo = 1 [(gogoproto.nullable) = false];
 	Changeset changeset = 2;
+}
+
+message ChangesetGetOp {
+	RepoSpec repo = 1 [(gogoproto.nullable) = false];
+	int64 id = 2 [(gogoproto.customname) = "ID"];
 }
 
 message RepoListTagsOptions {
