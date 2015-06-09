@@ -14,6 +14,8 @@ It has these top-level messages:
 	Counter
 	ListOptions
 	ListResponse
+	Changeset
+	Comment
 	Readme
 	GitHubRepo
 	RepoConfig
@@ -281,6 +283,52 @@ type ListResponse struct {
 func (m *ListResponse) Reset()         { *m = ListResponse{} }
 func (m *ListResponse) String() string { return proto.CompactTextString(m) }
 func (*ListResponse) ProtoMessage()    {}
+
+// Changeset stores information about a changeset.
+type Changeset struct {
+	// ID is the unique identifier for this changeset, relative to the repository
+	// that contains it.
+	ID int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Title holds a summary about this changeset.
+	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	// Description holds the description for this changeset.
+	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	// Author is the user that initiated this changeset.
+	Author *User `protobuf:"bytes,4,opt,name=author" json:"author,omitempty"`
+	// DeltaSpec contains information about the base and head spec for this
+	// changeset.
+	DeltaSpec *DeltaSpec `protobuf:"bytes,5,opt,name=delta_spec" json:"delta_spec,omitempty"`
+}
+
+func (m *Changeset) Reset()         { *m = Changeset{} }
+func (m *Changeset) String() string { return proto.CompactTextString(m) }
+func (*Changeset) ProtoMessage()    {}
+
+// Comment represents a comment made on a line of code. It is uniquely identified
+// via Filename + LineNumber + CommitID. In a Changeset, the CommitID might vary
+// within the same file based on whether the comment was made on the lines that
+// match the pre-index SHA-1 or the lines that match the post-index SHA-1.
+// For more information on post-index and pre-index see
+// http://git-scm.com/docs/git-diff-index
+type Comment struct {
+	// Filename is the name of the file where this comment was made.
+	Filename string `protobuf:"bytes,1,opt,name=filename,proto3" json:"filename,omitempty"`
+	// LineNumber is the line number relative to the beginning of the file in
+	// the specified commit.
+	LineNumber int32 `protobuf:"varint,2,opt,name=line_number,proto3" json:"line_number,omitempty"`
+	// CommitID is the SHA-1 for the post-image of this file, where the comment
+	// was placed. The post-image can be deduced from the file entry in the diff
+	// that it belong by extracting it's extended header's index entry.
+	CommitId string `protobuf:"bytes,3,opt,name=commit_id,proto3" json:"commit_id,omitempty"`
+	// Author is the user that initiated this changeset.
+	Author *User `protobuf:"bytes,4,opt,name=author" json:"author,omitempty"`
+	// Body holds the body of this comment.
+	Body string `protobuf:"bytes,5,opt,name=body,proto3" json:"body,omitempty"`
+}
+
+func (m *Comment) Reset()         { *m = Comment{} }
+func (m *Comment) String() string { return proto.CompactTextString(m) }
+func (*Comment) ProtoMessage()    {}
 
 // A Readme represents a formatted "README"-type file in a repository.
 type Readme struct {
