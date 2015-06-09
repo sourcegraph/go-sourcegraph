@@ -93,7 +93,7 @@ message Comment {
 	// CommitID is the SHA-1 for the post-image of this file, where the comment
 	// was placed. The post-image can be deduced from the file entry in the diff
 	// that it belong by extracting it's extended header's index entry.
-	string commit_id = 3; 
+	string commit_id = 3 [(gogoproto.customname) = "CommitID"]; 
 
 	// Author is the user that initiated this changeset.
 	User author = 4 [(gogoproto.nullable) = true];

@@ -319,7 +319,7 @@ type Comment struct {
 	// CommitID is the SHA-1 for the post-image of this file, where the comment
 	// was placed. The post-image can be deduced from the file entry in the diff
 	// that it belong by extracting it's extended header's index entry.
-	CommitId string `protobuf:"bytes,3,opt,name=commit_id,proto3" json:"commit_id,omitempty"`
+	CommitID string `protobuf:"bytes,3,opt,name=commit_id,proto3" json:"commit_id,omitempty"`
 	// Author is the user that initiated this changeset.
 	Author *User `protobuf:"bytes,4,opt,name=author" json:"author,omitempty"`
 	// Body holds the body of this comment.
