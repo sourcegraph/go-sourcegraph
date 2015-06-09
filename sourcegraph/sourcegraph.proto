@@ -74,14 +74,23 @@ message Changeset {
 	// DeltaSpec contains information about the base and head spec for this
 	// changeset.
 	DeltaSpec delta_spec = 5 [(gogoproto.nullable) = true];
+
+	// Merged specifies whether this changeset was merged.
+	bool merged = 6;
+
+	// CreatedAt holds the creation time of this changeset.
+	pbtypes.Timestamp created_at = 7;
+
+	// ClosedAt holds the time when this changeset was closed or merged.
+	pbtypes.Timestamp closed_at = 8;
 }
 
 // Comment represents a comment made on a line of code. It is uniquely identified
 // via Filename + LineNumber + CommitID. In a Changeset, the CommitID might vary
 // within the same file based on whether the comment was made on the lines that
-// match the pre-index SHA-1 or the lines that match the post-index SHA-1.
-// For more information on post-index and pre-index see
-// http://git-scm.com/docs/git-diff-index
+// match the pre-index SHA-1 or the lines that match the post-index SHA-1. Pre
+// and post index values may differ from Base and Head of the diff.
+// For more information on indexes see http://git-scm.com/docs/git-diff-index
 message Comment {
 	// Filename is the name of the file where this comment was made.
 	string filename = 1;
@@ -100,6 +109,13 @@ message Comment {
 
 	// Body holds the body of this comment.
 	string body = 5;
+
+	// CreatedAt holds the creation date of this comment.
+	pbtypes.Timestamp created_at = 6;
+
+	// EditedAt holds the time when this comment was last edited. If no edits occurred,
+	// it will be null.
+	pbtypes.Timestamp edited_at = 7;
 }
 
 // A Readme represents a formatted "README"-type file in a repository.

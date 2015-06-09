@@ -298,6 +298,12 @@ type Changeset struct {
 	// DeltaSpec contains information about the base and head spec for this
 	// changeset.
 	DeltaSpec *DeltaSpec `protobuf:"bytes,5,opt,name=delta_spec" json:"delta_spec,omitempty"`
+	// Merged specifies whether this changeset was merged.
+	Merged bool `protobuf:"varint,6,opt,name=merged,proto3" json:"merged,omitempty"`
+	// CreatedAt holds the creation time of this changeset.
+	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,7,opt,name=created_at" json:"created_at,omitempty"`
+	// ClosedAt holds the time when this changeset was closed or merged.
+	ClosedAt *pbtypes.Timestamp `protobuf:"bytes,8,opt,name=closed_at" json:"closed_at,omitempty"`
 }
 
 func (m *Changeset) Reset()         { *m = Changeset{} }
@@ -307,9 +313,9 @@ func (*Changeset) ProtoMessage()    {}
 // Comment represents a comment made on a line of code. It is uniquely identified
 // via Filename + LineNumber + CommitID. In a Changeset, the CommitID might vary
 // within the same file based on whether the comment was made on the lines that
-// match the pre-index SHA-1 or the lines that match the post-index SHA-1.
-// For more information on post-index and pre-index see
-// http://git-scm.com/docs/git-diff-index
+// match the pre-index SHA-1 or the lines that match the post-index SHA-1. Pre
+// and post index values may differ from Base and Head of the diff.
+// For more information on indexes see http://git-scm.com/docs/git-diff-index
 type Comment struct {
 	// Filename is the name of the file where this comment was made.
 	Filename string `protobuf:"bytes,1,opt,name=filename,proto3" json:"filename,omitempty"`
@@ -324,6 +330,11 @@ type Comment struct {
 	Author *User `protobuf:"bytes,4,opt,name=author" json:"author,omitempty"`
 	// Body holds the body of this comment.
 	Body string `protobuf:"bytes,5,opt,name=body,proto3" json:"body,omitempty"`
+	// CreatedAt holds the creation date of this comment.
+	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,6,opt,name=created_at" json:"created_at,omitempty"`
+	// EditedAt holds the time when this comment was last edited. If no edits occurred,
+	// it will be null.
+	EditedAt *pbtypes.Timestamp `protobuf:"bytes,7,opt,name=edited_at" json:"edited_at,omitempty"`
 }
 
 func (m *Comment) Reset()         { *m = Comment{} }
