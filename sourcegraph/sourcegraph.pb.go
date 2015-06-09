@@ -336,6 +336,8 @@ type Comment struct {
 	// EditedAt holds the time when this comment was last edited. If no edits occurred,
 	// it will be null.
 	EditedAt *pbtypes.Timestamp `protobuf:"bytes,7,opt,name=edited_at" json:"edited_at,omitempty"`
+	// Deleted indicates whether the comment has been deleted.
+	Deleted bool `protobuf:"varint,8,opt,name=deleted,proto3" json:"deleted,omitempty"`
 }
 
 func (m *Comment) Reset()         { *m = Comment{} }

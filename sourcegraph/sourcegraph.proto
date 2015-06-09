@@ -116,6 +116,9 @@ message Comment {
 	// EditedAt holds the time when this comment was last edited. If no edits occurred,
 	// it will be null.
 	pbtypes.Timestamp edited_at = 7;
+
+	// Deleted indicates whether the comment has been deleted.
+	bool deleted = 8;
 }
 
 // A Readme represents a formatted "README"-type file in a repository.
