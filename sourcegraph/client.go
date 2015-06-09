@@ -95,6 +95,7 @@ func NewClient(httpClient *http.Client, conn *grpc.ClientConn) *Client {
 	c.RepoStatuses = NewRepoStatusesClient(conn)
 	c.RepoTree = NewRepoTreeClient(conn)
 	c.Repos = NewReposClient(conn)
+	c.Changesets = NewChangesetsClient(conn)
 	c.Search = NewSearchClient(conn)
 	c.Units = NewUnitsClient(conn)
 	c.UserAuth = NewUserAuthClient(conn)
