@@ -407,6 +407,10 @@ service Repos {
 
 	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
 	rpc GetCommit(RepoRevSpec) returns (vcs.Commit);
+	// ListCommits returns the list of commits that span between the revisions
+	// specified in the given DeltaSpec. By default, it will return 1 page of
+	// commits with a maximum of DefaultPerPage entries. To retrieve all commits
+	// the PerPage value can be set to -1.
 	rpc ListCommits(ReposListCommitsOp) returns (CommitList);
 	rpc ListBranches(ReposListBranchesOp) returns (BranchList);
 	rpc ListTags(ReposListTagsOp) returns (TagList);
