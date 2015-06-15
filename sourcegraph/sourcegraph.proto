@@ -1582,6 +1582,10 @@ message Example {
 
 	// Error is whether an error occurred while fetching this example.
 	bool error = 6;
+	
+	// If the example has been requested by revision name (ie. branch, tag), this
+	// value will be set.
+	string rev = 7;
 }
 
 // FormatResult contains information about and warnings from the formatting
