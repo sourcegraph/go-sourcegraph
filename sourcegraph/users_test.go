@@ -9,8 +9,9 @@ func TestUserSpec(t *testing.T) {
 		wantError bool
 	}{
 		{"a", UserSpec{Login: "a"}, false},
-		{"$1", UserSpec{UID: 1}, false},
-		{"a@a.com", UserSpec{}, true},
+		{"1$", UserSpec{UID: 1}, false},
+		{"a@a.com", UserSpec{Login: "a", Domain: "a.com"}, false},
+		{"1$@a.com", UserSpec{UID: 1, Domain: "a.com"}, false},
 	}
 
 	for _, test := range tests {
@@ -30,7 +31,7 @@ func TestUserSpec(t *testing.T) {
 			continue
 		}
 
-		str := test.spec.PathComponent()
+		str := test.spec.SpecString()
 		if str != test.str {
 			t.Errorf("%+v: got str %q, want %q", test.spec, str, test.str)
 			continue

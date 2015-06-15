@@ -102,22 +102,22 @@ func TestClient_URL(t *testing.T) {
 	}{{
 		base:      "https://sourcegraph.com/api/",
 		route:     router.Repo,
-		routeVars: map[string]string{"RepoSpec": "github.com/gorilla/mux"},
+		routeVars: map[string]string{"Repo": "github.com/gorilla/mux"},
 		exp:       "https://sourcegraph.com/api/repos/github.com/gorilla/mux",
 	}, {
 		base:      "https://sourcegraph.com/api",
 		route:     router.Repo,
-		routeVars: map[string]string{"RepoSpec": "github.com/gorilla/mux"},
+		routeVars: map[string]string{"Repo": "github.com/gorilla/mux"},
 		exp:       "https://sourcegraph.com/api/repos/github.com/gorilla/mux",
 	}, {
 		base:      "http://localhost:3000/api/",
 		route:     router.Repo,
-		routeVars: map[string]string{"RepoSpec": "github.com/gorilla/mux"},
+		routeVars: map[string]string{"Repo": "github.com/gorilla/mux"},
 		exp:       "http://localhost:3000/api/repos/github.com/gorilla/mux",
 	}, {
 		base:      "http://localhost:3000/api",
 		route:     router.Repo,
-		routeVars: map[string]string{"RepoSpec": "github.com/gorilla/mux"},
+		routeVars: map[string]string{"Repo": "github.com/gorilla/mux"},
 		exp:       "http://localhost:3000/api/repos/github.com/gorilla/mux",
 	}}
 	for _, test := range tests {

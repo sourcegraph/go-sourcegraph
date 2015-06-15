@@ -22,7 +22,7 @@ func TestOrgSpec(t *testing.T) {
 			continue
 		}
 
-		str := test.spec.PathComponent()
+		str := test.spec.SpecString()
 		if str != test.str {
 			t.Errorf("%+v: got str %q, want %q", test.spec, str, test.str)
 			continue
