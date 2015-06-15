@@ -1367,7 +1367,10 @@ message RefList {
 
 message DefsListExamplesOp {
 	DefSpec def = 1 [(gogoproto.nullable) = false];
-	optional DefListExamplesOptions opt = 2;
+	// If set, source code in the examples will be linked to this branch, rather
+	// than to the commit ID.
+	string rev = 2;
+	optional DefListExamplesOptions opt = 3;
 }
 
 message ExampleList {

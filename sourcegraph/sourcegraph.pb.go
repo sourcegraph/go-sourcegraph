@@ -1638,8 +1638,11 @@ func (m *RefList) String() string { return proto.CompactTextString(m) }
 func (*RefList) ProtoMessage()    {}
 
 type DefsListExamplesOp struct {
-	Def DefSpec                 `protobuf:"bytes,1,opt,name=def" json:"def"`
-	Opt *DefListExamplesOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+	Def DefSpec `protobuf:"bytes,1,opt,name=def" json:"def"`
+	// If set, source code in the examples will be linked to this branch, rather
+	// than to the commit ID.
+	Rev string                  `protobuf:"bytes,2,opt,name=rev,proto3" json:"rev,omitempty"`
+	Opt *DefListExamplesOptions `protobuf:"bytes,3,opt,name=opt" json:"opt,omitempty"`
 }
 
 func (m *DefsListExamplesOp) Reset()         { *m = DefsListExamplesOp{} }
@@ -2736,6 +2739,10 @@ type ReposClient interface {
 	GetConfig(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*RepoConfig, error)
 	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
 	GetCommit(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*vcs.Commit, error)
+	// ListCommits returns the list of commits that span between the revisions
+	// specified in the given DeltaSpec. By default, it will return 1 page of
+	// commits with a maximum of DefaultPerPage entries. To retrieve all commits
+	// the PerPage value can be set to -1.
 	ListCommits(ctx context.Context, in *ReposListCommitsOp, opts ...grpc.CallOption) (*CommitList, error)
 	ListBranches(ctx context.Context, in *ReposListBranchesOp, opts ...grpc.CallOption) (*BranchList, error)
 	ListTags(ctx context.Context, in *ReposListTagsOp, opts ...grpc.CallOption) (*TagList, error)
@@ -2880,6 +2887,10 @@ type ReposServer interface {
 	GetConfig(context.Context, *RepoSpec) (*RepoConfig, error)
 	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
 	GetCommit(context.Context, *RepoRevSpec) (*vcs.Commit, error)
+	// ListCommits returns the list of commits that span between the revisions
+	// specified in the given DeltaSpec. By default, it will return 1 page of
+	// commits with a maximum of DefaultPerPage entries. To retrieve all commits
+	// the PerPage value can be set to -1.
 	ListCommits(context.Context, *ReposListCommitsOp) (*CommitList, error)
 	ListBranches(context.Context, *ReposListBranchesOp) (*BranchList, error)
 	ListTags(context.Context, *ReposListTagsOp) (*TagList, error)
