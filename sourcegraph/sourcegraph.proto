@@ -1585,7 +1585,7 @@ message Example {
 	
 	// If the example has been requested by revision name (ie. branch, tag), this
 	// value will be set.
-	string rev = 7;
+	string rev = 7 [(gogoproto.jsontag) = ",omitempty"];
 }
 
 // FormatResult contains information about and warnings from the formatting

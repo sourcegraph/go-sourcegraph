@@ -1936,7 +1936,7 @@ type Example struct {
 	Error bool `protobuf:"varint,6,opt,name=error,proto3" json:"error,omitempty"`
 	// If the example has been requested by revision name (ie. branch, tag), this
 	// value will be set.
-	Rev string `protobuf:"bytes,7,opt,name=rev,proto3" json:"rev,omitempty"`
+	Rev string `protobuf:"bytes,7,opt,name=rev,proto3" json:",omitempty"`
 }
 
 func (m *Example) Reset()         { *m = Example{} }
