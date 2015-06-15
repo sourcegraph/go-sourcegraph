@@ -20,26 +20,22 @@ var (
 // FixRepoRevVars is a mux.PostMatchFunc that cleans and normalizes
 // the route vars pertaining to a RepoRev.
 func FixRepoRevVars(req *http.Request, match *mux.RouteMatch, r *mux.Route) {
-	var keep bool
 	if rrev, present := match.Vars["ResolvedRev"]; present {
 		rrev = strings.TrimPrefix(rrev, "@")
-		if rrev != "" {
-			rev, commitID, err := spec.ParseResolvedRev(rrev)
-			if err == nil {
-				if rev != "" {
-					match.Vars["Rev"] = rev
-				}
-				if commitID != "" {
-					match.Vars["CommitID"] = commitID
-				}
-			} else {
-				keep = true
+		rev, commitID, err := spec.ParseResolvedRev(rrev)
+		if err == nil || rrev == "" {
+			// Propagate ResolvedRev if it was set and if parsing
+			// failed; otherwise remove it.
+			delete(match.Vars, "ResolvedRev")
+		}
+		if err == nil {
+			if rev != "" {
+				match.Vars["Rev"] = rev
+			}
+			if commitID != "" {
+				match.Vars["CommitID"] = commitID
 			}
 		}
-	}
-
-	if !keep {
-		delete(match.Vars, "ResolvedRev")
 	}
 }
 
