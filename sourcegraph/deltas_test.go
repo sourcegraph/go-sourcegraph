@@ -8,9 +8,14 @@ import (
 	"github.com/kr/pretty"
 )
 
+const (
+	baseCommit = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	headCommit = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+)
+
 var (
-	baseRev = RepoRevSpec{RepoSpec: RepoSpec{URI: "base.com/repo"}, Rev: "baserev", CommitID: "basecommit"}
-	headRev = RepoRevSpec{RepoSpec: RepoSpec{URI: "head.com/repo"}, Rev: "headrev", CommitID: "headcommit"}
+	baseRev = RepoRevSpec{RepoSpec: RepoSpec{URI: "base.com/repo"}, Rev: "baserev", CommitID: baseCommit}
+	headRev = RepoRevSpec{RepoSpec: RepoSpec{URI: "head.com/repo"}, Rev: "headrev", CommitID: headCommit}
 )
 
 func TestDeltas(t *testing.T) {
@@ -20,13 +25,13 @@ func TestDeltas(t *testing.T) {
 	}{
 		{
 			spec: DeltaSpec{
-				Base: RepoRevSpec{RepoSpec: RepoSpec{URI: "samerepo"}, Rev: "baserev", CommitID: "basecommit"},
-				Head: RepoRevSpec{RepoSpec: RepoSpec{URI: "samerepo"}, Rev: "headrev", CommitID: "headcommit"},
+				Base: RepoRevSpec{RepoSpec: RepoSpec{URI: "samerepo"}, Rev: "baserev", CommitID: baseCommit},
+				Head: RepoRevSpec{RepoSpec: RepoSpec{URI: "samerepo"}, Rev: "headrev", CommitID: headCommit},
 			},
 			wantRouteVars: map[string]string{
-				"RepoSpec":     "samerepo",
-				"Rev":          "baserev===basecommit",
-				"DeltaHeadRev": "headrev===headcommit",
+				"Repo":         "samerepo",
+				"ResolvedRev":  "baserev===" + baseCommit,
+				"DeltaHeadRev": "headrev===" + headCommit,
 			},
 		},
 		{
@@ -35,8 +40,8 @@ func TestDeltas(t *testing.T) {
 				Head: headRev,
 			},
 			wantRouteVars: map[string]string{
-				"RepoSpec":     "base.com/repo",
-				"Rev":          "baserev===basecommit",
+				"Repo":         "base.com/repo",
+				"ResolvedRev":  "baserev===" + baseCommit,
 				"DeltaHeadRev": encodeCrossRepoRevSpecForDeltaHeadRev(headRev),
 			},
 		},
@@ -49,7 +54,7 @@ func TestDeltas(t *testing.T) {
 
 		spec, err := UnmarshalDeltaSpec(vars)
 		if err != nil {
-			t.Errorf("UnmarshalDeltaSpec(%+v): %s", err)
+			t.Errorf("UnmarshalDeltaSpec(%+v): %s", vars, err)
 			continue
 		}
 		if !reflect.DeepEqual(spec, test.spec) {

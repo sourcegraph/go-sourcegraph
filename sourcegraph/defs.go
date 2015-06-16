@@ -11,7 +11,7 @@ import (
 )
 
 func (s *DefSpec) RouteVars() map[string]string {
-	m := map[string]string{"RepoSpec": s.Repo, "UnitType": s.UnitType, "Unit": s.Unit, "Path": s.Path}
+	m := map[string]string{"Repo": s.Repo, "UnitType": s.UnitType, "Unit": s.Unit, "Path": s.Path}
 	if s.CommitID != "" {
 		m["Rev"] = s.CommitID
 	}

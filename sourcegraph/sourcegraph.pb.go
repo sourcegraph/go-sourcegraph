@@ -1240,6 +1240,9 @@ type User struct {
 	// Login is the user's username, which typically corresponds to the user's GitHub
 	// login.
 	Login string `protobuf:"bytes,3,opt,name=login,proto3" json:"login,omitempty"`
+	// Domain is the host that the user originates from. If empty, it
+	// is assumed to be the domain of the server.
+	Domain string `protobuf:"bytes,12,opt,name=domain,proto3" json:"domain,omitempty"`
 	// Name is the (possibly empty) full name of the user.
 	Name string `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
 	// Type is either "User" or "Organization".
@@ -1265,12 +1268,16 @@ func (m *User) Reset()         { *m = User{} }
 func (m *User) String() string { return proto.CompactTextString(m) }
 func (*User) ProtoMessage()    {}
 
-// UserSpec specifies a user. At least one of Login, and UID must be nonempty.
+// UserSpec specifies a user. At least one of Login and UID must be
+// nonempty.
 type UserSpec struct {
 	// Login is a user's login.
 	Login string `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
 	// UID is a user's UID.
 	UID int32 `protobuf:"varint,2,opt,name=uid,proto3" json:"uid,omitempty"`
+	// Domain is the host that the user originates from. If empty, it
+	// is assumed to be the domain of the server.
+	Domain string `protobuf:"bytes,3,opt,name=domain,proto3" json:"domain,omitempty"`
 }
 
 func (m *UserSpec) Reset()         { *m = UserSpec{} }

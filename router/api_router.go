@@ -1,6 +1,10 @@
 package router
 
-import "github.com/sourcegraph/mux"
+import (
+	"github.com/sourcegraph/mux"
+	"sourcegraph.com/sourcegraph/go-sourcegraph/routevar"
+	"sourcegraph.com/sourcegraph/go-sourcegraph/spec"
+)
 
 const (
 	Build            = "build"
@@ -107,23 +111,23 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 
 	base.Path("/repos/github.com/{owner:[^/]+}/{repo:[^/]+}/{what:(?:badges|counters)}/{which}.{Format}").Methods("GET").Name(RedirectOldRepoBadgesAndCounters)
 
-	repoRev := base.PathPrefix(`/repos/` + RepoRevSpecPattern).PostMatchFunc(FixRepoRevSpecVars).BuildVarsFunc(PrepareRepoRevSpecRouteVars).Subrouter()
+	repoRev := base.PathPrefix(`/repos/` + routevar.RepoRev).PostMatchFunc(routevar.FixRepoRevVars).BuildVarsFunc(routevar.PrepareRepoRevRouteVars).Subrouter()
 	repoRev.Path("/.status").Methods("GET").Name(RepoCombinedStatus)
 	repoRev.Path("/.status").Methods("POST").Name(RepoStatusCreate)
 	repoRev.Path("/.readme").Methods("GET").Name(RepoReadme)
-	repoRev.PathPrefix("/.build-data"+TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET", "HEAD", "PUT", "DELETE").Name(RepoBuildDataEntry)
+	repoRev.PathPrefix("/.build-data"+routevar.TreeEntryPath).PostMatchFunc(routevar.FixTreeEntryVars).BuildVarsFunc(routevar.PrepareTreeEntryRouteVars).Methods("GET", "HEAD", "PUT", "DELETE").Name(RepoBuildDataEntry)
 	repoRev.Path("/.badges/{Badge}.{Format}").Methods("GET").Name(RepoBadge)
 
 	// repo contains routes that are NOT specific to a revision. In these routes, the URL may not contain a revspec after the repo (that is, no "github.com/foo/bar@myrevspec").
-	repoPath := `/repos/` + RepoSpecPathPattern
+	repoPath := `/repos/` + routevar.Repo
 	base.Path(repoPath).Methods("GET").Name(Repo)
 	repo := base.PathPrefix(repoPath).Subrouter()
 	repo.Path("/.vcs-data").Methods("PUT").Name(RepoRefreshVCSData)
 	repo.Path("/.settings").Methods("GET").Name(RepoSettings)
 	repo.Path("/.settings").Methods("PUT").Name(RepoSettingsUpdate)
 	repo.Path("/.commits").Methods("GET").Name(RepoCommits)
-	repo.Path("/.commits/{Rev:" + PathComponentNoLeadingDot + "}/.compare").Methods("GET").Name(RepoCompareCommits)
-	repo.Path("/.commits/{Rev:" + PathComponentNoLeadingDot + "}").Methods("GET").Name(RepoCommit)
+	repo.Path("/.commits/{Rev:" + spec.PathNoLeadingDotComponentPattern + "}/.compare").Methods("GET").Name(RepoCompareCommits)
+	repo.Path("/.commits/{Rev:" + spec.PathNoLeadingDotComponentPattern + "}").Methods("GET").Name(RepoCommit)
 	repo.Path("/.branches").Methods("GET").Name(RepoBranches)
 	repo.Path("/.tags").Methods("GET").Name(RepoTags)
 	repo.Path("/.badges").Methods("GET").Name(RepoBadges)
@@ -142,7 +146,7 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	build.Path("/tasks/{TaskID}").Methods("PUT").Name(BuildTaskUpdate)
 	build.Path("/tasks/{TaskID}/log").Methods("GET").Name(BuildTaskLog)
 
-	deltaPath := "/.deltas/{Rev:.+}..{DeltaHeadRev:" + PathComponentNoLeadingDot + "}"
+	deltaPath := "/.deltas/{Rev:.+}..{DeltaHeadRev:" + spec.PathNoLeadingDotComponentPattern + "}"
 	repo.Path(deltaPath).Methods("GET").Name(Delta)
 	deltas := repo.PathPrefix(deltaPath).Subrouter()
 	deltas.Path("/.units").Methods("GET").Name(DeltaUnits)
@@ -153,14 +157,14 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 
 	// See router_util/tree_route.go for an explanation of how we match tree
 	// entry routes.
-	repoRev.Path("/.tree" + TreeEntryPathPattern).PostMatchFunc(FixTreeEntryVars).BuildVarsFunc(PrepareTreeEntryRouteVars).Methods("GET").Name(RepoTreeEntry)
+	repoRev.Path("/.tree" + routevar.TreeEntryPath).PostMatchFunc(routevar.FixTreeEntryVars).BuildVarsFunc(routevar.PrepareTreeEntryRouteVars).Methods("GET").Name(RepoTreeEntry)
 
 	repoRev.Path("/.tree-search").Methods("GET").Name(RepoTreeSearch)
 
-	base.Path(`/people/` + PersonSpecPattern).Methods("GET").Name(Person)
+	base.Path(`/people/` + routevar.Person).Methods("GET").Name(Person)
 
 	base.Path("/users").Methods("GET").Name(Users)
-	userPath := `/users/` + UserSpecPattern
+	userPath := `/users/` + routevar.User
 	base.Path(userPath).Methods("GET").Name(User)
 	user := base.PathPrefix(userPath).Subrouter()
 	user.Path("/orgs").Methods("GET").Name(UserOrgs)
@@ -183,9 +187,9 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 
 	// See router_util/def_route.go for an explanation of how we match def
 	// routes.
-	defPath := `/.defs/` + DefPathPattern
-	repoRev.Path(defPath).Methods("GET").PostMatchFunc(FixDefUnitVars).BuildVarsFunc(PrepareDefRouteVars).Name(Def)
-	def := repoRev.PathPrefix(defPath).PostMatchFunc(FixDefUnitVars).BuildVarsFunc(PrepareDefRouteVars).Subrouter()
+	defPath := `/.defs/` + routevar.Def
+	repoRev.Path(defPath).Methods("GET").PostMatchFunc(routevar.FixDefUnitVars).BuildVarsFunc(routevar.PrepareDefRouteVars).Name(Def)
+	def := repoRev.PathPrefix(defPath).PostMatchFunc(routevar.FixDefUnitVars).BuildVarsFunc(routevar.PrepareDefRouteVars).Subrouter()
 	def.Path("/.refs").Methods("GET").Name(DefRefs)
 	def.Path("/.examples").Methods("GET").Name(DefExamples)
 	def.Path("/.authors").Methods("GET").Name(DefAuthors)

@@ -919,6 +919,10 @@ message User {
 	// login.
 	string login = 3;
 
+	// Domain is the host that the user originates from. If empty, it
+	// is assumed to be the domain of the server.
+	string domain = 12;
+
 	// Name is the (possibly empty) full name of the user.
 	string name = 4;
 
@@ -947,13 +951,18 @@ message User {
 	optional pbtypes.Timestamp registered_at = 11;
 }
 
-// UserSpec specifies a user. At least one of Login, and UID must be nonempty.
+// UserSpec specifies a user. At least one of Login and UID must be
+// nonempty.
 message UserSpec {
 	// Login is a user's login.
 	string login = 1;
 
 	// UID is a user's UID.
 	int32 uid = 2 [(gogoproto.customname) = "UID"];
+
+	// Domain is the host that the user originates from. If empty, it
+	// is assumed to be the domain of the server.
+	string domain = 3;
 }
 
 // UsersListOptions specifies options for the UsersService.List method.
