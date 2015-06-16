@@ -83,6 +83,7 @@ It has these top-level messages:
 	OrgList
 	NewAccount
 	AuthenticatedUser
+	LoginCredentials
 	UserAuthAuthenticateOp
 	UserAuthGetExternalOp
 	ExternalAuthInfo
@@ -1268,6 +1269,18 @@ type AuthenticatedUser struct {
 func (m *AuthenticatedUser) Reset()         { *m = AuthenticatedUser{} }
 func (m *AuthenticatedUser) String() string { return proto.CompactTextString(m) }
 func (*AuthenticatedUser) ProtoMessage()    {}
+
+// LoginCredentials is the information a user submits to log in.
+type LoginCredentials struct {
+	// Login is the user's claimed login.
+	Login string `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
+	// Password is the password (possibly) corresponding to the login.
+	Password string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+}
+
+func (m *LoginCredentials) Reset()         { *m = LoginCredentials{} }
+func (m *LoginCredentials) String() string { return proto.CompactTextString(m) }
+func (*LoginCredentials) ProtoMessage()    {}
 
 type UserAuthAuthenticateOp struct {
 	ClientID    string `protobuf:"bytes,1,opt,name=client_id,proto3" json:"client_id,omitempty"`
@@ -3983,6 +3996,10 @@ type UserAuthClient interface {
 	// to create an account. The UID of the current user (or the newly
 	// registered user) is returned.
 	Authenticate(ctx context.Context, in *UserAuthAuthenticateOp, opts ...grpc.CallOption) (*AuthenticatedUser, error)
+	// CheckLoginCredentials checks whether the login (password, plus
+	// 2FA tokens in the future) credentials are valid for the given
+	// user. If not, a grpc.PermissionDenied error is returned.
+	CheckLoginCredentials(ctx context.Context, in *LoginCredentials, opts ...grpc.CallOption) (*AuthenticatedUser, error)
 	// GetExternal returns info about the current user's
 	// authentication with an external service (e.g., the currently
 	// authorized GitHub scope).
@@ -4003,6 +4020,15 @@ func NewUserAuthClient(cc *grpc.ClientConn) UserAuthClient {
 func (c *userAuthClient) Authenticate(ctx context.Context, in *UserAuthAuthenticateOp, opts ...grpc.CallOption) (*AuthenticatedUser, error) {
 	out := new(AuthenticatedUser)
 	err := grpc.Invoke(ctx, "/sourcegraph.UserAuth/Authenticate", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userAuthClient) CheckLoginCredentials(ctx context.Context, in *LoginCredentials, opts ...grpc.CallOption) (*AuthenticatedUser, error) {
+	out := new(AuthenticatedUser)
+	err := grpc.Invoke(ctx, "/sourcegraph.UserAuth/CheckLoginCredentials", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -4036,6 +4062,10 @@ type UserAuthServer interface {
 	// to create an account. The UID of the current user (or the newly
 	// registered user) is returned.
 	Authenticate(context.Context, *UserAuthAuthenticateOp) (*AuthenticatedUser, error)
+	// CheckLoginCredentials checks whether the login (password, plus
+	// 2FA tokens in the future) credentials are valid for the given
+	// user. If not, a grpc.PermissionDenied error is returned.
+	CheckLoginCredentials(context.Context, *LoginCredentials) (*AuthenticatedUser, error)
 	// GetExternal returns info about the current user's
 	// authentication with an external service (e.g., the currently
 	// authorized GitHub scope).
@@ -4055,6 +4085,18 @@ func _UserAuth_Authenticate_Handler(srv interface{}, ctx context.Context, codec 
 		return nil, err
 	}
 	out, err := srv.(UserAuthServer).Authenticate(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _UserAuth_CheckLoginCredentials_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(LoginCredentials)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(UserAuthServer).CheckLoginCredentials(ctx, in)
 	if err != nil {
 		return nil, err
 	}
@@ -4092,6 +4134,10 @@ var _UserAuth_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Authenticate",
 			Handler:    _UserAuth_Authenticate_Handler,
+		},
+		{
+			MethodName: "CheckLoginCredentials",
+			Handler:    _UserAuth_CheckLoginCredentials_Handler,
 		},
 		{
 			MethodName: "GetExternal",
