@@ -822,23 +822,19 @@ message User {
 	// UID is the numeric primary key for a user.
 	int32 uid = 1 [(gogoproto.customname) = "UID"];
 
-	// GitHubID is the numeric ID of the GitHub user account corresponding to this
-	// user.
-	int32 github_id = 2 [(gogoproto.customname) = "GitHubID"];
-
 	// Login is the user's username, which typically corresponds to the user's GitHub
 	// login.
-	string login = 3;
+	string login = 2;
 
 	// Domain is the host that the user originates from. If empty, it
 	// is assumed to be the domain of the server.
-	string domain = 12;
+	string domain = 3;
 
 	// Name is the (possibly empty) full name of the user.
 	string name = 4;
 
-	// Type is either "User" or "Organization".
-	string type = 5;
+	// IsOrganization is whether this user represents an organization.
+	bool is_organization = 5;
 
 	// AvatarURL is the URL to an avatar image specified by the user.
 	string avatar_url = 6 [(gogoproto.customname) = "AvatarURL"];

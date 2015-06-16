@@ -1153,19 +1153,16 @@ func (*TaskUpdate) ProtoMessage()    {}
 type User struct {
 	// UID is the numeric primary key for a user.
 	UID int32 `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	// GitHubID is the numeric ID of the GitHub user account corresponding to this
-	// user.
-	GitHubID int32 `protobuf:"varint,2,opt,name=github_id,proto3" json:"github_id,omitempty"`
 	// Login is the user's username, which typically corresponds to the user's GitHub
 	// login.
-	Login string `protobuf:"bytes,3,opt,name=login,proto3" json:"login,omitempty"`
+	Login string `protobuf:"bytes,2,opt,name=login,proto3" json:"login,omitempty"`
 	// Domain is the host that the user originates from. If empty, it
 	// is assumed to be the domain of the server.
-	Domain string `protobuf:"bytes,12,opt,name=domain,proto3" json:"domain,omitempty"`
+	Domain string `protobuf:"bytes,3,opt,name=domain,proto3" json:"domain,omitempty"`
 	// Name is the (possibly empty) full name of the user.
 	Name string `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	// Type is either "User" or "Organization".
-	Type string `protobuf:"bytes,5,opt,name=type,proto3" json:"type,omitempty"`
+	// IsOrganization is whether this user represents an organization.
+	IsOrganization bool `protobuf:"varint,5,opt,name=is_organization,proto3" json:"is_organization,omitempty"`
 	// AvatarURL is the URL to an avatar image specified by the user.
 	AvatarURL string `protobuf:"bytes,6,opt,name=avatar_url,proto3" json:"avatar_url,omitempty"`
 	// Location is the user's physical location (from their GitHub profile).
