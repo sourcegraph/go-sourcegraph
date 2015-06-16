@@ -1253,6 +1253,8 @@ func (*OrgList) ProtoMessage()    {}
 type NewAccount struct {
 	// Login is the desired login for the new user account.
 	Login string `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
+	// Email is the primary email address for the new user account.
+	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 }
 
 func (m *NewAccount) Reset()         { *m = NewAccount{} }
