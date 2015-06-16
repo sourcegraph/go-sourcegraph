@@ -1171,9 +1171,8 @@ type User struct {
 	Company string `protobuf:"bytes,8,opt,name=company,proto3" json:"company,omitempty"`
 	// HomepageURL is the user's homepage or blog URL (from their GitHub profile).
 	HomepageURL string `protobuf:"bytes,9,opt,name=homepage_url,proto3" json:"homepage_url,omitempty"`
-	// UserProfileDisabled is whether the user profile should not be displayed on the
-	// Web app.
-	UserProfileDisabled bool `protobuf:"varint,10,opt,name=user_profile_disabled,proto3" json:"user_profile_disabled,omitempty"`
+	// Disabled is whether the user account is disabled.
+	Disabled bool `protobuf:"varint,10,opt,name=disabled,proto3" json:"disabled,omitempty"`
 	// RegisteredAt is the date that the user registered. If the user has not
 	// registered (i.e., we have processed their repos but they haven't signed into
 	// Sourcegraph), it is null.
