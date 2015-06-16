@@ -1021,6 +1021,11 @@ service UserAuth {
 	// registered user) is returned.
 	rpc Authenticate(UserAuthAuthenticateOp) returns (AuthenticatedUser);
 
+	// CheckLoginCredentials checks whether the login (password, plus
+	// 2FA tokens in the future) credentials are valid for the given
+	// user. If not, a grpc.PermissionDenied error is returned.
+	rpc CheckLoginCredentials(LoginCredentials) returns (AuthenticatedUser);
+
 	// GetExternal returns info about the current user's
 	// authentication with an external service (e.g., the currently
 	// authorized GitHub scope).
@@ -1034,6 +1039,17 @@ service UserAuth {
 // An AuthenticatedUser describes the user that resulted from a UserAuth.Authenticate call.
 message AuthenticatedUser {
 	int32 uid = 1 [(gogoproto.customname) = "UID"];
+}
+
+// LoginCredentials is the information a user submits to log in.
+message LoginCredentials {
+	// Login is the user's claimed login.
+	string login = 1;
+
+	// Password is the password (possibly) corresponding to the login.
+	string password = 2;
+
+	// In the future we can add 2FA tokens, etc., here.
 }
 
 message UserAuthAuthenticateOp {
