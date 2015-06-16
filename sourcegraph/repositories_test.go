@@ -25,7 +25,7 @@ func TestRepoSpec(t *testing.T) {
 			continue
 		}
 
-		str := test.spec.PathComponent()
+		str := test.spec.SpecString()
 		if str != test.str {
 			t.Errorf("%+v: got str %q, want %q", test.spec, str, test.str)
 			continue
@@ -48,9 +48,9 @@ func TestRepoRevSpec(t *testing.T) {
 		spec      RepoRevSpec
 		routeVars map[string]string
 	}{
-		{RepoRevSpec{RepoSpec: RepoSpec{URI: "a.com/x"}, Rev: "r"}, map[string]string{"RepoSpec": "a.com/x", "Rev": "r"}},
-		{RepoRevSpec{RepoSpec: RepoSpec{URI: "x"}, Rev: "r"}, map[string]string{"RepoSpec": "x", "Rev": "r"}},
-		{RepoRevSpec{RepoSpec: RepoSpec{URI: "a.com/x"}, Rev: "r", CommitID: "c"}, map[string]string{"RepoSpec": "a.com/x", "Rev": "r===c"}},
+		{RepoRevSpec{RepoSpec: RepoSpec{URI: "a.com/x"}, Rev: "r"}, map[string]string{"Repo": "a.com/x", "ResolvedRev": "r"}},
+		{RepoRevSpec{RepoSpec: RepoSpec{URI: "x"}, Rev: "r"}, map[string]string{"Repo": "x", "ResolvedRev": "r"}},
+		{RepoRevSpec{RepoSpec: RepoSpec{URI: "a.com/x"}, Rev: "r", CommitID: commitID}, map[string]string{"Repo": "a.com/x", "ResolvedRev": "r===" + commitID}},
 	}
 
 	for _, test := range tests {

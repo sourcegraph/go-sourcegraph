@@ -2,6 +2,8 @@ package sourcegraph
 
 import "testing"
 
+const commitID = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
 func TestRepo_GitHubHTMLURL(t *testing.T) {
 	tests := []struct {
 		repo *Repo

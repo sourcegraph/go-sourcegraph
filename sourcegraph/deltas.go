@@ -15,7 +15,7 @@ func (s DeltaSpec) RouteVars() map[string]string {
 	m := s.Base.RouteVars()
 
 	if s.Base.RepoSpec == s.Head.RepoSpec {
-		m["DeltaHeadRev"] = s.Head.RevPathComponent()
+		m["DeltaHeadRev"] = s.Head.ResolvedRevString()
 	} else {
 		m["DeltaHeadRev"] = encodeCrossRepoRevSpecForDeltaHeadRev(s.Head)
 	}
@@ -23,7 +23,7 @@ func (s DeltaSpec) RouteVars() map[string]string {
 }
 
 func encodeCrossRepoRevSpecForDeltaHeadRev(rr RepoRevSpec) string {
-	return base64.URLEncoding.EncodeToString([]byte(rr.RepoSpec.PathComponent())) + ":" + rr.RevPathComponent()
+	return base64.URLEncoding.EncodeToString([]byte(rr.RepoSpec.SpecString())) + ":" + rr.ResolvedRevString()
 }
 
 // UnmarshalDeltaSpec marshals a map containing route variables
@@ -48,14 +48,14 @@ func UnmarshalDeltaSpec(routeVars map[string]string) (DeltaSpec, error) {
 			return DeltaSpec{}, err
 		}
 
-		rr, err := UnmarshalRepoRevSpec(map[string]string{"RepoSpec": string(repoPC), "Rev": revPC})
+		rr, err := UnmarshalRepoRevSpec(map[string]string{"Repo": string(repoPC), "ResolvedRev": revPC})
 		if err != nil {
 			return DeltaSpec{}, err
 		}
 
 		s.Head = rr
 	} else {
-		rr, err := UnmarshalRepoRevSpec(map[string]string{"RepoSpec": routeVars["RepoSpec"], "Rev": dhr})
+		rr, err := UnmarshalRepoRevSpec(map[string]string{"Repo": routeVars["Repo"], "ResolvedRev": dhr})
 		if err != nil {
 			return DeltaSpec{}, err
 		}

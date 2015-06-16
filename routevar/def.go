@@ -1,4 +1,4 @@
-package router
+package routevar
 
 import (
 	"net/http"
@@ -7,7 +7,7 @@ import (
 	"github.com/sourcegraph/mux"
 )
 
-// DefPathPattern is the path pattern for defs.
+// Def captures def paths in URL routes.
 //
 // We want the def routes to match the 2 following forms:
 //
@@ -16,10 +16,10 @@ import (
 //
 // To achieve this, we use a non-picky regexp for rawUnit and then sort it
 // out in the FixDefUnitVars PostMatchFunc.
-var DefPathPattern = `.{UnitType}/{rawUnit:.*}.def{Path:(?:(?:/(?:[^/.][^/]*/)*(?:[^/.][^/]*))|)}`
+var Def = `.{UnitType}/{rawUnit:.*}.def{Path:(?:(?:/(?:[^/.][^/]*/)*(?:[^/.][^/]*))|)}`
 
-// FixDefUnitVars is a mux.PostMatchFunc that cleans up the dummy rawUnit route
-// variable matched by DefPathPattern. See the docs for DefPathPattern for
+// FixDefUnitVars is a mux.PostMatchFunc that cleans up the dummy
+// rawUnit route variable matched by Def. See the docs for Def for
 // more information.
 func FixDefUnitVars(req *http.Request, match *mux.RouteMatch, r *mux.Route) {
 	match.Vars["Path"] = strings.TrimPrefix(match.Vars["Path"], "/")

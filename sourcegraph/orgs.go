@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
-// PathComponent returns the URL path component that specifies the org.
-func (s *OrgSpec) PathComponent() string {
+// SpecString returns the URL path component that specifies the org.
+func (s *OrgSpec) SpecString() string {
 	if s.Org != "" {
 		return s.Org
 	}
@@ -17,7 +17,7 @@ func (s *OrgSpec) PathComponent() string {
 }
 
 func (s *OrgSpec) RouteVars() map[string]string {
-	return map[string]string{"OrgSpec": s.PathComponent()}
+	return map[string]string{"OrgSpec": s.SpecString()}
 }
 
 // OrgSpec returns the OrgSpec that specifies o.
