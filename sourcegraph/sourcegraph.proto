@@ -822,8 +822,7 @@ message User {
 	// UID is the numeric primary key for a user.
 	int32 uid = 1 [(gogoproto.customname) = "UID"];
 
-	// Login is the user's username, which typically corresponds to the user's GitHub
-	// login.
+	// Login is the user's username.
 	string login = 2;
 
 	// Domain is the host that the user originates from. If empty, it
@@ -839,13 +838,13 @@ message User {
 	// AvatarURL is the URL to an avatar image specified by the user.
 	string avatar_url = 6 [(gogoproto.customname) = "AvatarURL"];
 
-	// Location is the user's physical location (from their GitHub profile).
+	// Location is the user's physical location.
 	string location = 7;
 
-	// Company is the user's company (from their GitHub profile).
+	// Company is the user's company.
 	string company = 8;
 
-	// HomepageURL is the user's homepage or blog URL (from their GitHub profile).
+	// HomepageURL is the user's homepage or blog URL.
 	string homepage_url = 9 [(gogoproto.customname) = "HomepageURL"];
 
 	// Disabled is whether the user account is disabled.
