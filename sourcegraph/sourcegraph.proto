@@ -995,6 +995,9 @@ service Accounts {
 message NewAccount {
 	// Login is the desired login for the new user account.
 	string login = 1;
+
+	// Email is the primary email address for the new user account.
+	string email = 2;
 }
 
 // UsersService communicates with the users-related endpoints in the Sourcegraph
