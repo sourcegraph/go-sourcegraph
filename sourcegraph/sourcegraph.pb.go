@@ -1165,8 +1165,7 @@ func (*TaskUpdate) ProtoMessage()    {}
 type User struct {
 	// UID is the numeric primary key for a user.
 	UID int32 `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	// Login is the user's username, which typically corresponds to the user's GitHub
-	// login.
+	// Login is the user's username.
 	Login string `protobuf:"bytes,2,opt,name=login,proto3" json:"login,omitempty"`
 	// Domain is the host that the user originates from. If empty, it
 	// is assumed to be the domain of the server.
@@ -1177,11 +1176,11 @@ type User struct {
 	IsOrganization bool `protobuf:"varint,5,opt,name=is_organization,proto3" json:"is_organization,omitempty"`
 	// AvatarURL is the URL to an avatar image specified by the user.
 	AvatarURL string `protobuf:"bytes,6,opt,name=avatar_url,proto3" json:"avatar_url,omitempty"`
-	// Location is the user's physical location (from their GitHub profile).
+	// Location is the user's physical location.
 	Location string `protobuf:"bytes,7,opt,name=location,proto3" json:"location,omitempty"`
-	// Company is the user's company (from their GitHub profile).
+	// Company is the user's company.
 	Company string `protobuf:"bytes,8,opt,name=company,proto3" json:"company,omitempty"`
-	// HomepageURL is the user's homepage or blog URL (from their GitHub profile).
+	// HomepageURL is the user's homepage or blog URL.
 	HomepageURL string `protobuf:"bytes,9,opt,name=homepage_url,proto3" json:"homepage_url,omitempty"`
 	// Disabled is whether the user account is disabled.
 	Disabled bool `protobuf:"varint,10,opt,name=disabled,proto3" json:"disabled,omitempty"`
