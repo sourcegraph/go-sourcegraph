@@ -1441,9 +1441,9 @@ message FileDiff {
 	diff.FileDiff file_diff = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 	repeated Hunk hunks = 2;
 	// PreImage is the CommitID at which this file was before the change occurred.
-	string pre_image = 3;
+	string pre_image = 3 [(gogoproto.jsontag) = ",omitempty"];
 	// PostImage is the CommitID at which this file was after the change occurred.
-	string post_image = 4;
+	string post_image = 4 [(gogoproto.jsontag) = ",omitempty"];
 	// Stat contains statistics about additions and deletions to this diff.
 	diff.Stat stats = 5 [(gogoproto.nullable) = false];
 }

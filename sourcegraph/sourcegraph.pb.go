@@ -1737,9 +1737,9 @@ type FileDiff struct {
 	diff.FileDiff `protobuf:"bytes,1,opt,name=file_diff,embedded=file_diff" json:"file_diff"`
 	Hunks         []*Hunk `protobuf:"bytes,2,rep,name=hunks" json:"hunks,omitempty"`
 	// PreImage is the CommitID at which this file was before the change occurred.
-	PreImage string `protobuf:"bytes,3,opt,name=pre_image,proto3" json:"pre_image,omitempty"`
+	PreImage string `protobuf:"bytes,3,opt,name=pre_image,proto3" json:",omitempty"`
 	// PostImage is the CommitID at which this file was after the change occurred.
-	PostImage string `protobuf:"bytes,4,opt,name=post_image,proto3" json:"post_image,omitempty"`
+	PostImage string `protobuf:"bytes,4,opt,name=post_image,proto3" json:",omitempty"`
 	// Stat contains statistics about additions and deletions to this diff.
 	Stats diff.Stat `protobuf:"bytes,5,opt,name=stats" json:"stats"`
 }
