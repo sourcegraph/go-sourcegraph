@@ -1440,7 +1440,12 @@ message DeltaDefs {
 message FileDiff {
 	diff.FileDiff file_diff = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 	repeated Hunk hunks = 2;
-	diff.Stat stats = 3 [(gogoproto.nullable) = false];
+	// PreImage is the CommitID at which this file was before the change occurred.
+	string pre_image = 3;
+	// PostImage is the CommitID at which this file was after the change occurred.
+	string post_image = 4;
+	// Stat contains statistics about additions and deletions to this diff.
+	diff.Stat stats = 5 [(gogoproto.nullable) = false];
 }
 
 // Hunk holds data about a hunk in a diff.
