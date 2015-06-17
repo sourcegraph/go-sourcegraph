@@ -11,10 +11,10 @@ import (
 
 var (
 	// Repo captures RepoSpec strings in URL routes.
-	Repo = `{Repo:` + namedToNonCapturingGroups(spec.RepoPattern) + `}`
+	Repo = `{Repo:` + NamedToNonCapturingGroups(spec.RepoPattern) + `}`
 
 	// RepoRev captures RepoRevSpec strings in URL routes.
-	RepoRev = Repo + `{ResolvedRev:(?:@` + namedToNonCapturingGroups(spec.ResolvedRevPattern) + `)?}`
+	RepoRev = Repo + `{ResolvedRev:(?:@` + NamedToNonCapturingGroups(spec.ResolvedRevPattern) + `)?}`
 )
 
 // FixRepoRevVars is a mux.PostMatchFunc that cleans and normalizes
