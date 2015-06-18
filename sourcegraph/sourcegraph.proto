@@ -91,6 +91,7 @@ message ChangesetReview {
 	pbtypes.Timestamp created_at = 3;
 	pbtypes.Timestamp edited_at = 4;
 	repeated InlineComment comments = 5 [(gogoproto.nullable) = true];
+	bool deleted = 6;
 }
 
 // InlineComment represents a comment made on a line of code. It is uniquely identified

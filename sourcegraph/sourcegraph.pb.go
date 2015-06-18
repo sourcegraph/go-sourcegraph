@@ -322,6 +322,7 @@ type ChangesetReview struct {
 	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,3,opt,name=created_at" json:"created_at,omitempty"`
 	EditedAt  *pbtypes.Timestamp `protobuf:"bytes,4,opt,name=edited_at" json:"edited_at,omitempty"`
 	Comments  []*InlineComment   `protobuf:"bytes,5,rep,name=comments" json:"comments,omitempty"`
+	Deleted   bool               `protobuf:"varint,6,opt,name=deleted,proto3" json:"deleted,omitempty"`
 }
 
 func (m *ChangesetReview) Reset()         { *m = ChangesetReview{} }
