@@ -111,5 +111,8 @@ func UnmarshalRepoRevSpec(routeVars map[string]string) (RepoRevSpec, error) {
 	if rrevStr != "" {
 		rrspec.Rev, rrspec.CommitID, err = spec.ParseResolvedRev(routeVars["ResolvedRev"])
 	}
+	if revStr, ok := routeVars["Rev"]; ok {
+		rrspec.Rev = revStr
+	}
 	return rrspec, err
 }
