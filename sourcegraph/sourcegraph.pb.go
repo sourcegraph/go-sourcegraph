@@ -15,7 +15,8 @@ It has these top-level messages:
 	ListOptions
 	ListResponse
 	Changeset
-	Comment
+	Review
+	InlineComment
 	Readme
 	GitHubRepo
 	RepoConfig
@@ -312,13 +313,25 @@ func (m *Changeset) Reset()         { *m = Changeset{} }
 func (m *Changeset) String() string { return proto.CompactTextString(m) }
 func (*Changeset) ProtoMessage()    {}
 
-// Comment represents a comment made on a line of code. It is uniquely identified
+type Review struct {
+	ID        string             `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Body      string             `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
+	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,3,opt,name=created_at" json:"created_at,omitempty"`
+	EditedAt  *pbtypes.Timestamp `protobuf:"bytes,4,opt,name=edited_at" json:"edited_at,omitempty"`
+	Comments  []*InlineComment   `protobuf:"bytes,5,rep,name=comments" json:"comments,omitempty"`
+}
+
+func (m *Review) Reset()         { *m = Review{} }
+func (m *Review) String() string { return proto.CompactTextString(m) }
+func (*Review) ProtoMessage()    {}
+
+// InlineComment represents a comment made on a line of code. It is uniquely identified
 // via Filename + LineNumber + CommitID. In a Changeset, the CommitID might vary
 // within the same file based on whether the comment was made on the lines that
 // match the pre-index SHA-1 or the lines that match the post-index SHA-1. Pre
 // and post index values may differ from Base and Head of the diff.
 // For more information on indexes see http://git-scm.com/docs/git-diff-index
-type Comment struct {
+type InlineComment struct {
 	// Filename is the name of the file where this comment was made.
 	Filename string `protobuf:"bytes,1,opt,name=filename,proto3" json:"filename,omitempty"`
 	// LineNumber is the line number relative to the beginning of the file in
@@ -341,9 +354,9 @@ type Comment struct {
 	Deleted bool `protobuf:"varint,8,opt,name=deleted,proto3" json:"deleted,omitempty"`
 }
 
-func (m *Comment) Reset()         { *m = Comment{} }
-func (m *Comment) String() string { return proto.CompactTextString(m) }
-func (*Comment) ProtoMessage()    {}
+func (m *InlineComment) Reset()         { *m = InlineComment{} }
+func (m *InlineComment) String() string { return proto.CompactTextString(m) }
+func (*InlineComment) ProtoMessage()    {}
 
 // A Readme represents a formatted "README"-type file in a repository.
 type Readme struct {

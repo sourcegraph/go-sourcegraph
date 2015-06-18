@@ -85,13 +85,21 @@ message Changeset {
 	pbtypes.Timestamp closed_at = 8;
 }
 
-// Comment represents a comment made on a line of code. It is uniquely identified
+message Review {
+	string id = 1 [(gogoproto.customname) = "ID"];
+	string body = 2;
+	pbtypes.Timestamp created_at = 3;
+	pbtypes.Timestamp edited_at = 4;
+	repeated InlineComment comments = 5 [(gogoproto.nullable) = true];
+}
+
+// InlineComment represents a comment made on a line of code. It is uniquely identified
 // via Filename + LineNumber + CommitID. In a Changeset, the CommitID might vary
 // within the same file based on whether the comment was made on the lines that
 // match the pre-index SHA-1 or the lines that match the post-index SHA-1. Pre
 // and post index values may differ from Base and Head of the diff.
 // For more information on indexes see http://git-scm.com/docs/git-diff-index
-message Comment {
+message InlineComment {
 	// Filename is the name of the file where this comment was made.
 	string filename = 1;
 
