@@ -10,6 +10,7 @@ import "sourcegraph.com/sourcegraph/srclib/unit/unit.proto";
 import "sourcegraph.com/sourcegraph/vcsstore/vcsclient/vcsclient.proto";
 import "sourcegraph.com/sqs/pbtypes/timestamp.proto";
 import "sourcegraph.com/sqs/pbtypes/void.proto";
+import "google/api/annotations.proto";
 
 option (gogoproto.goproto_getters_all) = false;
 
@@ -288,58 +289,115 @@ message RepoList {
 
 service RepoBadges {
 	// ListBadges lists the available badges for repo.
-	rpc ListBadges(RepoSpec) returns (BadgeList);
+	rpc ListBadges(RepoSpec) returns (BadgeList) {
+		option (google.api.http) = {
+			get: "/repo_badges/list_badges"
+		};
+	};
 
 	// ListCounters lists the available counters for repo.
-	rpc ListCounters(RepoSpec) returns (CounterList);
+	rpc ListCounters(RepoSpec) returns (CounterList) {
+		option (google.api.http) = {
+			get: "/repo_badges/list_counters"
+		};
+	};
 
 	// RecordHit records a visit to a repo (that will be reflected in
 	// its counter).
-	rpc RecordHit(RepoSpec) returns (pbtypes.Void);
+	rpc RecordHit(RepoSpec) returns (pbtypes.Void) {
+		option (google.api.http) = {
+			put: "/repo_badges/record_hit"
+		};
+	};
 
 	// CountHits returns the hit count (optionally in a recent time
 	// period).
-	rpc CountHits(RepoBadgesCountHitsOp) returns (RepoBadgesCountHitsResult);
+	rpc CountHits(RepoBadgesCountHitsOp) returns (RepoBadgesCountHitsResult) {
+		option (google.api.http) = {
+			get: "/repo_badges/count_hits"
+		};
+	};
 }
 
 service RepoStatuses {
 	// GetCombined fetches the combined repository status for the given commit.
-	rpc GetCombined(RepoRevSpec) returns (CombinedStatus);
+	rpc GetCombined(RepoRevSpec) returns (CombinedStatus) {
+		option (google.api.http) = {
+			get: "/repo_statuses"
+		};
+	};
 
 	// Create creates a repository status for the given commit.
-	rpc Create(RepoStatusesCreateOp) returns (RepoStatus);
+	rpc Create(RepoStatusesCreateOp) returns (RepoStatus) {
+		option (google.api.http) = {
+			post: "/repo_statuses"
+		};
+	};
 }
 
 // Repos exposes information about and actions on both locally hosted
 // and remote repositories.
 service Repos {
 	// Get fetches a repository.
-	rpc Get(RepoSpec) returns (Repo);
+	rpc Get(RepoSpec) returns (Repo) {
+		option (google.api.http) = {
+			get: "/repos"
+		};
+	};
 
 	// List repositories.
-	rpc List(RepoListOptions) returns (RepoList);
+	rpc List(RepoListOptions) returns (RepoList) {
+		option (google.api.http) = {
+			get: "/repos/list"
+		};
+	};
 
 	// Create creates a new repository.
-	rpc Create(ReposCreateOp) returns (Repo);
+	rpc Create(ReposCreateOp) returns (Repo) {
+		option (google.api.http) = {
+			post: "/repos"
+		};
+	};
 
 	// Delete removes a repository.
-	rpc Delete(RepoSpec) returns (pbtypes.Void);
+	rpc Delete(RepoSpec) returns (pbtypes.Void) {
+		option (google.api.http) = {
+			delete: "/repos"
+		};
+	};
 
 	// GetReadme fetches the formatted README file for a repository.
-	rpc GetReadme(RepoRevSpec) returns (Readme);
+	rpc GetReadme(RepoRevSpec) returns (Readme) {
+		option (google.api.http) = {
+			get: "/repos/get_readme"
+		};
+	};
 
 	// Enable enables the specified repository.
-	rpc Enable(RepoSpec) returns (pbtypes.Void);
+	rpc Enable(RepoSpec) returns (pbtypes.Void) {
+		option (google.api.http) = {
+			put: "/repos/enable"
+		};
+	};
 
 	// Disable disables the specified repository.
-	rpc Disable(RepoSpec) returns (pbtypes.Void);
+	rpc Disable(RepoSpec) returns (pbtypes.Void) {
+		option (google.api.http) = {
+			put: "/repos/disable"
+		};
+	};
 
 	// GetConfig retrieves the configuration for a repository. To
 	// update the config, use Enable or Disable (direct updating is
 	// not currently supported).
-	rpc GetConfig(RepoSpec) returns (RepoConfig);
+	rpc GetConfig(RepoSpec) returns (RepoConfig) {
+		option (google.api.http) = {
+			get: "/repos/get_config"
+		};
+	};
 
 	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
+	// TODO(slimsag): add google.api.http annotations to these once moved
 	rpc GetCommit(RepoRevSpec) returns (vcs.Commit);
 	rpc ListCommits(ReposListCommitsOp) returns (CommitList);
 	rpc ListBranches(ReposListBranchesOp) returns (BranchList);
@@ -411,16 +469,34 @@ message TagList {
 // Sourcegraph of repositories hosted elsewhere.
 service MirrorRepos {
 	// Refresh fetches the newest VCS data from the repo's origin.
-	rpc RefreshVCS(RepoSpec) returns (pbtypes.Void);
+	rpc RefreshVCS(RepoSpec) returns (pbtypes.Void) {
+		option (google.api.http) = {
+			put: "/mirror_repos"
+		};
+	};
 }
 
 
 // MirroredRepoSSHKeys stores repository SSH keys (e.g., to access
 // private repos on some external origin that we mirror).
 service MirroredRepoSSHKeys {
-	rpc Create(MirroredRepoSSHKeysCreateOp) returns (pbtypes.Void);
-	rpc Get(RepoSpec) returns (SSHPrivateKey);
-	rpc Delete(RepoSpec) returns (pbtypes.Void);
+	rpc Create(MirroredRepoSSHKeysCreateOp) returns (pbtypes.Void) {
+		option (google.api.http) = {
+			post: "/mirrored_repo_ssh_keys"
+		};
+	};
+
+	rpc Get(RepoSpec) returns (SSHPrivateKey) {
+		option (google.api.http) = {
+			get: "/mirrored_repo_ssh_keys"
+		};
+	};
+
+	rpc Delete(RepoSpec) returns (pbtypes.Void) {
+		option (google.api.http) = {
+			delete: "/mirrored_repo_ssh_keys"
+		};
+	};
 }
 
 message MirroredRepoSSHKeysCreateOp {
@@ -905,40 +981,80 @@ message OrgList {
 // API.
 service Builds {
 	// Get fetches a build.
-	rpc Get(BuildSpec) returns (Build);
+	rpc Get(BuildSpec) returns (Build) {
+		option (google.api.http) = {
+			get: "/builds"
+		};
+	};
 
 	// GetRepoBuildInfo gets the best-match build for a specific repo revspec. It
 	// returns additional information about the build, such as whether it is exactly
 	// up-to-date with the revspec or a few commits behind the revspec. The opt param
 	// controls what is returned in this case.
-	rpc GetRepoBuildInfo(BuildsGetRepoBuildInfoOp) returns (RepoBuildInfo);
+	rpc GetRepoBuildInfo(BuildsGetRepoBuildInfoOp) returns (RepoBuildInfo) {
+		option (google.api.http) = {
+			get: "/builds/get_repo_build_info"
+		};
+	};
 
 	// List builds.
-	rpc List(BuildListOptions) returns (BuildList);
+	rpc List(BuildListOptions) returns (BuildList) {
+		option (google.api.http) = {
+			get: "/builds/list"
+		};
+	};
 
 	// Create a new build. The build will run asynchronously (Create does not wait for
 	// it to return. To monitor the build's status, use Get.)
-	rpc Create(BuildsCreateOp) returns (Build);
+	rpc Create(BuildsCreateOp) returns (Build) {
+		option (google.api.http) = {
+			post: "/builds"
+		};
+	};
 
 	// Update updates information about a build and returns the build after the update
 	// has been applied.
-	rpc Update(BuildsUpdateOp) returns (Build);
+	rpc Update(BuildsUpdateOp) returns (Build) {
+		option (google.api.http) = {
+			put: "/builds/update"
+		};
+	};
 
 	// ListBuildTasks lists the tasks associated with a build.
-	rpc ListBuildTasks(BuildsListBuildTasksOp) returns (BuildTaskList);
+	rpc ListBuildTasks(BuildsListBuildTasksOp) returns (BuildTaskList) {
+		option (google.api.http) = {
+			get: "/builds/list_build_tasks"
+		};
+	};
 
 	// CreateTasks creates tasks associated with a build and returns them with their
 	// TID fields set.
-	rpc CreateTasks(BuildsCreateTasksOp) returns (BuildTaskList);
+	rpc CreateTasks(BuildsCreateTasksOp) returns (BuildTaskList) {
+		option (google.api.http) = {
+			post: "/builds/create_tasks"
+		};
+	};
 
 	// UpdateTask updates a task associated with a build.
-	rpc UpdateTask(BuildsUpdateTaskOp) returns (BuildTask);
+	rpc UpdateTask(BuildsUpdateTaskOp) returns (BuildTask) {
+		option (google.api.http) = {
+			put: "/builds/update_task"
+		};
+	};
 
 	// GetLog gets log entries associated with a build.
-	rpc GetLog(BuildsGetLogOp) returns (LogEntries);
+	rpc GetLog(BuildsGetLogOp) returns (LogEntries) {
+		option (google.api.http) = {
+			get: "/builds/get_log"
+		};
+	};
 
 	// GetTaskLog gets log entries associated with a task.
-	rpc GetTaskLog(BuildsGetTaskLogOp) returns (LogEntries);
+	rpc GetTaskLog(BuildsGetTaskLogOp) returns (LogEntries) {
+		option (google.api.http) = {
+			get: "/builds/get_task_log"
+		};
+	};
 
 	// DequeueNext returns the next queued build and marks it as
 	// having started (atomically). If there are no builds in the
@@ -949,7 +1065,11 @@ service Builds {
 	// upload build data for the build's repository. Call
 	// auth.SignedTicketStrings on the response's HTTP response field
 	// to obtain the tickets.
-	rpc DequeueNext(BuildsDequeueNextOp) returns (Build);
+	rpc DequeueNext(BuildsDequeueNextOp) returns (Build) {
+		option (google.api.http) = {
+			get: "/builds/dequeue_next"
+		};
+	};
 
 	// DequeueNextTask returns the next queued build task and marks it
 	// as having started (atomically). If there are no build tasks in
@@ -960,20 +1080,36 @@ service Builds {
 	// upload build data for the build's repository. Call
 	// auth.SignedTicketStrings on the response's HTTP response field
 	// to obtain the tickets.
-	rpc DequeueNextTask(BuildsDequeueNextTaskOp) returns (BuildTask);
+	rpc DequeueNextTask(BuildsDequeueNextTaskOp) returns (BuildTask) {
+		option (google.api.http) = {
+			get: "/builds/dequeue_next_task"
+		};
+	};
 }
 
 // OrgsService communicates with the organizations-related endpoints in the
 // Sourcegraph API.
 service Orgs {
 	// Get fetches an organization.
-	rpc Get(OrgSpec) returns (Org);
+	rpc Get(OrgSpec) returns (Org) {
+		option (google.api.http) = {
+			get: "/orgs"
+		};
+	};
 
 	// List lists organizations that a user is a member of.
-	rpc List(OrgsListOp) returns (OrgList);
+	rpc List(OrgsListOp) returns (OrgList) {
+		option (google.api.http) = {
+			get: "/orgs/list"
+		};
+	};
 
 	// ListMembers lists members of an organization.
-	rpc ListMembers(OrgsListMembersOp) returns (UserList);
+	rpc ListMembers(OrgsListMembersOp) returns (UserList) {
+		option (google.api.http) = {
+			get: "/orgs/list_members"
+		};
+	};
 }
 
 // PeopleService communicates with the people-related endpoints in the Sourcegraph
@@ -982,7 +1118,11 @@ service People {
 	// Get gets a person. If an email is provided and it resolves to a registered user,
 	// information about that user is returned. Otherwise a transient person is created
 	// and returned.
-	rpc Get(PersonSpec) returns (Person);
+	rpc Get(PersonSpec) returns (Person) {
+		option (google.api.http) = {
+			get: "/people"
+		};
+	};
 }
 
 // Accounts communicates with the account-related endpoints in the
@@ -994,7 +1134,11 @@ service People {
 // can't create/update information about).
 service Accounts {
 	// Create creates a new user account.
-	rpc Create(NewAccount) returns (UserSpec);
+	rpc Create(NewAccount) returns (UserSpec) {
+		option (google.api.http) = {
+			post: "/accounts/create"
+		};
+	};
 }
 
 message NewAccount {
@@ -1006,13 +1150,25 @@ message NewAccount {
 // API.
 service Users {
 	// Get fetches a user.
-	rpc Get(UserSpec) returns (User);
+	rpc Get(UserSpec) returns (User) {
+		option (google.api.http) = {
+			get: "/users"
+		};
+	};
 
 	// ListEmails returns a list of a user's email addresses.
-	rpc ListEmails(UserSpec) returns (EmailAddrList);
+	rpc ListEmails(UserSpec) returns (EmailAddrList) {
+		option (google.api.http) = {
+			get: "/users/list_emails"
+		};
+	};
 
 	// List users.
-	rpc List(UsersListOptions) returns (UserList);
+	rpc List(UsersListOptions) returns (UserList) {
+		option (google.api.http) = {
+			get: "/users/list"
+		};
+	};
 }
 
 // UserAuth manages user authentication and registration.
@@ -1022,16 +1178,28 @@ service UserAuth {
 	// user. If there is no current user, then the token may be used
 	// to create an account. The UID of the current user (or the newly
 	// registered user) is returned.
-	rpc Authenticate(UserAuthAuthenticateOp) returns (AuthenticatedUser);
+	rpc Authenticate(UserAuthAuthenticateOp) returns (AuthenticatedUser) {
+		option (google.api.http) = {
+			post: "/user_auth"
+		};
+	};
 
 	// GetExternal returns info about the current user's
 	// authentication with an external service (e.g., the currently
 	// authorized GitHub scope).
-	rpc GetExternal(UserAuthGetExternalOp) returns (ExternalAuthInfo);
+	rpc GetExternal(UserAuthGetExternalOp) returns (ExternalAuthInfo) {
+		option (google.api.http) = {
+			get: "/user_auth/get_external"
+		};
+	};
 
 	// Identify describes the currently authenticated user (if
 	// any). It is akin to "whoami".
-	rpc Identify(pbtypes.Void) returns (AuthInfo);
+	rpc Identify(pbtypes.Void) returns (AuthInfo) {
+		option (google.api.http) = {
+			get: "/user_auth/identify"
+		};
+	};
 }
 
 // An AuthenticatedUser describes the user that resulted from a UserAuth.Authenticate call.
@@ -1772,22 +1940,46 @@ message DefClientList {
 // Sourcegraph API.
 service Defs {
 	// Get fetches a def.
-	rpc Get(DefsGetOp) returns (Def);
+	rpc Get(DefsGetOp) returns (Def) {
+		option (google.api.http) = {
+			get: "/defs/get"
+		};
+	};
 
 	// List defs.
-	rpc List(DefListOptions) returns (DefList);
+	rpc List(DefListOptions) returns (DefList) {
+		option (google.api.http) = {
+			get: "/defs/list"
+		};
+	};
 
 	// ListRefs lists references to def.
-	rpc ListRefs(DefsListRefsOp) returns (RefList);
+	rpc ListRefs(DefsListRefsOp) returns (RefList) {
+		option (google.api.http) = {
+			get: "/defs/list_refs"
+		};
+	};
 
 	// ListExamples lists examples for def.
-	rpc ListExamples(DefsListExamplesOp) returns (ExampleList);
+	rpc ListExamples(DefsListExamplesOp) returns (ExampleList) {
+		option (google.api.http) = {
+			get: "/defs/list_examples"
+		};
+	};
 
 	// ListExamples lists people who committed parts of def's definition.
-	rpc ListAuthors(DefsListAuthorsOp) returns (DefAuthorList);
+	rpc ListAuthors(DefsListAuthorsOp) returns (DefAuthorList) {
+		option (google.api.http) = {
+			get: "/defs/list_authors"
+		};
+	};
 
 	// ListClients lists people who use def in their code.
-	rpc ListClients(DefsListClientsOp) returns (DefClientList);
+	rpc ListClients(DefsListClientsOp) returns (DefClientList) {
+		option (google.api.http) = {
+			get: "/defs/list_clients"
+		};
+	};
 }
 
 // DeltasService interacts with the delta-related endpoints of the Sourcegraph API.
@@ -1796,59 +1988,116 @@ service Defs {
 // diffs, affected author/repo impact information, etc.
 service Deltas {
 	// Get fetches a summary of a delta.
-	rpc Get(DeltaSpec) returns (Delta);
+	rpc Get(DeltaSpec) returns (Delta) {
+		option (google.api.http) = {
+			get: "/deltas/get"
+		};
+	};
 
 	// ListUnits lists units added/changed/deleted in a delta.
-	rpc ListUnits(DeltasListUnitsOp) returns (UnitDeltaList);
+	rpc ListUnits(DeltasListUnitsOp) returns (UnitDeltaList) {
+		option (google.api.http) = {
+			get: "/deltas/list_units"
+		};
+	};
 
 	// ListDefs lists definitions added/changed/deleted in a delta.
-	rpc ListDefs(DeltasListDefsOp) returns (DeltaDefs);
+	rpc ListDefs(DeltasListDefsOp) returns (DeltaDefs) {
+		option (google.api.http) = {
+			get: "/deltas/list_defs"
+		};
+	};
 
 	// ListFiles fetches the file diff for a delta.
-	rpc ListFiles(DeltasListFilesOp) returns (DeltaFiles);
+	rpc ListFiles(DeltasListFilesOp) returns (DeltaFiles) {
+		option (google.api.http) = {
+			get: "/deltas/list_files"
+		};
+	};
 
 	// ListAffectedAuthors lists authors whose code is added/deleted/changed in a
 	// delta.
-	rpc ListAffectedAuthors(DeltasListAffectedAuthorsOp) returns (DeltaAffectedPersonList);
+	rpc ListAffectedAuthors(DeltasListAffectedAuthorsOp) returns (DeltaAffectedPersonList) {
+		option (google.api.http) = {
+			get: "/deltas/list_affected_authors"
+		};
+	};
 
 	// ListAffectedClients lists clients whose code is affected by a delta.
-	rpc ListAffectedClients(DeltasListAffectedClientsOp) returns (DeltaAffectedPersonList);
+	rpc ListAffectedClients(DeltasListAffectedClientsOp) returns (DeltaAffectedPersonList) {
+		option (google.api.http) = {
+			get: "/deltas/list_affected_clients"
+		};
+	};
 }
 
 service Markdown {
-	rpc Render(MarkdownRenderOp) returns (MarkdownData);
+	rpc Render(MarkdownRenderOp) returns (MarkdownData) {
+		option (google.api.http) = {
+			get: "/markdown/render"
+		};
+	};
 }
 
 // RepoTreeService communicates with the Sourcegraph API endpoints that fetch file
 // and directory entries in repositories.
 service RepoTree {
-	rpc Get(RepoTreeGetOp) returns (TreeEntry);
-	rpc Search(RepoTreeSearchOp) returns (VCSSearchResultList);
+	rpc Get(RepoTreeGetOp) returns (TreeEntry) {
+		option (google.api.http) = {
+			get: "/repo_tree"
+		};
+	};
+
+	rpc Search(RepoTreeSearchOp) returns (VCSSearchResultList) {
+		option (google.api.http) = {
+			post: "/repo_tree/search"
+		};
+	};
 }
 
 // SearchService communicates with the search-related endpoints in the Sourcegraph
 // API.
 service Search {
 	// Search searches the full index.
-	rpc Search(SearchOptions) returns (SearchResults);
+	rpc Search(SearchOptions) returns (SearchResults) {
+		option (google.api.http) = {
+			post: "/search"
+		};
+	};
 
 	// Complete completes the token at the RawQuery's InsertionPoint.
-	rpc Complete(RawQuery) returns (Completions);
+	rpc Complete(RawQuery) returns (Completions) {
+		option (google.api.http) = {
+			post: "/search/complete"
+		};
+	};
 
 	// Suggest suggests queries given an existing query. It can be called with an empty
 	// query to get example queries that pertain to the current user's repositories,
 	// orgs, etc.
-	rpc Suggest(RawQuery) returns (SuggestionList);
+	rpc Suggest(RawQuery) returns (SuggestionList) {
+		option (google.api.http) = {
+			get: "/search/suggest"
+		};
+	};
 }
 
 // UnitsService communicates with the source unit-related endpoints in the
 // Sourcegraph API.
 service Units {
 	// Get fetches a unit.
-	rpc Get(UnitSpec) returns (unit.RepoSourceUnit);
+	rpc Get(UnitSpec) returns (unit.RepoSourceUnit) {
+		option (google.api.http) = {
+			get: "/units"
+		};
+	};
 
 	// List units.
-	rpc List(UnitListOptions) returns (RepoSourceUnitList);
+	rpc List(UnitListOptions) returns (RepoSourceUnitList) {
+		option (google.api.http) = {
+			get: "/units/list"
+		};
+	};
 }
 
 message Checklist {
@@ -1987,10 +2236,18 @@ message PBToken {
 service Meta {
 	// Status returns status information from the server's point of
 	// view.
-	rpc Status(pbtypes.Void) returns (ServerStatus);
+	rpc Status(pbtypes.Void) returns (ServerStatus) {
+		option (google.api.http) = {
+			get: "/meta/status"
+		};
+	};
 
 	// Config returns the server's configuration.
-	rpc Config(pbtypes.Void) returns (ServerConfig);
+	rpc Config(pbtypes.Void) returns (ServerConfig) {
+		option (google.api.http) = {
+			get: "/meta/config"
+		};
+	};
 }
 
 // ServerStatus describes the server's status.
