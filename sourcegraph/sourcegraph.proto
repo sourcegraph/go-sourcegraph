@@ -997,6 +997,9 @@ message NewAccount {
 
 	// Email is the primary email address for the new user account.
 	string email = 2;
+
+    // Password is the password for the new user account.
+    string password = 3;
 }
 
 // UsersService communicates with the users-related endpoints in the Sourcegraph
