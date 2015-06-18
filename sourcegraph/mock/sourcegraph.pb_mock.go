@@ -225,6 +225,7 @@ type ChangesetsClient struct {
 	Create_       func(ctx context.Context, in *sourcegraph.ChangesetCreateOp) (*sourcegraph.Changeset, error)
 	Get_          func(ctx context.Context, in *sourcegraph.ChangesetGetOp) (*sourcegraph.Changeset, error)
 	CreateReview_ func(ctx context.Context, in *sourcegraph.ChangesetCreateReviewOp) (*sourcegraph.ChangesetReview, error)
+	ListReviews_  func(ctx context.Context, in *sourcegraph.ChangesetListReviewsOp) (*sourcegraph.ChangesetReviewList, error)
 }
 
 func (s *ChangesetsClient) Create(ctx context.Context, in *sourcegraph.ChangesetCreateOp, opts ...grpc.CallOption) (*sourcegraph.Changeset, error) {
@@ -239,12 +240,17 @@ func (s *ChangesetsClient) CreateReview(ctx context.Context, in *sourcegraph.Cha
 	return s.CreateReview_(ctx, in)
 }
 
+func (s *ChangesetsClient) ListReviews(ctx context.Context, in *sourcegraph.ChangesetListReviewsOp, opts ...grpc.CallOption) (*sourcegraph.ChangesetReviewList, error) {
+	return s.ListReviews_(ctx, in)
+}
+
 var _ sourcegraph.ChangesetsClient = (*ChangesetsClient)(nil)
 
 type ChangesetsServer struct {
 	Create_       func(v0 context.Context, v1 *sourcegraph.ChangesetCreateOp) (*sourcegraph.Changeset, error)
 	Get_          func(v0 context.Context, v1 *sourcegraph.ChangesetGetOp) (*sourcegraph.Changeset, error)
 	CreateReview_ func(v0 context.Context, v1 *sourcegraph.ChangesetCreateReviewOp) (*sourcegraph.ChangesetReview, error)
+	ListReviews_  func(v0 context.Context, v1 *sourcegraph.ChangesetListReviewsOp) (*sourcegraph.ChangesetReviewList, error)
 }
 
 func (s *ChangesetsServer) Create(v0 context.Context, v1 *sourcegraph.ChangesetCreateOp) (*sourcegraph.Changeset, error) {
@@ -257,6 +263,10 @@ func (s *ChangesetsServer) Get(v0 context.Context, v1 *sourcegraph.ChangesetGetO
 
 func (s *ChangesetsServer) CreateReview(v0 context.Context, v1 *sourcegraph.ChangesetCreateReviewOp) (*sourcegraph.ChangesetReview, error) {
 	return s.CreateReview_(v0, v1)
+}
+
+func (s *ChangesetsServer) ListReviews(v0 context.Context, v1 *sourcegraph.ChangesetListReviewsOp) (*sourcegraph.ChangesetReviewList, error) {
+	return s.ListReviews_(v0, v1)
 }
 
 var _ sourcegraph.ChangesetsServer = (*ChangesetsServer)(nil)

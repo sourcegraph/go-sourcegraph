@@ -432,9 +432,12 @@ service Changesets {
 	// GetChangeset returns the changeset by RepoSpec and ID.
 	rpc Get(ChangesetGetOp) returns (Changeset);
 
-	// CreateChangeset creates a new Changeset and returns it, populating
+	// CreateReview creates a new Review and returns it, populating
 	// its fields, such as ID and CreatedAt.
 	rpc CreateReview(ChangesetCreateReviewOp) returns (ChangesetReview);
+
+	// ListReviews returns all reviews for a given changeset.
+	rpc ListReviews(ChangesetListReviewsOp) returns (ChangesetReviewList);
 }
 
 message ReposCreateOp {
@@ -498,6 +501,11 @@ message ChangesetCreateReviewOp {
 	RepoSpec repo = 1 [(gogoproto.nullable) = false];
 	int64 changeset_id = 2 [(gogoproto.customname) = "ChangesetID"];
 	ChangesetReview review = 3;
+}
+
+message ChangesetListReviewsOp {
+	RepoSpec repo = 1 [(gogoproto.nullable) = false];
+	int64 changeset_id = 2 [(gogoproto.customname) = "ChangesetID"];
 }
 
 message ChangesetGetOp {
@@ -798,6 +806,10 @@ message BuildsListBuildTasksOp {
 
 message BuildTaskList {
 	repeated BuildTask build_tasks = 1;
+}
+
+message ChangesetReviewList {
+	repeated ChangesetReview reviews = 1;
 }
 
 message BuildsCreateTasksOp {
