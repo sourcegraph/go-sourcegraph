@@ -85,7 +85,7 @@ message Changeset {
 	pbtypes.Timestamp closed_at = 8;
 }
 
-message Review {
+message ChangesetReview {
 	string id = 1 [(gogoproto.customname) = "ID"];
 	string body = 2;
 	pbtypes.Timestamp created_at = 3;
@@ -431,6 +431,10 @@ service Changesets {
 
 	// GetChangeset returns the changeset by RepoSpec and ID.
 	rpc Get(ChangesetGetOp) returns (Changeset);
+
+	// CreateChangeset creates a new Changeset and returns it, populating
+	// its fields, such as ID and CreatedAt.
+	rpc CreateReview(ChangesetCreateReviewOp) returns (ChangesetReview);
 }
 
 message ReposCreateOp {
@@ -488,6 +492,12 @@ message ReposListTagsOp {
 message ChangesetCreateOp {
 	RepoSpec repo = 1 [(gogoproto.nullable) = false];
 	Changeset changeset = 2;
+}
+
+message ChangesetCreateReviewOp {
+	RepoSpec repo = 1 [(gogoproto.nullable) = false];
+	int64 changeset_id = 2 [(gogoproto.customname) = "ChangesetID"];
+	ChangesetReview review = 3;
 }
 
 message ChangesetGetOp {

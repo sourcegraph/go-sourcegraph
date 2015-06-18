@@ -15,7 +15,7 @@ It has these top-level messages:
 	ListOptions
 	ListResponse
 	Changeset
-	Review
+	ChangesetReview
 	InlineComment
 	Readme
 	GitHubRepo
@@ -41,6 +41,7 @@ It has these top-level messages:
 	BranchList
 	ReposListTagsOp
 	ChangesetCreateOp
+	ChangesetCreateReviewOp
 	ChangesetGetOp
 	RepoListTagsOptions
 	TagList
@@ -313,7 +314,7 @@ func (m *Changeset) Reset()         { *m = Changeset{} }
 func (m *Changeset) String() string { return proto.CompactTextString(m) }
 func (*Changeset) ProtoMessage()    {}
 
-type Review struct {
+type ChangesetReview struct {
 	ID        string             `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Body      string             `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
 	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,3,opt,name=created_at" json:"created_at,omitempty"`
@@ -321,9 +322,9 @@ type Review struct {
 	Comments  []*InlineComment   `protobuf:"bytes,5,rep,name=comments" json:"comments,omitempty"`
 }
 
-func (m *Review) Reset()         { *m = Review{} }
-func (m *Review) String() string { return proto.CompactTextString(m) }
-func (*Review) ProtoMessage()    {}
+func (m *ChangesetReview) Reset()         { *m = ChangesetReview{} }
+func (m *ChangesetReview) String() string { return proto.CompactTextString(m) }
+func (*ChangesetReview) ProtoMessage()    {}
 
 // InlineComment represents a comment made on a line of code. It is uniquely identified
 // via Filename + LineNumber + CommitID. In a Changeset, the CommitID might vary
@@ -710,6 +711,16 @@ type ChangesetCreateOp struct {
 func (m *ChangesetCreateOp) Reset()         { *m = ChangesetCreateOp{} }
 func (m *ChangesetCreateOp) String() string { return proto.CompactTextString(m) }
 func (*ChangesetCreateOp) ProtoMessage()    {}
+
+type ChangesetCreateReviewOp struct {
+	Repo        RepoSpec         `protobuf:"bytes,1,opt,name=repo" json:"repo"`
+	ChangesetID int64            `protobuf:"varint,2,opt,name=changeset_id,proto3" json:"changeset_id,omitempty"`
+	Review      *ChangesetReview `protobuf:"bytes,3,opt,name=review" json:"review,omitempty"`
+}
+
+func (m *ChangesetCreateReviewOp) Reset()         { *m = ChangesetCreateReviewOp{} }
+func (m *ChangesetCreateReviewOp) String() string { return proto.CompactTextString(m) }
+func (*ChangesetCreateReviewOp) ProtoMessage()    {}
 
 type ChangesetGetOp struct {
 	Repo RepoSpec `protobuf:"bytes,1,opt,name=repo" json:"repo"`
@@ -3136,6 +3147,9 @@ type ChangesetsClient interface {
 	Create(ctx context.Context, in *ChangesetCreateOp, opts ...grpc.CallOption) (*Changeset, error)
 	// GetChangeset returns the changeset by RepoSpec and ID.
 	Get(ctx context.Context, in *ChangesetGetOp, opts ...grpc.CallOption) (*Changeset, error)
+	// CreateChangeset creates a new Changeset and returns it, populating
+	// its fields, such as ID and CreatedAt.
+	CreateReview(ctx context.Context, in *ChangesetCreateReviewOp, opts ...grpc.CallOption) (*ChangesetReview, error)
 }
 
 type changesetsClient struct {
@@ -3164,6 +3178,15 @@ func (c *changesetsClient) Get(ctx context.Context, in *ChangesetGetOp, opts ...
 	return out, nil
 }
 
+func (c *changesetsClient) CreateReview(ctx context.Context, in *ChangesetCreateReviewOp, opts ...grpc.CallOption) (*ChangesetReview, error) {
+	out := new(ChangesetReview)
+	err := grpc.Invoke(ctx, "/sourcegraph.Changesets/CreateReview", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Changesets service
 
 type ChangesetsServer interface {
@@ -3172,6 +3195,9 @@ type ChangesetsServer interface {
 	Create(context.Context, *ChangesetCreateOp) (*Changeset, error)
 	// GetChangeset returns the changeset by RepoSpec and ID.
 	Get(context.Context, *ChangesetGetOp) (*Changeset, error)
+	// CreateChangeset creates a new Changeset and returns it, populating
+	// its fields, such as ID and CreatedAt.
+	CreateReview(context.Context, *ChangesetCreateReviewOp) (*ChangesetReview, error)
 }
 
 func RegisterChangesetsServer(s *grpc.Server, srv ChangesetsServer) {
@@ -3202,6 +3228,18 @@ func _Changesets_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Co
 	return out, nil
 }
 
+func _Changesets_CreateReview_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(ChangesetCreateReviewOp)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(ChangesetsServer).CreateReview(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 var _Changesets_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sourcegraph.Changesets",
 	HandlerType: (*ChangesetsServer)(nil),
@@ -3213,6 +3251,10 @@ var _Changesets_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Get",
 			Handler:    _Changesets_Get_Handler,
+		},
+		{
+			MethodName: "CreateReview",
+			Handler:    _Changesets_CreateReview_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
