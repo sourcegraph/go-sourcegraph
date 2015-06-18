@@ -86,7 +86,7 @@ message Changeset {
 }
 
 message ChangesetReview {
-	string id = 1 [(gogoproto.customname) = "ID"];
+	int64 id = 1 [(gogoproto.customname) = "ID"];
 	string body = 2;
 	pbtypes.Timestamp created_at = 3;
 	pbtypes.Timestamp edited_at = 4;

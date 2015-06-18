@@ -317,7 +317,7 @@ func (m *Changeset) String() string { return proto.CompactTextString(m) }
 func (*Changeset) ProtoMessage()    {}
 
 type ChangesetReview struct {
-	ID        string             `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ID        int64              `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Body      string             `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
 	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,3,opt,name=created_at" json:"created_at,omitempty"`
 	EditedAt  *pbtypes.Timestamp `protobuf:"bytes,4,opt,name=edited_at" json:"edited_at,omitempty"`
