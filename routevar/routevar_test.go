@@ -23,7 +23,7 @@ func TestNamedToNonCapturingGroups(t *testing.T) {
 		{`(?P<foo>qux(?P<baz>bar))`, `(?:qux(?:bar))`},
 	}
 	for _, test := range tests {
-		got := namedToNonCapturingGroups(test.input)
+		got := NamedToNonCapturingGroups(test.input)
 		if got != test.want {
 			t.Errorf("%q: got %q, want %q", test.input, got, test.want)
 		}

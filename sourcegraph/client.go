@@ -72,7 +72,7 @@ func NewClient(httpClient *http.Client, conn *grpc.ClientConn) *Client {
 	// HTTP/1
 	if httpClient == nil {
 		cloned := *http.DefaultClient
-		cloned.Transport = keepAliveTransport()
+		cloned.Transport = keepAliveTransport
 		httpClient = &cloned
 	}
 	c.httpClient = httpClient
@@ -304,22 +304,20 @@ func addOptions(u *url.URL, opt interface{}) error {
 	return nil
 }
 
-// keepAliveTransport returns a http.RoundTripper that uses a larger
+// keepAliveTransport is an http.RoundTripper that uses a larger
 // keep-alive pool than the default.
-func keepAliveTransport() http.RoundTripper {
-	return &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		Dial: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
-		}).Dial,
-		TLSHandshakeTimeout: 10 * time.Second,
+var keepAliveTransport http.RoundTripper = &http.Transport{
+	Proxy: http.ProxyFromEnvironment,
+	Dial: (&net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 30 * time.Second,
+	}).Dial,
+	TLSHandshakeTimeout: 10 * time.Second,
 
-		// Allow more keep-alive connections per host to avoid
-		// ephemeral port exhaustion due to getting stuck in
-		// TIME_WAIT. Some systems have a very limited ephemeral port
-		// supply (~1024). 20 connections is perfectly reasonable,
-		// since this client will only ever hit one host.
-		MaxIdleConnsPerHost: 20,
-	}
+	// Allow more keep-alive connections per host to avoid
+	// ephemeral port exhaustion due to getting stuck in
+	// TIME_WAIT. Some systems have a very limited ephemeral port
+	// supply (~1024). 20 connections is perfectly reasonable,
+	// since this client will only ever hit one host.
+	MaxIdleConnsPerHost: 20,
 }
