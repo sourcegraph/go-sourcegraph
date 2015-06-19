@@ -83,6 +83,7 @@ It has these top-level messages:
 	OrgList
 	NewAccount
 	EmailVerification
+	EmailVerified
 	AuthenticatedUser
 	LoginCredentials
 	UserAuthAuthenticateOp
@@ -1253,12 +1254,19 @@ func (m *NewAccount) String() string { return proto.CompactTextString(m) }
 func (*NewAccount) ProtoMessage()    {}
 
 type EmailVerification struct {
-	Code []byte `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Code string `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
 }
 
 func (m *EmailVerification) Reset()         { *m = EmailVerification{} }
 func (m *EmailVerification) String() string { return proto.CompactTextString(m) }
 func (*EmailVerification) ProtoMessage()    {}
+
+type EmailVerified struct {
+}
+
+func (m *EmailVerified) Reset()         { *m = EmailVerified{} }
+func (m *EmailVerified) String() string { return proto.CompactTextString(m) }
+func (*EmailVerified) ProtoMessage()    {}
 
 // An AuthenticatedUser describes the user that resulted from a UserAuth.Authenticate call.
 type AuthenticatedUser struct {
@@ -3877,7 +3885,7 @@ type UsersClient interface {
 	// List users.
 	List(ctx context.Context, in *UsersListOptions, opts ...grpc.CallOption) (*UserList, error)
 	// Verify a user's email
-	VerifyEmail(ctx context.Context, in *EmailVerification, opts ...grpc.CallOption) (*User, error)
+	VerifyEmail(ctx context.Context, in *EmailVerification, opts ...grpc.CallOption) (*EmailVerified, error)
 }
 
 type usersClient struct {
@@ -3915,8 +3923,8 @@ func (c *usersClient) List(ctx context.Context, in *UsersListOptions, opts ...gr
 	return out, nil
 }
 
-func (c *usersClient) VerifyEmail(ctx context.Context, in *EmailVerification, opts ...grpc.CallOption) (*User, error) {
-	out := new(User)
+func (c *usersClient) VerifyEmail(ctx context.Context, in *EmailVerification, opts ...grpc.CallOption) (*EmailVerified, error) {
+	out := new(EmailVerified)
 	err := grpc.Invoke(ctx, "/sourcegraph.Users/VerifyEmail", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
@@ -3934,7 +3942,7 @@ type UsersServer interface {
 	// List users.
 	List(context.Context, *UsersListOptions) (*UserList, error)
 	// Verify a user's email
-	VerifyEmail(context.Context, *EmailVerification) (*User, error)
+	VerifyEmail(context.Context, *EmailVerification) (*EmailVerified, error)
 }
 
 func RegisterUsersServer(s *grpc.Server, srv UsersServer) {

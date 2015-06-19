@@ -495,7 +495,7 @@ type UsersClient struct {
 	Get_         func(ctx context.Context, in *sourcegraph.UserSpec) (*sourcegraph.User, error)
 	ListEmails_  func(ctx context.Context, in *sourcegraph.UserSpec) (*sourcegraph.EmailAddrList, error)
 	List_        func(ctx context.Context, in *sourcegraph.UsersListOptions) (*sourcegraph.UserList, error)
-	VerifyEmail_ func(ctx context.Context, in *sourcegraph.EmailVerification) (*sourcegraph.User, error)
+	VerifyEmail_ func(ctx context.Context, in *sourcegraph.EmailVerification) (*sourcegraph.EmailVerified, error)
 }
 
 func (s *UsersClient) Get(ctx context.Context, in *sourcegraph.UserSpec, opts ...grpc.CallOption) (*sourcegraph.User, error) {
@@ -510,7 +510,7 @@ func (s *UsersClient) List(ctx context.Context, in *sourcegraph.UsersListOptions
 	return s.List_(ctx, in)
 }
 
-func (s *UsersClient) VerifyEmail(ctx context.Context, in *sourcegraph.EmailVerification, opts ...grpc.CallOption) (*sourcegraph.User, error) {
+func (s *UsersClient) VerifyEmail(ctx context.Context, in *sourcegraph.EmailVerification, opts ...grpc.CallOption) (*sourcegraph.EmailVerified, error) {
 	return s.VerifyEmail_(ctx, in)
 }
 
@@ -520,7 +520,7 @@ type UsersServer struct {
 	Get_         func(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.User, error)
 	ListEmails_  func(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.EmailAddrList, error)
 	List_        func(v0 context.Context, v1 *sourcegraph.UsersListOptions) (*sourcegraph.UserList, error)
-	VerifyEmail_ func(v0 context.Context, v1 *sourcegraph.EmailVerification) (*sourcegraph.User, error)
+	VerifyEmail_ func(v0 context.Context, v1 *sourcegraph.EmailVerification) (*sourcegraph.EmailVerified, error)
 }
 
 func (s *UsersServer) Get(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.User, error) {
@@ -535,7 +535,7 @@ func (s *UsersServer) List(v0 context.Context, v1 *sourcegraph.UsersListOptions)
 	return s.List_(v0, v1)
 }
 
-func (s *UsersServer) VerifyEmail(v0 context.Context, v1 *sourcegraph.EmailVerification) (*sourcegraph.User, error) {
+func (s *UsersServer) VerifyEmail(v0 context.Context, v1 *sourcegraph.EmailVerification) (*sourcegraph.EmailVerified, error) {
 	return s.VerifyEmail_(v0, v1)
 }
 
