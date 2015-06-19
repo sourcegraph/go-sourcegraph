@@ -111,15 +111,6 @@ func UnmarshalRepoRevSpec(routeVars map[string]string) (RepoRevSpec, error) {
 	}
 
 	rrspec := RepoRevSpec{RepoSpec: repo}
-
-	// TODO(beyang): this should be unnecessary, due to the mux PostMatchFuncs, but there are some
-	// places in the code right now that rely on this, so keeping for now as a fallback.
-	rrevStr := routeVars["ResolvedRev"]
-	if rrevStr != "" {
-		rrspec.Rev, rrspec.CommitID, err = spec.ParseResolvedRev(routeVars["ResolvedRev"])
-	}
-	// END TODO
-
 	if revStr, ok := routeVars["Rev"]; ok {
 		rrspec.Rev = revStr
 	}
