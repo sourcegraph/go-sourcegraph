@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"sourcegraph.com/sourcegraph/go-diff/diff"
+	"sourcegraph.com/sourcegraph/go-sourcegraph/spec"
 	"sourcegraph.com/sourcegraph/srclib/store"
 	"sourcegraph.com/sourcegraph/srclib/unit"
 )
@@ -48,14 +49,23 @@ func UnmarshalDeltaSpec(routeVars map[string]string) (DeltaSpec, error) {
 			return DeltaSpec{}, err
 		}
 
-		rr, err := UnmarshalRepoRevSpec(map[string]string{"Repo": string(repoPC), "ResolvedRev": revPC})
+		rev, commitID, err := spec.ParseResolvedRev(revPC)
+		if err != nil {
+			return DeltaSpec{}, err
+		}
+
+		rr, err := UnmarshalRepoRevSpec(map[string]string{"Repo": string(repoPC), "Rev": rev, "CommitID": commitID})
 		if err != nil {
 			return DeltaSpec{}, err
 		}
 
 		s.Head = rr
 	} else {
-		rr, err := UnmarshalRepoRevSpec(map[string]string{"Repo": routeVars["Repo"], "ResolvedRev": dhr})
+		rev, commitID, err := spec.ParseResolvedRev(dhr)
+		if err != nil {
+			return DeltaSpec{}, err
+		}
+		rr, err := UnmarshalRepoRevSpec(map[string]string{"Repo": routeVars["Repo"], "Rev": rev, "CommitID": commitID})
 		if err != nil {
 			return DeltaSpec{}, err
 		}
