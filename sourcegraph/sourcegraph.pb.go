@@ -195,6 +195,8 @@ import vcsclient "sourcegraph.com/sourcegraph/vcsstore/vcsclient"
 import pbtypes "sourcegraph.com/sqs/pbtypes"
 import pbtypes1 "sourcegraph.com/sqs/pbtypes"
 
+// discarding unused import google_api1 "google/api/annotations.pb"
+
 import (
 	context "golang.org/x/net/context"
 	grpc "google.golang.org/grpc"
@@ -2797,6 +2799,7 @@ type ReposClient interface {
 	// not currently supported).
 	GetConfig(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*RepoConfig, error)
 	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
+	// TODO(slimsag): add google.api.http annotations to these once moved
 	GetCommit(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*vcs.Commit, error)
 	// ListCommits returns the list of commits that span between the revisions
 	// specified in the given DeltaSpec. By default, it will return 1 page of
@@ -2945,6 +2948,7 @@ type ReposServer interface {
 	// not currently supported).
 	GetConfig(context.Context, *RepoSpec) (*RepoConfig, error)
 	// TODO(sqs!nodb-ctx): move these to a "VCS" service (not Repos)
+	// TODO(slimsag): add google.api.http annotations to these once moved
 	GetCommit(context.Context, *RepoRevSpec) (*vcs.Commit, error)
 	// ListCommits returns the list of commits that span between the revisions
 	// specified in the given DeltaSpec. By default, it will return 1 page of

@@ -237,11 +237,11 @@ message Repo {
 
 	// Permissions describes the permissions that the current user (or anonymous users,
 	// if there is no current user) is granted to this repository.
-	optional RepoPermissions permissions = 18;
+	RepoPermissions permissions = 18;
 
-	optional GitHubRepo github = 19 [(gogoproto.customname) = "GitHub"];
+	GitHubRepo github = 19 [(gogoproto.customname) = "GitHub"];
 
-	optional RepoConfig config = 20;
+	RepoConfig config = 20;
 
 	// Hosted indicates whether this repo was created on and
 	// originates from the current Sourcegraph instance.
@@ -515,7 +515,7 @@ message ReposCreateOp {
 
 message ReposListCommitsOp {
 	RepoSpec repo = 1 [(gogoproto.nullable) = false];
-	optional RepoListCommitsOptions opt = 2;
+	RepoListCommitsOptions opt = 2;
 }
 
 message RepoListCommitsOptions {
@@ -532,7 +532,7 @@ message CommitList {
 
 message ReposListBranchesOp {
 	RepoSpec repo = 1 [(gogoproto.nullable) = false];
-	optional RepoListBranchesOptions opt = 2;
+	RepoListBranchesOptions opt = 2;
 }
 
 message RepoListBranchesOptions {
@@ -548,7 +548,7 @@ message BranchList {
 
 message ReposListTagsOp {
 	RepoSpec repo = 1 [(gogoproto.nullable) = false];
-	optional RepoListTagsOptions opt = 2;
+	RepoListTagsOptions opt = 2;
 }
 
 message ChangesetCreateOp {
@@ -677,9 +677,9 @@ message Build {
 	string commit_id = 3 [(gogoproto.customname) = "CommitID"];
 
 	pbtypes.Timestamp created_at = 4 [(gogoproto.nullable) = false];
-	optional pbtypes.Timestamp started_at = 5;
-	optional pbtypes.Timestamp ended_at = 6;
-	optional pbtypes.Timestamp heartbeat_at = 7;
+	pbtypes.Timestamp started_at = 5;
+	pbtypes.Timestamp ended_at = 6;
+	pbtypes.Timestamp heartbeat_at = 7;
 	bool success = 8;
 	bool failure = 9;
 
@@ -798,11 +798,11 @@ message BuildTask {
 	pbtypes.Timestamp created_at = 9 [(gogoproto.nullable) = false];
 
 	// StartedAt is when this task's execution began.
-	optional pbtypes.Timestamp started_at = 10;
+	pbtypes.Timestamp started_at = 10;
 
 	// EndedAt is when this task's execution ended (whether because it succeeded or
 	// failed).
-	optional pbtypes.Timestamp ended_at = 11;
+	pbtypes.Timestamp ended_at = 11;
 
 	// Queue is whether this task should be performed by queue task remote workers on
 	// the central server. If true, then it will be performed remotely. If false, it
@@ -828,9 +828,9 @@ message BuildTaskListOptions {
 
 // A BuildUpdate contains updated information to update on an existing build.
 message BuildUpdate {
-	optional pbtypes.Timestamp started_at = 1;
-	optional pbtypes.Timestamp ended_at = 2;
-	optional pbtypes.Timestamp heartbeat_at = 3;
+	pbtypes.Timestamp started_at = 1;
+	pbtypes.Timestamp ended_at = 2;
+	pbtypes.Timestamp heartbeat_at = 3;
 	string host = 4;
 	bool success = 5;
 	bool purged = 6;
@@ -859,7 +859,7 @@ message BuildsGetRepoBuildInfoOptions {
 
 message BuildsGetRepoBuildInfoOp {
 	RepoRevSpec repo = 1 [(gogoproto.nullable) = false];
-	optional BuildsGetRepoBuildInfoOptions opt = 2;
+	BuildsGetRepoBuildInfoOptions opt = 2;
 }
 
 message BuildList {
@@ -868,7 +868,7 @@ message BuildList {
 
 message BuildsCreateOp {
 	RepoRevSpec repo_rev = 1 [(gogoproto.nullable) = false];
-	optional BuildCreateOptions opt = 2;
+	BuildCreateOptions opt = 2;
 }
 
 message BuildsUpdateOp {
@@ -878,7 +878,7 @@ message BuildsUpdateOp {
 
 message BuildsListBuildTasksOp {
 	BuildSpec build = 1 [(gogoproto.nullable) = false];
-	optional BuildTaskListOptions opt = 2;
+	BuildTaskListOptions opt = 2;
 }
 
 message BuildTaskList {
@@ -901,12 +901,12 @@ message BuildsUpdateTaskOp {
 
 message BuildsGetLogOp {
 	BuildSpec build = 1 [(gogoproto.nullable) = false];
-	optional BuildGetLogOptions opt = 2;
+	BuildGetLogOptions opt = 2;
 }
 
 message BuildsGetTaskLogOp {
 	TaskSpec task = 1 [(gogoproto.nullable) = false];
-	optional BuildGetLogOptions opt = 2;
+	BuildGetLogOptions opt = 2;
 }
 
 message BuildsDequeueNextOp {
@@ -955,7 +955,7 @@ message OrgSpec {
 
 message OrgsListMembersOp {
 	OrgSpec org = 1 [(gogoproto.nullable) = false];
-	optional OrgListMembersOptions opt = 2;
+	OrgListMembersOptions opt = 2;
 }
 
 message UserList {
@@ -994,8 +994,8 @@ message PersonSpec {
 // specified revspec) and additional information. It is returned by
 // Repos.GetRepoBuildInfo.
 message RepoBuildInfo {
-	optional Build exact = 1;
-	optional Build last_successful = 2;
+	Build exact = 1;
+	Build last_successful = 2;
 	int32 commits_behind = 3;
 	vcs.Commit last_successful_commit = 4;
 }
@@ -1007,8 +1007,8 @@ message TaskSpec {
 
 // A TaskUpdate contains updated information to update on an existing task.
 message TaskUpdate {
-	optional pbtypes.Timestamp started_at = 1;
-	optional pbtypes.Timestamp ended_at = 2;
+	pbtypes.Timestamp started_at = 1;
+	pbtypes.Timestamp ended_at = 2;
 	bool success = 3;
 	bool failure = 4;
 }
@@ -1055,7 +1055,7 @@ message User {
 	// RegisteredAt is the date that the user registered. If the user has not
 	// registered (i.e., we have processed their repos but they haven't signed into
 	// Sourcegraph), it is null.
-	optional pbtypes.Timestamp registered_at = 11;
+	pbtypes.Timestamp registered_at = 11;
 }
 
 // UserSpec specifies a user. At least one of Login and UID must be
@@ -1360,10 +1360,10 @@ enum AuthEndpointType {
 // AuthInfo describes the currently authenticated user (if any).
 message AuthInfo {
 	// UID is the user ID of the currently authenticated user.
-	optional int32 uid = 1 [(gogoproto.customname) = "UID"];
+	int32 uid = 1 [(gogoproto.customname) = "UID"];
 
 	// APIKey is the API key for the currently authenticated user.
-	optional string api_key = 2 [(gogoproto.customname) = "APIKey"];
+	string api_key = 2 [(gogoproto.customname) = "APIKey"];
 
 	// Tickets are human-readable descriptions of the explicit
 	// permission grant tickets associated with the current request.
@@ -1397,7 +1397,7 @@ message Completions {
 message Def {
 	graph.Def def = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true, (gogoproto.jsontag) = ""];
 	string doc_html = 2 [(gogoproto.customname) = "DocHTML"];
-	optional DefFormatStrings fmt_strings = 3;
+	DefFormatStrings fmt_strings = 3;
 }
 
 message DefAuthor {
@@ -1432,10 +1432,10 @@ message DefClient {
 // deleted from base to head).
 message DefDelta {
 	// the def in the base commit (if nil, this def was added in the head)
-	optional Def base = 1;
+	Def base = 1;
 
 	// the def in the head commit (if nil, this def was deleted in the head)
-	optional Def head = 2;
+	Def head = 2;
 }
 
 // DefFormatStrings contains the various def format strings from the srclib def
@@ -1557,7 +1557,7 @@ message DefSpec {
 
 message DefsGetOp {
 	DefSpec def = 1 [(gogoproto.nullable) = false];
-	optional DefGetOptions opt = 2;
+	DefGetOptions opt = 2;
 }
 
 message DefList {
@@ -1566,7 +1566,7 @@ message DefList {
 
 message DefsListRefsOp {
 	DefSpec def = 1 [(gogoproto.nullable) = false];
-	optional DefListRefsOptions opt = 2;
+	DefListRefsOptions opt = 2;
 }
 
 message RefList {
@@ -1578,7 +1578,7 @@ message DefsListExamplesOp {
 	// If set, source code in the examples will be linked to this branch, rather
 	// than to the commit ID.
 	string rev = 2;
-	optional DefListExamplesOptions opt = 3;
+	DefListExamplesOptions opt = 3;
 }
 
 message ExampleList {
@@ -1587,12 +1587,12 @@ message ExampleList {
 
 message DefsListAuthorsOp {
 	DefSpec def = 1 [(gogoproto.nullable) = false];
-	optional DefListAuthorsOptions opt = 2;
+	DefListAuthorsOptions opt = 2;
 }
 
 message DefsListClientsOp {
 	DefSpec def = 1 [(gogoproto.nullable) = false];
-	optional DefListClientsOptions opt = 2;
+	DefListClientsOptions opt = 2;
 }
 
 // Delta represents the difference between two commits (possibly in 2 separate
@@ -1602,10 +1602,10 @@ message Delta {
 	RepoRevSpec head = 2 [(gogoproto.nullable) = false];
 	vcs.Commit base_commit = 3;
 	vcs.Commit head_commit = 4;
-	optional Repo base_repo = 5;
-	optional Repo head_repo = 6;
-	optional Build base_build = 7;
-	optional Build head_build = 8;
+	Repo base_repo = 5;
+	Repo head_repo = 6;
+	Build base_build = 7;
+	Build head_build = 8;
 }
 
 // DeltaAffectedPerson describes a person (registered user or committer email
@@ -1744,7 +1744,7 @@ message DeltaSpec {
 
 message DeltasListUnitsOp {
 	DeltaSpec ds = 1 [(gogoproto.nullable) = false];
-	optional DeltaListUnitsOptions opt = 2;
+	DeltaListUnitsOptions opt = 2;
 }
 
 message UnitDeltaList {
@@ -1753,17 +1753,17 @@ message UnitDeltaList {
 
 message DeltasListDefsOp {
 	DeltaSpec ds = 1 [(gogoproto.nullable) = false];
-	optional DeltaListDefsOptions opt = 2;
+	DeltaListDefsOptions opt = 2;
 }
 
 message DeltasListFilesOp {
 	DeltaSpec ds = 1 [(gogoproto.nullable) = false];
-	optional DeltaListFilesOptions opt = 2;
+	DeltaListFilesOptions opt = 2;
 }
 
 message DeltasListAffectedAuthorsOp {
 	DeltaSpec ds = 1 [(gogoproto.nullable) = false];
-	optional DeltaListAffectedAuthorsOptions opt = 2;
+	DeltaListAffectedAuthorsOptions opt = 2;
 }
 
 message DeltaAffectedPersonList {
@@ -1772,7 +1772,7 @@ message DeltaAffectedPersonList {
 
 message DeltasListAffectedClientsOp {
 	DeltaSpec ds = 1 [(gogoproto.nullable) = false];
-	optional DeltaListAffectedClientsOptions opt = 2;
+	DeltaListAffectedClientsOptions opt = 2;
 }
 
 // Example is a usage example of a def.
@@ -1819,7 +1819,7 @@ message FormatResult {
 
 message MarkdownData {
 	bytes rendered = 1;
-	optional Checklist checklist = 2;
+	Checklist checklist = 2;
 }
 
 message MarkdownOpt {
@@ -1848,7 +1848,7 @@ message QualFormatStrings {
 
 message Ref {
 	graph.Ref ref = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true, (gogoproto.jsontag) = ""];
-	optional AuthorshipInfo authorship = 2;
+	AuthorshipInfo authorship = 2;
 }
 
 // RepoTreeGetOptions specifies options for (RepoTreeService).Get.
@@ -1888,12 +1888,12 @@ message RepoTreeSearchResult {
 
 message RepoTreeGetOp {
 	TreeEntrySpec entry = 1 [(gogoproto.nullable) = false];
-	optional RepoTreeGetOptions opt = 2;
+	RepoTreeGetOptions opt = 2;
 }
 
 message RepoTreeSearchOp {
 	RepoRevSpec rev = 1 [(gogoproto.nullable) = false];
-	optional RepoTreeSearchOptions opt = 2;
+	RepoTreeSearchOptions opt = 2;
 }
 
 message VCSSearchResultList {
@@ -1922,7 +1922,7 @@ message SearchResults {
 	repeated PBToken tokens = 6 [(gogoproto.nullable) = false];
 
 	// Plan is the query plan used to fetch the results.
-	optional Plan plan = 7;
+	Plan plan = 7;
 
 	// ResolvedTokens holds the resolved tokens from the original query string.
 	repeated PBToken resolved_tokens = 8 [(gogoproto.nullable) = false];
@@ -2007,10 +2007,10 @@ message TreeEntry {
 	string contents_string = 3;
 
 	// SourceCode is set when TokenizedSource is enabled in RepoTreeGetOptions.
-	optional SourceCode source_code = 4;
+	SourceCode source_code = 4;
 
 	// FormatResult is only set if this TreeEntry is a file.
-	optional FormatResult format_result = 5;
+	FormatResult format_result = 5;
 }
 
 message TreeEntrySpec {
@@ -2248,10 +2248,10 @@ message FileToken {
 // A Plan is a query plan that fetches the data necessary to satisfy (and provide
 // autocomplete suggestions for) a query.
 message Plan {
-	optional RepoListOptions repos = 1;
-	optional DefListOptions defs = 2;
-	optional UsersListOptions users = 3;
-	optional RepoTreeSearchOptions tree = 4;
+	RepoListOptions repos = 1;
+	DefListOptions defs = 2;
+	UsersListOptions users = 3;
+	RepoTreeSearchOptions tree = 4;
 
 	// TreeRepoRevs constrains the Tree search results to a set of repository revisions
 	// (given by their URIs plus an optional "@" and a revision specifier). For
@@ -2278,7 +2278,7 @@ message RawQuery {
 // components, such as "a/b" or "github.com/foo/bar".
 message RepoToken {
 	string uri = 1 [(gogoproto.customname) = "URI"];
-	optional Repo repo = 2;
+	Repo repo = 2;
 }
 
 // A ResolvedQuery is a query that has been parsed and resolved so that each token
@@ -2321,7 +2321,7 @@ message UnitToken {
 	// Name is the name of the source unit (e.g., mypkg).
 	string name = 2;
 
-	optional unit.RepoSourceUnit unit = 3;
+	unit.RepoSourceUnit unit = 3;
 }
 
 // A UserToken represents a user or org, although it does not necessarily uniquely
@@ -2329,7 +2329,7 @@ message UnitToken {
 // user/org login.
 message UserToken {
 	string login = 1;
-	optional User user = 2;
+	User user = 2;
 }
 
 // A TokenError is an error about a specific token.
@@ -2342,7 +2342,7 @@ message TokenError {
 	// that it pertains to the 1st token if index was 0-indexed).
 	int32 index = 1;
 
-	optional PBToken token = 2;
+	PBToken token = 2;
 	string message = 3;
 }
 
