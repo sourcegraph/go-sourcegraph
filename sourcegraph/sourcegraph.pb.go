@@ -82,6 +82,7 @@ It has these top-level messages:
 	EmailAddrList
 	OrgList
 	NewAccount
+	EmailVerification
 	AuthenticatedUser
 	LoginCredentials
 	UserAuthAuthenticateOp
@@ -1250,6 +1251,14 @@ type NewAccount struct {
 func (m *NewAccount) Reset()         { *m = NewAccount{} }
 func (m *NewAccount) String() string { return proto.CompactTextString(m) }
 func (*NewAccount) ProtoMessage()    {}
+
+type EmailVerification struct {
+	Code []byte `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+}
+
+func (m *EmailVerification) Reset()         { *m = EmailVerification{} }
+func (m *EmailVerification) String() string { return proto.CompactTextString(m) }
+func (*EmailVerification) ProtoMessage()    {}
 
 // An AuthenticatedUser describes the user that resulted from a UserAuth.Authenticate call.
 type AuthenticatedUser struct {
@@ -3867,6 +3876,8 @@ type UsersClient interface {
 	ListEmails(ctx context.Context, in *UserSpec, opts ...grpc.CallOption) (*EmailAddrList, error)
 	// List users.
 	List(ctx context.Context, in *UsersListOptions, opts ...grpc.CallOption) (*UserList, error)
+	// Verify a user's email
+	VerifyEmail(ctx context.Context, in *EmailVerification, opts ...grpc.CallOption) (*User, error)
 }
 
 type usersClient struct {
@@ -3904,6 +3915,15 @@ func (c *usersClient) List(ctx context.Context, in *UsersListOptions, opts ...gr
 	return out, nil
 }
 
+func (c *usersClient) VerifyEmail(ctx context.Context, in *EmailVerification, opts ...grpc.CallOption) (*User, error) {
+	out := new(User)
+	err := grpc.Invoke(ctx, "/sourcegraph.Users/VerifyEmail", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Users service
 
 type UsersServer interface {
@@ -3913,6 +3933,8 @@ type UsersServer interface {
 	ListEmails(context.Context, *UserSpec) (*EmailAddrList, error)
 	// List users.
 	List(context.Context, *UsersListOptions) (*UserList, error)
+	// Verify a user's email
+	VerifyEmail(context.Context, *EmailVerification) (*User, error)
 }
 
 func RegisterUsersServer(s *grpc.Server, srv UsersServer) {
@@ -3955,6 +3977,18 @@ func _Users_List_Handler(srv interface{}, ctx context.Context, codec grpc.Codec,
 	return out, nil
 }
 
+func _Users_VerifyEmail_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(EmailVerification)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(UsersServer).VerifyEmail(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 var _Users_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sourcegraph.Users",
 	HandlerType: (*UsersServer)(nil),
@@ -3970,6 +4004,10 @@ var _Users_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "List",
 			Handler:    _Users_List_Handler,
+		},
+		{
+			MethodName: "VerifyEmail",
+			Handler:    _Users_VerifyEmail_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},

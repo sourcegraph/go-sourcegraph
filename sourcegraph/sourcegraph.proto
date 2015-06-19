@@ -1002,6 +1002,10 @@ message NewAccount {
     string password = 3;
 }
 
+message EmailVerification {
+    bytes code = 1;
+}
+
 // UsersService communicates with the users-related endpoints in the Sourcegraph
 // API.
 service Users {
@@ -1013,6 +1017,9 @@ service Users {
 
 	// List users.
 	rpc List(UsersListOptions) returns (UserList);
+
+	// Verify a user's email
+	rpc VerifyEmail(EmailVerification) returns (User);
 }
 
 // UserAuth manages user authentication and registration.
