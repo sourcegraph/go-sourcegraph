@@ -7,11 +7,15 @@ import (
 )
 
 func TestTokenError_JSON(t *testing.T) {
+	ptr := func(pb PBToken) *PBToken {
+		return &pb
+	}
+
 	rerr := []TokenError{
 		TokenError{Message: "a"},
-		TokenError{Token: Term("t"), Message: "a"},
-		TokenError{Index: 1, Token: Term(""), Message: "a"},
-		TokenError{Index: 2, Token: RepoToken{URI: "r"}, Message: "b"},
+		TokenError{Token: ptr(PBTokenWrap(Term("t"))), Message: "a"},
+		TokenError{Index: 1, Token: ptr(PBTokenWrap(Term(""))), Message: "a"},
+		TokenError{Index: 2, Token: ptr(PBTokenWrap(RepoToken{URI: "r"})), Message: "b"},
 	}
 
 	rerrJSON, err := json.MarshalIndent(rerr, "", "  ")
@@ -21,7 +25,6 @@ func TestTokenError_JSON(t *testing.T) {
 
 	want := `[
   {
-    "Token": null,
     "Message": "a"
   },
   {
@@ -42,7 +45,7 @@ func TestTokenError_JSON(t *testing.T) {
   {
     "Index": 2,
     "Token": {
-      "URI": "r",
+      "uri": "r",
       "Type": "RepoToken"
     },
     "Message": "b"

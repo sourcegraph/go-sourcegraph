@@ -10,6 +10,10 @@ import (
 
 // BuildDataService communicates with the build data-related endpoints in the
 // Sourcegraph API.
+//
+// Unlike the other services (which are gRPC-based), build data uses
+// HTTP/1 because it relies heavily on HTTP/1 caching (which gRPC
+// doesn't support) and is implemented using a VFS, not RPC methods.
 type BuildDataService interface {
 	// FileSystem returns a virtual filesystem interface to the build
 	// data for a repo at a specific commit.
@@ -65,5 +69,3 @@ func GetBuildDataFile(s BuildDataService, file BuildDataFileSpec) (io.ReadCloser
 	}
 	return f, fi, err
 }
-
-var _ BuildDataService = &MockBuildDataService{}
