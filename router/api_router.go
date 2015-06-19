@@ -146,9 +146,9 @@ func NewAPIRouter(base *mux.Router) *mux.Router {
 	build.Path("/tasks/{TaskID}").Methods("PUT").Name(BuildTaskUpdate)
 	build.Path("/tasks/{TaskID}/log").Methods("GET").Name(BuildTaskLog)
 
-	deltaPath := "/.deltas/{Rev:.+}..{DeltaHeadRev:" + spec.PathNoLeadingDotComponentPattern + "}"
-	repo.Path(deltaPath).Methods("GET").Name(Delta)
-	deltas := repo.PathPrefix(deltaPath).Subrouter()
+	deltaPath := "/.deltas/{ResolvedRev:" + routevar.NamedToNonCapturingGroups(spec.ResolvedRevPattern) + "}..{DeltaHeadResolvedRev:" + routevar.NamedToNonCapturingGroups(spec.ResolvedRevPattern) + "}"
+	repo.Path(deltaPath).Methods("GET").PostMatchFunc(routevar.FixResolvedRevVars).BuildVarsFunc(routevar.PrepareResolvedRevRouteVars).Name(Delta)
+	deltas := repo.PathPrefix(deltaPath).PostMatchFunc(routevar.FixResolvedRevVars).BuildVarsFunc(routevar.PrepareResolvedRevRouteVars).Subrouter()
 	deltas.Path("/.units").Methods("GET").Name(DeltaUnits)
 	deltas.Path("/.defs").Methods("GET").Name(DeltaDefs)
 	deltas.Path("/.files").Methods("GET").Name(DeltaFiles)

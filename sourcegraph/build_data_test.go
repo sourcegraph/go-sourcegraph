@@ -20,7 +20,7 @@ func TestBuildDataService_GetBuildDataFile(t *testing.T) {
 	want := []byte("hello")
 
 	var called int
-	mux.HandleFunc(urlPath(t, router.RepoBuildDataEntry, map[string]string{"Repo": "r.com/x", "ResolvedRev": "c", "Path": "a/b"}), func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(urlPath(t, router.RepoBuildDataEntry, map[string]string{"Repo": "r.com/x", "Rev": "c", "Path": "a/b"}), func(w http.ResponseWriter, r *http.Request) {
 		called++
 
 		switch r.Method {
@@ -53,7 +53,7 @@ func TestBuildDataService_ListAll(t *testing.T) {
 	setup()
 	defer teardown()
 
-	pathPrefix := urlPath(t, router.RepoBuildDataEntry, map[string]string{"Repo": "r.com/x", "ResolvedRev": "c", "Path": "."})
+	pathPrefix := urlPath(t, router.RepoBuildDataEntry, map[string]string{"Repo": "r.com/x", "Rev": "c", "Path": "."})
 	fs := rwvfs.Map(map[string]string{
 		"a":     "a",
 		"b/c":   "c",
