@@ -79,7 +79,12 @@ func UnmarshalRepoSpec(routeVars map[string]string) (RepoSpec, error) {
 // repository commit.
 func (s RepoRevSpec) RouteVars() map[string]string {
 	m := s.RepoSpec.RouteVars()
-	m["ResolvedRev"] = s.ResolvedRevString()
+	if s.Rev != "" {
+		m["Rev"] = s.Rev
+	}
+	if s.CommitID != "" {
+		m["CommitID"] = s.CommitID
+	}
 	return m
 }
 
@@ -106,13 +111,11 @@ func UnmarshalRepoRevSpec(routeVars map[string]string) (RepoRevSpec, error) {
 	}
 
 	rrspec := RepoRevSpec{RepoSpec: repo}
-
-	rrevStr := routeVars["ResolvedRev"]
-	if rrevStr != "" {
-		rrspec.Rev, rrspec.CommitID, err = spec.ParseResolvedRev(routeVars["ResolvedRev"])
-	}
 	if revStr, ok := routeVars["Rev"]; ok {
 		rrspec.Rev = revStr
+	}
+	if commitStr, ok := routeVars["CommitID"]; ok {
+		rrspec.CommitID = commitStr
 	}
 	return rrspec, err
 }

@@ -225,22 +225,27 @@ func TestMatch(t *testing.T) {
 		{
 			path:          "/repos/repohost.com/foo/.deltas/branch1..branch2",
 			wantRouteName: Delta,
-			wantVars:      map[string]string{"Repo": "repohost.com/foo", "Rev": "branch1", "DeltaHeadRev": "branch2"},
+			wantVars:      map[string]string{"Repo": "repohost.com/foo", "Rev": "branch1", "DeltaHeadResolvedRev": "branch2"},
 		},
 		{
 			path:          "/repos/repohost.com/foo/.deltas/a/b/c..x/y/z",
 			wantRouteName: Delta,
-			wantVars:      map[string]string{"Repo": "repohost.com/foo", "Rev": "a/b/c", "DeltaHeadRev": "x/y/z"},
+			wantVars:      map[string]string{"Repo": "repohost.com/foo", "Rev": "a/b/c", "DeltaHeadResolvedRev": "x/y/z"},
 		},
 		{
 			path:          "/repos/repohost.com/foo/.deltas/branch1..branch2/.files",
 			wantRouteName: DeltaFiles,
-			wantVars:      map[string]string{"Repo": "repohost.com/foo", "Rev": "branch1", "DeltaHeadRev": "branch2"},
+			wantVars:      map[string]string{"Repo": "repohost.com/foo", "Rev": "branch1", "DeltaHeadResolvedRev": "branch2"},
 		},
 		{
-			path:          "/repos/repohost.com/foo/.deltas/branch1..branch2===4739/.files",
+			path:          "/repos/repohost.com/foo/.deltas/branch1..branch2===" + commitID + "/.files",
 			wantRouteName: DeltaFiles,
-			wantVars:      map[string]string{"Repo": "repohost.com/foo", "Rev": "branch1", "DeltaHeadRev": "branch2===4739"},
+			wantVars:      map[string]string{"Repo": "repohost.com/foo", "Rev": "branch1", "DeltaHeadResolvedRev": "branch2===" + commitID},
+		},
+		{
+			path:          "/repos/repohost.com/foo/.deltas/my/branch1===" + commitID + "..my/branch2===" + commitID + "/.files",
+			wantRouteName: DeltaFiles,
+			wantVars:      map[string]string{"Repo": "repohost.com/foo", "Rev": "my/branch1", "CommitID": commitID, "DeltaHeadResolvedRev": "my/branch2===" + commitID},
 		},
 
 		// User
