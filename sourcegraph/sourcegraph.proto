@@ -2290,3 +2290,131 @@ message ServerConfig {
 	// (e.g., "https://sourcegraph.com").
 	string app_url = 1 [(gogoproto.customname) = "AppURL"];
 }
+
+// A RegisteredClient is a registered API client.
+//
+// It's called RegisteredClient instead of Client to avoid a name
+// conflict with the existing Client (Go) type.
+message RegisteredClient {
+	// ID is an alphanumeric string that uniquely identifies this
+	// client.
+	string id = 1 [(gogoproto.customname) = "ID"];
+
+	// Secret is a secret string that authenticates this client (along
+	// with its ID).
+	//
+	// The secret is not persisted on the server, so it is only
+	// returned by the initial Create call (and not subsequent
+	// Get/Update/etc. calls). This means the client must remember it.
+	string secret = 2;
+
+	// HomepageURL is the URL of the homepage for this API client.
+	string homepage_url = 3 [(gogoproto.customname) = "HomepageURL"];
+
+	// OAuthRedirectURL is the OAuth2 redirect URL prefix for this API
+	// client, if it needs to perform user authentication using
+	// OAuth2.
+	string oauth_redirect_url = 4 [(gogoproto.customname) = "OAuthRedirectURL"];
+
+	// Title is the human-readable name of this API client that's
+	// shown to the user during, e.g., OAuth2 authentication.
+	string title = 5;
+
+	// Description is a human-readable description of this API client
+	// that's shown to the user during, e.g., OAuth2 authentication.
+	string description = 6;
+
+	// Meta holds arbitrary metadata about this API client. The
+	// structure is defined by the API client and is opaque to the
+	// server.
+	map<string, string> meta = 7;
+
+	// RegisteredClientType describes this client's type.
+	RegisteredClientType type = 8;
+
+	// CreatedAt is when this API client's record was created.
+	pbtypes.Timestamp created_at = 9 [(gogoproto.nullable) = false];
+
+	// UpdatedAt is when this API client's record was last updated.
+	pbtypes.Timestamp updated_at = 10 [(gogoproto.nullable) = false];
+}
+
+// RegisteredClientType is the set of kinds of clients.
+enum RegisteredClientType {
+	// Any is any type of API client. It should only be used when
+	// listing and not actually set on a RegisteredClient object.
+	Any = 0;
+
+	// Other is all other kinds of clients that are not
+	// SourcegraphServers.
+	Other = 1;
+
+	// SourcegraphServer indicates this client is a Sourcegraph server
+	// instance.
+	SourcegraphServer = 2;
+}
+
+// A RegisteredClientSpec uniquely identifies a RegisteredClient.
+message RegisteredClientSpec {
+	// ID is the client's ID.
+	string id = 1 [(gogoproto.customname) = "ID"];
+}
+
+// A RegisteredClientCredentials authenticates a RegisteredClient.
+message RegisteredClientCredentials {
+	// ID is the client's ID.
+	string id = 1 [(gogoproto.customname) = "ID"];
+
+	// Secret is the client's secret.
+	string secret = 2;
+}
+
+// RegisteredClientListOptions configures a call to
+// RegisteredClients.List.
+message RegisteredClientListOptions {
+	RegisteredClientType type = 1;
+	ListOptions list_options = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// RegisteredClientList holds a list of clients.
+message RegisteredClientList {
+	repeated RegisteredClient clients = 1;
+	ListResponse list_response = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// RegisteredClients manages registered API clients.
+//
+// The server may check authorization for methods that retrieve or
+// fetch API client records (e.g., only allowing authenticated calls
+// with a client's own credentials to get or modify it).
+//
+// Like the RegisteredClient message type, it's called
+// RegisteredClients instead of Clients to avoid a name conflict with
+// the existing Client (Go) type.
+service RegisteredClients {
+	// Get retrieves an API client's record given its client ID.
+	rpc Get(RegisteredClientSpec) returns (RegisteredClient);
+
+	// GetCurrent is equivalent to a call to Get with the client ID of
+	// the currently authenticated client.
+	rpc GetCurrent(pbtypes.Void) returns (RegisteredClient);
+
+	// Create registers an API client. The RegisteredClient arg's ID
+	// and Secret fields must be empty; their values are assigned by
+	// the server and returned in the RegisteredClientCredentials
+	// response.
+	rpc Create(RegisteredClient) returns (RegisteredClientCredentials);
+
+	// Update modifies an API client's record. The RegisteredClient
+	// arg's ID must be set (to specify which client to update). Its
+	// Secret field is ignored (the secret may not be updated after
+	// creation).
+	rpc Update(RegisteredClient) returns (pbtypes.Void);
+
+	// Delete removes an API client. Immediately after deletion, it
+	// may no longer be used.
+	rpc Delete(RegisteredClientSpec) returns (pbtypes.Void);
+
+	// List enumerates API clients according to the options.
+	rpc List(RegisteredClientListOptions) returns (RegisteredClientList);
+}
