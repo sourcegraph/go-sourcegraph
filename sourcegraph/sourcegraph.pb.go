@@ -172,6 +172,11 @@ It has these top-level messages:
 	PBToken
 	ServerStatus
 	ServerConfig
+	RegisteredClient
+	RegisteredClientSpec
+	RegisteredClientCredentials
+	RegisteredClientListOptions
+	RegisteredClientList
 */
 package sourcegraph
 
@@ -222,6 +227,36 @@ var AuthEndpointType_value = map[string]int32{
 
 func (x AuthEndpointType) String() string {
 	return proto.EnumName(AuthEndpointType_name, int32(x))
+}
+
+// RegisteredClientType is the set of kinds of clients.
+type RegisteredClientType int32
+
+const (
+	// Any is any type of API client. It should only be used when
+	// listing and not actually set on a RegisteredClient object.
+	RegisteredClientType_Any RegisteredClientType = 0
+	// Other is all other kinds of clients that are not
+	// SourcegraphServers.
+	RegisteredClientType_Other RegisteredClientType = 1
+	// SourcegraphServer indicates this client is a Sourcegraph server
+	// instance.
+	RegisteredClientType_SourcegraphServer RegisteredClientType = 2
+)
+
+var RegisteredClientType_name = map[int32]string{
+	0: "Any",
+	1: "Other",
+	2: "SourcegraphServer",
+}
+var RegisteredClientType_value = map[string]int32{
+	"Any":               0,
+	"Other":             1,
+	"SourcegraphServer": 2,
+}
+
+func (x RegisteredClientType) String() string {
+	return proto.EnumName(RegisteredClientType_name, int32(x))
 }
 
 type Badge struct {
@@ -2409,8 +2444,95 @@ func (m *ServerConfig) Reset()         { *m = ServerConfig{} }
 func (m *ServerConfig) String() string { return proto.CompactTextString(m) }
 func (*ServerConfig) ProtoMessage()    {}
 
+// A RegisteredClient is a registered API client.
+//
+// It's called RegisteredClient instead of Client to avoid a name
+// conflict with the existing Client (Go) type.
+type RegisteredClient struct {
+	// ID is an alphanumeric string that uniquely identifies this
+	// client.
+	ID string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Secret is a secret string that authenticates this client (along
+	// with its ID).
+	//
+	// The secret is not persisted on the server, so it is only
+	// returned by the initial Create call (and not subsequent
+	// Get/Update/etc. calls). This means the client must remember it.
+	Secret string `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"`
+	// HomepageURL is the URL of the homepage for this API client.
+	HomepageURL string `protobuf:"bytes,3,opt,name=homepage_url,proto3" json:"homepage_url,omitempty"`
+	// OAuthRedirectURL is the OAuth2 redirect URL prefix for this API
+	// client, if it needs to perform user authentication using
+	// OAuth2.
+	OAuthRedirectURL string `protobuf:"bytes,4,opt,name=oauth_redirect_url,proto3" json:"oauth_redirect_url,omitempty"`
+	// Title is the human-readable name of this API client that's
+	// shown to the user during, e.g., OAuth2 authentication.
+	Title string `protobuf:"bytes,5,opt,name=title,proto3" json:"title,omitempty"`
+	// Description is a human-readable description of this API client
+	// that's shown to the user during, e.g., OAuth2 authentication.
+	Description string `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
+	// Meta holds arbitrary metadata about this API client. The
+	// structure is defined by the API client and is opaque to the
+	// server.
+	Meta map[string]string `protobuf:"bytes,7,rep,name=meta" json:"meta,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// RegisteredClientType describes this client's type.
+	Type RegisteredClientType `protobuf:"varint,8,opt,name=type,proto3,enum=sourcegraph.RegisteredClientType" json:"type,omitempty"`
+	// CreatedAt is when this API client's record was created.
+	CreatedAt pbtypes.Timestamp `protobuf:"bytes,9,opt,name=created_at" json:"created_at"`
+	// UpdatedAt is when this API client's record was last updated.
+	UpdatedAt pbtypes.Timestamp `protobuf:"bytes,10,opt,name=updated_at" json:"updated_at"`
+}
+
+func (m *RegisteredClient) Reset()         { *m = RegisteredClient{} }
+func (m *RegisteredClient) String() string { return proto.CompactTextString(m) }
+func (*RegisteredClient) ProtoMessage()    {}
+
+// A RegisteredClientSpec uniquely identifies a RegisteredClient.
+type RegisteredClientSpec struct {
+	// ID is the client's ID.
+	ID string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (m *RegisteredClientSpec) Reset()         { *m = RegisteredClientSpec{} }
+func (m *RegisteredClientSpec) String() string { return proto.CompactTextString(m) }
+func (*RegisteredClientSpec) ProtoMessage()    {}
+
+// A RegisteredClientCredentials authenticates a RegisteredClient.
+type RegisteredClientCredentials struct {
+	// ID is the client's ID.
+	ID string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Secret is the client's secret.
+	Secret string `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"`
+}
+
+func (m *RegisteredClientCredentials) Reset()         { *m = RegisteredClientCredentials{} }
+func (m *RegisteredClientCredentials) String() string { return proto.CompactTextString(m) }
+func (*RegisteredClientCredentials) ProtoMessage()    {}
+
+// RegisteredClientListOptions configures a call to
+// RegisteredClients.List.
+type RegisteredClientListOptions struct {
+	Type        RegisteredClientType `protobuf:"varint,1,opt,name=type,proto3,enum=sourcegraph.RegisteredClientType" json:"type,omitempty"`
+	ListOptions `protobuf:"bytes,2,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *RegisteredClientListOptions) Reset()         { *m = RegisteredClientListOptions{} }
+func (m *RegisteredClientListOptions) String() string { return proto.CompactTextString(m) }
+func (*RegisteredClientListOptions) ProtoMessage()    {}
+
+// RegisteredClientList holds a list of clients.
+type RegisteredClientList struct {
+	Clients      []*RegisteredClient `protobuf:"bytes,1,rep,name=clients" json:"clients,omitempty"`
+	ListResponse `protobuf:"bytes,2,opt,name=list_response,embedded=list_response" json:"list_response"`
+}
+
+func (m *RegisteredClientList) Reset()         { *m = RegisteredClientList{} }
+func (m *RegisteredClientList) String() string { return proto.CompactTextString(m) }
+func (*RegisteredClientList) ProtoMessage()    {}
+
 func init() {
 	proto.RegisterEnum("sourcegraph.AuthEndpointType", AuthEndpointType_name, AuthEndpointType_value)
+	proto.RegisterEnum("sourcegraph.RegisteredClientType", RegisteredClientType_name, RegisteredClientType_value)
 }
 
 // Client API for RepoBadges service
@@ -4953,6 +5075,226 @@ var _Meta_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Config",
 			Handler:    _Meta_Config_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for RegisteredClients service
+
+type RegisteredClientsClient interface {
+	// Get retrieves an API client's record given its client ID.
+	Get(ctx context.Context, in *RegisteredClientSpec, opts ...grpc.CallOption) (*RegisteredClient, error)
+	// GetCurrent is equivalent to a call to Get with the client ID of
+	// the currently authenticated client.
+	GetCurrent(ctx context.Context, in *pbtypes1.Void, opts ...grpc.CallOption) (*RegisteredClient, error)
+	// Create registers an API client. The RegisteredClient arg's ID
+	// and Secret fields must be empty; their values are assigned by
+	// the server and returned in the RegisteredClientCredentials
+	// response.
+	Create(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*RegisteredClientCredentials, error)
+	// Update modifies an API client's record. The RegisteredClient
+	// arg's ID must be set (to specify which client to update). Its
+	// Secret field is ignored (the secret may not be updated after
+	// creation).
+	Update(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*pbtypes1.Void, error)
+	// Delete removes an API client. Immediately after deletion, it
+	// may no longer be used.
+	Delete(ctx context.Context, in *RegisteredClientSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error)
+	// List enumerates API clients according to the options.
+	List(ctx context.Context, in *RegisteredClientListOptions, opts ...grpc.CallOption) (*RegisteredClientList, error)
+}
+
+type registeredClientsClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewRegisteredClientsClient(cc *grpc.ClientConn) RegisteredClientsClient {
+	return &registeredClientsClient{cc}
+}
+
+func (c *registeredClientsClient) Get(ctx context.Context, in *RegisteredClientSpec, opts ...grpc.CallOption) (*RegisteredClient, error) {
+	out := new(RegisteredClient)
+	err := grpc.Invoke(ctx, "/sourcegraph.RegisteredClients/Get", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *registeredClientsClient) GetCurrent(ctx context.Context, in *pbtypes1.Void, opts ...grpc.CallOption) (*RegisteredClient, error) {
+	out := new(RegisteredClient)
+	err := grpc.Invoke(ctx, "/sourcegraph.RegisteredClients/GetCurrent", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *registeredClientsClient) Create(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*RegisteredClientCredentials, error) {
+	out := new(RegisteredClientCredentials)
+	err := grpc.Invoke(ctx, "/sourcegraph.RegisteredClients/Create", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *registeredClientsClient) Update(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
+	err := grpc.Invoke(ctx, "/sourcegraph.RegisteredClients/Update", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *registeredClientsClient) Delete(ctx context.Context, in *RegisteredClientSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
+	err := grpc.Invoke(ctx, "/sourcegraph.RegisteredClients/Delete", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *registeredClientsClient) List(ctx context.Context, in *RegisteredClientListOptions, opts ...grpc.CallOption) (*RegisteredClientList, error) {
+	out := new(RegisteredClientList)
+	err := grpc.Invoke(ctx, "/sourcegraph.RegisteredClients/List", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for RegisteredClients service
+
+type RegisteredClientsServer interface {
+	// Get retrieves an API client's record given its client ID.
+	Get(context.Context, *RegisteredClientSpec) (*RegisteredClient, error)
+	// GetCurrent is equivalent to a call to Get with the client ID of
+	// the currently authenticated client.
+	GetCurrent(context.Context, *pbtypes1.Void) (*RegisteredClient, error)
+	// Create registers an API client. The RegisteredClient arg's ID
+	// and Secret fields must be empty; their values are assigned by
+	// the server and returned in the RegisteredClientCredentials
+	// response.
+	Create(context.Context, *RegisteredClient) (*RegisteredClientCredentials, error)
+	// Update modifies an API client's record. The RegisteredClient
+	// arg's ID must be set (to specify which client to update). Its
+	// Secret field is ignored (the secret may not be updated after
+	// creation).
+	Update(context.Context, *RegisteredClient) (*pbtypes1.Void, error)
+	// Delete removes an API client. Immediately after deletion, it
+	// may no longer be used.
+	Delete(context.Context, *RegisteredClientSpec) (*pbtypes1.Void, error)
+	// List enumerates API clients according to the options.
+	List(context.Context, *RegisteredClientListOptions) (*RegisteredClientList, error)
+}
+
+func RegisterRegisteredClientsServer(s *grpc.Server, srv RegisteredClientsServer) {
+	s.RegisterService(&_RegisteredClients_serviceDesc, srv)
+}
+
+func _RegisteredClients_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(RegisteredClientSpec)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RegisteredClientsServer).Get(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _RegisteredClients_GetCurrent_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(pbtypes1.Void)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RegisteredClientsServer).GetCurrent(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _RegisteredClients_Create_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(RegisteredClient)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RegisteredClientsServer).Create(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _RegisteredClients_Update_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(RegisteredClient)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RegisteredClientsServer).Update(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _RegisteredClients_Delete_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(RegisteredClientSpec)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RegisteredClientsServer).Delete(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _RegisteredClients_List_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(RegisteredClientListOptions)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RegisteredClientsServer).List(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _RegisteredClients_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.RegisteredClients",
+	HandlerType: (*RegisteredClientsServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Get",
+			Handler:    _RegisteredClients_Get_Handler,
+		},
+		{
+			MethodName: "GetCurrent",
+			Handler:    _RegisteredClients_GetCurrent_Handler,
+		},
+		{
+			MethodName: "Create",
+			Handler:    _RegisteredClients_Create_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _RegisteredClients_Update_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _RegisteredClients_Delete_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _RegisteredClients_List_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
