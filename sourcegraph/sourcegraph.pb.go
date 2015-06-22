@@ -339,6 +339,9 @@ type Repo struct {
 	// URI is a normalized identifier for this repository based on its primary clone
 	// URL. E.g., "github.com/user/repo".
 	URI string `protobuf:"bytes,1,opt,name=uri,proto3" json:"uri,omitempty"`
+	// Origin is populated for repos fetched via federation or
+	// discovery. It is the hostname of the host that owns the repo.
+	Origin string `protobuf:"bytes,21,opt,name=origin,proto3" json:"origin,omitempty"`
 	// Name is the base name (the final path component) of the repository, typically
 	// the name of the directory that the repository would be cloned into. (For
 	// example, for git://example.com/foo.git, the name is "foo".)
@@ -368,7 +371,9 @@ type Repo struct {
 	Deprecated bool `protobuf:"varint,11,opt,name=deprecated,proto3" json:"deprecated,omitempty"`
 	// Fork is whether this repository is a fork.
 	Fork bool `protobuf:"varint,12,opt,name=fork,proto3" json:"fork,omitempty"`
-	// Mirror is whether this repository is a mirror.
+	// Mirror indicates whether this repo's canonical location is on
+	// another server. Mirror repos track their upstream and are not
+	// eligible for discovery on this server.
 	Mirror bool `protobuf:"varint,13,opt,name=mirror,proto3" json:"mirror,omitempty"`
 	// Private is whether this repository is private.
 	Private bool `protobuf:"varint,14,opt,name=private,proto3" json:"private,omitempty"`
@@ -386,9 +391,6 @@ type Repo struct {
 	Permissions *RepoPermissions `protobuf:"bytes,18,opt,name=permissions" json:"permissions,omitempty"`
 	GitHub      *GitHubRepo      `protobuf:"bytes,19,opt,name=github" json:"github,omitempty"`
 	Config      *RepoConfig      `protobuf:"bytes,20,opt,name=config" json:"config,omitempty"`
-	// Hosted indicates whether this repo was created on and
-	// originates from the current Sourcegraph instance.
-	Hosted bool `protobuf:"varint,21,opt,name=hosted,proto3" json:"hosted,omitempty"`
 }
 
 func (m *Repo) Reset()         { *m = Repo{} }
@@ -554,8 +556,16 @@ type ReposCreateOp struct {
 	VCS string `protobuf:"bytes,2,opt,name=vcs,proto3" json:"vcs,omitempty"`
 	// CloneURL is the clone URL of the repository for mirrored
 	// repositories. If blank, a new hosted repository is created
-	// (i.e., a repo whose origin is on the server).
+	// (i.e., a repo whose origin is on the server). If Mirror is
+	// true, a clone URL must be provided.
 	CloneURL string `protobuf:"bytes,3,opt,name=clone_url,proto3" json:"clone_url,omitempty"`
+	// Mirror is a boolean value indicating whether the newly created
+	// repository should be a mirror. Mirror repositories are
+	// periodically updated to track their upstream (which is
+	// specified using the CloneURL field of this message). Also,
+	// mirror repositories are not eligible for discovery (the
+	// discovery meta tags are not included on their HTML pages).
+	Mirror bool `protobuf:"varint,4,opt,name=mirror,proto3" json:"mirror,omitempty"`
 }
 
 func (m *ReposCreateOp) Reset()         { *m = ReposCreateOp{} }
