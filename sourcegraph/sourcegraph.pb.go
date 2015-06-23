@@ -44,6 +44,7 @@ It has these top-level messages:
 	ChangesetCreateReviewOp
 	ChangesetListReviewsOp
 	ChangesetGetOp
+	ChangesetUpdateOp
 	RepoListTagsOptions
 	TagList
 	MirroredRepoSSHKeysCreateOp
@@ -790,6 +791,15 @@ type ChangesetGetOp struct {
 func (m *ChangesetGetOp) Reset()         { *m = ChangesetGetOp{} }
 func (m *ChangesetGetOp) String() string { return proto.CompactTextString(m) }
 func (*ChangesetGetOp) ProtoMessage()    {}
+
+type ChangesetUpdateOp struct {
+	Changeset Changeset `protobuf:"bytes,1,opt,name=changeset" json:"changeset"`
+	ID        int64     `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (m *ChangesetUpdateOp) Reset()         { *m = ChangesetUpdateOp{} }
+func (m *ChangesetUpdateOp) String() string { return proto.CompactTextString(m) }
+func (*ChangesetUpdateOp) ProtoMessage()    {}
 
 type RepoListTagsOptions struct {
 	ListOptions `protobuf:"bytes,3,opt,name=list_options,embedded=list_options" json:"list_options"`
@@ -3310,11 +3320,14 @@ var _Repos_serviceDesc = grpc.ServiceDesc{
 // Client API for Changesets service
 
 type ChangesetsClient interface {
-	// CreateChangeset creates a new Changeset and returns it, populating
+	// Create creates a new Changeset and returns it, populating
 	// its fields, such as ID and CreatedAt.
 	Create(ctx context.Context, in *ChangesetCreateOp, opts ...grpc.CallOption) (*Changeset, error)
-	// GetChangeset returns the changeset by RepoSpec and ID.
+	// Get returns the changeset by RepoSpec and ID.
 	Get(ctx context.Context, in *ChangesetGetOp, opts ...grpc.CallOption) (*Changeset, error)
+	// UpdateChangeset updates a changeset's fields and returns the new
+	// updated changeset.
+	Update(ctx context.Context, in *ChangesetUpdateOp, opts ...grpc.CallOption) (*Changeset, error)
 	// CreateReview creates a new Review and returns it, populating
 	// its fields, such as ID and CreatedAt.
 	CreateReview(ctx context.Context, in *ChangesetCreateReviewOp, opts ...grpc.CallOption) (*ChangesetReview, error)
@@ -3348,6 +3361,15 @@ func (c *changesetsClient) Get(ctx context.Context, in *ChangesetGetOp, opts ...
 	return out, nil
 }
 
+func (c *changesetsClient) Update(ctx context.Context, in *ChangesetUpdateOp, opts ...grpc.CallOption) (*Changeset, error) {
+	out := new(Changeset)
+	err := grpc.Invoke(ctx, "/sourcegraph.Changesets/Update", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *changesetsClient) CreateReview(ctx context.Context, in *ChangesetCreateReviewOp, opts ...grpc.CallOption) (*ChangesetReview, error) {
 	out := new(ChangesetReview)
 	err := grpc.Invoke(ctx, "/sourcegraph.Changesets/CreateReview", in, out, c.cc, opts...)
@@ -3369,11 +3391,14 @@ func (c *changesetsClient) ListReviews(ctx context.Context, in *ChangesetListRev
 // Server API for Changesets service
 
 type ChangesetsServer interface {
-	// CreateChangeset creates a new Changeset and returns it, populating
+	// Create creates a new Changeset and returns it, populating
 	// its fields, such as ID and CreatedAt.
 	Create(context.Context, *ChangesetCreateOp) (*Changeset, error)
-	// GetChangeset returns the changeset by RepoSpec and ID.
+	// Get returns the changeset by RepoSpec and ID.
 	Get(context.Context, *ChangesetGetOp) (*Changeset, error)
+	// UpdateChangeset updates a changeset's fields and returns the new
+	// updated changeset.
+	Update(context.Context, *ChangesetUpdateOp) (*Changeset, error)
 	// CreateReview creates a new Review and returns it, populating
 	// its fields, such as ID and CreatedAt.
 	CreateReview(context.Context, *ChangesetCreateReviewOp) (*ChangesetReview, error)
@@ -3403,6 +3428,18 @@ func _Changesets_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Co
 		return nil, err
 	}
 	out, err := srv.(ChangesetsServer).Get(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Changesets_Update_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(ChangesetUpdateOp)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(ChangesetsServer).Update(ctx, in)
 	if err != nil {
 		return nil, err
 	}
@@ -3444,6 +3481,10 @@ var _Changesets_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Get",
 			Handler:    _Changesets_Get_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _Changesets_Update_Handler,
 		},
 		{
 			MethodName: "CreateReview",

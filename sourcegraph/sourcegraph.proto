@@ -486,12 +486,16 @@ service Repos {
 }
 
 service Changesets {
-	// CreateChangeset creates a new Changeset and returns it, populating
+	// Create creates a new Changeset and returns it, populating
 	// its fields, such as ID and CreatedAt.
 	rpc Create(ChangesetCreateOp) returns (Changeset);
 
-	// GetChangeset returns the changeset by RepoSpec and ID.
+	// Get returns the changeset by RepoSpec and ID.
 	rpc Get(ChangesetGetOp) returns (Changeset);
+
+	// UpdateChangeset updates a changeset's fields and returns the new
+	// updated changeset.
+	rpc Update(ChangesetUpdateOp) returns (Changeset);
 
 	// CreateReview creates a new Review and returns it, populating
 	// its fields, such as ID and CreatedAt.
@@ -580,6 +584,11 @@ message ChangesetListReviewsOp {
 
 message ChangesetGetOp {
 	RepoSpec repo = 1 [(gogoproto.nullable) = false];
+	int64 id = 2 [(gogoproto.customname) = "ID"];
+}
+
+message ChangesetUpdateOp {
+	Changeset changeset = 1 [(gogoproto.nullable) = false];
 	int64 id = 2 [(gogoproto.customname) = "ID"];
 }
 
