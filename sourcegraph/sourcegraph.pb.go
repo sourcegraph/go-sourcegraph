@@ -83,6 +83,7 @@ It has these top-level messages:
 	OrgList
 	NewAccount
 	AuthenticatedUser
+	LoginCredentials
 	UserAuthAuthenticateOp
 	UserAuthGetExternalOp
 	ExternalAuthInfo
@@ -1165,30 +1166,25 @@ func (*TaskUpdate) ProtoMessage()    {}
 type User struct {
 	// UID is the numeric primary key for a user.
 	UID int32 `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	// GitHubID is the numeric ID of the GitHub user account corresponding to this
-	// user.
-	GitHubID int32 `protobuf:"varint,2,opt,name=github_id,proto3" json:"github_id,omitempty"`
-	// Login is the user's username, which typically corresponds to the user's GitHub
-	// login.
-	Login string `protobuf:"bytes,3,opt,name=login,proto3" json:"login,omitempty"`
+	// Login is the user's username.
+	Login string `protobuf:"bytes,2,opt,name=login,proto3" json:"login,omitempty"`
 	// Domain is the host that the user originates from. If empty, it
 	// is assumed to be the domain of the server.
-	Domain string `protobuf:"bytes,12,opt,name=domain,proto3" json:"domain,omitempty"`
+	Domain string `protobuf:"bytes,3,opt,name=domain,proto3" json:"domain,omitempty"`
 	// Name is the (possibly empty) full name of the user.
 	Name string `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	// Type is either "User" or "Organization".
-	Type string `protobuf:"bytes,5,opt,name=type,proto3" json:"type,omitempty"`
+	// IsOrganization is whether this user represents an organization.
+	IsOrganization bool `protobuf:"varint,5,opt,name=is_organization,proto3" json:"is_organization,omitempty"`
 	// AvatarURL is the URL to an avatar image specified by the user.
 	AvatarURL string `protobuf:"bytes,6,opt,name=avatar_url,proto3" json:"avatar_url,omitempty"`
-	// Location is the user's physical location (from their GitHub profile).
+	// Location is the user's physical location.
 	Location string `protobuf:"bytes,7,opt,name=location,proto3" json:"location,omitempty"`
-	// Company is the user's company (from their GitHub profile).
+	// Company is the user's company.
 	Company string `protobuf:"bytes,8,opt,name=company,proto3" json:"company,omitempty"`
-	// HomepageURL is the user's homepage or blog URL (from their GitHub profile).
+	// HomepageURL is the user's homepage or blog URL.
 	HomepageURL string `protobuf:"bytes,9,opt,name=homepage_url,proto3" json:"homepage_url,omitempty"`
-	// UserProfileDisabled is whether the user profile should not be displayed on the
-	// Web app.
-	UserProfileDisabled bool `protobuf:"varint,10,opt,name=user_profile_disabled,proto3" json:"user_profile_disabled,omitempty"`
+	// Disabled is whether the user account is disabled.
+	Disabled bool `protobuf:"varint,10,opt,name=disabled,proto3" json:"disabled,omitempty"`
 	// RegisteredAt is the date that the user registered. If the user has not
 	// registered (i.e., we have processed their repos but they haven't signed into
 	// Sourcegraph), it is null.
@@ -1257,6 +1253,10 @@ func (*OrgList) ProtoMessage()    {}
 type NewAccount struct {
 	// Login is the desired login for the new user account.
 	Login string `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
+	// Email is the primary email address for the new user account.
+	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	// Password is the password for the new user account.
+	Password string `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
 }
 
 func (m *NewAccount) Reset()         { *m = NewAccount{} }
@@ -1271,6 +1271,18 @@ type AuthenticatedUser struct {
 func (m *AuthenticatedUser) Reset()         { *m = AuthenticatedUser{} }
 func (m *AuthenticatedUser) String() string { return proto.CompactTextString(m) }
 func (*AuthenticatedUser) ProtoMessage()    {}
+
+// LoginCredentials is the information a user submits to log in.
+type LoginCredentials struct {
+	// Login is the user's claimed login.
+	Login string `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
+	// Password is the password (possibly) corresponding to the login.
+	Password string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+}
+
+func (m *LoginCredentials) Reset()         { *m = LoginCredentials{} }
+func (m *LoginCredentials) String() string { return proto.CompactTextString(m) }
+func (*LoginCredentials) ProtoMessage()    {}
 
 type UserAuthAuthenticateOp struct {
 	ClientID    string `protobuf:"bytes,1,opt,name=client_id,proto3" json:"client_id,omitempty"`
@@ -3986,6 +3998,10 @@ type UserAuthClient interface {
 	// to create an account. The UID of the current user (or the newly
 	// registered user) is returned.
 	Authenticate(ctx context.Context, in *UserAuthAuthenticateOp, opts ...grpc.CallOption) (*AuthenticatedUser, error)
+	// CheckLoginCredentials checks whether the login (password, plus
+	// 2FA tokens in the future) credentials are valid for the given
+	// user. If not, a grpc.PermissionDenied error is returned.
+	CheckLoginCredentials(ctx context.Context, in *LoginCredentials, opts ...grpc.CallOption) (*AuthenticatedUser, error)
 	// GetExternal returns info about the current user's
 	// authentication with an external service (e.g., the currently
 	// authorized GitHub scope).
@@ -4006,6 +4022,15 @@ func NewUserAuthClient(cc *grpc.ClientConn) UserAuthClient {
 func (c *userAuthClient) Authenticate(ctx context.Context, in *UserAuthAuthenticateOp, opts ...grpc.CallOption) (*AuthenticatedUser, error) {
 	out := new(AuthenticatedUser)
 	err := grpc.Invoke(ctx, "/sourcegraph.UserAuth/Authenticate", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userAuthClient) CheckLoginCredentials(ctx context.Context, in *LoginCredentials, opts ...grpc.CallOption) (*AuthenticatedUser, error) {
+	out := new(AuthenticatedUser)
+	err := grpc.Invoke(ctx, "/sourcegraph.UserAuth/CheckLoginCredentials", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -4039,6 +4064,10 @@ type UserAuthServer interface {
 	// to create an account. The UID of the current user (or the newly
 	// registered user) is returned.
 	Authenticate(context.Context, *UserAuthAuthenticateOp) (*AuthenticatedUser, error)
+	// CheckLoginCredentials checks whether the login (password, plus
+	// 2FA tokens in the future) credentials are valid for the given
+	// user. If not, a grpc.PermissionDenied error is returned.
+	CheckLoginCredentials(context.Context, *LoginCredentials) (*AuthenticatedUser, error)
 	// GetExternal returns info about the current user's
 	// authentication with an external service (e.g., the currently
 	// authorized GitHub scope).
@@ -4058,6 +4087,18 @@ func _UserAuth_Authenticate_Handler(srv interface{}, ctx context.Context, codec 
 		return nil, err
 	}
 	out, err := srv.(UserAuthServer).Authenticate(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _UserAuth_CheckLoginCredentials_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(LoginCredentials)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(UserAuthServer).CheckLoginCredentials(ctx, in)
 	if err != nil {
 		return nil, err
 	}
@@ -4095,6 +4136,10 @@ var _UserAuth_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Authenticate",
 			Handler:    _UserAuth_Authenticate_Handler,
+		},
+		{
+			MethodName: "CheckLoginCredentials",
+			Handler:    _UserAuth_CheckLoginCredentials_Handler,
 		},
 		{
 			MethodName: "GetExternal",
