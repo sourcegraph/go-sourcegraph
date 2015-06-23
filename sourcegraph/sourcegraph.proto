@@ -177,6 +177,10 @@ message Repo {
 	// URL. E.g., "github.com/user/repo".
 	string uri = 1 [(gogoproto.customname) = "URI"];
 
+	// Origin is populated for repos fetched via federation or
+	// discovery. It is the hostname of the host that owns the repo.
+	string origin = 21;
+
 	// Name is the base name (the final path component) of the repository, typically
 	// the name of the directory that the repository would be cloned into. (For
 	// example, for git://example.com/foo.git, the name is "foo".)
@@ -217,7 +221,9 @@ message Repo {
 	// Fork is whether this repository is a fork.
 	bool fork = 12;
 
-	// Mirror is whether this repository is a mirror.
+	// Mirror indicates whether this repo's canonical location is on
+	// another server. Mirror repos track their upstream and are not
+	// eligible for discovery on this server.
 	bool mirror = 13;
 
 	// Private is whether this repository is private.
@@ -242,10 +248,6 @@ message Repo {
 	GitHubRepo github = 19 [(gogoproto.customname) = "GitHub"];
 
 	RepoConfig config = 20;
-
-	// Hosted indicates whether this repo was created on and
-	// originates from the current Sourcegraph instance.
-	bool hosted = 21;
 }
 
 message BadgeList {
@@ -509,8 +511,17 @@ message ReposCreateOp {
 
 	// CloneURL is the clone URL of the repository for mirrored
 	// repositories. If blank, a new hosted repository is created
-	// (i.e., a repo whose origin is on the server).
+	// (i.e., a repo whose origin is on the server). If Mirror is
+	// true, a clone URL must be provided.
 	string clone_url = 3 [(gogoproto.customname) = "CloneURL"];
+
+	// Mirror is a boolean value indicating whether the newly created
+	// repository should be a mirror. Mirror repositories are
+	// periodically updated to track their upstream (which is
+	// specified using the CloneURL field of this message). Also,
+	// mirror repositories are not eligible for discovery (the
+	// discovery meta tags are not included on their HTML pages).
+	bool mirror = 4;
 }
 
 message ReposListCommitsOp {
@@ -1018,39 +1029,33 @@ message User {
 	// UID is the numeric primary key for a user.
 	int32 uid = 1 [(gogoproto.customname) = "UID"];
 
-	// GitHubID is the numeric ID of the GitHub user account corresponding to this
-	// user.
-	int32 github_id = 2 [(gogoproto.customname) = "GitHubID"];
-
-	// Login is the user's username, which typically corresponds to the user's GitHub
-	// login.
-	string login = 3;
+	// Login is the user's username.
+	string login = 2;
 
 	// Domain is the host that the user originates from. If empty, it
 	// is assumed to be the domain of the server.
-	string domain = 12;
+	string domain = 3;
 
 	// Name is the (possibly empty) full name of the user.
 	string name = 4;
 
-	// Type is either "User" or "Organization".
-	string type = 5;
+	// IsOrganization is whether this user represents an organization.
+	bool is_organization = 5;
 
 	// AvatarURL is the URL to an avatar image specified by the user.
 	string avatar_url = 6 [(gogoproto.customname) = "AvatarURL"];
 
-	// Location is the user's physical location (from their GitHub profile).
+	// Location is the user's physical location.
 	string location = 7;
 
-	// Company is the user's company (from their GitHub profile).
+	// Company is the user's company.
 	string company = 8;
 
-	// HomepageURL is the user's homepage or blog URL (from their GitHub profile).
+	// HomepageURL is the user's homepage or blog URL.
 	string homepage_url = 9 [(gogoproto.customname) = "HomepageURL"];
 
-	// UserProfileDisabled is whether the user profile should not be displayed on the
-	// Web app.
-	bool user_profile_disabled = 10;
+	// Disabled is whether the user account is disabled.
+	bool disabled = 10;
 
 	// RegisteredAt is the date that the user registered. If the user has not
 	// registered (i.e., we have processed their repos but they haven't signed into
@@ -1264,6 +1269,12 @@ service Accounts {
 message NewAccount {
 	// Login is the desired login for the new user account.
 	string login = 1;
+
+	// Email is the primary email address for the new user account.
+	string email = 2;
+
+    // Password is the password for the new user account.
+    string password = 3;
 }
 
 // UsersService communicates with the users-related endpoints in the Sourcegraph
@@ -1304,6 +1315,11 @@ service UserAuth {
 		};
 	};
 
+	// CheckLoginCredentials checks whether the login (password, plus
+	// 2FA tokens in the future) credentials are valid for the given
+	// user. If not, a grpc.PermissionDenied error is returned.
+	rpc CheckLoginCredentials(LoginCredentials) returns (AuthenticatedUser);
+
 	// GetExternal returns info about the current user's
 	// authentication with an external service (e.g., the currently
 	// authorized GitHub scope).
@@ -1325,6 +1341,17 @@ service UserAuth {
 // An AuthenticatedUser describes the user that resulted from a UserAuth.Authenticate call.
 message AuthenticatedUser {
 	int32 uid = 1 [(gogoproto.customname) = "UID"];
+}
+
+// LoginCredentials is the information a user submits to log in.
+message LoginCredentials {
+	// Login is the user's claimed login.
+	string login = 1;
+
+	// Password is the password (possibly) corresponding to the login.
+	string password = 2;
+
+	// In the future we can add 2FA tokens, etc., here.
 }
 
 message UserAuthAuthenticateOp {
@@ -2394,4 +2421,132 @@ message ServerConfig {
 	// AppURL is the base URL of the user-facing web application
 	// (e.g., "https://sourcegraph.com").
 	string app_url = 1 [(gogoproto.customname) = "AppURL"];
+}
+
+// A RegisteredClient is a registered API client.
+//
+// It's called RegisteredClient instead of Client to avoid a name
+// conflict with the existing Client (Go) type.
+message RegisteredClient {
+	// ID is an alphanumeric string that uniquely identifies this
+	// client.
+	string id = 1 [(gogoproto.customname) = "ID"];
+
+	// Secret is a secret string that authenticates this client (along
+	// with its ID).
+	//
+	// The secret is not persisted on the server, so it is only
+	// returned by the initial Create call (and not subsequent
+	// Get/Update/etc. calls). This means the client must remember it.
+	string secret = 2;
+
+	// HomepageURL is the URL of the homepage for this API client.
+	string homepage_url = 3 [(gogoproto.customname) = "HomepageURL"];
+
+	// OAuthRedirectURL is the OAuth2 redirect URL prefix for this API
+	// client, if it needs to perform user authentication using
+	// OAuth2.
+	string oauth_redirect_url = 4 [(gogoproto.customname) = "OAuthRedirectURL"];
+
+	// Title is the human-readable name of this API client that's
+	// shown to the user during, e.g., OAuth2 authentication.
+	string title = 5;
+
+	// Description is a human-readable description of this API client
+	// that's shown to the user during, e.g., OAuth2 authentication.
+	string description = 6;
+
+	// Meta holds arbitrary metadata about this API client. The
+	// structure is defined by the API client and is opaque to the
+	// server.
+	map<string, string> meta = 7;
+
+	// RegisteredClientType describes this client's type.
+	RegisteredClientType type = 8;
+
+	// CreatedAt is when this API client's record was created.
+	pbtypes.Timestamp created_at = 9 [(gogoproto.nullable) = false];
+
+	// UpdatedAt is when this API client's record was last updated.
+	pbtypes.Timestamp updated_at = 10 [(gogoproto.nullable) = false];
+}
+
+// RegisteredClientType is the set of kinds of clients.
+enum RegisteredClientType {
+	// Any is any type of API client. It should only be used when
+	// listing and not actually set on a RegisteredClient object.
+	Any = 0;
+
+	// Other is all other kinds of clients that are not
+	// SourcegraphServers.
+	Other = 1;
+
+	// SourcegraphServer indicates this client is a Sourcegraph server
+	// instance.
+	SourcegraphServer = 2;
+}
+
+// A RegisteredClientSpec uniquely identifies a RegisteredClient.
+message RegisteredClientSpec {
+	// ID is the client's ID.
+	string id = 1 [(gogoproto.customname) = "ID"];
+}
+
+// A RegisteredClientCredentials authenticates a RegisteredClient.
+message RegisteredClientCredentials {
+	// ID is the client's ID.
+	string id = 1 [(gogoproto.customname) = "ID"];
+
+	// Secret is the client's secret.
+	string secret = 2;
+}
+
+// RegisteredClientListOptions configures a call to
+// RegisteredClients.List.
+message RegisteredClientListOptions {
+	RegisteredClientType type = 1;
+	ListOptions list_options = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// RegisteredClientList holds a list of clients.
+message RegisteredClientList {
+	repeated RegisteredClient clients = 1;
+	ListResponse list_response = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// RegisteredClients manages registered API clients.
+//
+// The server may check authorization for methods that retrieve or
+// fetch API client records (e.g., only allowing authenticated calls
+// with a client's own credentials to get or modify it).
+//
+// Like the RegisteredClient message type, it's called
+// RegisteredClients instead of Clients to avoid a name conflict with
+// the existing Client (Go) type.
+service RegisteredClients {
+	// Get retrieves an API client's record given its client ID.
+	rpc Get(RegisteredClientSpec) returns (RegisteredClient);
+
+	// GetCurrent is equivalent to a call to Get with the client ID of
+	// the currently authenticated client.
+	rpc GetCurrent(pbtypes.Void) returns (RegisteredClient);
+
+	// Create registers an API client. The RegisteredClient arg's ID
+	// and Secret fields must be empty; their values are assigned by
+	// the server and returned in the RegisteredClientCredentials
+	// response.
+	rpc Create(RegisteredClient) returns (RegisteredClientCredentials);
+
+	// Update modifies an API client's record. The RegisteredClient
+	// arg's ID must be set (to specify which client to update). Its
+	// Secret field is ignored (the secret may not be updated after
+	// creation).
+	rpc Update(RegisteredClient) returns (pbtypes.Void);
+
+	// Delete removes an API client. Immediately after deletion, it
+	// may no longer be used.
+	rpc Delete(RegisteredClientSpec) returns (pbtypes.Void);
+
+	// List enumerates API clients according to the options.
+	rpc List(RegisteredClientListOptions) returns (RegisteredClientList);
 }

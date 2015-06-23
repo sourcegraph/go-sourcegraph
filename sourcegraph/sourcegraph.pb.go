@@ -91,6 +91,7 @@ It has these top-level messages:
 	OrgList
 	NewAccount
 	AuthenticatedUser
+	LoginCredentials
 	UserAuthAuthenticateOp
 	UserAuthGetExternalOp
 	ExternalAuthInfo
@@ -180,6 +181,11 @@ It has these top-level messages:
 	PBToken
 	ServerStatus
 	ServerConfig
+	RegisteredClient
+	RegisteredClientSpec
+	RegisteredClientCredentials
+	RegisteredClientListOptions
+	RegisteredClientList
 */
 package sourcegraph
 
@@ -230,6 +236,36 @@ var AuthEndpointType_value = map[string]int32{
 
 func (x AuthEndpointType) String() string {
 	return proto.EnumName(AuthEndpointType_name, int32(x))
+}
+
+// RegisteredClientType is the set of kinds of clients.
+type RegisteredClientType int32
+
+const (
+	// Any is any type of API client. It should only be used when
+	// listing and not actually set on a RegisteredClient object.
+	RegisteredClientType_Any RegisteredClientType = 0
+	// Other is all other kinds of clients that are not
+	// SourcegraphServers.
+	RegisteredClientType_Other RegisteredClientType = 1
+	// SourcegraphServer indicates this client is a Sourcegraph server
+	// instance.
+	RegisteredClientType_SourcegraphServer RegisteredClientType = 2
+)
+
+var RegisteredClientType_name = map[int32]string{
+	0: "Any",
+	1: "Other",
+	2: "SourcegraphServer",
+}
+var RegisteredClientType_value = map[string]int32{
+	"Any":               0,
+	"Other":             1,
+	"SourcegraphServer": 2,
+}
+
+func (x RegisteredClientType) String() string {
+	return proto.EnumName(RegisteredClientType_name, int32(x))
 }
 
 type Badge struct {
@@ -419,6 +455,9 @@ type Repo struct {
 	// URI is a normalized identifier for this repository based on its primary clone
 	// URL. E.g., "github.com/user/repo".
 	URI string `protobuf:"bytes,1,opt,name=uri,proto3" json:"uri,omitempty"`
+	// Origin is populated for repos fetched via federation or
+	// discovery. It is the hostname of the host that owns the repo.
+	Origin string `protobuf:"bytes,21,opt,name=origin,proto3" json:"origin,omitempty"`
 	// Name is the base name (the final path component) of the repository, typically
 	// the name of the directory that the repository would be cloned into. (For
 	// example, for git://example.com/foo.git, the name is "foo".)
@@ -448,7 +487,9 @@ type Repo struct {
 	Deprecated bool `protobuf:"varint,11,opt,name=deprecated,proto3" json:"deprecated,omitempty"`
 	// Fork is whether this repository is a fork.
 	Fork bool `protobuf:"varint,12,opt,name=fork,proto3" json:"fork,omitempty"`
-	// Mirror is whether this repository is a mirror.
+	// Mirror indicates whether this repo's canonical location is on
+	// another server. Mirror repos track their upstream and are not
+	// eligible for discovery on this server.
 	Mirror bool `protobuf:"varint,13,opt,name=mirror,proto3" json:"mirror,omitempty"`
 	// Private is whether this repository is private.
 	Private bool `protobuf:"varint,14,opt,name=private,proto3" json:"private,omitempty"`
@@ -466,9 +507,6 @@ type Repo struct {
 	Permissions *RepoPermissions `protobuf:"bytes,18,opt,name=permissions" json:"permissions,omitempty"`
 	GitHub      *GitHubRepo      `protobuf:"bytes,19,opt,name=github" json:"github,omitempty"`
 	Config      *RepoConfig      `protobuf:"bytes,20,opt,name=config" json:"config,omitempty"`
-	// Hosted indicates whether this repo was created on and
-	// originates from the current Sourcegraph instance.
-	Hosted bool `protobuf:"varint,21,opt,name=hosted,proto3" json:"hosted,omitempty"`
 }
 
 func (m *Repo) Reset()         { *m = Repo{} }
@@ -634,8 +672,16 @@ type ReposCreateOp struct {
 	VCS string `protobuf:"bytes,2,opt,name=vcs,proto3" json:"vcs,omitempty"`
 	// CloneURL is the clone URL of the repository for mirrored
 	// repositories. If blank, a new hosted repository is created
-	// (i.e., a repo whose origin is on the server).
+	// (i.e., a repo whose origin is on the server). If Mirror is
+	// true, a clone URL must be provided.
 	CloneURL string `protobuf:"bytes,3,opt,name=clone_url,proto3" json:"clone_url,omitempty"`
+	// Mirror is a boolean value indicating whether the newly created
+	// repository should be a mirror. Mirror repositories are
+	// periodically updated to track their upstream (which is
+	// specified using the CloneURL field of this message). Also,
+	// mirror repositories are not eligible for discovery (the
+	// discovery meta tags are not included on their HTML pages).
+	Mirror bool `protobuf:"varint,4,opt,name=mirror,proto3" json:"mirror,omitempty"`
 }
 
 func (m *ReposCreateOp) Reset()         { *m = ReposCreateOp{} }
@@ -1280,30 +1326,25 @@ func (*TaskUpdate) ProtoMessage()    {}
 type User struct {
 	// UID is the numeric primary key for a user.
 	UID int32 `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	// GitHubID is the numeric ID of the GitHub user account corresponding to this
-	// user.
-	GitHubID int32 `protobuf:"varint,2,opt,name=github_id,proto3" json:"github_id,omitempty"`
-	// Login is the user's username, which typically corresponds to the user's GitHub
-	// login.
-	Login string `protobuf:"bytes,3,opt,name=login,proto3" json:"login,omitempty"`
+	// Login is the user's username.
+	Login string `protobuf:"bytes,2,opt,name=login,proto3" json:"login,omitempty"`
 	// Domain is the host that the user originates from. If empty, it
 	// is assumed to be the domain of the server.
-	Domain string `protobuf:"bytes,12,opt,name=domain,proto3" json:"domain,omitempty"`
+	Domain string `protobuf:"bytes,3,opt,name=domain,proto3" json:"domain,omitempty"`
 	// Name is the (possibly empty) full name of the user.
 	Name string `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	// Type is either "User" or "Organization".
-	Type string `protobuf:"bytes,5,opt,name=type,proto3" json:"type,omitempty"`
+	// IsOrganization is whether this user represents an organization.
+	IsOrganization bool `protobuf:"varint,5,opt,name=is_organization,proto3" json:"is_organization,omitempty"`
 	// AvatarURL is the URL to an avatar image specified by the user.
 	AvatarURL string `protobuf:"bytes,6,opt,name=avatar_url,proto3" json:"avatar_url,omitempty"`
-	// Location is the user's physical location (from their GitHub profile).
+	// Location is the user's physical location.
 	Location string `protobuf:"bytes,7,opt,name=location,proto3" json:"location,omitempty"`
-	// Company is the user's company (from their GitHub profile).
+	// Company is the user's company.
 	Company string `protobuf:"bytes,8,opt,name=company,proto3" json:"company,omitempty"`
-	// HomepageURL is the user's homepage or blog URL (from their GitHub profile).
+	// HomepageURL is the user's homepage or blog URL.
 	HomepageURL string `protobuf:"bytes,9,opt,name=homepage_url,proto3" json:"homepage_url,omitempty"`
-	// UserProfileDisabled is whether the user profile should not be displayed on the
-	// Web app.
-	UserProfileDisabled bool `protobuf:"varint,10,opt,name=user_profile_disabled,proto3" json:"user_profile_disabled,omitempty"`
+	// Disabled is whether the user account is disabled.
+	Disabled bool `protobuf:"varint,10,opt,name=disabled,proto3" json:"disabled,omitempty"`
 	// RegisteredAt is the date that the user registered. If the user has not
 	// registered (i.e., we have processed their repos but they haven't signed into
 	// Sourcegraph), it is null.
@@ -1372,6 +1413,10 @@ func (*OrgList) ProtoMessage()    {}
 type NewAccount struct {
 	// Login is the desired login for the new user account.
 	Login string `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
+	// Email is the primary email address for the new user account.
+	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	// Password is the password for the new user account.
+	Password string `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
 }
 
 func (m *NewAccount) Reset()         { *m = NewAccount{} }
@@ -1386,6 +1431,18 @@ type AuthenticatedUser struct {
 func (m *AuthenticatedUser) Reset()         { *m = AuthenticatedUser{} }
 func (m *AuthenticatedUser) String() string { return proto.CompactTextString(m) }
 func (*AuthenticatedUser) ProtoMessage()    {}
+
+// LoginCredentials is the information a user submits to log in.
+type LoginCredentials struct {
+	// Login is the user's claimed login.
+	Login string `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
+	// Password is the password (possibly) corresponding to the login.
+	Password string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+}
+
+func (m *LoginCredentials) Reset()         { *m = LoginCredentials{} }
+func (m *LoginCredentials) String() string { return proto.CompactTextString(m) }
+func (*LoginCredentials) ProtoMessage()    {}
 
 type UserAuthAuthenticateOp struct {
 	ClientID    string `protobuf:"bytes,1,opt,name=client_id,proto3" json:"client_id,omitempty"`
@@ -2535,8 +2592,95 @@ func (m *ServerConfig) Reset()         { *m = ServerConfig{} }
 func (m *ServerConfig) String() string { return proto.CompactTextString(m) }
 func (*ServerConfig) ProtoMessage()    {}
 
+// A RegisteredClient is a registered API client.
+//
+// It's called RegisteredClient instead of Client to avoid a name
+// conflict with the existing Client (Go) type.
+type RegisteredClient struct {
+	// ID is an alphanumeric string that uniquely identifies this
+	// client.
+	ID string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Secret is a secret string that authenticates this client (along
+	// with its ID).
+	//
+	// The secret is not persisted on the server, so it is only
+	// returned by the initial Create call (and not subsequent
+	// Get/Update/etc. calls). This means the client must remember it.
+	Secret string `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"`
+	// HomepageURL is the URL of the homepage for this API client.
+	HomepageURL string `protobuf:"bytes,3,opt,name=homepage_url,proto3" json:"homepage_url,omitempty"`
+	// OAuthRedirectURL is the OAuth2 redirect URL prefix for this API
+	// client, if it needs to perform user authentication using
+	// OAuth2.
+	OAuthRedirectURL string `protobuf:"bytes,4,opt,name=oauth_redirect_url,proto3" json:"oauth_redirect_url,omitempty"`
+	// Title is the human-readable name of this API client that's
+	// shown to the user during, e.g., OAuth2 authentication.
+	Title string `protobuf:"bytes,5,opt,name=title,proto3" json:"title,omitempty"`
+	// Description is a human-readable description of this API client
+	// that's shown to the user during, e.g., OAuth2 authentication.
+	Description string `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
+	// Meta holds arbitrary metadata about this API client. The
+	// structure is defined by the API client and is opaque to the
+	// server.
+	Meta map[string]string `protobuf:"bytes,7,rep,name=meta" json:"meta,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// RegisteredClientType describes this client's type.
+	Type RegisteredClientType `protobuf:"varint,8,opt,name=type,proto3,enum=sourcegraph.RegisteredClientType" json:"type,omitempty"`
+	// CreatedAt is when this API client's record was created.
+	CreatedAt pbtypes.Timestamp `protobuf:"bytes,9,opt,name=created_at" json:"created_at"`
+	// UpdatedAt is when this API client's record was last updated.
+	UpdatedAt pbtypes.Timestamp `protobuf:"bytes,10,opt,name=updated_at" json:"updated_at"`
+}
+
+func (m *RegisteredClient) Reset()         { *m = RegisteredClient{} }
+func (m *RegisteredClient) String() string { return proto.CompactTextString(m) }
+func (*RegisteredClient) ProtoMessage()    {}
+
+// A RegisteredClientSpec uniquely identifies a RegisteredClient.
+type RegisteredClientSpec struct {
+	// ID is the client's ID.
+	ID string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (m *RegisteredClientSpec) Reset()         { *m = RegisteredClientSpec{} }
+func (m *RegisteredClientSpec) String() string { return proto.CompactTextString(m) }
+func (*RegisteredClientSpec) ProtoMessage()    {}
+
+// A RegisteredClientCredentials authenticates a RegisteredClient.
+type RegisteredClientCredentials struct {
+	// ID is the client's ID.
+	ID string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Secret is the client's secret.
+	Secret string `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"`
+}
+
+func (m *RegisteredClientCredentials) Reset()         { *m = RegisteredClientCredentials{} }
+func (m *RegisteredClientCredentials) String() string { return proto.CompactTextString(m) }
+func (*RegisteredClientCredentials) ProtoMessage()    {}
+
+// RegisteredClientListOptions configures a call to
+// RegisteredClients.List.
+type RegisteredClientListOptions struct {
+	Type        RegisteredClientType `protobuf:"varint,1,opt,name=type,proto3,enum=sourcegraph.RegisteredClientType" json:"type,omitempty"`
+	ListOptions `protobuf:"bytes,2,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *RegisteredClientListOptions) Reset()         { *m = RegisteredClientListOptions{} }
+func (m *RegisteredClientListOptions) String() string { return proto.CompactTextString(m) }
+func (*RegisteredClientListOptions) ProtoMessage()    {}
+
+// RegisteredClientList holds a list of clients.
+type RegisteredClientList struct {
+	Clients      []*RegisteredClient `protobuf:"bytes,1,rep,name=clients" json:"clients,omitempty"`
+	ListResponse `protobuf:"bytes,2,opt,name=list_response,embedded=list_response" json:"list_response"`
+}
+
+func (m *RegisteredClientList) Reset()         { *m = RegisteredClientList{} }
+func (m *RegisteredClientList) String() string { return proto.CompactTextString(m) }
+func (*RegisteredClientList) ProtoMessage()    {}
+
 func init() {
 	proto.RegisterEnum("sourcegraph.AuthEndpointType", AuthEndpointType_name, AuthEndpointType_value)
+	proto.RegisterEnum("sourcegraph.RegisteredClientType", RegisteredClientType_name, RegisteredClientType_value)
 }
 
 // Client API for RepoBadges service
@@ -4270,6 +4414,10 @@ type UserAuthClient interface {
 	// to create an account. The UID of the current user (or the newly
 	// registered user) is returned.
 	Authenticate(ctx context.Context, in *UserAuthAuthenticateOp, opts ...grpc.CallOption) (*AuthenticatedUser, error)
+	// CheckLoginCredentials checks whether the login (password, plus
+	// 2FA tokens in the future) credentials are valid for the given
+	// user. If not, a grpc.PermissionDenied error is returned.
+	CheckLoginCredentials(ctx context.Context, in *LoginCredentials, opts ...grpc.CallOption) (*AuthenticatedUser, error)
 	// GetExternal returns info about the current user's
 	// authentication with an external service (e.g., the currently
 	// authorized GitHub scope).
@@ -4290,6 +4438,15 @@ func NewUserAuthClient(cc *grpc.ClientConn) UserAuthClient {
 func (c *userAuthClient) Authenticate(ctx context.Context, in *UserAuthAuthenticateOp, opts ...grpc.CallOption) (*AuthenticatedUser, error) {
 	out := new(AuthenticatedUser)
 	err := grpc.Invoke(ctx, "/sourcegraph.UserAuth/Authenticate", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userAuthClient) CheckLoginCredentials(ctx context.Context, in *LoginCredentials, opts ...grpc.CallOption) (*AuthenticatedUser, error) {
+	out := new(AuthenticatedUser)
+	err := grpc.Invoke(ctx, "/sourcegraph.UserAuth/CheckLoginCredentials", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -4323,6 +4480,10 @@ type UserAuthServer interface {
 	// to create an account. The UID of the current user (or the newly
 	// registered user) is returned.
 	Authenticate(context.Context, *UserAuthAuthenticateOp) (*AuthenticatedUser, error)
+	// CheckLoginCredentials checks whether the login (password, plus
+	// 2FA tokens in the future) credentials are valid for the given
+	// user. If not, a grpc.PermissionDenied error is returned.
+	CheckLoginCredentials(context.Context, *LoginCredentials) (*AuthenticatedUser, error)
 	// GetExternal returns info about the current user's
 	// authentication with an external service (e.g., the currently
 	// authorized GitHub scope).
@@ -4342,6 +4503,18 @@ func _UserAuth_Authenticate_Handler(srv interface{}, ctx context.Context, codec 
 		return nil, err
 	}
 	out, err := srv.(UserAuthServer).Authenticate(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _UserAuth_CheckLoginCredentials_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(LoginCredentials)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(UserAuthServer).CheckLoginCredentials(ctx, in)
 	if err != nil {
 		return nil, err
 	}
@@ -4379,6 +4552,10 @@ var _UserAuth_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Authenticate",
 			Handler:    _UserAuth_Authenticate_Handler,
+		},
+		{
+			MethodName: "CheckLoginCredentials",
+			Handler:    _UserAuth_CheckLoginCredentials_Handler,
 		},
 		{
 			MethodName: "GetExternal",
@@ -5237,6 +5414,226 @@ var _Meta_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Config",
 			Handler:    _Meta_Config_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for RegisteredClients service
+
+type RegisteredClientsClient interface {
+	// Get retrieves an API client's record given its client ID.
+	Get(ctx context.Context, in *RegisteredClientSpec, opts ...grpc.CallOption) (*RegisteredClient, error)
+	// GetCurrent is equivalent to a call to Get with the client ID of
+	// the currently authenticated client.
+	GetCurrent(ctx context.Context, in *pbtypes1.Void, opts ...grpc.CallOption) (*RegisteredClient, error)
+	// Create registers an API client. The RegisteredClient arg's ID
+	// and Secret fields must be empty; their values are assigned by
+	// the server and returned in the RegisteredClientCredentials
+	// response.
+	Create(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*RegisteredClientCredentials, error)
+	// Update modifies an API client's record. The RegisteredClient
+	// arg's ID must be set (to specify which client to update). Its
+	// Secret field is ignored (the secret may not be updated after
+	// creation).
+	Update(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*pbtypes1.Void, error)
+	// Delete removes an API client. Immediately after deletion, it
+	// may no longer be used.
+	Delete(ctx context.Context, in *RegisteredClientSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error)
+	// List enumerates API clients according to the options.
+	List(ctx context.Context, in *RegisteredClientListOptions, opts ...grpc.CallOption) (*RegisteredClientList, error)
+}
+
+type registeredClientsClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewRegisteredClientsClient(cc *grpc.ClientConn) RegisteredClientsClient {
+	return &registeredClientsClient{cc}
+}
+
+func (c *registeredClientsClient) Get(ctx context.Context, in *RegisteredClientSpec, opts ...grpc.CallOption) (*RegisteredClient, error) {
+	out := new(RegisteredClient)
+	err := grpc.Invoke(ctx, "/sourcegraph.RegisteredClients/Get", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *registeredClientsClient) GetCurrent(ctx context.Context, in *pbtypes1.Void, opts ...grpc.CallOption) (*RegisteredClient, error) {
+	out := new(RegisteredClient)
+	err := grpc.Invoke(ctx, "/sourcegraph.RegisteredClients/GetCurrent", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *registeredClientsClient) Create(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*RegisteredClientCredentials, error) {
+	out := new(RegisteredClientCredentials)
+	err := grpc.Invoke(ctx, "/sourcegraph.RegisteredClients/Create", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *registeredClientsClient) Update(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
+	err := grpc.Invoke(ctx, "/sourcegraph.RegisteredClients/Update", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *registeredClientsClient) Delete(ctx context.Context, in *RegisteredClientSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
+	err := grpc.Invoke(ctx, "/sourcegraph.RegisteredClients/Delete", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *registeredClientsClient) List(ctx context.Context, in *RegisteredClientListOptions, opts ...grpc.CallOption) (*RegisteredClientList, error) {
+	out := new(RegisteredClientList)
+	err := grpc.Invoke(ctx, "/sourcegraph.RegisteredClients/List", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for RegisteredClients service
+
+type RegisteredClientsServer interface {
+	// Get retrieves an API client's record given its client ID.
+	Get(context.Context, *RegisteredClientSpec) (*RegisteredClient, error)
+	// GetCurrent is equivalent to a call to Get with the client ID of
+	// the currently authenticated client.
+	GetCurrent(context.Context, *pbtypes1.Void) (*RegisteredClient, error)
+	// Create registers an API client. The RegisteredClient arg's ID
+	// and Secret fields must be empty; their values are assigned by
+	// the server and returned in the RegisteredClientCredentials
+	// response.
+	Create(context.Context, *RegisteredClient) (*RegisteredClientCredentials, error)
+	// Update modifies an API client's record. The RegisteredClient
+	// arg's ID must be set (to specify which client to update). Its
+	// Secret field is ignored (the secret may not be updated after
+	// creation).
+	Update(context.Context, *RegisteredClient) (*pbtypes1.Void, error)
+	// Delete removes an API client. Immediately after deletion, it
+	// may no longer be used.
+	Delete(context.Context, *RegisteredClientSpec) (*pbtypes1.Void, error)
+	// List enumerates API clients according to the options.
+	List(context.Context, *RegisteredClientListOptions) (*RegisteredClientList, error)
+}
+
+func RegisterRegisteredClientsServer(s *grpc.Server, srv RegisteredClientsServer) {
+	s.RegisterService(&_RegisteredClients_serviceDesc, srv)
+}
+
+func _RegisteredClients_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(RegisteredClientSpec)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RegisteredClientsServer).Get(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _RegisteredClients_GetCurrent_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(pbtypes1.Void)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RegisteredClientsServer).GetCurrent(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _RegisteredClients_Create_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(RegisteredClient)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RegisteredClientsServer).Create(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _RegisteredClients_Update_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(RegisteredClient)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RegisteredClientsServer).Update(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _RegisteredClients_Delete_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(RegisteredClientSpec)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RegisteredClientsServer).Delete(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _RegisteredClients_List_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(RegisteredClientListOptions)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RegisteredClientsServer).List(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _RegisteredClients_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.RegisteredClients",
+	HandlerType: (*RegisteredClientsServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Get",
+			Handler:    _RegisteredClients_Get_Handler,
+		},
+		{
+			MethodName: "GetCurrent",
+			Handler:    _RegisteredClients_GetCurrent_Handler,
+		},
+		{
+			MethodName: "Create",
+			Handler:    _RegisteredClients_Create_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _RegisteredClients_Update_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _RegisteredClients_Delete_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _RegisteredClients_List_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},

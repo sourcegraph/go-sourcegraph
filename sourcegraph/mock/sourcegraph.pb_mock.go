@@ -582,13 +582,18 @@ func (s *UsersServer) List(v0 context.Context, v1 *sourcegraph.UsersListOptions)
 var _ sourcegraph.UsersServer = (*UsersServer)(nil)
 
 type UserAuthClient struct {
-	Authenticate_ func(ctx context.Context, in *sourcegraph.UserAuthAuthenticateOp) (*sourcegraph.AuthenticatedUser, error)
-	GetExternal_  func(ctx context.Context, in *sourcegraph.UserAuthGetExternalOp) (*sourcegraph.ExternalAuthInfo, error)
-	Identify_     func(ctx context.Context, in *pbtypes.Void) (*sourcegraph.AuthInfo, error)
+	Authenticate_          func(ctx context.Context, in *sourcegraph.UserAuthAuthenticateOp) (*sourcegraph.AuthenticatedUser, error)
+	CheckLoginCredentials_ func(ctx context.Context, in *sourcegraph.LoginCredentials) (*sourcegraph.AuthenticatedUser, error)
+	GetExternal_           func(ctx context.Context, in *sourcegraph.UserAuthGetExternalOp) (*sourcegraph.ExternalAuthInfo, error)
+	Identify_              func(ctx context.Context, in *pbtypes.Void) (*sourcegraph.AuthInfo, error)
 }
 
 func (s *UserAuthClient) Authenticate(ctx context.Context, in *sourcegraph.UserAuthAuthenticateOp, opts ...grpc.CallOption) (*sourcegraph.AuthenticatedUser, error) {
 	return s.Authenticate_(ctx, in)
+}
+
+func (s *UserAuthClient) CheckLoginCredentials(ctx context.Context, in *sourcegraph.LoginCredentials, opts ...grpc.CallOption) (*sourcegraph.AuthenticatedUser, error) {
+	return s.CheckLoginCredentials_(ctx, in)
 }
 
 func (s *UserAuthClient) GetExternal(ctx context.Context, in *sourcegraph.UserAuthGetExternalOp, opts ...grpc.CallOption) (*sourcegraph.ExternalAuthInfo, error) {
@@ -602,13 +607,18 @@ func (s *UserAuthClient) Identify(ctx context.Context, in *pbtypes.Void, opts ..
 var _ sourcegraph.UserAuthClient = (*UserAuthClient)(nil)
 
 type UserAuthServer struct {
-	Authenticate_ func(v0 context.Context, v1 *sourcegraph.UserAuthAuthenticateOp) (*sourcegraph.AuthenticatedUser, error)
-	GetExternal_  func(v0 context.Context, v1 *sourcegraph.UserAuthGetExternalOp) (*sourcegraph.ExternalAuthInfo, error)
-	Identify_     func(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.AuthInfo, error)
+	Authenticate_          func(v0 context.Context, v1 *sourcegraph.UserAuthAuthenticateOp) (*sourcegraph.AuthenticatedUser, error)
+	CheckLoginCredentials_ func(v0 context.Context, v1 *sourcegraph.LoginCredentials) (*sourcegraph.AuthenticatedUser, error)
+	GetExternal_           func(v0 context.Context, v1 *sourcegraph.UserAuthGetExternalOp) (*sourcegraph.ExternalAuthInfo, error)
+	Identify_              func(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.AuthInfo, error)
 }
 
 func (s *UserAuthServer) Authenticate(v0 context.Context, v1 *sourcegraph.UserAuthAuthenticateOp) (*sourcegraph.AuthenticatedUser, error) {
 	return s.Authenticate_(v0, v1)
+}
+
+func (s *UserAuthServer) CheckLoginCredentials(v0 context.Context, v1 *sourcegraph.LoginCredentials) (*sourcegraph.AuthenticatedUser, error) {
+	return s.CheckLoginCredentials_(v0, v1)
 }
 
 func (s *UserAuthServer) GetExternal(v0 context.Context, v1 *sourcegraph.UserAuthGetExternalOp) (*sourcegraph.ExternalAuthInfo, error) {
@@ -910,3 +920,73 @@ func (s *MetaServer) Config(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.
 }
 
 var _ sourcegraph.MetaServer = (*MetaServer)(nil)
+
+type RegisteredClientsClient struct {
+	Get_        func(ctx context.Context, in *sourcegraph.RegisteredClientSpec) (*sourcegraph.RegisteredClient, error)
+	GetCurrent_ func(ctx context.Context, in *pbtypes.Void) (*sourcegraph.RegisteredClient, error)
+	Create_     func(ctx context.Context, in *sourcegraph.RegisteredClient) (*sourcegraph.RegisteredClientCredentials, error)
+	Update_     func(ctx context.Context, in *sourcegraph.RegisteredClient) (*pbtypes.Void, error)
+	Delete_     func(ctx context.Context, in *sourcegraph.RegisteredClientSpec) (*pbtypes.Void, error)
+	List_       func(ctx context.Context, in *sourcegraph.RegisteredClientListOptions) (*sourcegraph.RegisteredClientList, error)
+}
+
+func (s *RegisteredClientsClient) Get(ctx context.Context, in *sourcegraph.RegisteredClientSpec, opts ...grpc.CallOption) (*sourcegraph.RegisteredClient, error) {
+	return s.Get_(ctx, in)
+}
+
+func (s *RegisteredClientsClient) GetCurrent(ctx context.Context, in *pbtypes.Void, opts ...grpc.CallOption) (*sourcegraph.RegisteredClient, error) {
+	return s.GetCurrent_(ctx, in)
+}
+
+func (s *RegisteredClientsClient) Create(ctx context.Context, in *sourcegraph.RegisteredClient, opts ...grpc.CallOption) (*sourcegraph.RegisteredClientCredentials, error) {
+	return s.Create_(ctx, in)
+}
+
+func (s *RegisteredClientsClient) Update(ctx context.Context, in *sourcegraph.RegisteredClient, opts ...grpc.CallOption) (*pbtypes.Void, error) {
+	return s.Update_(ctx, in)
+}
+
+func (s *RegisteredClientsClient) Delete(ctx context.Context, in *sourcegraph.RegisteredClientSpec, opts ...grpc.CallOption) (*pbtypes.Void, error) {
+	return s.Delete_(ctx, in)
+}
+
+func (s *RegisteredClientsClient) List(ctx context.Context, in *sourcegraph.RegisteredClientListOptions, opts ...grpc.CallOption) (*sourcegraph.RegisteredClientList, error) {
+	return s.List_(ctx, in)
+}
+
+var _ sourcegraph.RegisteredClientsClient = (*RegisteredClientsClient)(nil)
+
+type RegisteredClientsServer struct {
+	Get_        func(v0 context.Context, v1 *sourcegraph.RegisteredClientSpec) (*sourcegraph.RegisteredClient, error)
+	GetCurrent_ func(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.RegisteredClient, error)
+	Create_     func(v0 context.Context, v1 *sourcegraph.RegisteredClient) (*sourcegraph.RegisteredClientCredentials, error)
+	Update_     func(v0 context.Context, v1 *sourcegraph.RegisteredClient) (*pbtypes.Void, error)
+	Delete_     func(v0 context.Context, v1 *sourcegraph.RegisteredClientSpec) (*pbtypes.Void, error)
+	List_       func(v0 context.Context, v1 *sourcegraph.RegisteredClientListOptions) (*sourcegraph.RegisteredClientList, error)
+}
+
+func (s *RegisteredClientsServer) Get(v0 context.Context, v1 *sourcegraph.RegisteredClientSpec) (*sourcegraph.RegisteredClient, error) {
+	return s.Get_(v0, v1)
+}
+
+func (s *RegisteredClientsServer) GetCurrent(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.RegisteredClient, error) {
+	return s.GetCurrent_(v0, v1)
+}
+
+func (s *RegisteredClientsServer) Create(v0 context.Context, v1 *sourcegraph.RegisteredClient) (*sourcegraph.RegisteredClientCredentials, error) {
+	return s.Create_(v0, v1)
+}
+
+func (s *RegisteredClientsServer) Update(v0 context.Context, v1 *sourcegraph.RegisteredClient) (*pbtypes.Void, error) {
+	return s.Update_(v0, v1)
+}
+
+func (s *RegisteredClientsServer) Delete(v0 context.Context, v1 *sourcegraph.RegisteredClientSpec) (*pbtypes.Void, error) {
+	return s.Delete_(v0, v1)
+}
+
+func (s *RegisteredClientsServer) List(v0 context.Context, v1 *sourcegraph.RegisteredClientListOptions) (*sourcegraph.RegisteredClientList, error) {
+	return s.List_(v0, v1)
+}
+
+var _ sourcegraph.RegisteredClientsServer = (*RegisteredClientsServer)(nil)

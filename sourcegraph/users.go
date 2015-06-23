@@ -10,20 +10,6 @@ func (u *User) Spec() UserSpec {
 	return UserSpec{Login: u.Login, UID: u.UID, Domain: u.Domain}
 }
 
-// GitHubLogin returns the user's Login. They are the same for now, but callers
-// that intend to get the GitHub login should call GitHubLogin() so that we can
-// decouple the logins in the future if needed.
-func (u *User) GitHubLogin() string {
-	if u.GitHubID == 0 {
-		return ""
-	}
-	return u.Login
-}
-
-// IsOrganization is whether this user represents a GitHub organization
-// (which are treated as a subclass of User in GitHub's data model).
-func (u *User) IsOrganization() bool { return u.Type == "Organization" }
-
 // AvatarURLOfSize returns the URL to an avatar for the user with the
 // given width (in pixels).
 func (u *User) AvatarURLOfSize(width int) string {
@@ -32,18 +18,6 @@ func (u *User) AvatarURLOfSize(width int) string {
 
 func avatarURLOfSize(avatarURL string, width int) string {
 	return avatarURL + fmt.Sprintf("&s=%d", width)
-}
-
-// CanOwnRepositories is whether the user is capable of owning repositories
-// (e.g., GitHub users can own GitHub repositories).
-func (u *User) CanOwnRepositories() bool {
-	return u.GitHubLogin() != ""
-}
-
-// CanAttributeCodeTo is whether this user can commit code. It is false for
-// organizations and true for both users and transient users.
-func (u *User) CanAttributeCodeTo() bool {
-	return !u.IsOrganization()
 }
 
 // Person returns an equivalent Person.
