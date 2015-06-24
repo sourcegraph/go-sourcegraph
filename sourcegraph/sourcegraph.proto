@@ -631,8 +631,8 @@ message ChangesetUpdateOp {
 	// Title, if non-empty, will be set as the new title of the changeset.
 	string title = 7;
 
-	// Body, if specified, will become the new body of the changeset.
-	string body = 6;
+	// Description, if specified, will become the new description of the changeset.
+	string description = 6;
 
 	// Open, if true, will set the changeset's ClosedAt value to nil.
 	bool open = 3;

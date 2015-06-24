@@ -830,8 +830,8 @@ type ChangesetUpdateOp struct {
 	ID int64 `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
 	// Title, if non-empty, will be set as the new title of the changeset.
 	Title string `protobuf:"bytes,7,opt,name=title,proto3" json:"title,omitempty"`
-	// Body, if specified, will become the new body of the changeset.
-	Body string `protobuf:"bytes,6,opt,name=body,proto3" json:"body,omitempty"`
+	// Description, if specified, will become the new description of the changeset.
+	Description string `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
 	// Open, if true, will set the changeset's ClosedAt value to nil.
 	Open bool `protobuf:"varint,3,opt,name=open,proto3" json:"open,omitempty"`
 	// Close, if true, will set the ClosedAt date.
