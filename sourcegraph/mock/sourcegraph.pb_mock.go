@@ -223,17 +223,18 @@ var _ sourcegraph.ReposServer = (*ReposServer)(nil)
 
 type ChangesetsClient struct {
 	Create_       func(ctx context.Context, in *sourcegraph.ChangesetCreateOp) (*sourcegraph.Changeset, error)
-	Get_          func(ctx context.Context, in *sourcegraph.ChangesetGetOp) (*sourcegraph.Changeset, error)
+	Get_          func(ctx context.Context, in *sourcegraph.ChangesetSpec) (*sourcegraph.Changeset, error)
 	Update_       func(ctx context.Context, in *sourcegraph.ChangesetUpdateOp) (*sourcegraph.ChangesetUpdateResult, error)
 	CreateReview_ func(ctx context.Context, in *sourcegraph.ChangesetCreateReviewOp) (*sourcegraph.ChangesetReview, error)
 	ListReviews_  func(ctx context.Context, in *sourcegraph.ChangesetListReviewsOp) (*sourcegraph.ChangesetReviewList, error)
+	ListEvents_   func(ctx context.Context, in *sourcegraph.ChangesetSpec) (*sourcegraph.ChangesetEventList, error)
 }
 
 func (s *ChangesetsClient) Create(ctx context.Context, in *sourcegraph.ChangesetCreateOp, opts ...grpc.CallOption) (*sourcegraph.Changeset, error) {
 	return s.Create_(ctx, in)
 }
 
-func (s *ChangesetsClient) Get(ctx context.Context, in *sourcegraph.ChangesetGetOp, opts ...grpc.CallOption) (*sourcegraph.Changeset, error) {
+func (s *ChangesetsClient) Get(ctx context.Context, in *sourcegraph.ChangesetSpec, opts ...grpc.CallOption) (*sourcegraph.Changeset, error) {
 	return s.Get_(ctx, in)
 }
 
@@ -249,21 +250,26 @@ func (s *ChangesetsClient) ListReviews(ctx context.Context, in *sourcegraph.Chan
 	return s.ListReviews_(ctx, in)
 }
 
+func (s *ChangesetsClient) ListEvents(ctx context.Context, in *sourcegraph.ChangesetSpec, opts ...grpc.CallOption) (*sourcegraph.ChangesetEventList, error) {
+	return s.ListEvents_(ctx, in)
+}
+
 var _ sourcegraph.ChangesetsClient = (*ChangesetsClient)(nil)
 
 type ChangesetsServer struct {
 	Create_       func(v0 context.Context, v1 *sourcegraph.ChangesetCreateOp) (*sourcegraph.Changeset, error)
-	Get_          func(v0 context.Context, v1 *sourcegraph.ChangesetGetOp) (*sourcegraph.Changeset, error)
+	Get_          func(v0 context.Context, v1 *sourcegraph.ChangesetSpec) (*sourcegraph.Changeset, error)
 	Update_       func(v0 context.Context, v1 *sourcegraph.ChangesetUpdateOp) (*sourcegraph.ChangesetUpdateResult, error)
 	CreateReview_ func(v0 context.Context, v1 *sourcegraph.ChangesetCreateReviewOp) (*sourcegraph.ChangesetReview, error)
 	ListReviews_  func(v0 context.Context, v1 *sourcegraph.ChangesetListReviewsOp) (*sourcegraph.ChangesetReviewList, error)
+	ListEvents_   func(v0 context.Context, v1 *sourcegraph.ChangesetSpec) (*sourcegraph.ChangesetEventList, error)
 }
 
 func (s *ChangesetsServer) Create(v0 context.Context, v1 *sourcegraph.ChangesetCreateOp) (*sourcegraph.Changeset, error) {
 	return s.Create_(v0, v1)
 }
 
-func (s *ChangesetsServer) Get(v0 context.Context, v1 *sourcegraph.ChangesetGetOp) (*sourcegraph.Changeset, error) {
+func (s *ChangesetsServer) Get(v0 context.Context, v1 *sourcegraph.ChangesetSpec) (*sourcegraph.Changeset, error) {
 	return s.Get_(v0, v1)
 }
 
@@ -277,6 +283,10 @@ func (s *ChangesetsServer) CreateReview(v0 context.Context, v1 *sourcegraph.Chan
 
 func (s *ChangesetsServer) ListReviews(v0 context.Context, v1 *sourcegraph.ChangesetListReviewsOp) (*sourcegraph.ChangesetReviewList, error) {
 	return s.ListReviews_(v0, v1)
+}
+
+func (s *ChangesetsServer) ListEvents(v0 context.Context, v1 *sourcegraph.ChangesetSpec) (*sourcegraph.ChangesetEventList, error) {
+	return s.ListEvents_(v0, v1)
 }
 
 var _ sourcegraph.ChangesetsServer = (*ChangesetsServer)(nil)

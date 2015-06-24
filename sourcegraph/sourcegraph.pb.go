@@ -44,7 +44,7 @@ It has these top-level messages:
 	ChangesetCreateOp
 	ChangesetCreateReviewOp
 	ChangesetListReviewsOp
-	ChangesetGetOp
+	ChangesetSpec
 	ChangesetUpdateOp
 	RepoListTagsOptions
 	TagList
@@ -67,6 +67,7 @@ It has these top-level messages:
 	BuildsListBuildTasksOp
 	BuildTaskList
 	ChangesetReviewList
+	ChangesetEventList
 	ChangesetUpdateResult
 	BuildsCreateTasksOp
 	BuildsUpdateTaskOp
@@ -814,14 +815,14 @@ func (m *ChangesetListReviewsOp) Reset()         { *m = ChangesetListReviewsOp{}
 func (m *ChangesetListReviewsOp) String() string { return proto.CompactTextString(m) }
 func (*ChangesetListReviewsOp) ProtoMessage()    {}
 
-type ChangesetGetOp struct {
+type ChangesetSpec struct {
 	Repo RepoSpec `protobuf:"bytes,1,opt,name=repo" json:"repo"`
 	ID   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
 }
 
-func (m *ChangesetGetOp) Reset()         { *m = ChangesetGetOp{} }
-func (m *ChangesetGetOp) String() string { return proto.CompactTextString(m) }
-func (*ChangesetGetOp) ProtoMessage()    {}
+func (m *ChangesetSpec) Reset()         { *m = ChangesetSpec{} }
+func (m *ChangesetSpec) String() string { return proto.CompactTextString(m) }
+func (*ChangesetSpec) ProtoMessage()    {}
 
 type ChangesetUpdateOp struct {
 	// Repo holds the RepoSpec where the Changeset to be updated is located.
@@ -1187,6 +1188,14 @@ type ChangesetReviewList struct {
 func (m *ChangesetReviewList) Reset()         { *m = ChangesetReviewList{} }
 func (m *ChangesetReviewList) String() string { return proto.CompactTextString(m) }
 func (*ChangesetReviewList) ProtoMessage()    {}
+
+type ChangesetEventList struct {
+	Events []*ChangesetEvent `protobuf:"bytes,1,rep,name=events" json:"events,omitempty"`
+}
+
+func (m *ChangesetEventList) Reset()         { *m = ChangesetEventList{} }
+func (m *ChangesetEventList) String() string { return proto.CompactTextString(m) }
+func (*ChangesetEventList) ProtoMessage()    {}
 
 type ChangesetUpdateResult struct {
 	// After holds the resulting changeset after the update.
@@ -3383,7 +3392,7 @@ type ChangesetsClient interface {
 	// its fields, such as ID and CreatedAt.
 	Create(ctx context.Context, in *ChangesetCreateOp, opts ...grpc.CallOption) (*Changeset, error)
 	// Get returns the changeset by RepoSpec and ID.
-	Get(ctx context.Context, in *ChangesetGetOp, opts ...grpc.CallOption) (*Changeset, error)
+	Get(ctx context.Context, in *ChangesetSpec, opts ...grpc.CallOption) (*Changeset, error)
 	// UpdateChangeset updates a changeset's fields and returns the new
 	// updated changeset.
 	Update(ctx context.Context, in *ChangesetUpdateOp, opts ...grpc.CallOption) (*ChangesetUpdateResult, error)
@@ -3392,6 +3401,8 @@ type ChangesetsClient interface {
 	CreateReview(ctx context.Context, in *ChangesetCreateReviewOp, opts ...grpc.CallOption) (*ChangesetReview, error)
 	// ListReviews returns all reviews for a given changeset.
 	ListReviews(ctx context.Context, in *ChangesetListReviewsOp, opts ...grpc.CallOption) (*ChangesetReviewList, error)
+	// ListEvents returns all the events that occurred on a given changeset.
+	ListEvents(ctx context.Context, in *ChangesetSpec, opts ...grpc.CallOption) (*ChangesetEventList, error)
 }
 
 type changesetsClient struct {
@@ -3411,7 +3422,7 @@ func (c *changesetsClient) Create(ctx context.Context, in *ChangesetCreateOp, op
 	return out, nil
 }
 
-func (c *changesetsClient) Get(ctx context.Context, in *ChangesetGetOp, opts ...grpc.CallOption) (*Changeset, error) {
+func (c *changesetsClient) Get(ctx context.Context, in *ChangesetSpec, opts ...grpc.CallOption) (*Changeset, error) {
 	out := new(Changeset)
 	err := grpc.Invoke(ctx, "/sourcegraph.Changesets/Get", in, out, c.cc, opts...)
 	if err != nil {
@@ -3447,6 +3458,15 @@ func (c *changesetsClient) ListReviews(ctx context.Context, in *ChangesetListRev
 	return out, nil
 }
 
+func (c *changesetsClient) ListEvents(ctx context.Context, in *ChangesetSpec, opts ...grpc.CallOption) (*ChangesetEventList, error) {
+	out := new(ChangesetEventList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Changesets/ListEvents", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Changesets service
 
 type ChangesetsServer interface {
@@ -3454,7 +3474,7 @@ type ChangesetsServer interface {
 	// its fields, such as ID and CreatedAt.
 	Create(context.Context, *ChangesetCreateOp) (*Changeset, error)
 	// Get returns the changeset by RepoSpec and ID.
-	Get(context.Context, *ChangesetGetOp) (*Changeset, error)
+	Get(context.Context, *ChangesetSpec) (*Changeset, error)
 	// UpdateChangeset updates a changeset's fields and returns the new
 	// updated changeset.
 	Update(context.Context, *ChangesetUpdateOp) (*ChangesetUpdateResult, error)
@@ -3463,6 +3483,8 @@ type ChangesetsServer interface {
 	CreateReview(context.Context, *ChangesetCreateReviewOp) (*ChangesetReview, error)
 	// ListReviews returns all reviews for a given changeset.
 	ListReviews(context.Context, *ChangesetListReviewsOp) (*ChangesetReviewList, error)
+	// ListEvents returns all the events that occurred on a given changeset.
+	ListEvents(context.Context, *ChangesetSpec) (*ChangesetEventList, error)
 }
 
 func RegisterChangesetsServer(s *grpc.Server, srv ChangesetsServer) {
@@ -3482,7 +3504,7 @@ func _Changesets_Create_Handler(srv interface{}, ctx context.Context, codec grpc
 }
 
 func _Changesets_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(ChangesetGetOp)
+	in := new(ChangesetSpec)
 	if err := codec.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
@@ -3529,6 +3551,18 @@ func _Changesets_ListReviews_Handler(srv interface{}, ctx context.Context, codec
 	return out, nil
 }
 
+func _Changesets_ListEvents_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(ChangesetSpec)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(ChangesetsServer).ListEvents(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 var _Changesets_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sourcegraph.Changesets",
 	HandlerType: (*ChangesetsServer)(nil),
@@ -3552,6 +3586,10 @@ var _Changesets_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListReviews",
 			Handler:    _Changesets_ListReviews_Handler,
+		},
+		{
+			MethodName: "ListEvents",
+			Handler:    _Changesets_ListEvents_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
