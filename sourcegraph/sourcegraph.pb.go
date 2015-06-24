@@ -16,6 +16,7 @@ It has these top-level messages:
 	ListResponse
 	Changeset
 	ChangesetReview
+	ChangesetEvent
 	InlineComment
 	Readme
 	GitHubRepo
@@ -355,19 +356,47 @@ func (m *Changeset) Reset()         { *m = Changeset{} }
 func (m *Changeset) String() string { return proto.CompactTextString(m) }
 func (*Changeset) ProtoMessage()    {}
 
+// ChangesetReview contains information about a review submitted on a changeset.
 type ChangesetReview struct {
-	ID        int64              `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Body      string             `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
-	Author    *UserSpec          `protobuf:"bytes,3,opt,name=author" json:"author,omitempty"`
+	// ID holds the unique identifier (with reference to the changeset) of the
+	// review.
+	ID int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Body holds the text description of the review.
+	Body string `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
+	// Author is the spec of the user that submitted this review.
+	Author *UserSpec `protobuf:"bytes,3,opt,name=author" json:"author,omitempty"`
+	// CreatedAt is the date at which this review was submitted.
 	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,4,opt,name=created_at" json:"created_at,omitempty"`
-	EditedAt  *pbtypes.Timestamp `protobuf:"bytes,5,opt,name=edited_at" json:"edited_at,omitempty"`
-	Comments  []*InlineComment   `protobuf:"bytes,6,rep,name=comments" json:"comments,omitempty"`
-	Deleted   bool               `protobuf:"varint,7,opt,name=deleted,proto3" json:"deleted,omitempty"`
+	// EditedAt is the last time at which this review was edited. If the review
+	// has never been edited, this value will be nil.
+	EditedAt *pbtypes.Timestamp `protobuf:"bytes,5,opt,name=edited_at" json:"edited_at,omitempty"`
+	// Comments holds any inline comments that were submitted along with this
+	// review.
+	Comments []*InlineComment `protobuf:"bytes,6,rep,name=comments" json:"comments,omitempty"`
+	// Deleted specifies whether this review has been removed.
+	Deleted bool `protobuf:"varint,7,opt,name=deleted,proto3" json:"deleted,omitempty"`
 }
 
 func (m *ChangesetReview) Reset()         { *m = ChangesetReview{} }
 func (m *ChangesetReview) String() string { return proto.CompactTextString(m) }
 func (*ChangesetReview) ProtoMessage()    {}
+
+// ChangesetEvent holds information about an update that occurred on the
+// properties of a Changeset.
+type ChangesetEvent struct {
+	// Before holds the changeset as it was before the event.
+	Before *Changeset `protobuf:"bytes,1,opt,name=before" json:"before,omitempty"`
+	// After holds the changeset as it became after the event.
+	After *Changeset `protobuf:"bytes,2,opt,name=after" json:"after,omitempty"`
+	// Op holds the update operation that changed the state.
+	Op *ChangesetUpdateOp `protobuf:"bytes,3,opt,name=op" json:"op,omitempty"`
+	// CreatedAt is the date at which the event was created.
+	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,4,opt,name=created_at" json:"created_at,omitempty"`
+}
+
+func (m *ChangesetEvent) Reset()         { *m = ChangesetEvent{} }
+func (m *ChangesetEvent) String() string { return proto.CompactTextString(m) }
+func (*ChangesetEvent) ProtoMessage()    {}
 
 // InlineComment represents a comment made on a line of code. It is uniquely identified
 // via Filename + LineNumber + CommitID. In a Changeset, the CommitID might vary
@@ -794,8 +823,21 @@ func (m *ChangesetGetOp) String() string { return proto.CompactTextString(m) }
 func (*ChangesetGetOp) ProtoMessage()    {}
 
 type ChangesetUpdateOp struct {
-	Changeset Changeset `protobuf:"bytes,1,opt,name=changeset" json:"changeset"`
-	ID        int64     `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	// Repo holds the RepoSpec where the Changeset to be updated is located.
+	Repo RepoSpec `protobuf:"bytes,1,opt,name=repo" json:"repo"`
+	// ID holds the ID of the changeset that is to be updated.
+	ID int64 `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	// Title, if non-empty, will be set as the new title of the changeset.
+	Title string `protobuf:"bytes,7,opt,name=title,proto3" json:"title,omitempty"`
+	// Body, if specified, will become the new body of the changeset.
+	Body string `protobuf:"bytes,6,opt,name=body,proto3" json:"body,omitempty"`
+	// Open, if true, will set the changeset's ClosedAt value to nil.
+	Open bool `protobuf:"varint,3,opt,name=open,proto3" json:"open,omitempty"`
+	// Close, if true, will set the ClosedAt date.
+	Close bool `protobuf:"varint,4,opt,name=close,proto3" json:"close,omitempty"`
+	// Merged, if true, will update the changeset to indicate that it was priorly
+	// merged.
+	Merged bool `protobuf:"varint,5,opt,name=merged,proto3" json:"merged,omitempty"`
 }
 
 func (m *ChangesetUpdateOp) Reset()         { *m = ChangesetUpdateOp{} }

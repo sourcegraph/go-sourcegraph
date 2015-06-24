@@ -86,14 +86,47 @@ message Changeset {
 	pbtypes.Timestamp closed_at = 8;
 }
 
+// ChangesetReview contains information about a review submitted on a changeset.
 message ChangesetReview {
+	// ID holds the unique identifier (with reference to the changeset) of the
+	// review.
 	int64 id = 1 [(gogoproto.customname) = "ID"];
+
+	// Body holds the text description of the review.
 	string body = 2;
+
+	// Author is the spec of the user that submitted this review.
 	UserSpec author = 3 [(gogoproto.nullable) = true];
+
+	// CreatedAt is the date at which this review was submitted.
 	pbtypes.Timestamp created_at = 4;
+
+	// EditedAt is the last time at which this review was edited. If the review
+	// has never been edited, this value will be nil.
 	pbtypes.Timestamp edited_at = 5;
+
+	// Comments holds any inline comments that were submitted along with this
+	// review.
 	repeated InlineComment comments = 6 [(gogoproto.nullable) = true];
+
+	// Deleted specifies whether this review has been removed.
 	bool deleted = 7;
+}
+
+// ChangesetEvent holds information about an update that occurred on the
+// properties of a Changeset.
+message ChangesetEvent {
+	// Before holds the changeset as it was before the event.
+	Changeset before = 1 [(gogoproto.nullable) = true];
+
+	// After holds the changeset as it became after the event.
+	Changeset after = 2 [(gogoproto.nullable) = true];
+
+	// Op holds the update operation that changed the state.
+	ChangesetUpdateOp op = 3;
+
+	// CreatedAt is the date at which the event was created.
+	pbtypes.Timestamp created_at = 4;
 }
 
 // InlineComment represents a comment made on a line of code. It is uniquely identified
@@ -589,8 +622,27 @@ message ChangesetGetOp {
 }
 
 message ChangesetUpdateOp {
-	Changeset changeset = 1 [(gogoproto.nullable) = false];
+	// Repo holds the RepoSpec where the Changeset to be updated is located.
+	RepoSpec repo = 1 [(gogoproto.nullable) = false];
+
+	// ID holds the ID of the changeset that is to be updated.
 	int64 id = 2 [(gogoproto.customname) = "ID"];
+
+	// Title, if non-empty, will be set as the new title of the changeset.
+	string title = 7;
+
+	// Body, if specified, will become the new body of the changeset.
+	string body = 6;
+
+	// Open, if true, will set the changeset's ClosedAt value to nil.
+	bool open = 3;
+	
+	// Close, if true, will set the ClosedAt date.
+	bool close = 4;
+
+	// Merged, if true, will update the changeset to indicate that it was priorly
+	// merged.
+	bool merged = 5;
 }
 
 message RepoListTagsOptions {
