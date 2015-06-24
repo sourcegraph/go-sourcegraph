@@ -529,7 +529,7 @@ service Changesets {
 
 	// UpdateChangeset updates a changeset's fields and returns the new
 	// updated changeset.
-	rpc Update(ChangesetUpdateOp) returns (Changeset);
+	rpc Update(ChangesetUpdateOp) returns (ChangesetUpdateResult);
 
 	// CreateReview creates a new Review and returns it, populating
 	// its fields, such as ID and CreatedAt.
@@ -960,6 +960,18 @@ message BuildTaskList {
 
 message ChangesetReviewList {
 	repeated ChangesetReview reviews = 1;
+}
+
+message ChangesetUpdateResult {
+	// After holds the resulting changeset after the update.
+	Changeset after = 1 [(gogoproto.nullable) = false];
+
+	// Updated indicates whether the requested operation actually
+	// updated the changeset.
+	// This is useful in cases when the requested update operation
+	// didn't actually cause a change in the properties of the
+	// changeset.
+	bool updated = 2;
 }
 
 message BuildsCreateTasksOp {
