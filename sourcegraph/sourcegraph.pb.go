@@ -68,7 +68,6 @@ It has these top-level messages:
 	BuildTaskList
 	ChangesetReviewList
 	ChangesetEventList
-	ChangesetUpdateResult
 	BuildsCreateTasksOp
 	BuildsUpdateTaskOp
 	BuildsGetLogOp
@@ -1198,21 +1197,6 @@ type ChangesetEventList struct {
 func (m *ChangesetEventList) Reset()         { *m = ChangesetEventList{} }
 func (m *ChangesetEventList) String() string { return proto.CompactTextString(m) }
 func (*ChangesetEventList) ProtoMessage()    {}
-
-type ChangesetUpdateResult struct {
-	// After holds the resulting changeset after the update.
-	After Changeset `protobuf:"bytes,1,opt,name=after" json:"after"`
-	// Updated indicates whether the requested operation actually
-	// updated the changeset.
-	// This is useful in cases when the requested update operation
-	// didn't actually cause a change in the properties of the
-	// changeset.
-	Updated bool `protobuf:"varint,2,opt,name=updated,proto3" json:"updated,omitempty"`
-}
-
-func (m *ChangesetUpdateResult) Reset()         { *m = ChangesetUpdateResult{} }
-func (m *ChangesetUpdateResult) String() string { return proto.CompactTextString(m) }
-func (*ChangesetUpdateResult) ProtoMessage()    {}
 
 type BuildsCreateTasksOp struct {
 	Build BuildSpec    `protobuf:"bytes,1,opt,name=build" json:"build"`
@@ -3395,9 +3379,9 @@ type ChangesetsClient interface {
 	Create(ctx context.Context, in *ChangesetCreateOp, opts ...grpc.CallOption) (*Changeset, error)
 	// Get returns the changeset by RepoSpec and ID.
 	Get(ctx context.Context, in *ChangesetSpec, opts ...grpc.CallOption) (*Changeset, error)
-	// UpdateChangeset updates a changeset's fields and returns the new
-	// updated changeset.
-	Update(ctx context.Context, in *ChangesetUpdateOp, opts ...grpc.CallOption) (*ChangesetUpdateResult, error)
+	// UpdateChangeset updates a changeset's fields and returns the
+	// update event. If no update occurred, it returns nil.
+	Update(ctx context.Context, in *ChangesetUpdateOp, opts ...grpc.CallOption) (*ChangesetEvent, error)
 	// CreateReview creates a new Review and returns it, populating
 	// its fields, such as ID and CreatedAt.
 	CreateReview(ctx context.Context, in *ChangesetCreateReviewOp, opts ...grpc.CallOption) (*ChangesetReview, error)
@@ -3433,8 +3417,8 @@ func (c *changesetsClient) Get(ctx context.Context, in *ChangesetSpec, opts ...g
 	return out, nil
 }
 
-func (c *changesetsClient) Update(ctx context.Context, in *ChangesetUpdateOp, opts ...grpc.CallOption) (*ChangesetUpdateResult, error) {
-	out := new(ChangesetUpdateResult)
+func (c *changesetsClient) Update(ctx context.Context, in *ChangesetUpdateOp, opts ...grpc.CallOption) (*ChangesetEvent, error) {
+	out := new(ChangesetEvent)
 	err := grpc.Invoke(ctx, "/sourcegraph.Changesets/Update", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
@@ -3477,9 +3461,9 @@ type ChangesetsServer interface {
 	Create(context.Context, *ChangesetCreateOp) (*Changeset, error)
 	// Get returns the changeset by RepoSpec and ID.
 	Get(context.Context, *ChangesetSpec) (*Changeset, error)
-	// UpdateChangeset updates a changeset's fields and returns the new
-	// updated changeset.
-	Update(context.Context, *ChangesetUpdateOp) (*ChangesetUpdateResult, error)
+	// UpdateChangeset updates a changeset's fields and returns the
+	// update event. If no update occurred, it returns nil.
+	Update(context.Context, *ChangesetUpdateOp) (*ChangesetEvent, error)
 	// CreateReview creates a new Review and returns it, populating
 	// its fields, such as ID and CreatedAt.
 	CreateReview(context.Context, *ChangesetCreateReviewOp) (*ChangesetReview, error)
