@@ -1,6 +1,7 @@
 package sourcegraph
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 
@@ -78,6 +79,16 @@ func clientCredentialsFromContext(ctx context.Context) []Credentials {
 		return nil
 	}
 	return creds
+}
+
+// DescribeClientCredentials is a testing utility function to test for
+// credentials in the context.
+func DescribeClientCredentials(ctx context.Context) []string {
+	var s []string
+	for _, v := range clientCredentialsFromContext(ctx) {
+		s = append(s, fmt.Sprintf("%v", v))
+	}
+	return s
 }
 
 // NewClientFromContext returns a Sourcegraph API client configured
