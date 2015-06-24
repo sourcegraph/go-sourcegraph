@@ -386,14 +386,16 @@ func (*ChangesetReview) ProtoMessage()    {}
 // ChangesetEvent holds information about an update that occurred on the
 // properties of a Changeset.
 type ChangesetEvent struct {
+	// Author is the user that initiated this event.
+	Author *UserSpec `protobuf:"bytes,1,opt" json:"Author,omitempty"`
 	// Before holds the changeset as it was before the event.
-	Before *Changeset `protobuf:"bytes,1,opt,name=before" json:"before,omitempty"`
+	Before *Changeset `protobuf:"bytes,2,opt,name=before" json:"before,omitempty"`
 	// After holds the changeset as it became after the event.
-	After *Changeset `protobuf:"bytes,2,opt,name=after" json:"after,omitempty"`
+	After *Changeset `protobuf:"bytes,3,opt,name=after" json:"after,omitempty"`
 	// Op holds the update operation that changed the state.
-	Op *ChangesetUpdateOp `protobuf:"bytes,3,opt,name=op" json:"op,omitempty"`
+	Op *ChangesetUpdateOp `protobuf:"bytes,4,opt,name=op" json:"op,omitempty"`
 	// CreatedAt is the date at which the event was created.
-	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,4,opt,name=created_at" json:"created_at,omitempty"`
+	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,5,opt,name=created_at" json:"created_at,omitempty"`
 }
 
 func (m *ChangesetEvent) Reset()         { *m = ChangesetEvent{} }

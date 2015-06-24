@@ -116,17 +116,20 @@ message ChangesetReview {
 // ChangesetEvent holds information about an update that occurred on the
 // properties of a Changeset.
 message ChangesetEvent {
+	// Author is the user that initiated this event.
+	UserSpec Author = 1 [(gogoproto.nullable) = true];
+
 	// Before holds the changeset as it was before the event.
-	Changeset before = 1 [(gogoproto.nullable) = true];
+	Changeset before = 2 [(gogoproto.nullable) = true];
 
 	// After holds the changeset as it became after the event.
-	Changeset after = 2 [(gogoproto.nullable) = true];
+	Changeset after = 3 [(gogoproto.nullable) = true];
 
 	// Op holds the update operation that changed the state.
-	ChangesetUpdateOp op = 3;
+	ChangesetUpdateOp op = 4;
 
 	// CreatedAt is the date at which the event was created.
-	pbtypes.Timestamp created_at = 4;
+	pbtypes.Timestamp created_at = 5;
 }
 
 // InlineComment represents a comment made on a line of code. It is uniquely identified
