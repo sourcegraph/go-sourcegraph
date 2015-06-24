@@ -339,7 +339,7 @@ type Changeset struct {
 	// Description holds the description for this changeset.
 	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	// Author is the user that initiated this changeset.
-	Author *User `protobuf:"bytes,4,opt,name=author" json:"author,omitempty"`
+	Author *UserSpec `protobuf:"bytes,4,opt,name=author" json:"author,omitempty"`
 	// DeltaSpec contains information about the base and head spec for this
 	// changeset.
 	DeltaSpec *DeltaSpec `protobuf:"bytes,5,opt,name=delta_spec" json:"delta_spec,omitempty"`
@@ -358,10 +358,11 @@ func (*Changeset) ProtoMessage()    {}
 type ChangesetReview struct {
 	ID        int64              `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Body      string             `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
-	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,3,opt,name=created_at" json:"created_at,omitempty"`
-	EditedAt  *pbtypes.Timestamp `protobuf:"bytes,4,opt,name=edited_at" json:"edited_at,omitempty"`
-	Comments  []*InlineComment   `protobuf:"bytes,5,rep,name=comments" json:"comments,omitempty"`
-	Deleted   bool               `protobuf:"varint,6,opt,name=deleted,proto3" json:"deleted,omitempty"`
+	Author    *UserSpec          `protobuf:"bytes,3,opt,name=author" json:"author,omitempty"`
+	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,4,opt,name=created_at" json:"created_at,omitempty"`
+	EditedAt  *pbtypes.Timestamp `protobuf:"bytes,5,opt,name=edited_at" json:"edited_at,omitempty"`
+	Comments  []*InlineComment   `protobuf:"bytes,6,rep,name=comments" json:"comments,omitempty"`
+	Deleted   bool               `protobuf:"varint,7,opt,name=deleted,proto3" json:"deleted,omitempty"`
 }
 
 func (m *ChangesetReview) Reset()         { *m = ChangesetReview{} }
@@ -385,7 +386,7 @@ type InlineComment struct {
 	// that it belong by extracting it's extended header's index entry.
 	CommitID string `protobuf:"bytes,3,opt,name=commit_id,proto3" json:"commit_id,omitempty"`
 	// Author is the user that initiated this changeset.
-	Author *User `protobuf:"bytes,4,opt,name=author" json:"author,omitempty"`
+	Author *UserSpec `protobuf:"bytes,4,opt,name=author" json:"author,omitempty"`
 	// Body holds the body of this comment.
 	Body string `protobuf:"bytes,5,opt,name=body,proto3" json:"body,omitempty"`
 	// CreatedAt holds the creation date of this comment.

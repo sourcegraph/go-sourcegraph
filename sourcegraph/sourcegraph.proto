@@ -70,7 +70,7 @@ message Changeset {
 	string description = 3;
 
 	// Author is the user that initiated this changeset.
-	User author = 4 [(gogoproto.nullable) = true];
+	UserSpec author = 4 [(gogoproto.nullable) = true];
 
 	// DeltaSpec contains information about the base and head spec for this
 	// changeset.
@@ -89,10 +89,11 @@ message Changeset {
 message ChangesetReview {
 	int64 id = 1 [(gogoproto.customname) = "ID"];
 	string body = 2;
-	pbtypes.Timestamp created_at = 3;
-	pbtypes.Timestamp edited_at = 4;
-	repeated InlineComment comments = 5 [(gogoproto.nullable) = true];
-	bool deleted = 6;
+	UserSpec author = 3 [(gogoproto.nullable) = true];
+	pbtypes.Timestamp created_at = 4;
+	pbtypes.Timestamp edited_at = 5;
+	repeated InlineComment comments = 6 [(gogoproto.nullable) = true];
+	bool deleted = 7;
 }
 
 // InlineComment represents a comment made on a line of code. It is uniquely identified
@@ -115,7 +116,7 @@ message InlineComment {
 	string commit_id = 3 [(gogoproto.customname) = "CommitID"]; 
 
 	// Author is the user that initiated this changeset.
-	User author = 4 [(gogoproto.nullable) = true];
+	UserSpec author = 4 [(gogoproto.nullable) = true];
 
 	// Body holds the body of this comment.
 	string body = 5;
