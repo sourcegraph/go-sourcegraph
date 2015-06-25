@@ -343,7 +343,7 @@ type Changeset struct {
 	// Description holds the description for this changeset.
 	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	// Author is the user that initiated this changeset.
-	Author *UserSpec `protobuf:"bytes,4,opt,name=author" json:"author,omitempty"`
+	Author UserSpec `protobuf:"bytes,4,opt,name=author" json:"author"`
 	// DeltaSpec contains information about the base and head spec for this
 	// changeset.
 	DeltaSpec *DeltaSpec `protobuf:"bytes,5,opt,name=delta_spec" json:"delta_spec,omitempty"`
@@ -367,7 +367,7 @@ type ChangesetReview struct {
 	// Body holds the text description of the review.
 	Body string `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
 	// Author is the spec of the user that submitted this review.
-	Author *UserSpec `protobuf:"bytes,3,opt,name=author" json:"author,omitempty"`
+	Author UserSpec `protobuf:"bytes,3,opt,name=author" json:"author"`
 	// CreatedAt is the date at which this review was submitted.
 	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,4,opt,name=created_at" json:"created_at,omitempty"`
 	// EditedAt is the last time at which this review was edited. If the review
@@ -418,7 +418,7 @@ type InlineComment struct {
 	// that it belong by extracting it's extended header's index entry.
 	CommitID string `protobuf:"bytes,3,opt,name=commit_id,proto3" json:"commit_id,omitempty"`
 	// Author is the user that initiated this changeset.
-	Author *UserSpec `protobuf:"bytes,4,opt,name=author" json:"author,omitempty"`
+	Author UserSpec `protobuf:"bytes,4,opt,name=author" json:"author"`
 	// Body holds the body of this comment.
 	Body string `protobuf:"bytes,5,opt,name=body,proto3" json:"body,omitempty"`
 	// CreatedAt holds the creation date of this comment.
@@ -842,7 +842,7 @@ type ChangesetUpdateOp struct {
 	// merged.
 	Merged bool `protobuf:"varint,7,opt,name=merged,proto3" json:"merged,omitempty"`
 	// Author is the user that initiated this event.
-	Author *UserSpec `protobuf:"bytes,8,opt" json:"Author,omitempty"`
+	Author UserSpec `protobuf:"bytes,8,opt" json:"Author"`
 }
 
 func (m *ChangesetUpdateOp) Reset()         { *m = ChangesetUpdateOp{} }

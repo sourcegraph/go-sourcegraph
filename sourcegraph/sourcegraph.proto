@@ -70,7 +70,7 @@ message Changeset {
 	string description = 3;
 
 	// Author is the user that initiated this changeset.
-	UserSpec author = 4 [(gogoproto.nullable) = true];
+	UserSpec author = 4 [(gogoproto.nullable) = false];
 
 	// DeltaSpec contains information about the base and head spec for this
 	// changeset.
@@ -96,7 +96,7 @@ message ChangesetReview {
 	string body = 2;
 
 	// Author is the spec of the user that submitted this review.
-	UserSpec author = 3 [(gogoproto.nullable) = true];
+	UserSpec author = 3 [(gogoproto.nullable) = false];
 
 	// CreatedAt is the date at which this review was submitted.
 	pbtypes.Timestamp created_at = 4;
@@ -149,7 +149,7 @@ message InlineComment {
 	string commit_id = 3 [(gogoproto.customname) = "CommitID"]; 
 
 	// Author is the user that initiated this changeset.
-	UserSpec author = 4 [(gogoproto.nullable) = true];
+	UserSpec author = 4 [(gogoproto.nullable) = false];
 
 	// Body holds the body of this comment.
 	string body = 5;
@@ -651,7 +651,7 @@ message ChangesetUpdateOp {
 	bool merged = 7;
 
 	// Author is the user that initiated this event.
-	UserSpec Author = 8 [(gogoproto.nullable) = true];
+	UserSpec Author = 8 [(gogoproto.nullable) = false];
 }
 
 message RepoListTagsOptions {
