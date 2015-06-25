@@ -116,9 +116,6 @@ message ChangesetReview {
 // ChangesetEvent holds information about an update that occurred on the
 // properties of a Changeset.
 message ChangesetEvent {
-	// Author is the user that initiated this event.
-	UserSpec Author = 1 [(gogoproto.nullable) = true];
-
 	// Before holds the changeset as it was before the event.
 	Changeset before = 2 [(gogoproto.nullable) = true];
 
@@ -638,20 +635,23 @@ message ChangesetUpdateOp {
 	int64 id = 2 [(gogoproto.customname) = "ID"];
 
 	// Title, if non-empty, will be set as the new title of the changeset.
-	string title = 7;
+	string title = 3;
 
 	// Description, if specified, will become the new description of the changeset.
-	string description = 6;
+	string description = 4;
 
 	// Open, if true, will set the changeset's ClosedAt value to nil.
-	bool open = 3;
+	bool open = 5;
 	
 	// Close, if true, will set the ClosedAt date.
-	bool close = 4;
+	bool close = 6;
 
 	// Merged, if true, will update the changeset to indicate that it was priorly
 	// merged.
-	bool merged = 5;
+	bool merged = 7;
+
+	// Author is the user that initiated this event.
+	UserSpec Author = 8 [(gogoproto.nullable) = true];
 }
 
 message RepoListTagsOptions {

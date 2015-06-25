@@ -387,8 +387,6 @@ func (*ChangesetReview) ProtoMessage()    {}
 // ChangesetEvent holds information about an update that occurred on the
 // properties of a Changeset.
 type ChangesetEvent struct {
-	// Author is the user that initiated this event.
-	Author *UserSpec `protobuf:"bytes,1,opt" json:"Author,omitempty"`
 	// Before holds the changeset as it was before the event.
 	Before *Changeset `protobuf:"bytes,2,opt,name=before" json:"before,omitempty"`
 	// After holds the changeset as it became after the event.
@@ -833,16 +831,18 @@ type ChangesetUpdateOp struct {
 	// ID holds the ID of the changeset that is to be updated.
 	ID int64 `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
 	// Title, if non-empty, will be set as the new title of the changeset.
-	Title string `protobuf:"bytes,7,opt,name=title,proto3" json:"title,omitempty"`
+	Title string `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
 	// Description, if specified, will become the new description of the changeset.
-	Description string `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
+	Description string `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
 	// Open, if true, will set the changeset's ClosedAt value to nil.
-	Open bool `protobuf:"varint,3,opt,name=open,proto3" json:"open,omitempty"`
+	Open bool `protobuf:"varint,5,opt,name=open,proto3" json:"open,omitempty"`
 	// Close, if true, will set the ClosedAt date.
-	Close bool `protobuf:"varint,4,opt,name=close,proto3" json:"close,omitempty"`
+	Close bool `protobuf:"varint,6,opt,name=close,proto3" json:"close,omitempty"`
 	// Merged, if true, will update the changeset to indicate that it was priorly
 	// merged.
-	Merged bool `protobuf:"varint,5,opt,name=merged,proto3" json:"merged,omitempty"`
+	Merged bool `protobuf:"varint,7,opt,name=merged,proto3" json:"merged,omitempty"`
+	// Author is the user that initiated this event.
+	Author *UserSpec `protobuf:"bytes,8,opt" json:"Author,omitempty"`
 }
 
 func (m *ChangesetUpdateOp) Reset()         { *m = ChangesetUpdateOp{} }
