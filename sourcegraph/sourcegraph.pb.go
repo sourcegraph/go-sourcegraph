@@ -55,6 +55,7 @@ It has these top-level messages:
 	BuildCreateOptions
 	BuildGetLogOptions
 	BuildListOptions
+	ChangesetListOp
 	BuildSpec
 	BuildTask
 	BuildTaskListOptions
@@ -67,6 +68,7 @@ It has these top-level messages:
 	BuildsListBuildTasksOp
 	BuildTaskList
 	ChangesetReviewList
+	ChangesetList
 	ChangesetEventList
 	BuildsCreateTasksOp
 	BuildsUpdateTaskOp
@@ -1021,6 +1023,17 @@ func (m *BuildListOptions) Reset()         { *m = BuildListOptions{} }
 func (m *BuildListOptions) String() string { return proto.CompactTextString(m) }
 func (*BuildListOptions) ProtoMessage()    {}
 
+type ChangesetListOp struct {
+	Repo        string `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
+	Open        bool   `protobuf:"varint,2,opt,name=open,proto3" json:"open,omitempty"`
+	Closed      bool   `protobuf:"varint,3,opt,name=closed,proto3" json:"closed,omitempty"`
+	ListOptions `protobuf:"bytes,11,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *ChangesetListOp) Reset()         { *m = ChangesetListOp{} }
+func (m *ChangesetListOp) String() string { return proto.CompactTextString(m) }
+func (*ChangesetListOp) ProtoMessage()    {}
+
 type BuildSpec struct {
 	CommitID string   `protobuf:"bytes,1,opt,name=commit_id,proto3" json:"commit_id,omitempty"`
 	Attempt  uint32   `protobuf:"varint,2,opt,name=attempt,proto3" json:"attempt,omitempty"`
@@ -1189,6 +1202,14 @@ type ChangesetReviewList struct {
 func (m *ChangesetReviewList) Reset()         { *m = ChangesetReviewList{} }
 func (m *ChangesetReviewList) String() string { return proto.CompactTextString(m) }
 func (*ChangesetReviewList) ProtoMessage()    {}
+
+type ChangesetList struct {
+	Changesets []*Changeset `protobuf:"bytes,1,rep,name=changesets" json:"changesets,omitempty"`
+}
+
+func (m *ChangesetList) Reset()         { *m = ChangesetList{} }
+func (m *ChangesetList) String() string { return proto.CompactTextString(m) }
+func (*ChangesetList) ProtoMessage()    {}
 
 type ChangesetEventList struct {
 	Events []*ChangesetEvent `protobuf:"bytes,1,rep,name=events" json:"events,omitempty"`
@@ -3379,6 +3400,8 @@ type ChangesetsClient interface {
 	Create(ctx context.Context, in *ChangesetCreateOp, opts ...grpc.CallOption) (*Changeset, error)
 	// Get returns the changeset by RepoSpec and ID.
 	Get(ctx context.Context, in *ChangesetSpec, opts ...grpc.CallOption) (*Changeset, error)
+	// List lists changesets for a repository.
+	List(ctx context.Context, in *ChangesetListOp, opts ...grpc.CallOption) (*ChangesetList, error)
 	// UpdateChangeset updates a changeset's fields and returns the
 	// update event. If no update occurred, it returns nil.
 	Update(ctx context.Context, in *ChangesetUpdateOp, opts ...grpc.CallOption) (*ChangesetEvent, error)
@@ -3411,6 +3434,15 @@ func (c *changesetsClient) Create(ctx context.Context, in *ChangesetCreateOp, op
 func (c *changesetsClient) Get(ctx context.Context, in *ChangesetSpec, opts ...grpc.CallOption) (*Changeset, error) {
 	out := new(Changeset)
 	err := grpc.Invoke(ctx, "/sourcegraph.Changesets/Get", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *changesetsClient) List(ctx context.Context, in *ChangesetListOp, opts ...grpc.CallOption) (*ChangesetList, error) {
+	out := new(ChangesetList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Changesets/List", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3461,6 +3493,8 @@ type ChangesetsServer interface {
 	Create(context.Context, *ChangesetCreateOp) (*Changeset, error)
 	// Get returns the changeset by RepoSpec and ID.
 	Get(context.Context, *ChangesetSpec) (*Changeset, error)
+	// List lists changesets for a repository.
+	List(context.Context, *ChangesetListOp) (*ChangesetList, error)
 	// UpdateChangeset updates a changeset's fields and returns the
 	// update event. If no update occurred, it returns nil.
 	Update(context.Context, *ChangesetUpdateOp) (*ChangesetEvent, error)
@@ -3495,6 +3529,18 @@ func _Changesets_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Co
 		return nil, err
 	}
 	out, err := srv.(ChangesetsServer).Get(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Changesets_List_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(ChangesetListOp)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(ChangesetsServer).List(ctx, in)
 	if err != nil {
 		return nil, err
 	}
@@ -3560,6 +3606,10 @@ var _Changesets_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Get",
 			Handler:    _Changesets_Get_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _Changesets_List_Handler,
 		},
 		{
 			MethodName: "Update",

@@ -530,6 +530,9 @@ service Changesets {
 	// Get returns the changeset by RepoSpec and ID.
 	rpc Get(ChangesetSpec) returns (Changeset);
 
+	// List lists changesets for a repository.
+	rpc List(ChangesetListOp) returns (ChangesetList);
+
 	// UpdateChangeset updates a changeset's fields and returns the
 	// update event. If no update occurred, it returns nil.
 	rpc Update(ChangesetUpdateOp) returns (ChangesetEvent);
@@ -834,6 +837,13 @@ message BuildListOptions {
 	ListOptions list_options = 11 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
+message ChangesetListOp {
+	string repo = 1;
+	bool open = 2;
+	bool closed = 3;
+	ListOptions list_options = 11 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
 message BuildSpec {
 	string commit_id = 1 [(gogoproto.customname) = "CommitID"];
 	uint32 attempt = 2;
@@ -966,6 +976,10 @@ message BuildTaskList {
 
 message ChangesetReviewList {
 	repeated ChangesetReview reviews = 1;
+}
+
+message ChangesetList {
+	repeated Changeset changesets = 1;
 }
 
 message ChangesetEventList {
