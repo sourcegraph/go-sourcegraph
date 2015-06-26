@@ -77,17 +77,13 @@ func (t *APIKeyAuth) GetRequestMetadata(ctx context.Context) (map[string]string,
 // for the API key in authenticated requests.
 const keyAuthMDKey = "x-sourcegraph-key"
 
-// ReadAPIKeyAuth returns the authenticated UID for the request. If no
-// authentication is attempted, it returns (false, 0, nil). If
-// authentication fails, a non-nil error is returned. If
-// authentication succeeds, authed=true.
+// ReadAPIKeyAuth reads the client's provided API key from the
+// request.
 //
 // Exactly one of hdr and md must be set. The func takes both
 // arguments to avoid the confusion of having one func for reading
 // HTTP/1 credentials and another func for reading gRPC credentials.
-func ReadAPIKeyAuth(secret []byte, hdr http.Header, md metadata.MD) (authed bool, uid int, err error) {
-	var keyStr string
-
+func ReadAPIKeyAuth(hdr http.Header, md metadata.MD) (key string, err error) {
 	switch {
 	case hdr != nil && md != nil:
 		panic("exactly one of hdr and md must be set")
@@ -102,41 +98,39 @@ func ReadAPIKeyAuth(secret []byte, hdr http.Header, md metadata.MD) (authed bool
 			// Parse HTTP basic auth header.
 			val, err := base64.StdEncoding.DecodeString(rawval)
 			if err != nil {
-				return false, 0, err
+				return "", err
 			}
 			parts := strings.SplitN(string(val), ":", 2)
 			if len(parts) != 2 {
-				return false, 0, errors.New("invalid HTTP basic auth header")
+				return "", errors.New("invalid HTTP basic auth header")
 			}
 			if parts[0] != keyAuthMDKey { // No auth attempted (different scheme).
-				return false, 0, nil
+				return "", nil
 			}
-			keyStr = parts[1]
-			goto checkKeyStr
+			return parts[1], nil
 		}
-		return false, 0, nil
+		return "", nil
 
 	case md != nil:
 		val, ok := md[keyAuthMDKey]
 		if !ok {
-			return false, 0, nil
+			return "", nil
 		}
-		keyStr = val
-		goto checkKeyStr
+		return val, nil
 	}
 
-checkKeyStr:
-	var k apiKey
-	if err := k.UnmarshalText([]byte(keyStr)); err != nil {
-		return false, 0, &AuthenticationError{Kind: "key", Err: err}
-	}
-	return verifyAPIKey(secret, k.claimedUID, keyStr)
+	return "", nil
 }
 
-func verifyAPIKey(secret []byte, uid int, key string) (authed bool, authedUID int, err error) {
-	wantKey := APIKey(secret, uid)
+func VerifyAPIKey(secret []byte, key string) (authed bool, authedUID int, err error) {
+	var k apiKey
+	if err := k.UnmarshalText([]byte(key)); err != nil {
+		return false, 0, &AuthenticationError{Kind: "key", Err: err}
+	}
+
+	wantKey := APIKey(secret, k.claimedUID)
 	if len(wantKey) == len(key) && subtle.ConstantTimeCompare([]byte(wantKey), []byte(key)) == 1 {
-		return true, uid, nil
+		return true, k.claimedUID, nil
 	}
 	return false, 0, &AuthenticationError{Kind: "key", Err: errors.New("API key failed verification")}
 }
@@ -158,7 +152,7 @@ func APIKey(secret []byte, uid int) string {
 }
 
 type apiKey struct {
-	claimedUID int // the claimed UID must be verified with verifyAPIKey!
+	claimedUID int // the claimed UID must be verified with VerifyAPIKey!
 	verifier   []byte
 }
 
