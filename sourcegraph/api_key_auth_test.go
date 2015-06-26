@@ -3,6 +3,8 @@ package sourcegraph
 import (
 	"net/http"
 	"testing"
+
+	"google.golang.org/grpc/metadata"
 )
 
 type fakeTransport struct {
@@ -15,6 +17,14 @@ func (t *fakeTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 var secret = []byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+
+func readAndVerifyAPIKeyAuth(secret []byte, hdr http.Header, md metadata.MD) (authed bool, uid int, err error) {
+	key, err := ReadAPIKeyAuth(hdr, md)
+	if err != nil || key == "" {
+		return false, 0, err
+	}
+	return VerifyAPIKey(secret, key)
+}
 
 func TestAPIKeyAuth_HTTP(t *testing.T) {
 	const uid = 123
@@ -29,7 +39,7 @@ func TestAPIKeyAuth_HTTP(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/foo", nil)
 	authT.RoundTrip(req)
 
-	authed, authedUID, err := ReadAPIKeyAuth(secret, fakeT.req.Header, nil)
+	authed, authedUID, err := readAndVerifyAPIKeyAuth(secret, fakeT.req.Header, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,7 +64,7 @@ func TestAPIKeyAuth_HTTP_fail(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/foo", nil)
 	authT.RoundTrip(req)
 
-	authed, authedUID, err := ReadAPIKeyAuth(secret, fakeT.req.Header, nil)
+	authed, authedUID, err := readAndVerifyAPIKeyAuth(secret, fakeT.req.Header, nil)
 	_, isAuthErr := err.(*AuthenticationError)
 	if err == nil || !isAuthErr {
 		t.Fatalf("got err %v, want AuthenticationError", err)
@@ -79,7 +89,7 @@ func TestAPIKeyAuth_gRPC(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	authed, authedUID, err := ReadAPIKeyAuth(secret, nil, md)
+	authed, authedUID, err := readAndVerifyAPIKeyAuth(secret, nil, md)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,7 +113,7 @@ func TestAPIKeyAuth_gRPC_fail(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	authed, authedUID, err := ReadAPIKeyAuth(secret, nil, md)
+	authed, authedUID, err := readAndVerifyAPIKeyAuth(secret, nil, md)
 	_, isAuthErr := err.(*AuthenticationError)
 	if err == nil || !isAuthErr {
 		t.Fatalf("got err %v, want AuthenticationError", err)
