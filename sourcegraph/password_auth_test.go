@@ -17,7 +17,7 @@ func TestPasswordAuth_HTTP(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/foo", nil)
 	authT.RoundTrip(req)
 
-	authed, user, pw, err := ReadPasswordAuth(secret, fakeT.req.Header, nil)
+	authed, user, pw, err := ReadPasswordAuth(fakeT.req.Header, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +36,7 @@ func TestPasswordAuth_HTTP_fail(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/foo", nil)
 	req.Header.Set("authorization", "Basic invalid")
 
-	authed, user, pw, err := ReadPasswordAuth(secret, req.Header, nil)
+	authed, user, pw, err := ReadPasswordAuth(req.Header, nil)
 	_, isAuthErr := err.(*AuthenticationError)
 	if err == nil || !isAuthErr {
 		t.Fatalf("got err %v, want AuthenticationError", err)
@@ -55,7 +55,7 @@ func TestPasswordAuth_HTTP_fail(t *testing.T) {
 func TestPasswordAuth_HTTP_none(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/foo", nil)
 
-	authed, user, pw, err := ReadPasswordAuth(secret, req.Header, nil)
+	authed, user, pw, err := ReadPasswordAuth(req.Header, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +81,7 @@ func TestPasswordAuth_gRPC(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	authed, user, pw, err := ReadPasswordAuth(secret, nil, md)
+	authed, user, pw, err := ReadPasswordAuth(nil, md)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,7 +97,7 @@ func TestPasswordAuth_gRPC(t *testing.T) {
 }
 
 func TestPasswordAuth_gRPC_fail(t *testing.T) {
-	authed, user, pw, err := ReadPasswordAuth(secret, nil, map[string]string{passwordAuthMDKey: "invalid"})
+	authed, user, pw, err := ReadPasswordAuth(nil, map[string]string{passwordAuthMDKey: "invalid"})
 	_, isAuthErr := err.(*AuthenticationError)
 	if err == nil || !isAuthErr {
 		t.Fatalf("got err %v, want AuthenticationError", err)
@@ -114,7 +114,7 @@ func TestPasswordAuth_gRPC_fail(t *testing.T) {
 }
 
 func TestPasswordAuth_gRPC_none(t *testing.T) {
-	authed, user, pw, err := ReadPasswordAuth(secret, nil, map[string]string{})
+	authed, user, pw, err := ReadPasswordAuth(nil, map[string]string{})
 	if err != nil {
 		t.Fatal(err)
 	}

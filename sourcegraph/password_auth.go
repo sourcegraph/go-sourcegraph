@@ -67,7 +67,7 @@ const passwordAuthMDKey = "x-sourcegraph-username-password"
 // Exactly one of hdr and md must be set. The func takes both
 // arguments to avoid the confusion of having one func for reading
 // HTTP/1 credentials and another func for reading gRPC credentials.
-func ReadPasswordAuth(secret []byte, hdr http.Header, md metadata.MD) (authed bool, login, password string, err error) {
+func ReadPasswordAuth(hdr http.Header, md metadata.MD) (authed bool, login, password string, err error) {
 	var b64Encoded string
 
 	switch {
