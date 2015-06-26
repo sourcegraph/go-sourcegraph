@@ -1182,23 +1182,26 @@ service Users {
 	};
 }
 
-// UserAuth manages user authentication and registration.
+// UserAuth manages user authentication.
 service UserAuth {
-	// Authenticate associates the provided access token (from an
-	// external service, such as GitHub) with the context's current
-	// user. If there is no current user, then the token may be used
-	// to create an account. The UID of the current user (or the newly
-	// registered user) is returned.
+	// Authenticate uses the provided credentials to verify the user's
+	// identity. It returns the user's UserSpec and an API key that
+	// may be used in subsequent API calls to authenticate the user.
+	//
+	// The credentials can come from a variety of sources (see
+	// UserAuthAuthenticateOp for details). If the credentials are
+	// from an external source and identify a user that doesn't yet
+	// have a corresponding account on this Sourcegraph instance, an
+	// account might be created. (E.g., if OAuth via GitHub or Google
+	// is used to log in.)
+	//
+	// If the credentials are invalid, grpc.PermissionDenied is
+	// returned.
 	rpc Authenticate(UserAuthAuthenticateOp) returns (AuthenticatedUser) {
 		option (google.api.http) = {
 			post: "/user_auth"
 		};
 	};
-
-	// CheckLoginCredentials checks whether the login (password, plus
-	// 2FA tokens in the future) credentials are valid for the given
-	// user. If not, a grpc.PermissionDenied error is returned.
-	rpc CheckLoginCredentials(LoginCredentials) returns (AuthenticatedUser);
 
 	// GetExternal returns info about the current user's
 	// authentication with an external service (e.g., the currently
@@ -1218,9 +1221,16 @@ service UserAuth {
 	};
 }
 
-// An AuthenticatedUser describes the user that resulted from a UserAuth.Authenticate call.
+// An AuthenticatedUser describes the user that resulted from a
+// UserAuth.Authenticate call.
 message AuthenticatedUser {
-	int32 uid = 1 [(gogoproto.customname) = "UID"];
+	// User is the authenticated user.
+	UserSpec user = 1 [(gogoproto.nullable) = false];
+	
+	// Key is an API key that may be used in subsequent API calls to
+	// authenticate the user (by using the Go APIKeyAuth credential
+	// provider, for example).
+	string key = 2;
 }
 
 // LoginCredentials is the information a user submits to log in.
@@ -1234,7 +1244,9 @@ message LoginCredentials {
 	// In the future we can add 2FA tokens, etc., here.
 }
 
-message UserAuthAuthenticateOp {
+// OAuthCredentials holds credentials that authenticate a user via
+// OAuth. It is the result of a successful OAuth flow.
+message OAuthCredentials {
 	string client_id = 1 [(gogoproto.customname) = "ClientID"];
 	string access_token = 2;
 	string scope = 3;
@@ -1244,6 +1256,19 @@ message UserAuthAuthenticateOp {
 	string host = 4;
 
 	AuthEndpointType endpoint_type = 5;
+}
+
+// UserAuthAuthenticateOp contains auth credentials used to identify
+// and authenticate a user. Generally only one of the fields should be
+// set.
+message UserAuthAuthenticateOp {
+	// LoginCredentials is set if the user is authenticating using a
+	// username and password.
+	LoginCredentials login_credentials = 1;
+
+	// OAuthCredentials is set if the user is authenticating using a
+	// username and password.
+	OAuthCredentials oauth_credentials = 2 [(gogoproto.customname) = "OAuthCredentials"];
 }
 
 message UserAuthGetExternalOp {
