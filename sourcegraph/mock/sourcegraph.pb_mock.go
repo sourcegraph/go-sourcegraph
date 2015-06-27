@@ -612,18 +612,13 @@ func (s *UsersServer) List(v0 context.Context, v1 *sourcegraph.UsersListOptions)
 var _ sourcegraph.UsersServer = (*UsersServer)(nil)
 
 type UserAuthClient struct {
-	Authenticate_          func(ctx context.Context, in *sourcegraph.UserAuthAuthenticateOp) (*sourcegraph.AuthenticatedUser, error)
-	CheckLoginCredentials_ func(ctx context.Context, in *sourcegraph.LoginCredentials) (*sourcegraph.AuthenticatedUser, error)
-	GetExternal_           func(ctx context.Context, in *sourcegraph.UserAuthGetExternalOp) (*sourcegraph.ExternalAuthInfo, error)
-	Identify_              func(ctx context.Context, in *pbtypes.Void) (*sourcegraph.AuthInfo, error)
+	Authenticate_ func(ctx context.Context, in *sourcegraph.UserAuthAuthenticateOp) (*sourcegraph.AuthenticatedUser, error)
+	GetExternal_  func(ctx context.Context, in *sourcegraph.UserAuthGetExternalOp) (*sourcegraph.ExternalAuthInfo, error)
+	Identify_     func(ctx context.Context, in *pbtypes.Void) (*sourcegraph.AuthInfo, error)
 }
 
 func (s *UserAuthClient) Authenticate(ctx context.Context, in *sourcegraph.UserAuthAuthenticateOp, opts ...grpc.CallOption) (*sourcegraph.AuthenticatedUser, error) {
 	return s.Authenticate_(ctx, in)
-}
-
-func (s *UserAuthClient) CheckLoginCredentials(ctx context.Context, in *sourcegraph.LoginCredentials, opts ...grpc.CallOption) (*sourcegraph.AuthenticatedUser, error) {
-	return s.CheckLoginCredentials_(ctx, in)
 }
 
 func (s *UserAuthClient) GetExternal(ctx context.Context, in *sourcegraph.UserAuthGetExternalOp, opts ...grpc.CallOption) (*sourcegraph.ExternalAuthInfo, error) {
@@ -637,18 +632,13 @@ func (s *UserAuthClient) Identify(ctx context.Context, in *pbtypes.Void, opts ..
 var _ sourcegraph.UserAuthClient = (*UserAuthClient)(nil)
 
 type UserAuthServer struct {
-	Authenticate_          func(v0 context.Context, v1 *sourcegraph.UserAuthAuthenticateOp) (*sourcegraph.AuthenticatedUser, error)
-	CheckLoginCredentials_ func(v0 context.Context, v1 *sourcegraph.LoginCredentials) (*sourcegraph.AuthenticatedUser, error)
-	GetExternal_           func(v0 context.Context, v1 *sourcegraph.UserAuthGetExternalOp) (*sourcegraph.ExternalAuthInfo, error)
-	Identify_              func(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.AuthInfo, error)
+	Authenticate_ func(v0 context.Context, v1 *sourcegraph.UserAuthAuthenticateOp) (*sourcegraph.AuthenticatedUser, error)
+	GetExternal_  func(v0 context.Context, v1 *sourcegraph.UserAuthGetExternalOp) (*sourcegraph.ExternalAuthInfo, error)
+	Identify_     func(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.AuthInfo, error)
 }
 
 func (s *UserAuthServer) Authenticate(v0 context.Context, v1 *sourcegraph.UserAuthAuthenticateOp) (*sourcegraph.AuthenticatedUser, error) {
 	return s.Authenticate_(v0, v1)
-}
-
-func (s *UserAuthServer) CheckLoginCredentials(v0 context.Context, v1 *sourcegraph.LoginCredentials) (*sourcegraph.AuthenticatedUser, error) {
-	return s.CheckLoginCredentials_(v0, v1)
 }
 
 func (s *UserAuthServer) GetExternal(v0 context.Context, v1 *sourcegraph.UserAuthGetExternalOp) (*sourcegraph.ExternalAuthInfo, error) {

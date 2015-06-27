@@ -97,6 +97,7 @@ It has these top-level messages:
 	NewAccount
 	AuthenticatedUser
 	LoginCredentials
+	OAuthCredentials
 	UserAuthAuthenticateOp
 	UserAuthGetExternalOp
 	ExternalAuthInfo
@@ -1508,9 +1509,15 @@ func (m *NewAccount) Reset()         { *m = NewAccount{} }
 func (m *NewAccount) String() string { return proto.CompactTextString(m) }
 func (*NewAccount) ProtoMessage()    {}
 
-// An AuthenticatedUser describes the user that resulted from a UserAuth.Authenticate call.
+// An AuthenticatedUser describes the user that resulted from a
+// UserAuth.Authenticate call.
 type AuthenticatedUser struct {
-	UID int32 `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// User is the authenticated user.
+	User UserSpec `protobuf:"bytes,1,opt,name=user" json:"user"`
+	// Key is an API key that may be used in subsequent API calls to
+	// authenticate the user (by using the Go APIKeyAuth credential
+	// provider, for example).
+	Key string `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
 }
 
 func (m *AuthenticatedUser) Reset()         { *m = AuthenticatedUser{} }
@@ -1529,7 +1536,9 @@ func (m *LoginCredentials) Reset()         { *m = LoginCredentials{} }
 func (m *LoginCredentials) String() string { return proto.CompactTextString(m) }
 func (*LoginCredentials) ProtoMessage()    {}
 
-type UserAuthAuthenticateOp struct {
+// OAuthCredentials holds credentials that authenticate a user via
+// OAuth. It is the result of a successful OAuth flow.
+type OAuthCredentials struct {
 	ClientID    string `protobuf:"bytes,1,opt,name=client_id,proto3" json:"client_id,omitempty"`
 	AccessToken string `protobuf:"bytes,2,opt,name=access_token,proto3" json:"access_token,omitempty"`
 	Scope       string `protobuf:"bytes,3,opt,name=scope,proto3" json:"scope,omitempty"`
@@ -1537,6 +1546,22 @@ type UserAuthAuthenticateOp struct {
 	// github.example.com).
 	Host         string           `protobuf:"bytes,4,opt,name=host,proto3" json:"host,omitempty"`
 	EndpointType AuthEndpointType `protobuf:"varint,5,opt,name=endpoint_type,proto3,enum=sourcegraph.AuthEndpointType" json:"endpoint_type,omitempty"`
+}
+
+func (m *OAuthCredentials) Reset()         { *m = OAuthCredentials{} }
+func (m *OAuthCredentials) String() string { return proto.CompactTextString(m) }
+func (*OAuthCredentials) ProtoMessage()    {}
+
+// UserAuthAuthenticateOp contains auth credentials used to identify
+// and authenticate a user. Generally only one of the fields should be
+// set.
+type UserAuthAuthenticateOp struct {
+	// LoginCredentials is set if the user is authenticating using a
+	// username and password.
+	LoginCredentials *LoginCredentials `protobuf:"bytes,1,opt,name=login_credentials" json:"login_credentials,omitempty"`
+	// OAuthCredentials is set if the user is authenticating using a
+	// username and password.
+	OAuthCredentials *OAuthCredentials `protobuf:"bytes,2,opt,name=oauth_credentials" json:"oauth_credentials,omitempty"`
 }
 
 func (m *UserAuthAuthenticateOp) Reset()         { *m = UserAuthAuthenticateOp{} }
@@ -4582,16 +4607,20 @@ var _Users_serviceDesc = grpc.ServiceDesc{
 // Client API for UserAuth service
 
 type UserAuthClient interface {
-	// Authenticate associates the provided access token (from an
-	// external service, such as GitHub) with the context's current
-	// user. If there is no current user, then the token may be used
-	// to create an account. The UID of the current user (or the newly
-	// registered user) is returned.
+	// Authenticate uses the provided credentials to verify the user's
+	// identity. It returns the user's UserSpec and an API key that
+	// may be used in subsequent API calls to authenticate the user.
+	//
+	// The credentials can come from a variety of sources (see
+	// UserAuthAuthenticateOp for details). If the credentials are
+	// from an external source and identify a user that doesn't yet
+	// have a corresponding account on this Sourcegraph instance, an
+	// account might be created. (E.g., if OAuth via GitHub or Google
+	// is used to log in.)
+	//
+	// If the credentials are invalid, grpc.PermissionDenied is
+	// returned.
 	Authenticate(ctx context.Context, in *UserAuthAuthenticateOp, opts ...grpc.CallOption) (*AuthenticatedUser, error)
-	// CheckLoginCredentials checks whether the login (password, plus
-	// 2FA tokens in the future) credentials are valid for the given
-	// user. If not, a grpc.PermissionDenied error is returned.
-	CheckLoginCredentials(ctx context.Context, in *LoginCredentials, opts ...grpc.CallOption) (*AuthenticatedUser, error)
 	// GetExternal returns info about the current user's
 	// authentication with an external service (e.g., the currently
 	// authorized GitHub scope).
@@ -4612,15 +4641,6 @@ func NewUserAuthClient(cc *grpc.ClientConn) UserAuthClient {
 func (c *userAuthClient) Authenticate(ctx context.Context, in *UserAuthAuthenticateOp, opts ...grpc.CallOption) (*AuthenticatedUser, error) {
 	out := new(AuthenticatedUser)
 	err := grpc.Invoke(ctx, "/sourcegraph.UserAuth/Authenticate", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userAuthClient) CheckLoginCredentials(ctx context.Context, in *LoginCredentials, opts ...grpc.CallOption) (*AuthenticatedUser, error) {
-	out := new(AuthenticatedUser)
-	err := grpc.Invoke(ctx, "/sourcegraph.UserAuth/CheckLoginCredentials", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -4648,16 +4668,20 @@ func (c *userAuthClient) Identify(ctx context.Context, in *pbtypes1.Void, opts .
 // Server API for UserAuth service
 
 type UserAuthServer interface {
-	// Authenticate associates the provided access token (from an
-	// external service, such as GitHub) with the context's current
-	// user. If there is no current user, then the token may be used
-	// to create an account. The UID of the current user (or the newly
-	// registered user) is returned.
+	// Authenticate uses the provided credentials to verify the user's
+	// identity. It returns the user's UserSpec and an API key that
+	// may be used in subsequent API calls to authenticate the user.
+	//
+	// The credentials can come from a variety of sources (see
+	// UserAuthAuthenticateOp for details). If the credentials are
+	// from an external source and identify a user that doesn't yet
+	// have a corresponding account on this Sourcegraph instance, an
+	// account might be created. (E.g., if OAuth via GitHub or Google
+	// is used to log in.)
+	//
+	// If the credentials are invalid, grpc.PermissionDenied is
+	// returned.
 	Authenticate(context.Context, *UserAuthAuthenticateOp) (*AuthenticatedUser, error)
-	// CheckLoginCredentials checks whether the login (password, plus
-	// 2FA tokens in the future) credentials are valid for the given
-	// user. If not, a grpc.PermissionDenied error is returned.
-	CheckLoginCredentials(context.Context, *LoginCredentials) (*AuthenticatedUser, error)
 	// GetExternal returns info about the current user's
 	// authentication with an external service (e.g., the currently
 	// authorized GitHub scope).
@@ -4677,18 +4701,6 @@ func _UserAuth_Authenticate_Handler(srv interface{}, ctx context.Context, codec 
 		return nil, err
 	}
 	out, err := srv.(UserAuthServer).Authenticate(ctx, in)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func _UserAuth_CheckLoginCredentials_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(LoginCredentials)
-	if err := codec.Unmarshal(buf, in); err != nil {
-		return nil, err
-	}
-	out, err := srv.(UserAuthServer).CheckLoginCredentials(ctx, in)
 	if err != nil {
 		return nil, err
 	}
@@ -4726,10 +4738,6 @@ var _UserAuth_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Authenticate",
 			Handler:    _UserAuth_Authenticate_Handler,
-		},
-		{
-			MethodName: "CheckLoginCredentials",
-			Handler:    _UserAuth_CheckLoginCredentials_Handler,
 		},
 		{
 			MethodName: "GetExternal",
