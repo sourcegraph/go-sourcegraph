@@ -146,7 +146,7 @@ message InlineComment {
 	// CommitID is the SHA-1 for the post-image of this file, where the comment
 	// was placed. The post-image can be deduced from the file entry in the diff
 	// that it belong by extracting it's extended header's index entry.
-	string commit_id = 3 [(gogoproto.customname) = "CommitID"]; 
+	string commit_id = 3 [(gogoproto.customname) = "CommitID"];
 
 	// Author is the user that initiated this changeset.
 	UserSpec author = 4 [(gogoproto.nullable) = false];
@@ -642,7 +642,7 @@ message ChangesetUpdateOp {
 
 	// Open, if true, will set the changeset's ClosedAt value to nil.
 	bool open = 5;
-	
+
 	// Close, if true, will set the ClosedAt date.
 	bool close = 6;
 
@@ -1432,7 +1432,7 @@ service UserAuth {
 message AuthenticatedUser {
 	// User is the authenticated user.
 	UserSpec user = 1 [(gogoproto.nullable) = false];
-	
+
 	// Key is an API key that may be used in subsequent API calls to
 	// authenticate the user (by using the Go APIKeyAuth credential
 	// provider, for example).
@@ -1709,6 +1709,7 @@ message DefsListRefsOp {
 
 message RefList {
 	repeated Ref refs = 1;
+	ListResponse list_response = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
 message DefsListExamplesOp {
@@ -1721,6 +1722,7 @@ message DefsListExamplesOp {
 
 message ExampleList {
 	repeated Example examples = 1;
+	ListResponse list_response = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
 message DefsListAuthorsOp {
@@ -1933,7 +1935,7 @@ message Example {
 
 	// Error is whether an error occurred while fetching this example.
 	bool error = 6;
-	
+
 	// If the example has been requested by revision name (ie. branch, tag), this
 	// value will be set.
 	string rev = 7 [(gogoproto.jsontag) = ",omitempty"];

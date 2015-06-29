@@ -1850,7 +1850,8 @@ func (m *DefsListRefsOp) String() string { return proto.CompactTextString(m) }
 func (*DefsListRefsOp) ProtoMessage()    {}
 
 type RefList struct {
-	Refs []*Ref `protobuf:"bytes,1,rep,name=refs" json:"refs,omitempty"`
+	Refs         []*Ref `protobuf:"bytes,1,rep,name=refs" json:"refs,omitempty"`
+	ListResponse `protobuf:"bytes,2,opt,name=list_response,embedded=list_response" json:"list_response"`
 }
 
 func (m *RefList) Reset()         { *m = RefList{} }
@@ -1870,7 +1871,8 @@ func (m *DefsListExamplesOp) String() string { return proto.CompactTextString(m)
 func (*DefsListExamplesOp) ProtoMessage()    {}
 
 type ExampleList struct {
-	Examples []*Example `protobuf:"bytes,1,rep,name=examples" json:"examples,omitempty"`
+	Examples     []*Example `protobuf:"bytes,1,rep,name=examples" json:"examples,omitempty"`
+	ListResponse `protobuf:"bytes,2,opt,name=list_response,embedded=list_response" json:"list_response"`
 }
 
 func (m *ExampleList) Reset()         { *m = ExampleList{} }
