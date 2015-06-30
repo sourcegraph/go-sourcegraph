@@ -27,9 +27,10 @@ regenerate Go code after you change the `sourcegraph.proto` file.
    ./autogen.sh
    ./configure --enable-static && make && sudo make install
    ```
- 
+
    Then make sure the `protoc` binary is in your `$PATH`.
-1. **Install [gogo/protobuf](https://github.com/gogo/protobuf)**, on the `proto3` branch.
+
+2. **Install [gogo/protobuf](https://github.com/gogo/protobuf)**, on the `proto3` branch.
 
    ```
    go get -u -a github.com/gogo/protobuf/{proto,protoc-gen-gogo,gogoproto}
@@ -37,11 +38,34 @@ regenerate Go code after you change the `sourcegraph.proto` file.
    git checkout proto3
    go install ./...
    ```
-1. **Install [gen-mocks](https://sourcegraph.com/sourcegraph/gen-mocks)** by running:
+
+3. **Install [gen-mocks](https://sourcegraph.com/sourcegraph/gen-mocks)** by running:
 
    ```
    go get -u sourcegraph.com/sourcegraph/gen-mocks
    ```
+
+4. **Install `gopathexec`**:
+
+   ```
+   go get -u github.com/shurcooL/gopathexec
+   ```
+
+#### OS X-specific
+
+```
+brew install gnu-sed --with-default-names
+```
+
+#### Unconfirmed
+
+_TODO: Make it work with latest, confirm if there are any issues._
+
+If you run into errors while compiling protobufs, try again with these older versions that are known to work:
+
+-  `protoc` - version `3.0.0-alpha-2`.
+-  `protoc-gen-gogo` - commit `0d32fa3409f705a45020a232768fb9b121f377e9`.
+
 
 ### Regenerating Go code after changing `sourcegraph.proto`
 
