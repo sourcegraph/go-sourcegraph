@@ -33,6 +33,8 @@ It has these top-level messages:
 	RepoStatus
 	RepoStatusesCreateOp
 	RepoList
+	RepoRevStatus
+	RepoRevStatusUpdate
 	ReposCreateOp
 	ReposListCommitsOp
 	RepoListCommitsOptions
@@ -698,6 +700,31 @@ type RepoList struct {
 func (m *RepoList) Reset()         { *m = RepoList{} }
 func (m *RepoList) String() string { return proto.CompactTextString(m) }
 func (*RepoList) ProtoMessage()    {}
+
+type RepoRevStatus struct {
+	// RepoRev is the repository revision (either a named branch or
+	// a commit ID) that this status applies to.
+	RepoRev RepoRevSpec `protobuf:"bytes,1,opt,name=repo_rev" json:"repo_rev"`
+	// If non-null, BestBuiltCommit is the commit ID to use when
+	// fetching graph data. This should only be set for named branches.
+	BestBuiltCommit *BuildSpec `protobuf:"bytes,2,opt,name=best_built_commit" json:"best_built_commit,omitempty"`
+	// If non-null, ResolvedCommit is the commit ID that the revision
+	// resolves to. This should only be set for named branches.
+	ResolvedCommit string `protobuf:"bytes,3,opt,name=resolved_commit,proto3" json:"resolved_commit,omitempty"`
+}
+
+func (m *RepoRevStatus) Reset()         { *m = RepoRevStatus{} }
+func (m *RepoRevStatus) String() string { return proto.CompactTextString(m) }
+func (*RepoRevStatus) ProtoMessage()    {}
+
+type RepoRevStatusUpdate struct {
+	RepoRevStatus RepoRevStatus `protobuf:"bytes,1,opt,name=repo_rev_status" json:"repo_rev_status"`
+	Overwrite     bool          `protobuf:"varint,2,opt,name=overwrite,proto3" json:"overwrite,omitempty"`
+}
+
+func (m *RepoRevStatusUpdate) Reset()         { *m = RepoRevStatusUpdate{} }
+func (m *RepoRevStatusUpdate) String() string { return proto.CompactTextString(m) }
+func (*RepoRevStatusUpdate) ProtoMessage()    {}
 
 type ReposCreateOp struct {
 	// URI is the desired URI of the new repository.
@@ -3414,6 +3441,90 @@ var _Repos_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListTags",
 			Handler:    _Repos_ListTags_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for RepoRevStatuses service
+
+type RepoRevStatusesClient interface {
+	Get(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*RepoRevStatus, error)
+	Set(ctx context.Context, in *RepoRevStatus, opts ...grpc.CallOption) (*RepoRevStatus, error)
+}
+
+type repoRevStatusesClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewRepoRevStatusesClient(cc *grpc.ClientConn) RepoRevStatusesClient {
+	return &repoRevStatusesClient{cc}
+}
+
+func (c *repoRevStatusesClient) Get(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*RepoRevStatus, error) {
+	out := new(RepoRevStatus)
+	err := grpc.Invoke(ctx, "/sourcegraph.RepoRevStatuses/Get", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *repoRevStatusesClient) Set(ctx context.Context, in *RepoRevStatus, opts ...grpc.CallOption) (*RepoRevStatus, error) {
+	out := new(RepoRevStatus)
+	err := grpc.Invoke(ctx, "/sourcegraph.RepoRevStatuses/Set", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for RepoRevStatuses service
+
+type RepoRevStatusesServer interface {
+	Get(context.Context, *RepoRevSpec) (*RepoRevStatus, error)
+	Set(context.Context, *RepoRevStatus) (*RepoRevStatus, error)
+}
+
+func RegisterRepoRevStatusesServer(s *grpc.Server, srv RepoRevStatusesServer) {
+	s.RegisterService(&_RepoRevStatuses_serviceDesc, srv)
+}
+
+func _RepoRevStatuses_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(RepoRevSpec)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RepoRevStatusesServer).Get(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _RepoRevStatuses_Set_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(RepoRevStatus)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RepoRevStatusesServer).Set(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _RepoRevStatuses_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.RepoRevStatuses",
+	HandlerType: (*RepoRevStatusesServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Get",
+			Handler:    _RepoRevStatuses_Get_Handler,
+		},
+		{
+			MethodName: "Set",
+			Handler:    _RepoRevStatuses_Set_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
