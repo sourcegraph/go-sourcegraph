@@ -519,30 +519,6 @@ service Repos {
 	rpc ListTags(ReposListTagsOp) returns (TagList);
 }
 
-message RepoRevStatus {
-  // RepoRev is the repository revision (either a named branch or
-  // a commit ID) that this status applies to.
-  RepoRevSpec repo_rev = 1 [(gogoproto.nullable) = false];
-
-  // If non-null, BestBuiltCommit is the commit ID to use when
-  // fetching graph data. This should only be set for named branches.
-  BuildSpec best_built_commit = 2 [(gogoproto.nullable) = true];
-
-  // If non-null, ResolvedCommit is the commit ID that the revision
-  // resolves to. This should only be set for named branches.
-  string resolved_commit = 3 [(gogoproto.nullable) = true];
-}
-
-message RepoRevStatusUpdate {
-  RepoRevStatus repo_rev_status = 1 [(gogoproto.nullable) = false];
-  bool overwrite = 2;
-}
-
-service RepoRevStatuses {
-  rpc Get(RepoRevSpec) returns (RepoRevStatus);
-  rpc Set(RepoRevStatus) returns (RepoRevStatus);
-}
-
 service Changesets {
 	// Create creates a new Changeset and returns it, populating
 	// its fields, such as ID and CreatedAt.

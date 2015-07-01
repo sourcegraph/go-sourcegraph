@@ -221,36 +221,6 @@ func (s *ReposServer) ListTags(v0 context.Context, v1 *sourcegraph.ReposListTags
 
 var _ sourcegraph.ReposServer = (*ReposServer)(nil)
 
-type RepoRevStatusesClient struct {
-	Get_ func(ctx context.Context, in *sourcegraph.RepoRevSpec) (*sourcegraph.RepoRevStatus, error)
-	Set_ func(ctx context.Context, in *sourcegraph.RepoRevStatus) (*sourcegraph.RepoRevStatus, error)
-}
-
-func (s *RepoRevStatusesClient) Get(ctx context.Context, in *sourcegraph.RepoRevSpec, opts ...grpc.CallOption) (*sourcegraph.RepoRevStatus, error) {
-	return s.Get_(ctx, in)
-}
-
-func (s *RepoRevStatusesClient) Set(ctx context.Context, in *sourcegraph.RepoRevStatus, opts ...grpc.CallOption) (*sourcegraph.RepoRevStatus, error) {
-	return s.Set_(ctx, in)
-}
-
-var _ sourcegraph.RepoRevStatusesClient = (*RepoRevStatusesClient)(nil)
-
-type RepoRevStatusesServer struct {
-	Get_ func(v0 context.Context, v1 *sourcegraph.RepoRevSpec) (*sourcegraph.RepoRevStatus, error)
-	Set_ func(v0 context.Context, v1 *sourcegraph.RepoRevStatus) (*sourcegraph.RepoRevStatus, error)
-}
-
-func (s *RepoRevStatusesServer) Get(v0 context.Context, v1 *sourcegraph.RepoRevSpec) (*sourcegraph.RepoRevStatus, error) {
-	return s.Get_(v0, v1)
-}
-
-func (s *RepoRevStatusesServer) Set(v0 context.Context, v1 *sourcegraph.RepoRevStatus) (*sourcegraph.RepoRevStatus, error) {
-	return s.Set_(v0, v1)
-}
-
-var _ sourcegraph.RepoRevStatusesServer = (*RepoRevStatusesServer)(nil)
-
 type ChangesetsClient struct {
 	Create_       func(ctx context.Context, in *sourcegraph.ChangesetCreateOp) (*sourcegraph.Changeset, error)
 	Get_          func(ctx context.Context, in *sourcegraph.ChangesetSpec) (*sourcegraph.Changeset, error)
