@@ -25,10 +25,13 @@ message Badge {
 // CombinedStatus is the combined status (i.e., incorporating statuses from all
 // contexts) of the repository at a specific rev.
 message CombinedStatus {
-	// CommitID is the full commit ID of the commit this status describes.
+	// Rev is the revision that this status describes. It is set mutually exclusive with CommitID.
+	string rev = 4;
+
+	// CommitID is the full commit ID of the commit this status describes. It is set mutually exclusively with Rev.
 	string commit_id = 1 [(gogoproto.customname) = "CommitID"];
 
-	// State is the combined status of the repository. Possible values are: failture,
+	// State is the combined status of the repository. Possible values are: failure,
 	// pending, or success.
 	string state = 2;
 

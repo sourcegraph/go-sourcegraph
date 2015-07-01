@@ -287,9 +287,11 @@ func (*Badge) ProtoMessage()    {}
 // CombinedStatus is the combined status (i.e., incorporating statuses from all
 // contexts) of the repository at a specific rev.
 type CombinedStatus struct {
-	// CommitID is the full commit ID of the commit this status describes.
+	// Rev is the revision that this status describes. It is set mutually exclusive with CommitID.
+	Rev string `protobuf:"bytes,4,opt,name=rev,proto3" json:"rev,omitempty"`
+	// CommitID is the full commit ID of the commit this status describes. It is set mutually exclusively with Rev.
 	CommitID string `protobuf:"bytes,1,opt,name=commit_id,proto3" json:"commit_id,omitempty"`
-	// State is the combined status of the repository. Possible values are: failture,
+	// State is the combined status of the repository. Possible values are: failure,
 	// pending, or success.
 	State string `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
 	// Statuses are the statuses for each context.
