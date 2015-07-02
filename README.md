@@ -57,7 +57,7 @@ _TODO: Make it work with latest, confirm if there are any issues._
 5. **Install `gopathexec`**:
 
    ```
-   go get -u github.com/shurcooL/gopathexec
+   go get -u sourcegraph.com/sourcegraph/gopathexec
    ```
 
 ### Regenerating Go code after changing `sourcegraph.proto`
