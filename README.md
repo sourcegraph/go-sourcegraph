@@ -19,6 +19,13 @@ interfaces.
 You need to install and run the protobuf compiler before you can
 regenerate Go code after you change the `sourcegraph.proto` file.
 
+If you run into errors while compiling protobufs, try again with these older versions that are known to work:
+
+-  `protoc` - version `3.0.0-alpha-2`.
+-  `protoc-gen-gogo` - commit `0d32fa3409f705a45020a232768fb9b121f377e9`.
+
+_TODO: Make it work with latest, confirm if there are any issues._
+
 1. **Install protoc**, the protobuf compiler. Find more details at the [protobuf README](https://github.com/google/protobuf)).
 
    ```
@@ -27,9 +34,10 @@ regenerate Go code after you change the `sourcegraph.proto` file.
    ./autogen.sh
    ./configure --enable-static && make && sudo make install
    ```
- 
+
    Then make sure the `protoc` binary is in your `$PATH`.
-1. **Install [gogo/protobuf](https://github.com/gogo/protobuf)**, on the `proto3` branch.
+
+2. **Install [gogo/protobuf](https://github.com/gogo/protobuf)**, on the `proto3` branch.
 
    ```
    go get -u -a github.com/gogo/protobuf/{proto,protoc-gen-gogo,gogoproto}
@@ -37,10 +45,19 @@ regenerate Go code after you change the `sourcegraph.proto` file.
    git checkout proto3
    go install ./...
    ```
-1. **Install [gen-mocks](https://sourcegraph.com/sourcegraph/gen-mocks)** by running:
+
+3. **Install `grpc`** by following steps at https://github.com/grpc/grpc-go#installation.
+
+4. **Install [gen-mocks](https://sourcegraph.com/sourcegraph/gen-mocks)** by running:
 
    ```
    go get -u sourcegraph.com/sourcegraph/gen-mocks
+   ```
+
+5. **Install `gopathexec`**:
+
+   ```
+   go get -u sourcegraph.com/sourcegraph/gopathexec
    ```
 
 ### Regenerating Go code after changing `sourcegraph.proto`
