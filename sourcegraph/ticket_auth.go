@@ -71,12 +71,13 @@ func (t *TicketAuth) GetRequestMetadata(ctx context.Context) (map[string]string,
 	if err != nil {
 		return nil, err
 	}
-	return map[string]string{ticketAuthMDKey: string(b)}, nil
+	return map[string]string{TicketAuthID: string(b)}, nil
 }
 
-// ticketAuthMDKey is the gRPC metadata key used to store the
-// API ticket in authenticated requests.
-const ticketAuthMDKey = "ticket-auth"
+// TicketAuthID is the gRPC metadata key and the HTTP Basic username
+// that indicates ticket auth is provided. The value or password
+// contains the ticket string.
+const TicketAuthID = "x-sourcegraph-ticket"
 
 // ReadTicketAuth gets the signed ticket strings from the subset
 // of the HTTP headers that are of the form "Authorization:
@@ -103,10 +104,18 @@ func ReadTicketAuth(hdr http.Header, md metadata.MD) ([]string, error) {
 			}
 			tstrs = append(tstrs, strings.TrimPrefix(authHdr, TicketAuthScheme))
 		}
+
+		// Also check HTTP Basic auth for credentials with username
+		// "x-sourcegraph-ticket" and password being a single ticket.
+		hasBasicTicket, username, ticketStr, err := ReadPasswordAuth(hdr, nil)
+		if err == nil && hasBasicTicket && username == TicketAuthID {
+			tstrs = append(tstrs, ticketStr)
+		}
+
 		return tstrs, nil
 
 	case md != nil:
-		v, ok := md[ticketAuthMDKey]
+		v, ok := md[TicketAuthID]
 		if !ok {
 			return nil, nil
 		}
