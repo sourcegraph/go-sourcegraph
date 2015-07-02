@@ -47,7 +47,7 @@ func (t APIKeyAuth) RoundTrip(req *http.Request) (*http.Response, error) {
 	// that we don't modify the Request we were given. This is required by the
 	// specification of http.RoundTripper.
 	req = cloneRequest(req)
-	req.SetBasicAuth(keyAuthMDKey, t.Key)
+	req.SetBasicAuth(KeyAuthID, t.Key)
 
 	// Make the HTTP request.
 	return transport.RoundTrip(req)
@@ -70,12 +70,13 @@ func cloneRequest(r *http.Request) *http.Request {
 // GetRequestMetadata implements gRPC's credentials.Credentials
 // interface.
 func (t *APIKeyAuth) GetRequestMetadata(ctx context.Context) (map[string]string, error) {
-	return map[string]string{keyAuthMDKey: t.Key}, nil
+	return map[string]string{KeyAuthID: t.Key}, nil
 }
 
-// keyAuthMDKey is the gRPC metadata key and HTTP Basic Auth username
-// for the API key in authenticated requests.
-const keyAuthMDKey = "x-sourcegraph-key"
+// KeyAuthID is the gRPC metadata key and the HTTP Basic username
+// that indicates an API key is provided. The value or password
+// contains the API key.
+const KeyAuthID = "x-sourcegraph-key"
 
 // ReadAPIKeyAuth reads the client's provided API key from the
 // request.
@@ -104,7 +105,7 @@ func ReadAPIKeyAuth(hdr http.Header, md metadata.MD) (key string, err error) {
 			if len(parts) != 2 {
 				return "", errors.New("invalid HTTP basic auth header")
 			}
-			if parts[0] != keyAuthMDKey { // No auth attempted (different scheme).
+			if parts[0] != KeyAuthID { // No auth attempted (different scheme).
 				return "", nil
 			}
 			return parts[1], nil
@@ -112,7 +113,7 @@ func ReadAPIKeyAuth(hdr http.Header, md metadata.MD) (key string, err error) {
 		return "", nil
 
 	case md != nil:
-		val, ok := md[keyAuthMDKey]
+		val, ok := md[KeyAuthID]
 		if !ok {
 			return "", nil
 		}
