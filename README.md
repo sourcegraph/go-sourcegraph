@@ -46,13 +46,15 @@ _TODO: Make it work with latest, confirm if there are any issues._
    go install ./...
    ```
 
-3. **Install [gen-mocks](https://sourcegraph.com/sourcegraph/gen-mocks)** by running:
+3. **Install `grpc`** by following steps at https://github.com/grpc/grpc-go#installation.
+
+4. **Install [gen-mocks](https://sourcegraph.com/sourcegraph/gen-mocks)** by running:
 
    ```
    go get -u sourcegraph.com/sourcegraph/gen-mocks
    ```
 
-4. **Install `gopathexec`**:
+5. **Install `gopathexec`**:
 
    ```
    go get -u github.com/shurcooL/gopathexec
