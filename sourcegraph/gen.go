@@ -7,7 +7,7 @@ package sourcegraph
 // The pbtypes package selector is emitted as pbtypes1 when more than
 // one pbtypes type is used. Fix this up so that goimports works.
 //
-//go:generate sed -i "s#pbtypes1#pbtypes#g" mock/sourcegraph.pb_mock.go
+//go:generate go run gen/goreplace.go -from "pbtypes1" -to "pbtypes" mock/sourcegraph.pb_mock.go
 
 //go:generate goimports -w mock/sourcegraph.pb_mock.go
 

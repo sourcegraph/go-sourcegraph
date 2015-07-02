@@ -19,6 +19,13 @@ interfaces.
 You need to install and run the protobuf compiler before you can
 regenerate Go code after you change the `sourcegraph.proto` file.
 
+If you run into errors while compiling protobufs, try again with these older versions that are known to work:
+
+-  `protoc` - version `3.0.0-alpha-2`.
+-  `protoc-gen-gogo` - commit `0d32fa3409f705a45020a232768fb9b121f377e9`.
+
+_TODO: Make it work with latest, confirm if there are any issues._
+
 1. **Install protoc**, the protobuf compiler. Find more details at the [protobuf README](https://github.com/google/protobuf)).
 
    ```
@@ -50,22 +57,6 @@ regenerate Go code after you change the `sourcegraph.proto` file.
    ```
    go get -u github.com/shurcooL/gopathexec
    ```
-
-#### OS X-specific
-
-```
-brew install gnu-sed --with-default-names
-```
-
-#### Unconfirmed
-
-_TODO: Make it work with latest, confirm if there are any issues._
-
-If you run into errors while compiling protobufs, try again with these older versions that are known to work:
-
--  `protoc` - version `3.0.0-alpha-2`.
--  `protoc-gen-gogo` - commit `0d32fa3409f705a45020a232768fb9b121f377e9`.
-
 
 ### Regenerating Go code after changing `sourcegraph.proto`
 
