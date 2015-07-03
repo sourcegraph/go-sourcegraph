@@ -2706,41 +2706,43 @@ func (*ServerConfig) ProtoMessage()    {}
 
 // A RegisteredClient is a registered API client.
 //
+// Many fields correspond to those listed at
+// http://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata.
+//
 // It's called RegisteredClient instead of Client to avoid a name
 // conflict with the existing Client (Go) type.
 type RegisteredClient struct {
-	// ID is an alphanumeric string that uniquely identifies this
-	// client.
+	// ID is a unique identifier for this client.
 	ID string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// Secret is a secret string that authenticates this client (along
-	// with its ID).
-	//
-	// The secret is not persisted on the server, so it is only
-	// returned by the initial Create call (and not subsequent
-	// Get/Update/etc. calls). This means the client must remember it.
-	Secret string `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"`
-	// HomepageURL is the URL of the homepage for this API client.
-	HomepageURL string `protobuf:"bytes,3,opt,name=homepage_url,proto3" json:"homepage_url,omitempty"`
-	// OAuthRedirectURL is the OAuth2 redirect URL prefix for this API
-	// client, if it needs to perform user authentication using
-	// OAuth2.
-	OAuthRedirectURL string `protobuf:"bytes,4,opt,name=oauth_redirect_url,proto3" json:"oauth_redirect_url,omitempty"`
-	// Title is the human-readable name of this API client that's
-	// shown to the user during, e.g., OAuth2 authentication.
-	Title string `protobuf:"bytes,5,opt,name=title,proto3" json:"title,omitempty"`
+	// RedirectURIs is a list of allowed redirect URIs.
+	RedirectURIs []string `protobuf:"bytes,2,rep,name=redirect_uris" json:"redirect_uris,omitempty"`
+	// ClientName is the name of the client to be presented to the
+	// end-user.
+	ClientName string `protobuf:"bytes,3,opt,name=client_name,proto3" json:"client_name,omitempty"`
+	// LogoURI is a URL to this client's logo.
+	LogoURI string `protobuf:"bytes,4,opt,name=logo_uri,proto3" json:"logo_uri,omitempty"`
+	// ClientURI is a URL to this client's homepage.
+	ClientURI string `protobuf:"bytes,5,opt,name=client_uri,proto3" json:"client_uri,omitempty"`
+	// JWKS is the client's JSON Web Key Set. It contains the client's
+	// public keys, if any.
+	JWKS string `protobuf:"bytes,6,opt,name=jwks,proto3" json:"jwks,omitempty"`
+	// ClientSecret is the secret value that authenticates the
+	// client. It may be empty (e.g., if JWKS keys are used for
+	// authentication instead).
+	ClientSecret string `protobuf:"bytes,7,opt,name=client_secret,proto3" json:"client_secret,omitempty"`
 	// Description is a human-readable description of this API client
 	// that's shown to the user during, e.g., OAuth2 authentication.
-	Description string `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
+	Description string `protobuf:"bytes,8,opt,name=description,proto3" json:"description,omitempty"`
 	// Meta holds arbitrary metadata about this API client. The
 	// structure is defined by the API client and is opaque to the
 	// server.
-	Meta map[string]string `protobuf:"bytes,7,rep,name=meta" json:"meta,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Meta map[string]string `protobuf:"bytes,9,rep,name=meta" json:"meta,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	// RegisteredClientType describes this client's type.
-	Type RegisteredClientType `protobuf:"varint,8,opt,name=type,proto3,enum=sourcegraph.RegisteredClientType" json:"type,omitempty"`
+	Type RegisteredClientType `protobuf:"varint,10,opt,name=type,proto3,enum=sourcegraph.RegisteredClientType" json:"type,omitempty"`
 	// CreatedAt is when this API client's record was created.
-	CreatedAt pbtypes.Timestamp `protobuf:"bytes,9,opt,name=created_at" json:"created_at"`
+	CreatedAt pbtypes.Timestamp `protobuf:"bytes,11,opt,name=created_at" json:"created_at"`
 	// UpdatedAt is when this API client's record was last updated.
-	UpdatedAt pbtypes.Timestamp `protobuf:"bytes,10,opt,name=updated_at" json:"updated_at"`
+	UpdatedAt pbtypes.Timestamp `protobuf:"bytes,12,opt,name=updated_at" json:"updated_at"`
 }
 
 func (m *RegisteredClient) Reset()         { *m = RegisteredClient{} }
@@ -5611,11 +5613,8 @@ type RegisteredClientsClient interface {
 	// GetCurrent is equivalent to a call to Get with the client ID of
 	// the currently authenticated client.
 	GetCurrent(ctx context.Context, in *pbtypes1.Void, opts ...grpc.CallOption) (*RegisteredClient, error)
-	// Create registers an API client. The RegisteredClient arg's ID
-	// and Secret fields must be empty; their values are assigned by
-	// the server and returned in the RegisteredClientCredentials
-	// response.
-	Create(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*RegisteredClientCredentials, error)
+	// Create registers an API client.
+	Create(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*RegisteredClient, error)
 	// Update modifies an API client's record. The RegisteredClient
 	// arg's ID must be set (to specify which client to update). Its
 	// Secret field is ignored (the secret may not be updated after
@@ -5654,8 +5653,8 @@ func (c *registeredClientsClient) GetCurrent(ctx context.Context, in *pbtypes1.V
 	return out, nil
 }
 
-func (c *registeredClientsClient) Create(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*RegisteredClientCredentials, error) {
-	out := new(RegisteredClientCredentials)
+func (c *registeredClientsClient) Create(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*RegisteredClient, error) {
+	out := new(RegisteredClient)
 	err := grpc.Invoke(ctx, "/sourcegraph.RegisteredClients/Create", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
@@ -5698,11 +5697,8 @@ type RegisteredClientsServer interface {
 	// GetCurrent is equivalent to a call to Get with the client ID of
 	// the currently authenticated client.
 	GetCurrent(context.Context, *pbtypes1.Void) (*RegisteredClient, error)
-	// Create registers an API client. The RegisteredClient arg's ID
-	// and Secret fields must be empty; their values are assigned by
-	// the server and returned in the RegisteredClientCredentials
-	// response.
-	Create(context.Context, *RegisteredClient) (*RegisteredClientCredentials, error)
+	// Create registers an API client.
+	Create(context.Context, *RegisteredClient) (*RegisteredClient, error)
 	// Update modifies an API client's record. The RegisteredClient
 	// arg's ID must be set (to specify which client to update). Its
 	// Secret field is ignored (the secret may not be updated after

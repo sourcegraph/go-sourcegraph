@@ -944,7 +944,7 @@ var _ sourcegraph.MetaServer = (*MetaServer)(nil)
 type RegisteredClientsClient struct {
 	Get_        func(ctx context.Context, in *sourcegraph.RegisteredClientSpec) (*sourcegraph.RegisteredClient, error)
 	GetCurrent_ func(ctx context.Context, in *pbtypes.Void) (*sourcegraph.RegisteredClient, error)
-	Create_     func(ctx context.Context, in *sourcegraph.RegisteredClient) (*sourcegraph.RegisteredClientCredentials, error)
+	Create_     func(ctx context.Context, in *sourcegraph.RegisteredClient) (*sourcegraph.RegisteredClient, error)
 	Update_     func(ctx context.Context, in *sourcegraph.RegisteredClient) (*pbtypes.Void, error)
 	Delete_     func(ctx context.Context, in *sourcegraph.RegisteredClientSpec) (*pbtypes.Void, error)
 	List_       func(ctx context.Context, in *sourcegraph.RegisteredClientListOptions) (*sourcegraph.RegisteredClientList, error)
@@ -958,7 +958,7 @@ func (s *RegisteredClientsClient) GetCurrent(ctx context.Context, in *pbtypes.Vo
 	return s.GetCurrent_(ctx, in)
 }
 
-func (s *RegisteredClientsClient) Create(ctx context.Context, in *sourcegraph.RegisteredClient, opts ...grpc.CallOption) (*sourcegraph.RegisteredClientCredentials, error) {
+func (s *RegisteredClientsClient) Create(ctx context.Context, in *sourcegraph.RegisteredClient, opts ...grpc.CallOption) (*sourcegraph.RegisteredClient, error) {
 	return s.Create_(ctx, in)
 }
 
@@ -979,7 +979,7 @@ var _ sourcegraph.RegisteredClientsClient = (*RegisteredClientsClient)(nil)
 type RegisteredClientsServer struct {
 	Get_        func(v0 context.Context, v1 *sourcegraph.RegisteredClientSpec) (*sourcegraph.RegisteredClient, error)
 	GetCurrent_ func(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.RegisteredClient, error)
-	Create_     func(v0 context.Context, v1 *sourcegraph.RegisteredClient) (*sourcegraph.RegisteredClientCredentials, error)
+	Create_     func(v0 context.Context, v1 *sourcegraph.RegisteredClient) (*sourcegraph.RegisteredClient, error)
 	Update_     func(v0 context.Context, v1 *sourcegraph.RegisteredClient) (*pbtypes.Void, error)
 	Delete_     func(v0 context.Context, v1 *sourcegraph.RegisteredClientSpec) (*pbtypes.Void, error)
 	List_       func(v0 context.Context, v1 *sourcegraph.RegisteredClientListOptions) (*sourcegraph.RegisteredClientList, error)
@@ -993,7 +993,7 @@ func (s *RegisteredClientsServer) GetCurrent(v0 context.Context, v1 *pbtypes.Voi
 	return s.GetCurrent_(v0, v1)
 }
 
-func (s *RegisteredClientsServer) Create(v0 context.Context, v1 *sourcegraph.RegisteredClient) (*sourcegraph.RegisteredClientCredentials, error) {
+func (s *RegisteredClientsServer) Create(v0 context.Context, v1 *sourcegraph.RegisteredClient) (*sourcegraph.RegisteredClient, error) {
 	return s.Create_(v0, v1)
 }
 

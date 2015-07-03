@@ -2555,50 +2555,54 @@ message ServerConfig {
 
 // A RegisteredClient is a registered API client.
 //
+// Many fields correspond to those listed at
+// http://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata.
+//
 // It's called RegisteredClient instead of Client to avoid a name
 // conflict with the existing Client (Go) type.
 message RegisteredClient {
-	// ID is an alphanumeric string that uniquely identifies this
-	// client.
+	// ID is a unique identifier for this client.
 	string id = 1 [(gogoproto.customname) = "ID"];
 
-	// Secret is a secret string that authenticates this client (along
-	// with its ID).
-	//
-	// The secret is not persisted on the server, so it is only
-	// returned by the initial Create call (and not subsequent
-	// Get/Update/etc. calls). This means the client must remember it.
-	string secret = 2;
+	// RedirectURIs is a list of allowed redirect URIs.
+	repeated string redirect_uris = 2 [(gogoproto.customname) = "RedirectURIs"];
 
-	// HomepageURL is the URL of the homepage for this API client.
-	string homepage_url = 3 [(gogoproto.customname) = "HomepageURL"];
+	// ClientName is the name of the client to be presented to the
+	// end-user.
+	string client_name = 3;
 
-	// OAuthRedirectURL is the OAuth2 redirect URL prefix for this API
-	// client, if it needs to perform user authentication using
-	// OAuth2.
-	string oauth_redirect_url = 4 [(gogoproto.customname) = "OAuthRedirectURL"];
+	// LogoURI is a URL to this client's logo.
+	string logo_uri = 4 [(gogoproto.customname) = "LogoURI"];
 
-	// Title is the human-readable name of this API client that's
-	// shown to the user during, e.g., OAuth2 authentication.
-	string title = 5;
+	// ClientURI is a URL to this client's homepage.
+	string client_uri = 5 [(gogoproto.customname) = "ClientURI"];
+
+	// JWKS is the client's JSON Web Key Set. It contains the client's
+	// public keys, if any.
+	string jwks = 6 [(gogoproto.customname) = "JWKS"];
+
+	// ClientSecret is the secret value that authenticates the
+	// client. It may be empty (e.g., if JWKS keys are used for
+	// authentication instead).
+	string client_secret = 7;
 
 	// Description is a human-readable description of this API client
 	// that's shown to the user during, e.g., OAuth2 authentication.
-	string description = 6;
+	string description = 8;
 
 	// Meta holds arbitrary metadata about this API client. The
 	// structure is defined by the API client and is opaque to the
 	// server.
-	map<string, string> meta = 7;
+	map<string, string> meta = 9;
 
 	// RegisteredClientType describes this client's type.
-	RegisteredClientType type = 8;
+	RegisteredClientType type = 10;
 
 	// CreatedAt is when this API client's record was created.
-	pbtypes.Timestamp created_at = 9 [(gogoproto.nullable) = false];
+	pbtypes.Timestamp created_at = 11 [(gogoproto.nullable) = false];
 
 	// UpdatedAt is when this API client's record was last updated.
-	pbtypes.Timestamp updated_at = 10 [(gogoproto.nullable) = false];
+	pbtypes.Timestamp updated_at = 12 [(gogoproto.nullable) = false];
 }
 
 // RegisteredClientType is the set of kinds of clients.
@@ -2661,11 +2665,8 @@ service RegisteredClients {
 	// the currently authenticated client.
 	rpc GetCurrent(pbtypes.Void) returns (RegisteredClient);
 
-	// Create registers an API client. The RegisteredClient arg's ID
-	// and Secret fields must be empty; their values are assigned by
-	// the server and returned in the RegisteredClientCredentials
-	// response.
-	rpc Create(RegisteredClient) returns (RegisteredClientCredentials);
+	// Create registers an API client.
+	rpc Create(RegisteredClient) returns (RegisteredClient);
 
 	// Update modifies an API client's record. The RegisteredClient
 	// arg's ID must be set (to specify which client to update). Its
