@@ -1535,7 +1535,7 @@ message Completions {
 message Def {
 	graph.Def def = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true, (gogoproto.jsontag) = ""];
 	string doc_html = 2 [(gogoproto.customname) = "DocHTML"];
-	DefFormatStrings fmt_strings = 3;
+	graph.DefFormatStrings fmt_strings = 3;
 }
 
 message DefAuthor {
@@ -1574,17 +1574,6 @@ message DefDelta {
 
 	// the def in the head commit (if nil, this def was deleted in the head)
 	Def head = 2;
-}
-
-// DefFormatStrings contains the various def format strings from the srclib def
-// formatter.
-message DefFormatStrings {
-	QualFormatStrings name = 1 [(gogoproto.nullable) = false];
-	QualFormatStrings type = 2 [(gogoproto.nullable) = false];
-	string name_and_type_separator = 3;
-	string language = 4;
-	string def_keyword = 5;
-	string kind = 6;
 }
 
 // DefGetOptions specifies options for DefsService.Get.
@@ -1974,16 +1963,6 @@ message MarkdownRequestBody {
 message MarkdownRenderOp {
 	bytes markdown = 1;
 	MarkdownOpt opt = 2 [(gogoproto.nullable) = false];
-}
-
-// QualFormatStrings holds the formatted string for each Qualification for a def
-// (for either Name or Type).
-message QualFormatStrings {
-	string unqualified = 1;
-	string scope_qualified = 2;
-	string dep_qualified = 3;
-	string repository_wide_qualified = 4;
-	string language_wide_qualified = 5;
 }
 
 message Ref {
