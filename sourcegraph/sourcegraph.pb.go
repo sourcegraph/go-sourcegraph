@@ -109,7 +109,6 @@ It has these top-level messages:
 	DefAuthorship
 	DefClient
 	DefDelta
-	DefFormatStrings
 	DefGetOptions
 	DefListAuthorsOptions
 	DefListClientsOptions
@@ -151,7 +150,6 @@ It has these top-level messages:
 	MarkdownOpt
 	MarkdownRequestBody
 	MarkdownRenderOp
-	QualFormatStrings
 	Ref
 	RepoTreeGetOptions
 	RepoTreeSearchOptions
@@ -1634,8 +1632,8 @@ func (*Completions) ProtoMessage()    {}
 // Def is a code def returned by the Sourcegraph API.
 type Def struct {
 	graph.Def  `protobuf:"bytes,1,opt,name=def,embedded=def" json:""`
-	DocHTML    string            `protobuf:"bytes,2,opt,name=doc_html,proto3" json:"doc_html,omitempty"`
-	FmtStrings *DefFormatStrings `protobuf:"bytes,3,opt,name=fmt_strings" json:"fmt_strings,omitempty"`
+	DocHTML    string                  `protobuf:"bytes,2,opt,name=doc_html,proto3" json:"doc_html,omitempty"`
+	FmtStrings *graph.DefFormatStrings `protobuf:"bytes,3,opt,name=fmt_strings" json:"fmt_strings,omitempty"`
 }
 
 func (m *Def) Reset()         { *m = Def{} }
@@ -1691,21 +1689,6 @@ type DefDelta struct {
 func (m *DefDelta) Reset()         { *m = DefDelta{} }
 func (m *DefDelta) String() string { return proto.CompactTextString(m) }
 func (*DefDelta) ProtoMessage()    {}
-
-// DefFormatStrings contains the various def format strings from the srclib def
-// formatter.
-type DefFormatStrings struct {
-	Name                 QualFormatStrings `protobuf:"bytes,1,opt,name=name" json:"name"`
-	Type                 QualFormatStrings `protobuf:"bytes,2,opt,name=type" json:"type"`
-	NameAndTypeSeparator string            `protobuf:"bytes,3,opt,name=name_and_type_separator,proto3" json:"name_and_type_separator,omitempty"`
-	Language             string            `protobuf:"bytes,4,opt,name=language,proto3" json:"language,omitempty"`
-	DefKeyword           string            `protobuf:"bytes,5,opt,name=def_keyword,proto3" json:"def_keyword,omitempty"`
-	Kind                 string            `protobuf:"bytes,6,opt,name=kind,proto3" json:"kind,omitempty"`
-}
-
-func (m *DefFormatStrings) Reset()         { *m = DefFormatStrings{} }
-func (m *DefFormatStrings) String() string { return proto.CompactTextString(m) }
-func (*DefFormatStrings) ProtoMessage()    {}
 
 // DefGetOptions specifies options for DefsService.Get.
 type DefGetOptions struct {
@@ -2222,20 +2205,6 @@ type MarkdownRenderOp struct {
 func (m *MarkdownRenderOp) Reset()         { *m = MarkdownRenderOp{} }
 func (m *MarkdownRenderOp) String() string { return proto.CompactTextString(m) }
 func (*MarkdownRenderOp) ProtoMessage()    {}
-
-// QualFormatStrings holds the formatted string for each Qualification for a def
-// (for either Name or Type).
-type QualFormatStrings struct {
-	Unqualified             string `protobuf:"bytes,1,opt,name=unqualified,proto3" json:"unqualified,omitempty"`
-	ScopeQualified          string `protobuf:"bytes,2,opt,name=scope_qualified,proto3" json:"scope_qualified,omitempty"`
-	DepQualified            string `protobuf:"bytes,3,opt,name=dep_qualified,proto3" json:"dep_qualified,omitempty"`
-	RepositoryWideQualified string `protobuf:"bytes,4,opt,name=repository_wide_qualified,proto3" json:"repository_wide_qualified,omitempty"`
-	LanguageWideQualified   string `protobuf:"bytes,5,opt,name=language_wide_qualified,proto3" json:"language_wide_qualified,omitempty"`
-}
-
-func (m *QualFormatStrings) Reset()         { *m = QualFormatStrings{} }
-func (m *QualFormatStrings) String() string { return proto.CompactTextString(m) }
-func (*QualFormatStrings) ProtoMessage()    {}
 
 type Ref struct {
 	graph1.Ref `protobuf:"bytes,1,opt,name=ref,embedded=ref" json:""`
