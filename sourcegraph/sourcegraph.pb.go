@@ -1139,6 +1139,10 @@ type BuildsGetRepoBuildInfoOptions struct {
 	// searched. If the exact build is not found, or the exact build was found but it
 	// failed, LastSuccessful and LastSuccessfulCommit for RepoBuildInfo will be nil.
 	Exact bool `protobuf:"varint,1,opt,name=exact,proto3" json:"exact,omitempty" url:",omitempty"`
+	// IncludeVCSMetadata is whether the returned RepoBuildInfo should
+	// set the VCS-related fields (CommitsBehind, LastSuccessfulCommit).
+	// These require an extra VCS lookup operation to compute.
+	IncludeVCSMetadata bool `protobuf:"varint,2,opt,name=include_vcs_metadata,proto3" json:"include_vcs_metadata,omitempty" url:",omitempty"`
 }
 
 func (m *BuildsGetRepoBuildInfoOptions) Reset()         { *m = BuildsGetRepoBuildInfoOptions{} }

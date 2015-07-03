@@ -948,6 +948,11 @@ message BuildsGetRepoBuildInfoOptions {
 	// searched. If the exact build is not found, or the exact build was found but it
 	// failed, LastSuccessful and LastSuccessfulCommit for RepoBuildInfo will be nil.
 	bool exact = 1 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	// IncludeVCSMetadata is whether the returned RepoBuildInfo should
+	// set the VCS-related fields (CommitsBehind, LastSuccessfulCommit).
+	// These require an extra VCS lookup operation to compute.
+	bool include_vcs_metadata = 2 [(gogoproto.moretags) = "url:\",omitempty\"", (gogoproto.customname) = "IncludeVCSMetadata"];
 }
 
 message BuildsGetRepoBuildInfoOp {
