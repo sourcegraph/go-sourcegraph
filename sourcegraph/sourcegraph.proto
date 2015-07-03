@@ -2513,11 +2513,37 @@ message ServerStatus {
 }
 
 // ServerConfig describes the server's configuration.
+//
+// DEV NOTE: There is some overlap with Go CLI flag structs. In the
+// future we may consolidate these.
 message ServerConfig {
+	// Version is the version of Sourcegraph that this server is
+	// running.
+	string version = 1;
+
 	// AppURL is the base URL of the user-facing web application
 	// (e.g., "https://sourcegraph.com").
-	string app_url = 1 [(gogoproto.customname) = "AppURL"];
-}
+	string app_url = 2 [(gogoproto.customname) = "AppURL"];
+
+	// GRPCEndpoint is the base URL of the GRPC API (e.g.,
+	// "https://sourcegraph.com:3100").
+	string grpc_endpoint = 3 [(gogoproto.customname) = "GRPCEndpoint"];
+
+	// HTTPEndpoint is the base URL of the HTTP API. It typically
+	// should end in "/api/" (note the trailing slash). For example,
+	// "https://sourcegraph.com/api/".
+	string http_endpoint = 4 [(gogoproto.customname) = "HTTPEndpoint"];
+
+	// FederationRootURL is the --fed.root-url CLI flag's value. It is
+	// the URL of the federation root server, or blank if this server
+	// is itself a federation root (in which case IsFederationRoot is
+	// true).
+	string federation_root_url = 5 [(gogoproto.customname) = "FederationRootURL"];
+
+	// IsFederationRoot is whether this server is itself a federation
+	// root. If true, then FederationRootURL is empty.
+	bool is_federation_root = 6;
+}	
 
 // A RegisteredClient is a registered API client.
 //

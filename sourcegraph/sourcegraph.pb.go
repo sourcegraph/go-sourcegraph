@@ -2666,10 +2666,31 @@ func (m *ServerStatus) String() string { return proto.CompactTextString(m) }
 func (*ServerStatus) ProtoMessage()    {}
 
 // ServerConfig describes the server's configuration.
+//
+// DEV NOTE: There is some overlap with Go CLI flag structs. In the
+// future we may consolidate these.
 type ServerConfig struct {
+	// Version is the version of Sourcegraph that this server is
+	// running.
+	Version string `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
 	// AppURL is the base URL of the user-facing web application
 	// (e.g., "https://sourcegraph.com").
-	AppURL string `protobuf:"bytes,1,opt,name=app_url,proto3" json:"app_url,omitempty"`
+	AppURL string `protobuf:"bytes,2,opt,name=app_url,proto3" json:"app_url,omitempty"`
+	// GRPCEndpoint is the base URL of the GRPC API (e.g.,
+	// "https://sourcegraph.com:3100").
+	GRPCEndpoint string `protobuf:"bytes,3,opt,name=grpc_endpoint,proto3" json:"grpc_endpoint,omitempty"`
+	// HTTPEndpoint is the base URL of the HTTP API. It typically
+	// should end in "/api/" (note the trailing slash). For example,
+	// "https://sourcegraph.com/api/".
+	HTTPEndpoint string `protobuf:"bytes,4,opt,name=http_endpoint,proto3" json:"http_endpoint,omitempty"`
+	// FederationRootURL is the --fed.root-url CLI flag's value. It is
+	// the URL of the federation root server, or blank if this server
+	// is itself a federation root (in which case IsFederationRoot is
+	// true).
+	FederationRootURL string `protobuf:"bytes,5,opt,name=federation_root_url,proto3" json:"federation_root_url,omitempty"`
+	// IsFederationRoot is whether this server is itself a federation
+	// root. If true, then FederationRootURL is empty.
+	IsFederationRoot bool `protobuf:"varint,6,opt,name=is_federation_root,proto3" json:"is_federation_root,omitempty"`
 }
 
 func (m *ServerConfig) Reset()         { *m = ServerConfig{} }
