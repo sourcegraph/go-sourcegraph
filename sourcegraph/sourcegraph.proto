@@ -2524,6 +2524,9 @@ message ServerConfig {
 	// IsFederationRoot is whether this server is itself a federation
 	// root. If true, then FederationRootURL is empty.
 	bool is_federation_root = 6;
+
+	// IDKey is the server's identity key (ID key).
+	string id_key = 7 [(gogoproto.customname) = "IDKey"];
 }
 
 // A RegisteredClient is a registered API client.

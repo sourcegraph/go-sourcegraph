@@ -2656,6 +2656,8 @@ type ServerConfig struct {
 	// IsFederationRoot is whether this server is itself a federation
 	// root. If true, then FederationRootURL is empty.
 	IsFederationRoot bool `protobuf:"varint,6,opt,name=is_federation_root,proto3" json:"is_federation_root,omitempty"`
+	// IDKey is the server's identity key (ID key).
+	IDKey string `protobuf:"bytes,7,opt,name=id_key,proto3" json:"id_key,omitempty"`
 }
 
 func (m *ServerConfig) Reset()         { *m = ServerConfig{} }
