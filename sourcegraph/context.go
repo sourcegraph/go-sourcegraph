@@ -1,12 +1,12 @@
 package sourcegraph
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"time"
 
 	"golang.org/x/net/context"
+	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -53,50 +53,35 @@ func HTTPEndpoint(ctx context.Context) *url.URL {
 	return url
 }
 
-// Credentials is implemented by authentication providers that provide
-// both gRPC and HTTP auth (e.g., API keys, tickets).
+// Credentials authenticate gRPC and HTTP requests made by an API
+// client.
 type Credentials interface {
-	// The TokenSource adds authentication info to gRPC calls.
-	credentials.Credentials
-
-	// NewTransport creates a new HTTP transport that adds
-	// authentication info to outgoing HTTP requests and calls the
-	// underlying transport. It MUST NOT modify the Credentials object
-	// (e.g., it should return a copy of it with its Transport field
-	// set to the underlying transport).
-	NewTransport(underlying http.RoundTripper) http.RoundTripper
+	oauth2.TokenSource
 }
 
-// WithClientCredentials adds cred as a credential provider for future
-// API clients constructed using this context (with FromContext).
-func WithClientCredentials(parent context.Context, cred Credentials) context.Context {
-	creds := clientCredentialsFromContext(parent)
-	return context.WithValue(parent, credentialsKey, append([]Credentials{cred}, creds...))
+// WithCredentials returns a copy of the parent context that uses cred
+// as the credentials for future API clients constructed using this
+// context (with NewClientFromContext). It replaces (shadows) any
+// previously set credentials in the context.
+func WithCredentials(parent context.Context, cred Credentials) context.Context {
+	return context.WithValue(parent, credentialsKey, cred)
 }
 
-func clientCredentialsFromContext(ctx context.Context) []Credentials {
-	creds, ok := ctx.Value(credentialsKey).([]Credentials)
+// CredentialsFromContext returns the credentials (if any) previously
+// set in the context by WithCredentials.
+func CredentialsFromContext(ctx context.Context) Credentials {
+	cred, ok := ctx.Value(credentialsKey).(Credentials)
 	if !ok {
 		return nil
 	}
-	return creds
-}
-
-// DescribeClientCredentials is a testing utility function to test for
-// credentials in the context.
-func DescribeClientCredentials(ctx context.Context) []string {
-	var s []string
-	for _, v := range clientCredentialsFromContext(ctx) {
-		s = append(s, fmt.Sprintf("%v", v))
-	}
-	return s
+	return cred
 }
 
 var maxDialTimeout = 3 * time.Second
 
 // NewClientFromContext returns a Sourcegraph API client configured
 // using the context (e.g., authenticated using the context's
-// credentials (actor & tickets)).
+// credentials).
 var NewClientFromContext = func(ctx context.Context) *Client {
 	transport := keepAliveTransport
 
@@ -109,10 +94,18 @@ var NewClientFromContext = func(ctx context.Context) *Client {
 		opts = append(opts, grpc.WithTransportCredentials(credentials.NewClientTLSFromCert(nil, "")))
 	}
 
-	for _, cred := range clientCredentialsFromContext(ctx) {
-		transport = cred.NewTransport(transport)
+	if cred := CredentialsFromContext(ctx); cred != nil {
+		// oauth2.NewClient retrieves the underlying transport from
+		// its passed-in context, so we need to create a dummy context
+		// using that transport.
+		ctxWithTransport := context.WithValue(ctx, oauth2.HTTPClient, &http.Client{Transport: transport})
+		transport = oauth2.NewClient(ctxWithTransport, cred).Transport
+
+		// Use contextCredentials instead of directly using the cred
+		// so that we can use different credentials for the same
+		// connection (in the pool).
+		opts = append(opts, grpc.WithPerRPCCredentials(contextCredentials{}))
 	}
-	opts = append(opts, grpc.WithPerRPCCredentials(contextCredentials{}))
 
 	// Dial timeout is the lesser of the ctx deadline or
 	// maxDialTimeout.
@@ -136,15 +129,9 @@ var NewClientFromContext = func(ctx context.Context) *Client {
 type contextCredentials struct{}
 
 func (contextCredentials) GetRequestMetadata(ctx context.Context) (map[string]string, error) {
-	md := map[string]string{}
-	for _, cred := range clientCredentialsFromContext(ctx) {
-		credMD, err := cred.GetRequestMetadata(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for k, v := range credMD {
-			md[k] = v
-		}
+	if cred := CredentialsFromContext(ctx); cred != nil {
+		s := credentials.TokenSource{TokenSource: cred}
+		return s.GetRequestMetadata(ctx)
 	}
-	return md, nil
+	return nil, nil
 }

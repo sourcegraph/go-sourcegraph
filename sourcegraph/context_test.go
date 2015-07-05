@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"net"
-	"net/http"
 	"net/url"
 	"os/exec"
-	"reflect"
 	"testing"
 	"time"
 
@@ -17,42 +15,11 @@ import (
 	"sourcegraph.com/sqs/pbtypes"
 
 	"golang.org/x/net/context"
+	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
 )
-
-type dummyCredentials struct {
-	X int
-	credentials.Credentials
-}
-
-func (dummyCredentials) NewTransport(underlying http.RoundTripper) http.RoundTripper {
-	return http.RoundTripper(nil)
-}
-
-func TestWithClientCredentials(t *testing.T) {
-	ctx := context.Background()
-
-	if creds := clientCredentialsFromContext(ctx); len(creds) != 0 {
-		t.Errorf("got %+v, want empty", creds)
-	}
-
-	dummy := dummyCredentials{X: 1}
-	wantCreds := []Credentials{dummy}
-	ctx = WithClientCredentials(ctx, dummy)
-	if creds := clientCredentialsFromContext(ctx); !reflect.DeepEqual(creds, wantCreds) {
-		t.Errorf("got %+v, want %+v", creds, wantCreds)
-	}
-
-	dummy2 := dummyCredentials{X: 2}
-	wantCreds = []Credentials{dummy2, dummy}
-	ctx = WithClientCredentials(ctx, dummy2)
-	if creds := clientCredentialsFromContext(ctx); !reflect.DeepEqual(creds, wantCreds) {
-		t.Errorf("got %+v, want %+v", creds, wantCreds)
-	}
-}
 
 func TestPerRPCCredentials(t *testing.T) {
 	l, err := net.Listen("tcp", ":0")
@@ -83,8 +50,8 @@ func TestPerRPCCredentials(t *testing.T) {
 			ctx := context.Background()
 			ctx = WithGRPCEndpoint(ctx, &url.URL{Host: l.Addr().String()})
 			ctx = WithHTTPEndpoint(ctx, &url.URL{Scheme: "http", Host: l.Addr().String()})
-			ctx = WithClientCredentials(ctx, &APIKeyAuth{Key: key})
-			ctx = metadata.NewContext(ctx, metadata.MD{"want-x-sourcegraph-key": key})
+			ctx = WithCredentials(ctx, oauth2.StaticTokenSource(&oauth2.Token{TokenType: "x", AccessToken: key}))
+			ctx = metadata.NewContext(ctx, metadata.MD{"want-access-token": "x " + key})
 			c := NewClientFromContext(ctx)
 			if _, err := c.Meta.Status(ctx, &pbtypes.Void{}); err != nil {
 				t.Fatal(err)
@@ -120,8 +87,8 @@ type testMetaServer struct {
 
 func (s *testMetaServer) Status(ctx context.Context, _ *pbtypes.Void) (*ServerStatus, error) {
 	md, _ := metadata.FromContext(ctx)
-	if want, got := md["want-x-sourcegraph-key"], md["x-sourcegraph-key"]; got != want {
-		return nil, grpc.Errorf(codes.Unknown, "got x-sourcegraph-key %q, want %q", got, want)
+	if want, got := md["want-access-token"], md["authorization"]; got != want {
+		return nil, grpc.Errorf(codes.Unknown, "got access-token %q, want %q", got, want)
 	}
 	return &ServerStatus{}, nil
 }
