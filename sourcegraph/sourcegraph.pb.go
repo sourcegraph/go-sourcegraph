@@ -733,10 +733,10 @@ func (m *ReposListCommitsOp) String() string { return proto.CompactTextString(m)
 func (*ReposListCommitsOp) ProtoMessage()    {}
 
 type RepoListCommitsOptions struct {
-	Head        string `protobuf:"bytes,1,opt,name=head,proto3" json:"head,omitempty"`
-	Base        string `protobuf:"bytes,2,opt,name=base,proto3" json:"base,omitempty"`
+	Head        string `protobuf:"bytes,1,opt,name=head,proto3" json:"head,omitempty" url:",omitempty"`
+	Base        string `protobuf:"bytes,2,opt,name=base,proto3" json:"base,omitempty" url:",omitempty"`
 	ListOptions `protobuf:"bytes,3,opt,name=list_options,embedded=list_options" json:"list_options"`
-	Path        string `protobuf:"bytes,4,opt,name=path,proto3" json:"path,omitempty"`
+	Path        string `protobuf:"bytes,4,opt,name=path,proto3" json:"path,omitempty" url:",omitempty"`
 }
 
 func (m *RepoListCommitsOptions) Reset()         { *m = RepoListCommitsOptions{} }
