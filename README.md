@@ -29,6 +29,12 @@ _TODO: Make it work with latest, confirm if there are any issues._
 1. **Install protoc**, the protobuf compiler. Find more details at the [protobuf README](https://github.com/google/protobuf)).
 
    ```
+   brew install --devel protobuf
+   ```
+
+   or if you are trying a specific version, you can manually install by running:
+
+   ```
    git clone https://github.com/google/protobuf.git
    cd protobuf
    ./autogen.sh
@@ -46,7 +52,11 @@ _TODO: Make it work with latest, confirm if there are any issues._
    go install ./...
    ```
 
-3. **Install `grpc`** by following steps at https://github.com/grpc/grpc-go#installation.
+3. **Install [grpc](https://github.com/grpc/grpc-go)**:
+
+   ```
+   go get google.golang.org/grpc
+   ```
 
 4. **Install [gen-mocks](https://sourcegraph.com/sourcegraph/gen-mocks)** by running:
 
