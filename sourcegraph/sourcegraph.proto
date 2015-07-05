@@ -577,10 +577,10 @@ message ReposListCommitsOp {
 }
 
 message RepoListCommitsOptions {
-	string head = 1;
-	string base = 2;
+	string head = 1 [(gogoproto.moretags) = "url:\",omitempty\""];
+	string base = 2 [(gogoproto.moretags) = "url:\",omitempty\""];
 	ListOptions list_options = 3 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
-	string path = 4;
+	string path = 4 [(gogoproto.moretags) = "url:\",omitempty\""];
 }
 
 message CommitList {
@@ -2548,7 +2548,7 @@ message ServerConfig {
 	// IsFederationRoot is whether this server is itself a federation
 	// root. If true, then FederationRootURL is empty.
 	bool is_federation_root = 6;
-}	
+}
 
 // A RegisteredClient is a registered API client.
 //
