@@ -94,18 +94,18 @@ var NewClientFromContext = func(ctx context.Context) *Client {
 		opts = append(opts, grpc.WithTransportCredentials(credentials.NewClientTLSFromCert(nil, "")))
 	}
 
-	if cred := CredentialsFromContext(ctx); cred != nil {
-		// oauth2.NewClient retrieves the underlying transport from
-		// its passed-in context, so we need to create a dummy context
-		// using that transport.
-		ctxWithTransport := context.WithValue(ctx, oauth2.HTTPClient, &http.Client{Transport: transport})
-		transport = oauth2.NewClient(ctxWithTransport, cred).Transport
+	cred := CredentialsFromContext(ctx)
 
-		// Use contextCredentials instead of directly using the cred
-		// so that we can use different credentials for the same
-		// connection (in the pool).
-		opts = append(opts, grpc.WithPerRPCCredentials(contextCredentials{}))
-	}
+	// oauth2.NewClient retrieves the underlying transport from
+	// its passed-in context, so we need to create a dummy context
+	// using that transport.
+	ctxWithTransport := context.WithValue(ctx, oauth2.HTTPClient, &http.Client{Transport: transport})
+	transport = oauth2.NewClient(ctxWithTransport, cred).Transport
+
+	// Use contextCredentials instead of directly using the cred
+	// so that we can use different credentials for the same
+	// connection (in the pool).
+	opts = append(opts, grpc.WithPerRPCCredentials(contextCredentials{}))
 
 	// Dial timeout is the lesser of the ctx deadline or
 	// maxDialTimeout.

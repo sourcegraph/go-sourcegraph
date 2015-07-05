@@ -95,12 +95,10 @@ It has these top-level messages:
 	EmailAddrList
 	OrgList
 	NewAccount
-	AuthenticatedUser
 	LoginCredentials
-	OAuthCredentials
-	UserAuthAuthenticateOp
-	UserAuthGetExternalOp
-	ExternalAuthInfo
+	AccessTokenRequest
+	OAuth2AuthorizationCode
+	AccessTokenResponse
 	AuthInfo
 	AuthorshipInfo
 	Completions
@@ -218,29 +216,6 @@ var _ grpc.ClientConn
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
-
-type AuthEndpointType int32
-
-const (
-	AuthEndpointType_Sourcegraph AuthEndpointType = 0
-	AuthEndpointType_LDAP        AuthEndpointType = 1
-	AuthEndpointType_GitHub      AuthEndpointType = 2
-)
-
-var AuthEndpointType_name = map[int32]string{
-	0: "Sourcegraph",
-	1: "LDAP",
-	2: "GitHub",
-}
-var AuthEndpointType_value = map[string]int32{
-	"Sourcegraph": 0,
-	"LDAP":        1,
-	"GitHub":      2,
-}
-
-func (x AuthEndpointType) String() string {
-	return proto.EnumName(AuthEndpointType_name, int32(x))
-}
 
 // RegisteredClientType is the set of kinds of clients.
 type RegisteredClientType int32
@@ -1515,21 +1490,6 @@ func (m *NewAccount) Reset()         { *m = NewAccount{} }
 func (m *NewAccount) String() string { return proto.CompactTextString(m) }
 func (*NewAccount) ProtoMessage()    {}
 
-// An AuthenticatedUser describes the user that resulted from a
-// UserAuth.Authenticate call.
-type AuthenticatedUser struct {
-	// User is the authenticated user.
-	User UserSpec `protobuf:"bytes,1,opt,name=user" json:"user"`
-	// Key is an API key that may be used in subsequent API calls to
-	// authenticate the user (by using the Go APIKeyAuth credential
-	// provider, for example).
-	Key string `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
-}
-
-func (m *AuthenticatedUser) Reset()         { *m = AuthenticatedUser{} }
-func (m *AuthenticatedUser) String() string { return proto.CompactTextString(m) }
-func (*AuthenticatedUser) ProtoMessage()    {}
-
 // LoginCredentials is the information a user submits to log in.
 type LoginCredentials struct {
 	// Login is the user's claimed login.
@@ -1542,67 +1502,65 @@ func (m *LoginCredentials) Reset()         { *m = LoginCredentials{} }
 func (m *LoginCredentials) String() string { return proto.CompactTextString(m) }
 func (*LoginCredentials) ProtoMessage()    {}
 
-// OAuthCredentials holds credentials that authenticate a user via
-// OAuth. It is the result of a successful OAuth flow.
-type OAuthCredentials struct {
-	ClientID    string `protobuf:"bytes,1,opt,name=client_id,proto3" json:"client_id,omitempty"`
-	AccessToken string `protobuf:"bytes,2,opt,name=access_token,proto3" json:"access_token,omitempty"`
-	Scope       string `protobuf:"bytes,3,opt,name=scope,proto3" json:"scope,omitempty"`
-	// Host is the hostname of the external service (e.g., github.com,
-	// github.example.com).
-	Host         string           `protobuf:"bytes,4,opt,name=host,proto3" json:"host,omitempty"`
-	EndpointType AuthEndpointType `protobuf:"varint,5,opt,name=endpoint_type,proto3,enum=sourcegraph.AuthEndpointType" json:"endpoint_type,omitempty"`
+// AccessTokenRequest contains the information necessary to
+// request an OAuth2 access token. It supports a subset of
+// authorization grant types specified in
+// http://tools.ietf.org/html/rfc6749#section-4.
+type AccessTokenRequest struct {
+	AuthorizationCode     *OAuth2AuthorizationCode `protobuf:"bytes,1,opt,name=authorization_code" json:"authorization_code,omitempty"`
+	ResourceOwnerPassword *LoginCredentials        `protobuf:"bytes,2,opt,name=resource_owner_password" json:"resource_owner_password,omitempty"`
+	Scope                 []string                 `protobuf:"bytes,3,rep,name=scope" json:"scope,omitempty"`
 }
 
-func (m *OAuthCredentials) Reset()         { *m = OAuthCredentials{} }
-func (m *OAuthCredentials) String() string { return proto.CompactTextString(m) }
-func (*OAuthCredentials) ProtoMessage()    {}
+func (m *AccessTokenRequest) Reset()         { *m = AccessTokenRequest{} }
+func (m *AccessTokenRequest) String() string { return proto.CompactTextString(m) }
+func (*AccessTokenRequest) ProtoMessage()    {}
 
-// UserAuthAuthenticateOp contains auth credentials used to identify
-// and authenticate a user. Generally only one of the fields should be
-// set.
-type UserAuthAuthenticateOp struct {
-	// LoginCredentials is set if the user is authenticating using a
-	// username and password.
-	LoginCredentials *LoginCredentials `protobuf:"bytes,1,opt,name=login_credentials" json:"login_credentials,omitempty"`
-	// OAuthCredentials is set if the user is authenticating using a
-	// username and password.
-	OAuthCredentials *OAuthCredentials `protobuf:"bytes,2,opt,name=oauth_credentials" json:"oauth_credentials,omitempty"`
+// OAuth2AuthorizationCode represents an access token request using
+// the authorization_code OAuth2 grant type. See
+// http://tools.ietf.org/html/rfc6749#section-4.1.3 for more
+// information.
+//
+// The client_id field is not set in this message; it is taken from
+// the authenticated client for the request (which must exist).
+type OAuth2AuthorizationCode struct {
+	Code        string `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	RedirectURI string `protobuf:"bytes,2,opt,name=redirect_uri,proto3" json:"redirect_uri,omitempty"`
 }
 
-func (m *UserAuthAuthenticateOp) Reset()         { *m = UserAuthAuthenticateOp{} }
-func (m *UserAuthAuthenticateOp) String() string { return proto.CompactTextString(m) }
-func (*UserAuthAuthenticateOp) ProtoMessage()    {}
+func (m *OAuth2AuthorizationCode) Reset()         { *m = OAuth2AuthorizationCode{} }
+func (m *OAuth2AuthorizationCode) String() string { return proto.CompactTextString(m) }
+func (*OAuth2AuthorizationCode) ProtoMessage()    {}
 
-type UserAuthGetExternalOp struct {
-	ClientID     string           `protobuf:"bytes,1,opt,name=client_id,proto3" json:"client_id,omitempty"`
-	Host         string           `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
-	EndpointType AuthEndpointType `protobuf:"varint,3,opt,name=endpoint_type,proto3,enum=sourcegraph.AuthEndpointType" json:"endpoint_type,omitempty"`
+// AccessTokenResponse is a successful access token response. See
+// http://tools.ietf.org/html/rfc6749#section-5.1 for more
+// information.
+type AccessTokenResponse struct {
+	AccessToken  string   `protobuf:"bytes,1,opt,name=access_token,proto3" json:"access_token,omitempty"`
+	TokenType    string   `protobuf:"bytes,2,opt,name=token_type,proto3" json:"token_type,omitempty"`
+	ExpiresInSec int32    `protobuf:"varint,3,opt,name=expires_in_sec,proto3" json:"expires_in_sec,omitempty"`
+	RefreshToken string   `protobuf:"bytes,4,opt,name=refresh_token,proto3" json:"refresh_token,omitempty"`
+	Scope        []string `protobuf:"bytes,5,rep,name=scope" json:"scope,omitempty"`
 }
 
-func (m *UserAuthGetExternalOp) Reset()         { *m = UserAuthGetExternalOp{} }
-func (m *UserAuthGetExternalOp) String() string { return proto.CompactTextString(m) }
-func (*UserAuthGetExternalOp) ProtoMessage()    {}
+func (m *AccessTokenResponse) Reset()         { *m = AccessTokenResponse{} }
+func (m *AccessTokenResponse) String() string { return proto.CompactTextString(m) }
+func (*AccessTokenResponse) ProtoMessage()    {}
 
-// ExternalAuthInfo describes a user's credentials for a specific
-// external service.
-type ExternalAuthInfo struct {
-	Scope string `protobuf:"bytes,1,opt,name=scope,proto3" json:"scope,omitempty"`
-}
-
-func (m *ExternalAuthInfo) Reset()         { *m = ExternalAuthInfo{} }
-func (m *ExternalAuthInfo) String() string { return proto.CompactTextString(m) }
-func (*ExternalAuthInfo) ProtoMessage()    {}
-
-// AuthInfo describes the currently authenticated user (if any).
+// AuthInfo describes the currently authenticated client and/or user
+// (if any).
 type AuthInfo struct {
-	// UID is the user ID of the currently authenticated user.
-	UID int32 `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	// APIKey is the API key for the currently authenticated user.
-	APIKey string `protobuf:"bytes,2,opt,name=api_key,proto3" json:"api_key,omitempty"`
-	// Tickets are human-readable descriptions of the explicit
-	// permission grant tickets associated with the current request.
-	Tickets []string `protobuf:"bytes,3,rep,name=tickets" json:"tickets,omitempty"`
+	// ClientID is the client ID of the currently authenticated
+	// client. If a user is authenticated using an access token,
+	// ClientID is the client ID of the registered client that the
+	// access token was granted to.
+	ClientID string `protobuf:"bytes,1,opt,name=client_id,proto3" json:"client_id,omitempty"`
+	// UID is the UID of the currently authenticated user (if any).
+	UID int32 `protobuf:"varint,2,opt,name=uid,proto3" json:"uid,omitempty"`
+	// Domain is the domain of the currently authenticated user (if
+	// any), or blank if the user account was registered on the
+	// current server.
+	Domain string `protobuf:"bytes,3,opt,name=domain,proto3" json:"domain,omitempty"`
 }
 
 func (m *AuthInfo) Reset()         { *m = AuthInfo{} }
@@ -2793,7 +2751,6 @@ func (m *RegisteredClientList) String() string { return proto.CompactTextString(
 func (*RegisteredClientList) ProtoMessage()    {}
 
 func init() {
-	proto.RegisterEnum("sourcegraph.AuthEndpointType", AuthEndpointType_name, AuthEndpointType_value)
 	proto.RegisterEnum("sourcegraph.RegisteredClientType", RegisteredClientType_name, RegisteredClientType_value)
 }
 
@@ -4608,148 +4565,113 @@ var _Users_serviceDesc = grpc.ServiceDesc{
 	Streams: []grpc.StreamDesc{},
 }
 
-// Client API for UserAuth service
+// Client API for Auth service
 
-type UserAuthClient interface {
-	// Authenticate uses the provided credentials to verify the user's
-	// identity. It returns the user's UserSpec and an API key that
-	// may be used in subsequent API calls to authenticate the user.
+type AuthClient interface {
+	// GetAccessToken requests the server to issue an access token
+	// using the credentials provided in the AccessTokenRequest.
 	//
-	// The credentials can come from a variety of sources (see
-	// UserAuthAuthenticateOp for details). If the credentials are
-	// from an external source and identify a user that doesn't yet
-	// have a corresponding account on this Sourcegraph instance, an
-	// account might be created. (E.g., if OAuth via GitHub or Google
-	// is used to log in.)
+	// If this call is requesting an access token for a
+	// client_credentials grant (i.e., the access token would identify
+	// the client, not any specific user), then the request must not
+	// be authenticated. If the call is requesting an access token to
+	// identify a user, the request must be authenticated using the
+	// client's credentials.
 	//
 	// If the credentials are invalid, grpc.PermissionDenied is
 	// returned.
-	Authenticate(ctx context.Context, in *UserAuthAuthenticateOp, opts ...grpc.CallOption) (*AuthenticatedUser, error)
-	// GetExternal returns info about the current user's
-	// authentication with an external service (e.g., the currently
-	// authorized GitHub scope).
-	GetExternal(ctx context.Context, in *UserAuthGetExternalOp, opts ...grpc.CallOption) (*ExternalAuthInfo, error)
-	// Identify describes the currently authenticated user (if
-	// any). It is akin to "whoami".
+	GetAccessToken(ctx context.Context, in *AccessTokenRequest, opts ...grpc.CallOption) (*AccessTokenResponse, error)
+	// Identify describes the currently authenticated user and/or
+	// client (if any). It is akin to "whoami".
 	Identify(ctx context.Context, in *pbtypes1.Void, opts ...grpc.CallOption) (*AuthInfo, error)
 }
 
-type userAuthClient struct {
+type authClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewUserAuthClient(cc *grpc.ClientConn) UserAuthClient {
-	return &userAuthClient{cc}
+func NewAuthClient(cc *grpc.ClientConn) AuthClient {
+	return &authClient{cc}
 }
 
-func (c *userAuthClient) Authenticate(ctx context.Context, in *UserAuthAuthenticateOp, opts ...grpc.CallOption) (*AuthenticatedUser, error) {
-	out := new(AuthenticatedUser)
-	err := grpc.Invoke(ctx, "/sourcegraph.UserAuth/Authenticate", in, out, c.cc, opts...)
+func (c *authClient) GetAccessToken(ctx context.Context, in *AccessTokenRequest, opts ...grpc.CallOption) (*AccessTokenResponse, error) {
+	out := new(AccessTokenResponse)
+	err := grpc.Invoke(ctx, "/sourcegraph.Auth/GetAccessToken", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *userAuthClient) GetExternal(ctx context.Context, in *UserAuthGetExternalOp, opts ...grpc.CallOption) (*ExternalAuthInfo, error) {
-	out := new(ExternalAuthInfo)
-	err := grpc.Invoke(ctx, "/sourcegraph.UserAuth/GetExternal", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userAuthClient) Identify(ctx context.Context, in *pbtypes1.Void, opts ...grpc.CallOption) (*AuthInfo, error) {
+func (c *authClient) Identify(ctx context.Context, in *pbtypes1.Void, opts ...grpc.CallOption) (*AuthInfo, error) {
 	out := new(AuthInfo)
-	err := grpc.Invoke(ctx, "/sourcegraph.UserAuth/Identify", in, out, c.cc, opts...)
+	err := grpc.Invoke(ctx, "/sourcegraph.Auth/Identify", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Server API for UserAuth service
+// Server API for Auth service
 
-type UserAuthServer interface {
-	// Authenticate uses the provided credentials to verify the user's
-	// identity. It returns the user's UserSpec and an API key that
-	// may be used in subsequent API calls to authenticate the user.
+type AuthServer interface {
+	// GetAccessToken requests the server to issue an access token
+	// using the credentials provided in the AccessTokenRequest.
 	//
-	// The credentials can come from a variety of sources (see
-	// UserAuthAuthenticateOp for details). If the credentials are
-	// from an external source and identify a user that doesn't yet
-	// have a corresponding account on this Sourcegraph instance, an
-	// account might be created. (E.g., if OAuth via GitHub or Google
-	// is used to log in.)
+	// If this call is requesting an access token for a
+	// client_credentials grant (i.e., the access token would identify
+	// the client, not any specific user), then the request must not
+	// be authenticated. If the call is requesting an access token to
+	// identify a user, the request must be authenticated using the
+	// client's credentials.
 	//
 	// If the credentials are invalid, grpc.PermissionDenied is
 	// returned.
-	Authenticate(context.Context, *UserAuthAuthenticateOp) (*AuthenticatedUser, error)
-	// GetExternal returns info about the current user's
-	// authentication with an external service (e.g., the currently
-	// authorized GitHub scope).
-	GetExternal(context.Context, *UserAuthGetExternalOp) (*ExternalAuthInfo, error)
-	// Identify describes the currently authenticated user (if
-	// any). It is akin to "whoami".
+	GetAccessToken(context.Context, *AccessTokenRequest) (*AccessTokenResponse, error)
+	// Identify describes the currently authenticated user and/or
+	// client (if any). It is akin to "whoami".
 	Identify(context.Context, *pbtypes1.Void) (*AuthInfo, error)
 }
 
-func RegisterUserAuthServer(s *grpc.Server, srv UserAuthServer) {
-	s.RegisterService(&_UserAuth_serviceDesc, srv)
+func RegisterAuthServer(s *grpc.Server, srv AuthServer) {
+	s.RegisterService(&_Auth_serviceDesc, srv)
 }
 
-func _UserAuth_Authenticate_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(UserAuthAuthenticateOp)
+func _Auth_GetAccessToken_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(AccessTokenRequest)
 	if err := codec.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
-	out, err := srv.(UserAuthServer).Authenticate(ctx, in)
+	out, err := srv.(AuthServer).GetAccessToken(ctx, in)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func _UserAuth_GetExternal_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(UserAuthGetExternalOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
-		return nil, err
-	}
-	out, err := srv.(UserAuthServer).GetExternal(ctx, in)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func _UserAuth_Identify_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Auth_Identify_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
 	in := new(pbtypes1.Void)
 	if err := codec.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
-	out, err := srv.(UserAuthServer).Identify(ctx, in)
+	out, err := srv.(AuthServer).Identify(ctx, in)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-var _UserAuth_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "sourcegraph.UserAuth",
-	HandlerType: (*UserAuthServer)(nil),
+var _Auth_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.Auth",
+	HandlerType: (*AuthServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Authenticate",
-			Handler:    _UserAuth_Authenticate_Handler,
-		},
-		{
-			MethodName: "GetExternal",
-			Handler:    _UserAuth_GetExternal_Handler,
+			MethodName: "GetAccessToken",
+			Handler:    _Auth_GetAccessToken_Handler,
 		},
 		{
 			MethodName: "Identify",
-			Handler:    _UserAuth_Identify_Handler,
+			Handler:    _Auth_Identify_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},

@@ -29,6 +29,7 @@ const (
 type Client struct {
 	// Services used to communicate with different parts of the Sourcegraph API.
 	Accounts            AccountsClient
+	Auth                AuthClient
 	Builds              BuildsClient
 	BuildData           BuildDataService
 	Defs                DefsClient
@@ -47,7 +48,6 @@ type Client struct {
 	Changesets          ChangesetsClient
 	Search              SearchClient
 	Units               UnitsClient
-	UserAuth            UserAuthClient
 	Users               UsersClient
 
 	// Base URL for HTTP/1.1 requests, which should have a trailing slash.
@@ -84,6 +84,7 @@ func NewClient(httpClient *http.Client, conn *grpc.ClientConn) *Client {
 	// gRPC (HTTP/2)
 	c.Conn = conn
 	c.Accounts = NewAccountsClient(conn)
+	c.Auth = NewAuthClient(conn)
 	c.Builds = NewBuildsClient(conn)
 	c.Defs = NewDefsClient(conn)
 	c.Deltas = NewDeltasClient(conn)
@@ -101,7 +102,6 @@ func NewClient(httpClient *http.Client, conn *grpc.ClientConn) *Client {
 	c.Changesets = NewChangesetsClient(conn)
 	c.Search = NewSearchClient(conn)
 	c.Units = NewUnitsClient(conn)
-	c.UserAuth = NewUserAuthClient(conn)
 	c.Users = NewUsersClient(conn)
 
 	return c

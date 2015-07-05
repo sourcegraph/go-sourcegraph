@@ -1398,55 +1398,29 @@ service Users {
 	};
 }
 
-// UserAuth manages user authentication.
-service UserAuth {
-	// Authenticate uses the provided credentials to verify the user's
-	// identity. It returns the user's UserSpec and an API key that
-	// may be used in subsequent API calls to authenticate the user.
+// Auth manages authentication and authorization (via OAuth2).
+service Auth {
+	// GetAccessToken requests the server to issue an access token
+	// using the credentials provided in the AccessTokenRequest.
 	//
-	// The credentials can come from a variety of sources (see
-	// UserAuthAuthenticateOp for details). If the credentials are
-	// from an external source and identify a user that doesn't yet
-	// have a corresponding account on this Sourcegraph instance, an
-	// account might be created. (E.g., if OAuth via GitHub or Google
-	// is used to log in.)
+	// If this call is requesting an access token for a
+	// client_credentials grant (i.e., the access token would identify
+	// the client, not any specific user), then the request must not
+	// be authenticated. If the call is requesting an access token to
+	// identify a user, the request must be authenticated using the
+	// client's credentials.
 	//
 	// If the credentials are invalid, grpc.PermissionDenied is
 	// returned.
-	rpc Authenticate(UserAuthAuthenticateOp) returns (AuthenticatedUser) {
-		option (google.api.http) = {
-			post: "/user_auth"
-		};
-	};
+	rpc GetAccessToken(AccessTokenRequest) returns (AccessTokenResponse);
 
-	// GetExternal returns info about the current user's
-	// authentication with an external service (e.g., the currently
-	// authorized GitHub scope).
-	rpc GetExternal(UserAuthGetExternalOp) returns (ExternalAuthInfo) {
-		option (google.api.http) = {
-			get: "/user_auth/get_external"
-		};
-	};
-
-	// Identify describes the currently authenticated user (if
-	// any). It is akin to "whoami".
+	// Identify describes the currently authenticated user and/or
+	// client (if any). It is akin to "whoami".
 	rpc Identify(pbtypes.Void) returns (AuthInfo) {
 		option (google.api.http) = {
-			get: "/user_auth/identify"
+			get: "/auth/identify"
 		};
 	};
-}
-
-// An AuthenticatedUser describes the user that resulted from a
-// UserAuth.Authenticate call.
-message AuthenticatedUser {
-	// User is the authenticated user.
-	UserSpec user = 1 [(gogoproto.nullable) = false];
-
-	// Key is an API key that may be used in subsequent API calls to
-	// authenticate the user (by using the Go APIKeyAuth credential
-	// provider, for example).
-	string key = 2;
 }
 
 // LoginCredentials is the information a user submits to log in.
@@ -1460,62 +1434,61 @@ message LoginCredentials {
 	// In the future we can add 2FA tokens, etc., here.
 }
 
-// OAuthCredentials holds credentials that authenticate a user via
-// OAuth. It is the result of a successful OAuth flow.
-message OAuthCredentials {
-	string client_id = 1 [(gogoproto.customname) = "ClientID"];
-	string access_token = 2;
-	string scope = 3;
+// AccessTokenRequest contains the information necessary to
+// request an OAuth2 access token. It supports a subset of
+// authorization grant types specified in
+// http://tools.ietf.org/html/rfc6749#section-4.
+message AccessTokenRequest {
+	// See http://tools.ietf.org/html/rfc6749#section-1.3 for more
+	// information on OAuth2 authorization grant types.
+	oneof authorization_grant {
+		OAuth2AuthorizationCode authorization_code = 1;
+		LoginCredentials resource_owner_password = 2;
+	}
 
-	// Host is the hostname of the external service (e.g., github.com,
-	// github.example.com).
-	string host = 4;
-
-	AuthEndpointType endpoint_type = 5;
+	repeated string scope = 3;
 }
 
-// UserAuthAuthenticateOp contains auth credentials used to identify
-// and authenticate a user. Generally only one of the fields should be
-// set.
-message UserAuthAuthenticateOp {
-	// LoginCredentials is set if the user is authenticating using a
-	// username and password.
-	LoginCredentials login_credentials = 1;
-
-	// OAuthCredentials is set if the user is authenticating using a
-	// username and password.
-	OAuthCredentials oauth_credentials = 2 [(gogoproto.customname) = "OAuthCredentials"];
+// OAuth2AuthorizationCode represents an access token request using
+// the authorization_code OAuth2 grant type. See
+// http://tools.ietf.org/html/rfc6749#section-4.1.3 for more
+// information.
+//
+// The client_id field is not set in this message; it is taken from
+// the authenticated client for the request (which must exist).
+message OAuth2AuthorizationCode {
+	string code = 1;
+	string redirect_uri = 2 [(gogoproto.customname) = "RedirectURI"];
 }
 
-message UserAuthGetExternalOp {
-	string client_id = 1 [(gogoproto.customname) = "ClientID"];
-	string host = 2;
-	AuthEndpointType endpoint_type = 3;
+// AccessTokenResponse is a successful access token response. See
+// http://tools.ietf.org/html/rfc6749#section-5.1 for more
+// information.
+message AccessTokenResponse {
+	string access_token = 1;
+	string token_type = 2;
+	int32 expires_in_sec = 3; // optional
+	string refresh_token = 4; // optional
+	repeated string scope = 5; // optional if equal to the requested scope
 }
 
-// ExternalAuthInfo describes a user's credentials for a specific
-// external service.
-message ExternalAuthInfo {
-	string scope = 1;
-}
-
-enum AuthEndpointType {
-	Sourcegraph = 0;
-	LDAP = 1;
-	GitHub = 2;
-}
-
-// AuthInfo describes the currently authenticated user (if any).
+// AuthInfo describes the currently authenticated client and/or user
+// (if any).
 message AuthInfo {
-	// UID is the user ID of the currently authenticated user.
-	int32 uid = 1 [(gogoproto.customname) = "UID"];
+	// ClientID is the client ID of the currently authenticated
+	// client. If a user is authenticated using an access token,
+	// ClientID is the client ID of the registered client that the
+	// access token was granted to.
+	string client_id = 1 [(gogoproto.customname) = "ClientID"];
 
-	// APIKey is the API key for the currently authenticated user.
-	string api_key = 2 [(gogoproto.customname) = "APIKey"];
+	// UID is the UID of the currently authenticated user (if any).
+	int32 uid = 2 [(gogoproto.customname) = "UID"];
 
-	// Tickets are human-readable descriptions of the explicit
-	// permission grant tickets associated with the current request.
-	repeated string tickets = 3;
+	// Domain is the domain of the currently authenticated user (if
+	// any), or blank if the user account was registered on the
+	// current server.
+	string domain = 3;
+
 }
 
 message AuthorshipInfo {
