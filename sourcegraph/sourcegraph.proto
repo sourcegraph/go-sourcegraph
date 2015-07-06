@@ -581,6 +581,7 @@ message RepoListCommitsOptions {
 	string base = 2 [(gogoproto.moretags) = "url:\",omitempty\""];
 	ListOptions list_options = 3 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 	string path = 4 [(gogoproto.moretags) = "url:\",omitempty\""];
+	bool refresh_cache = 5 [(gogoproto.moretags) = "url:\",omitempty\""];
 }
 
 message CommitList {
