@@ -1465,6 +1465,15 @@ message LoginCredentials {
 	// In the future we can add 2FA tokens, etc., here.
 }
 
+// BearerJWT is a Bearer JSON Web Token, which is used for client
+// authentication during an authentication grant. See
+// https://tools.ietf.org/html/draft-ietf-oauth-jwt-bearer-12#section-2.1
+// for more information.
+message BearerJWT {
+	// Assertion is a JWT.
+	string assertion = 1;
+}
+
 // AccessTokenRequest contains the information necessary to
 // request an OAuth2 access token. It supports a subset of
 // authorization grant types specified in
@@ -1475,9 +1484,10 @@ message AccessTokenRequest {
 	oneof authorization_grant {
 		AuthorizationCode authorization_code = 1;
 		LoginCredentials resource_owner_password = 2;
+		BearerJWT bearer_jwt = 3 [(gogoproto.customname) = "BearerJWT"];
 	}
 
-	repeated string scope = 3;
+	repeated string scope = 17;
 }
 
 // AccessTokenResponse is a successful access token response. See

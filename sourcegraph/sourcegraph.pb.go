@@ -98,6 +98,7 @@ It has these top-level messages:
 	AuthorizationCodeRequest
 	AuthorizationCode
 	LoginCredentials
+	BearerJWT
 	AccessTokenRequest
 	AccessTokenResponse
 	AuthInfo
@@ -1534,6 +1535,19 @@ func (m *LoginCredentials) Reset()         { *m = LoginCredentials{} }
 func (m *LoginCredentials) String() string { return proto.CompactTextString(m) }
 func (*LoginCredentials) ProtoMessage()    {}
 
+// BearerJWT is a Bearer JSON Web Token, which is used for client
+// authentication during an authentication grant. See
+// https://tools.ietf.org/html/draft-ietf-oauth-jwt-bearer-12#section-2.1
+// for more information.
+type BearerJWT struct {
+	// Assertion is a JWT.
+	Assertion string `protobuf:"bytes,1,opt,name=assertion,proto3" json:"assertion,omitempty"`
+}
+
+func (m *BearerJWT) Reset()         { *m = BearerJWT{} }
+func (m *BearerJWT) String() string { return proto.CompactTextString(m) }
+func (*BearerJWT) ProtoMessage()    {}
+
 // AccessTokenRequest contains the information necessary to
 // request an OAuth2 access token. It supports a subset of
 // authorization grant types specified in
@@ -1541,7 +1555,8 @@ func (*LoginCredentials) ProtoMessage()    {}
 type AccessTokenRequest struct {
 	AuthorizationCode     *AuthorizationCode `protobuf:"bytes,1,opt,name=authorization_code" json:"authorization_code,omitempty"`
 	ResourceOwnerPassword *LoginCredentials  `protobuf:"bytes,2,opt,name=resource_owner_password" json:"resource_owner_password,omitempty"`
-	Scope                 []string           `protobuf:"bytes,3,rep,name=scope" json:"scope,omitempty"`
+	BearerJWT             *BearerJWT         `protobuf:"bytes,3,opt,name=bearer_jwt" json:"bearer_jwt,omitempty"`
+	Scope                 []string           `protobuf:"bytes,17,rep,name=scope" json:"scope,omitempty"`
 }
 
 func (m *AccessTokenRequest) Reset()         { *m = AccessTokenRequest{} }
