@@ -95,9 +95,10 @@ It has these top-level messages:
 	EmailAddrList
 	OrgList
 	NewAccount
+	AuthorizationCodeRequest
+	AuthorizationCode
 	LoginCredentials
 	AccessTokenRequest
-	OAuth2AuthorizationCode
 	AccessTokenResponse
 	AuthInfo
 	AuthorshipInfo
@@ -1490,6 +1491,37 @@ func (m *NewAccount) Reset()         { *m = NewAccount{} }
 func (m *NewAccount) String() string { return proto.CompactTextString(m) }
 func (*NewAccount) ProtoMessage()    {}
 
+// AuthorizationCodeRequest: see
+// https://tools.ietf.org/html/rfc6749#section-4.1.1.
+type AuthorizationCodeRequest struct {
+	ResponseType string   `protobuf:"bytes,1,opt,name=response_type,proto3" json:"response_type,omitempty"`
+	ClientID     string   `protobuf:"bytes,2,opt,name=client_id,proto3" json:"client_id,omitempty"`
+	RedirectURI  string   `protobuf:"bytes,3,opt,name=redirect_uri,proto3" json:"redirect_uri,omitempty"`
+	Scope        []string `protobuf:"bytes,4,rep,name=scope" json:"scope,omitempty"`
+	// UID is the UID of the user who will be presented with the code.
+	UID int32 `protobuf:"varint,5,opt,name=uid,proto3" json:"uid,omitempty"`
+}
+
+func (m *AuthorizationCodeRequest) Reset()         { *m = AuthorizationCodeRequest{} }
+func (m *AuthorizationCodeRequest) String() string { return proto.CompactTextString(m) }
+func (*AuthorizationCodeRequest) ProtoMessage()    {}
+
+// AuthorizationCode represents an access token request using the
+// authorization_code OAuth2 grant type. See
+// http://tools.ietf.org/html/rfc6749#section-4.1.3 for more
+// information.
+//
+// The client_id field is not set in this message; it is taken from
+// the authenticated client for the request (which must exist).
+type AuthorizationCode struct {
+	Code        string `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	RedirectURI string `protobuf:"bytes,2,opt,name=redirect_uri,proto3" json:"redirect_uri,omitempty"`
+}
+
+func (m *AuthorizationCode) Reset()         { *m = AuthorizationCode{} }
+func (m *AuthorizationCode) String() string { return proto.CompactTextString(m) }
+func (*AuthorizationCode) ProtoMessage()    {}
+
 // LoginCredentials is the information a user submits to log in.
 type LoginCredentials struct {
 	// Login is the user's claimed login.
@@ -1507,30 +1539,14 @@ func (*LoginCredentials) ProtoMessage()    {}
 // authorization grant types specified in
 // http://tools.ietf.org/html/rfc6749#section-4.
 type AccessTokenRequest struct {
-	AuthorizationCode     *OAuth2AuthorizationCode `protobuf:"bytes,1,opt,name=authorization_code" json:"authorization_code,omitempty"`
-	ResourceOwnerPassword *LoginCredentials        `protobuf:"bytes,2,opt,name=resource_owner_password" json:"resource_owner_password,omitempty"`
-	Scope                 []string                 `protobuf:"bytes,3,rep,name=scope" json:"scope,omitempty"`
+	AuthorizationCode     *AuthorizationCode `protobuf:"bytes,1,opt,name=authorization_code" json:"authorization_code,omitempty"`
+	ResourceOwnerPassword *LoginCredentials  `protobuf:"bytes,2,opt,name=resource_owner_password" json:"resource_owner_password,omitempty"`
+	Scope                 []string           `protobuf:"bytes,3,rep,name=scope" json:"scope,omitempty"`
 }
 
 func (m *AccessTokenRequest) Reset()         { *m = AccessTokenRequest{} }
 func (m *AccessTokenRequest) String() string { return proto.CompactTextString(m) }
 func (*AccessTokenRequest) ProtoMessage()    {}
-
-// OAuth2AuthorizationCode represents an access token request using
-// the authorization_code OAuth2 grant type. See
-// http://tools.ietf.org/html/rfc6749#section-4.1.3 for more
-// information.
-//
-// The client_id field is not set in this message; it is taken from
-// the authenticated client for the request (which must exist).
-type OAuth2AuthorizationCode struct {
-	Code        string `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
-	RedirectURI string `protobuf:"bytes,2,opt,name=redirect_uri,proto3" json:"redirect_uri,omitempty"`
-}
-
-func (m *OAuth2AuthorizationCode) Reset()         { *m = OAuth2AuthorizationCode{} }
-func (m *OAuth2AuthorizationCode) String() string { return proto.CompactTextString(m) }
-func (*OAuth2AuthorizationCode) ProtoMessage()    {}
 
 // AccessTokenResponse is a successful access token response. See
 // http://tools.ietf.org/html/rfc6749#section-5.1 for more
@@ -4570,6 +4586,12 @@ var _Users_serviceDesc = grpc.ServiceDesc{
 // Client API for Auth service
 
 type AuthClient interface {
+	// GetAuthorizationCodeGrant gets an OAuth2 authorization code
+	// grant from the server that can be traded in for an access token
+	// by calling GetAccessToken. See
+	// https://tools.ietf.org/html/rfc6749#section-4.1 for more
+	// information.
+	GetAuthorizationCode(ctx context.Context, in *AuthorizationCodeRequest, opts ...grpc.CallOption) (*AuthorizationCode, error)
 	// GetAccessToken requests the server to issue an access token
 	// using the credentials provided in the AccessTokenRequest.
 	//
@@ -4596,6 +4618,15 @@ func NewAuthClient(cc *grpc.ClientConn) AuthClient {
 	return &authClient{cc}
 }
 
+func (c *authClient) GetAuthorizationCode(ctx context.Context, in *AuthorizationCodeRequest, opts ...grpc.CallOption) (*AuthorizationCode, error) {
+	out := new(AuthorizationCode)
+	err := grpc.Invoke(ctx, "/sourcegraph.Auth/GetAuthorizationCode", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authClient) GetAccessToken(ctx context.Context, in *AccessTokenRequest, opts ...grpc.CallOption) (*AccessTokenResponse, error) {
 	out := new(AccessTokenResponse)
 	err := grpc.Invoke(ctx, "/sourcegraph.Auth/GetAccessToken", in, out, c.cc, opts...)
@@ -4617,6 +4648,12 @@ func (c *authClient) Identify(ctx context.Context, in *pbtypes1.Void, opts ...gr
 // Server API for Auth service
 
 type AuthServer interface {
+	// GetAuthorizationCodeGrant gets an OAuth2 authorization code
+	// grant from the server that can be traded in for an access token
+	// by calling GetAccessToken. See
+	// https://tools.ietf.org/html/rfc6749#section-4.1 for more
+	// information.
+	GetAuthorizationCode(context.Context, *AuthorizationCodeRequest) (*AuthorizationCode, error)
 	// GetAccessToken requests the server to issue an access token
 	// using the credentials provided in the AccessTokenRequest.
 	//
@@ -4637,6 +4674,18 @@ type AuthServer interface {
 
 func RegisterAuthServer(s *grpc.Server, srv AuthServer) {
 	s.RegisterService(&_Auth_serviceDesc, srv)
+}
+
+func _Auth_GetAuthorizationCode_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(AuthorizationCodeRequest)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(AuthServer).GetAuthorizationCode(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func _Auth_GetAccessToken_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
@@ -4667,6 +4716,10 @@ var _Auth_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sourcegraph.Auth",
 	HandlerType: (*AuthServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetAuthorizationCode",
+			Handler:    _Auth_GetAuthorizationCode_Handler,
+		},
 		{
 			MethodName: "GetAccessToken",
 			Handler:    _Auth_GetAccessToken_Handler,

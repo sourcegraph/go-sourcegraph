@@ -1400,6 +1400,13 @@ service Users {
 
 // Auth manages authentication and authorization (via OAuth2).
 service Auth {
+	// GetAuthorizationCodeGrant gets an OAuth2 authorization code
+	// grant from the server that can be traded in for an access token
+	// by calling GetAccessToken. See
+	// https://tools.ietf.org/html/rfc6749#section-4.1 for more
+	// information.
+	rpc GetAuthorizationCode(AuthorizationCodeRequest) returns (AuthorizationCode);
+
 	// GetAccessToken requests the server to issue an access token
 	// using the credentials provided in the AccessTokenRequest.
 	//
@@ -1423,6 +1430,30 @@ service Auth {
 	};
 }
 
+// AuthorizationCodeRequest: see
+// https://tools.ietf.org/html/rfc6749#section-4.1.1.
+message AuthorizationCodeRequest {
+	string response_type = 1;
+	string client_id = 2 [(gogoproto.customname) = "ClientID"];
+	string redirect_uri = 3 [(gogoproto.customname) = "RedirectURI"];
+	repeated string scope = 4;
+
+	// UID is the UID of the user who will be presented with the code.
+	int32 uid = 5 [(gogoproto.customname) = "UID"];
+}
+
+// AuthorizationCode represents an access token request using the
+// authorization_code OAuth2 grant type. See
+// http://tools.ietf.org/html/rfc6749#section-4.1.3 for more
+// information.
+//
+// The client_id field is not set in this message; it is taken from
+// the authenticated client for the request (which must exist).
+message AuthorizationCode {
+	string code = 1;
+	string redirect_uri = 2 [(gogoproto.customname) = "RedirectURI"];
+}
+
 // LoginCredentials is the information a user submits to log in.
 message LoginCredentials {
 	// Login is the user's claimed login.
@@ -1442,23 +1473,11 @@ message AccessTokenRequest {
 	// See http://tools.ietf.org/html/rfc6749#section-1.3 for more
 	// information on OAuth2 authorization grant types.
 	oneof authorization_grant {
-		OAuth2AuthorizationCode authorization_code = 1;
+		AuthorizationCode authorization_code = 1;
 		LoginCredentials resource_owner_password = 2;
 	}
 
 	repeated string scope = 3;
-}
-
-// OAuth2AuthorizationCode represents an access token request using
-// the authorization_code OAuth2 grant type. See
-// http://tools.ietf.org/html/rfc6749#section-4.1.3 for more
-// information.
-//
-// The client_id field is not set in this message; it is taken from
-// the authenticated client for the request (which must exist).
-message OAuth2AuthorizationCode {
-	string code = 1;
-	string redirect_uri = 2 [(gogoproto.customname) = "RedirectURI"];
 }
 
 // AccessTokenResponse is a successful access token response. See

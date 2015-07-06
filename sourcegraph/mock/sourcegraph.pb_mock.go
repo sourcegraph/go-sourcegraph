@@ -612,8 +612,13 @@ func (s *UsersServer) List(v0 context.Context, v1 *sourcegraph.UsersListOptions)
 var _ sourcegraph.UsersServer = (*UsersServer)(nil)
 
 type AuthClient struct {
-	GetAccessToken_ func(ctx context.Context, in *sourcegraph.AccessTokenRequest) (*sourcegraph.AccessTokenResponse, error)
-	Identify_       func(ctx context.Context, in *pbtypes.Void) (*sourcegraph.AuthInfo, error)
+	GetAuthorizationCode_ func(ctx context.Context, in *sourcegraph.AuthorizationCodeRequest) (*sourcegraph.AuthorizationCode, error)
+	GetAccessToken_       func(ctx context.Context, in *sourcegraph.AccessTokenRequest) (*sourcegraph.AccessTokenResponse, error)
+	Identify_             func(ctx context.Context, in *pbtypes.Void) (*sourcegraph.AuthInfo, error)
+}
+
+func (s *AuthClient) GetAuthorizationCode(ctx context.Context, in *sourcegraph.AuthorizationCodeRequest, opts ...grpc.CallOption) (*sourcegraph.AuthorizationCode, error) {
+	return s.GetAuthorizationCode_(ctx, in)
 }
 
 func (s *AuthClient) GetAccessToken(ctx context.Context, in *sourcegraph.AccessTokenRequest, opts ...grpc.CallOption) (*sourcegraph.AccessTokenResponse, error) {
@@ -627,8 +632,13 @@ func (s *AuthClient) Identify(ctx context.Context, in *pbtypes.Void, opts ...grp
 var _ sourcegraph.AuthClient = (*AuthClient)(nil)
 
 type AuthServer struct {
-	GetAccessToken_ func(v0 context.Context, v1 *sourcegraph.AccessTokenRequest) (*sourcegraph.AccessTokenResponse, error)
-	Identify_       func(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.AuthInfo, error)
+	GetAuthorizationCode_ func(v0 context.Context, v1 *sourcegraph.AuthorizationCodeRequest) (*sourcegraph.AuthorizationCode, error)
+	GetAccessToken_       func(v0 context.Context, v1 *sourcegraph.AccessTokenRequest) (*sourcegraph.AccessTokenResponse, error)
+	Identify_             func(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.AuthInfo, error)
+}
+
+func (s *AuthServer) GetAuthorizationCode(v0 context.Context, v1 *sourcegraph.AuthorizationCodeRequest) (*sourcegraph.AuthorizationCode, error) {
+	return s.GetAuthorizationCode_(v0, v1)
 }
 
 func (s *AuthServer) GetAccessToken(v0 context.Context, v1 *sourcegraph.AccessTokenRequest) (*sourcegraph.AccessTokenResponse, error) {
