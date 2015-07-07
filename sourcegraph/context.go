@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -91,6 +92,8 @@ func DescribeClientCredentials(ctx context.Context) []string {
 	return s
 }
 
+var maxDialTimeout = 3 * time.Second
+
 // NewClientFromContext returns a Sourcegraph API client configured
 // using the context (e.g., authenticated using the context's
 // credentials (actor & tickets)).
@@ -110,6 +113,16 @@ var NewClientFromContext = func(ctx context.Context) *Client {
 		transport = cred.NewTransport(transport)
 	}
 	opts = append(opts, grpc.WithPerRPCCredentials(contextCredentials{}))
+
+	// Dial timeout is the lesser of the ctx deadline or
+	// maxDialTimeout.
+	var timeout time.Duration
+	if d, ok := ctx.Deadline(); ok && time.Now().Add(maxDialTimeout).After(d) {
+		timeout = d.Sub(time.Now())
+	} else {
+		timeout = maxDialTimeout
+	}
+	opts = append(opts, grpc.WithTimeout(timeout))
 
 	conn, err := pooledGRPCDial(grpcEndpoint.Host, opts...)
 	if err != nil {
