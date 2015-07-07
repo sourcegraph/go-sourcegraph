@@ -1556,7 +1556,10 @@ type AccessTokenRequest struct {
 	AuthorizationCode     *AuthorizationCode `protobuf:"bytes,1,opt,name=authorization_code" json:"authorization_code,omitempty"`
 	ResourceOwnerPassword *LoginCredentials  `protobuf:"bytes,2,opt,name=resource_owner_password" json:"resource_owner_password,omitempty"`
 	BearerJWT             *BearerJWT         `protobuf:"bytes,3,opt,name=bearer_jwt" json:"bearer_jwt,omitempty"`
-	Scope                 []string           `protobuf:"bytes,17,rep,name=scope" json:"scope,omitempty"`
+	// TokenURL is the token endpoint URL on the OAuth2 authorization
+	// server that the client is requesting an access token from.
+	TokenURL string   `protobuf:"bytes,9,opt,name=token_url,proto3" json:"token_url,omitempty"`
+	Scope    []string `protobuf:"bytes,17,rep,name=scope" json:"scope,omitempty"`
 }
 
 func (m *AccessTokenRequest) Reset()         { *m = AccessTokenRequest{} }

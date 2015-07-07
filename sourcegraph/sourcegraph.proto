@@ -1487,6 +1487,10 @@ message AccessTokenRequest {
 		BearerJWT bearer_jwt = 3 [(gogoproto.customname) = "BearerJWT"];
 	}
 
+	// TokenURL is the token endpoint URL on the OAuth2 authorization
+	// server that the client is requesting an access token from.
+	string token_url = 9 [(gogoproto.customname) = "TokenURL"];
+
 	repeated string scope = 17;
 }
 
