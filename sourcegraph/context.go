@@ -17,6 +17,7 @@ const (
 	grpcEndpointKey contextKey = iota
 	httpEndpointKey
 	credentialsKey
+	clientMetadataKey
 )
 
 // WithGRPCEndpoint returns a copy of parent whose clients (obtained
@@ -63,6 +64,9 @@ type Credentials interface {
 // as the credentials for future API clients constructed using this
 // context (with NewClientFromContext). It replaces (shadows) any
 // previously set credentials in the context.
+//
+// It can be used to add, e.g., trace/span ID metadata for request
+// tracing.
 func WithCredentials(parent context.Context, cred Credentials) context.Context {
 	return context.WithValue(parent, credentialsKey, cred)
 }
@@ -71,6 +75,24 @@ func WithCredentials(parent context.Context, cred Credentials) context.Context {
 // set in the context by WithCredentials.
 func CredentialsFromContext(ctx context.Context) Credentials {
 	cred, ok := ctx.Value(credentialsKey).(Credentials)
+	if !ok {
+		return nil
+	}
+	return cred
+}
+
+// WithClientMetadata returns a copy of the parent context that merges
+// in the specified metadata to future API clients constructed using
+// this context (with NewClientFromContext). It replaces (shadows) any
+// previously set metadata in the context.
+func WithClientMetadata(parent context.Context, md map[string]string) context.Context {
+	return context.WithValue(parent, clientMetadataKey, md)
+}
+
+// clientMetadataFromContext returns the metadata (if any) previously
+// set in the context by WithClientMetadata.
+func clientMetadataFromContext(ctx context.Context) map[string]string {
+	cred, ok := ctx.Value(clientMetadataKey).(map[string]string)
 	if !ok {
 		return nil
 	}
@@ -129,9 +151,21 @@ var NewClientFromContext = func(ctx context.Context) *Client {
 type contextCredentials struct{}
 
 func (contextCredentials) GetRequestMetadata(ctx context.Context) (map[string]string, error) {
+	m := clientMetadataFromContext(ctx)
+
 	if cred := CredentialsFromContext(ctx); cred != nil {
-		s := credentials.TokenSource{TokenSource: cred}
-		return s.GetRequestMetadata(ctx)
+		credMD, err := (credentials.TokenSource{TokenSource: cred}).GetRequestMetadata(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		if m == nil {
+			m = credMD
+		} else {
+			for k, v := range credMD {
+				m[k] = v
+			}
+		}
 	}
-	return nil, nil
+	return m, nil
 }
