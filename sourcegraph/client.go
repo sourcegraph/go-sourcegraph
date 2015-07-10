@@ -16,6 +16,7 @@ import (
 	"github.com/google/go-querystring/query"
 	"google.golang.org/grpc"
 	"sourcegraph.com/sourcegraph/go-sourcegraph/router"
+	"sourcegraph.com/sqs/grpccache"
 )
 
 const (
@@ -64,6 +65,9 @@ type Client struct {
 	Conn *grpc.ClientConn
 }
 
+// Cache is the gRPC cache used to cache API responses.
+var Cache *grpccache.Cache
+
 // NewClient returns a Sourcegraph API client. The gRPC conn is used
 // for all services except for BuildData (which uses the
 // httpClient). If httpClient is nil, http.DefaultClient is used.
@@ -83,26 +87,26 @@ func NewClient(httpClient *http.Client, conn *grpc.ClientConn) *Client {
 
 	// gRPC (HTTP/2)
 	c.Conn = conn
-	c.Accounts = NewAccountsClient(conn)
-	c.Auth = NewAuthClient(conn)
-	c.Builds = NewBuildsClient(conn)
-	c.Defs = NewDefsClient(conn)
-	c.Deltas = NewDeltasClient(conn)
-	c.Markdown = NewMarkdownClient(conn)
-	c.Meta = NewMetaClient(conn)
-	c.MirrorRepos = NewMirrorReposClient(conn)
-	c.MirroredRepoSSHKeys = NewMirroredRepoSSHKeysClient(conn)
-	c.Orgs = NewOrgsClient(conn)
-	c.People = NewPeopleClient(conn)
-	c.RegisteredClients = NewRegisteredClientsClient(conn)
-	c.RepoBadges = NewRepoBadgesClient(conn)
-	c.RepoStatuses = NewRepoStatusesClient(conn)
-	c.RepoTree = NewRepoTreeClient(conn)
-	c.Repos = NewReposClient(conn)
-	c.Changesets = NewChangesetsClient(conn)
-	c.Search = NewSearchClient(conn)
-	c.Units = NewUnitsClient(conn)
-	c.Users = NewUsersClient(conn)
+	c.Accounts = &CachedAccountsClient{NewAccountsClient(conn), Cache}
+	c.Auth = &CachedAuthClient{NewAuthClient(conn), Cache}
+	c.Builds = &CachedBuildsClient{NewBuildsClient(conn), Cache}
+	c.Defs = &CachedDefsClient{NewDefsClient(conn), Cache}
+	c.Deltas = &CachedDeltasClient{NewDeltasClient(conn), Cache}
+	c.Markdown = &CachedMarkdownClient{NewMarkdownClient(conn), Cache}
+	c.Meta = &CachedMetaClient{NewMetaClient(conn), Cache}
+	c.MirrorRepos = &CachedMirrorReposClient{NewMirrorReposClient(conn), Cache}
+	c.MirroredRepoSSHKeys = &CachedMirroredRepoSSHKeysClient{NewMirroredRepoSSHKeysClient(conn), Cache}
+	c.Orgs = &CachedOrgsClient{NewOrgsClient(conn), Cache}
+	c.People = &CachedPeopleClient{NewPeopleClient(conn), Cache}
+	c.RegisteredClients = &CachedRegisteredClientsClient{NewRegisteredClientsClient(conn), Cache}
+	c.RepoBadges = &CachedRepoBadgesClient{NewRepoBadgesClient(conn), Cache}
+	c.RepoStatuses = &CachedRepoStatusesClient{NewRepoStatusesClient(conn), Cache}
+	c.RepoTree = &CachedRepoTreeClient{NewRepoTreeClient(conn), Cache}
+	c.Repos = &CachedReposClient{NewReposClient(conn), Cache}
+	c.Changesets = &CachedChangesetsClient{NewChangesetsClient(conn), Cache}
+	c.Search = &CachedSearchClient{NewSearchClient(conn), Cache}
+	c.Units = &CachedUnitsClient{NewUnitsClient(conn), Cache}
+	c.Users = &CachedUsersClient{NewUsersClient(conn), Cache}
 
 	return c
 }
