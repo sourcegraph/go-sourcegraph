@@ -70,6 +70,12 @@ _TODO: Make it work with latest, confirm if there are any issues._
    go get -u sourcegraph.com/sourcegraph/gopathexec
    ```
 
+6. **Install `grpccache-gen`**:
+
+   ```
+   go get -u sourcegraph.com/sqs/grpccache-gen
+   ```
+
 ### Regenerating Go code after changing `sourcegraph.proto`
 
 1. In `go-sourcegraph` (this repository), run:
