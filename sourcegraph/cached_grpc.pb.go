@@ -23,17 +23,19 @@ import (
 
 type CachedAccountsClient struct {
 	AccountsClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedAccountsClient) Create(ctx context.Context, in *NewAccount, opts ...grpc.CallOption) (*UserSpec, error) {
-	var cachedResult UserSpec
-	cached, err := s.Cache.Get(ctx, "Accounts.Create", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult UserSpec
+		cached, err := s.Cache.Get(ctx, "Accounts.Create", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -42,25 +44,29 @@ func (s *CachedAccountsClient) Create(ctx context.Context, in *NewAccount, opts 
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Accounts.Create", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Accounts.Create", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 type CachedAuthClient struct {
 	AuthClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedAuthClient) GetAuthorizationCode(ctx context.Context, in *AuthorizationCodeRequest, opts ...grpc.CallOption) (*AuthorizationCode, error) {
-	var cachedResult AuthorizationCode
-	cached, err := s.Cache.Get(ctx, "Auth.GetAuthorizationCode", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult AuthorizationCode
+		cached, err := s.Cache.Get(ctx, "Auth.GetAuthorizationCode", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -69,20 +75,24 @@ func (s *CachedAuthClient) GetAuthorizationCode(ctx context.Context, in *Authori
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Auth.GetAuthorizationCode", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Auth.GetAuthorizationCode", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedAuthClient) GetAccessToken(ctx context.Context, in *AccessTokenRequest, opts ...grpc.CallOption) (*AccessTokenResponse, error) {
-	var cachedResult AccessTokenResponse
-	cached, err := s.Cache.Get(ctx, "Auth.GetAccessToken", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult AccessTokenResponse
+		cached, err := s.Cache.Get(ctx, "Auth.GetAccessToken", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -91,20 +101,24 @@ func (s *CachedAuthClient) GetAccessToken(ctx context.Context, in *AccessTokenRe
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Auth.GetAccessToken", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Auth.GetAccessToken", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedAuthClient) Identify(ctx context.Context, in *pbtypes.Void, opts ...grpc.CallOption) (*AuthInfo, error) {
-	var cachedResult AuthInfo
-	cached, err := s.Cache.Get(ctx, "Auth.Identify", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult AuthInfo
+		cached, err := s.Cache.Get(ctx, "Auth.Identify", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -113,25 +127,29 @@ func (s *CachedAuthClient) Identify(ctx context.Context, in *pbtypes.Void, opts 
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Auth.Identify", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Auth.Identify", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 type CachedBuildsClient struct {
 	BuildsClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedBuildsClient) Get(ctx context.Context, in *BuildSpec, opts ...grpc.CallOption) (*Build, error) {
-	var cachedResult Build
-	cached, err := s.Cache.Get(ctx, "Builds.Get", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult Build
+		cached, err := s.Cache.Get(ctx, "Builds.Get", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -140,20 +158,24 @@ func (s *CachedBuildsClient) Get(ctx context.Context, in *BuildSpec, opts ...grp
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Builds.Get", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Builds.Get", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedBuildsClient) GetRepoBuildInfo(ctx context.Context, in *BuildsGetRepoBuildInfoOp, opts ...grpc.CallOption) (*RepoBuildInfo, error) {
-	var cachedResult RepoBuildInfo
-	cached, err := s.Cache.Get(ctx, "Builds.GetRepoBuildInfo", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult RepoBuildInfo
+		cached, err := s.Cache.Get(ctx, "Builds.GetRepoBuildInfo", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -162,20 +184,24 @@ func (s *CachedBuildsClient) GetRepoBuildInfo(ctx context.Context, in *BuildsGet
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Builds.GetRepoBuildInfo", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Builds.GetRepoBuildInfo", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedBuildsClient) List(ctx context.Context, in *BuildListOptions, opts ...grpc.CallOption) (*BuildList, error) {
-	var cachedResult BuildList
-	cached, err := s.Cache.Get(ctx, "Builds.List", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult BuildList
+		cached, err := s.Cache.Get(ctx, "Builds.List", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -184,20 +210,24 @@ func (s *CachedBuildsClient) List(ctx context.Context, in *BuildListOptions, opt
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Builds.List", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Builds.List", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedBuildsClient) Create(ctx context.Context, in *BuildsCreateOp, opts ...grpc.CallOption) (*Build, error) {
-	var cachedResult Build
-	cached, err := s.Cache.Get(ctx, "Builds.Create", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult Build
+		cached, err := s.Cache.Get(ctx, "Builds.Create", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -206,20 +236,24 @@ func (s *CachedBuildsClient) Create(ctx context.Context, in *BuildsCreateOp, opt
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Builds.Create", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Builds.Create", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedBuildsClient) Update(ctx context.Context, in *BuildsUpdateOp, opts ...grpc.CallOption) (*Build, error) {
-	var cachedResult Build
-	cached, err := s.Cache.Get(ctx, "Builds.Update", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult Build
+		cached, err := s.Cache.Get(ctx, "Builds.Update", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -228,20 +262,24 @@ func (s *CachedBuildsClient) Update(ctx context.Context, in *BuildsUpdateOp, opt
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Builds.Update", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Builds.Update", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedBuildsClient) ListBuildTasks(ctx context.Context, in *BuildsListBuildTasksOp, opts ...grpc.CallOption) (*BuildTaskList, error) {
-	var cachedResult BuildTaskList
-	cached, err := s.Cache.Get(ctx, "Builds.ListBuildTasks", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult BuildTaskList
+		cached, err := s.Cache.Get(ctx, "Builds.ListBuildTasks", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -250,20 +288,24 @@ func (s *CachedBuildsClient) ListBuildTasks(ctx context.Context, in *BuildsListB
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Builds.ListBuildTasks", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Builds.ListBuildTasks", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedBuildsClient) CreateTasks(ctx context.Context, in *BuildsCreateTasksOp, opts ...grpc.CallOption) (*BuildTaskList, error) {
-	var cachedResult BuildTaskList
-	cached, err := s.Cache.Get(ctx, "Builds.CreateTasks", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult BuildTaskList
+		cached, err := s.Cache.Get(ctx, "Builds.CreateTasks", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -272,20 +314,24 @@ func (s *CachedBuildsClient) CreateTasks(ctx context.Context, in *BuildsCreateTa
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Builds.CreateTasks", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Builds.CreateTasks", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedBuildsClient) UpdateTask(ctx context.Context, in *BuildsUpdateTaskOp, opts ...grpc.CallOption) (*BuildTask, error) {
-	var cachedResult BuildTask
-	cached, err := s.Cache.Get(ctx, "Builds.UpdateTask", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult BuildTask
+		cached, err := s.Cache.Get(ctx, "Builds.UpdateTask", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -294,20 +340,24 @@ func (s *CachedBuildsClient) UpdateTask(ctx context.Context, in *BuildsUpdateTas
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Builds.UpdateTask", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Builds.UpdateTask", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedBuildsClient) GetLog(ctx context.Context, in *BuildsGetLogOp, opts ...grpc.CallOption) (*LogEntries, error) {
-	var cachedResult LogEntries
-	cached, err := s.Cache.Get(ctx, "Builds.GetLog", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult LogEntries
+		cached, err := s.Cache.Get(ctx, "Builds.GetLog", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -316,20 +366,24 @@ func (s *CachedBuildsClient) GetLog(ctx context.Context, in *BuildsGetLogOp, opt
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Builds.GetLog", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Builds.GetLog", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedBuildsClient) GetTaskLog(ctx context.Context, in *BuildsGetTaskLogOp, opts ...grpc.CallOption) (*LogEntries, error) {
-	var cachedResult LogEntries
-	cached, err := s.Cache.Get(ctx, "Builds.GetTaskLog", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult LogEntries
+		cached, err := s.Cache.Get(ctx, "Builds.GetTaskLog", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -338,20 +392,24 @@ func (s *CachedBuildsClient) GetTaskLog(ctx context.Context, in *BuildsGetTaskLo
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Builds.GetTaskLog", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Builds.GetTaskLog", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedBuildsClient) DequeueNext(ctx context.Context, in *BuildsDequeueNextOp, opts ...grpc.CallOption) (*Build, error) {
-	var cachedResult Build
-	cached, err := s.Cache.Get(ctx, "Builds.DequeueNext", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult Build
+		cached, err := s.Cache.Get(ctx, "Builds.DequeueNext", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -360,20 +418,24 @@ func (s *CachedBuildsClient) DequeueNext(ctx context.Context, in *BuildsDequeueN
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Builds.DequeueNext", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Builds.DequeueNext", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedBuildsClient) DequeueNextTask(ctx context.Context, in *BuildsDequeueNextTaskOp, opts ...grpc.CallOption) (*BuildTask, error) {
-	var cachedResult BuildTask
-	cached, err := s.Cache.Get(ctx, "Builds.DequeueNextTask", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult BuildTask
+		cached, err := s.Cache.Get(ctx, "Builds.DequeueNextTask", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -382,25 +444,29 @@ func (s *CachedBuildsClient) DequeueNextTask(ctx context.Context, in *BuildsDequ
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Builds.DequeueNextTask", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Builds.DequeueNextTask", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 type CachedChangesetsClient struct {
 	ChangesetsClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedChangesetsClient) Create(ctx context.Context, in *ChangesetCreateOp, opts ...grpc.CallOption) (*Changeset, error) {
-	var cachedResult Changeset
-	cached, err := s.Cache.Get(ctx, "Changesets.Create", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult Changeset
+		cached, err := s.Cache.Get(ctx, "Changesets.Create", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -409,20 +475,24 @@ func (s *CachedChangesetsClient) Create(ctx context.Context, in *ChangesetCreate
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Changesets.Create", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Changesets.Create", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedChangesetsClient) Get(ctx context.Context, in *ChangesetSpec, opts ...grpc.CallOption) (*Changeset, error) {
-	var cachedResult Changeset
-	cached, err := s.Cache.Get(ctx, "Changesets.Get", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult Changeset
+		cached, err := s.Cache.Get(ctx, "Changesets.Get", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -431,20 +501,24 @@ func (s *CachedChangesetsClient) Get(ctx context.Context, in *ChangesetSpec, opt
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Changesets.Get", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Changesets.Get", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedChangesetsClient) List(ctx context.Context, in *ChangesetListOp, opts ...grpc.CallOption) (*ChangesetList, error) {
-	var cachedResult ChangesetList
-	cached, err := s.Cache.Get(ctx, "Changesets.List", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult ChangesetList
+		cached, err := s.Cache.Get(ctx, "Changesets.List", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -453,20 +527,24 @@ func (s *CachedChangesetsClient) List(ctx context.Context, in *ChangesetListOp, 
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Changesets.List", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Changesets.List", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedChangesetsClient) Update(ctx context.Context, in *ChangesetUpdateOp, opts ...grpc.CallOption) (*ChangesetEvent, error) {
-	var cachedResult ChangesetEvent
-	cached, err := s.Cache.Get(ctx, "Changesets.Update", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult ChangesetEvent
+		cached, err := s.Cache.Get(ctx, "Changesets.Update", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -475,20 +553,24 @@ func (s *CachedChangesetsClient) Update(ctx context.Context, in *ChangesetUpdate
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Changesets.Update", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Changesets.Update", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedChangesetsClient) CreateReview(ctx context.Context, in *ChangesetCreateReviewOp, opts ...grpc.CallOption) (*ChangesetReview, error) {
-	var cachedResult ChangesetReview
-	cached, err := s.Cache.Get(ctx, "Changesets.CreateReview", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult ChangesetReview
+		cached, err := s.Cache.Get(ctx, "Changesets.CreateReview", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -497,20 +579,24 @@ func (s *CachedChangesetsClient) CreateReview(ctx context.Context, in *Changeset
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Changesets.CreateReview", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Changesets.CreateReview", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedChangesetsClient) ListReviews(ctx context.Context, in *ChangesetListReviewsOp, opts ...grpc.CallOption) (*ChangesetReviewList, error) {
-	var cachedResult ChangesetReviewList
-	cached, err := s.Cache.Get(ctx, "Changesets.ListReviews", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult ChangesetReviewList
+		cached, err := s.Cache.Get(ctx, "Changesets.ListReviews", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -519,20 +605,24 @@ func (s *CachedChangesetsClient) ListReviews(ctx context.Context, in *ChangesetL
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Changesets.ListReviews", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Changesets.ListReviews", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedChangesetsClient) ListEvents(ctx context.Context, in *ChangesetSpec, opts ...grpc.CallOption) (*ChangesetEventList, error) {
-	var cachedResult ChangesetEventList
-	cached, err := s.Cache.Get(ctx, "Changesets.ListEvents", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult ChangesetEventList
+		cached, err := s.Cache.Get(ctx, "Changesets.ListEvents", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -541,25 +631,29 @@ func (s *CachedChangesetsClient) ListEvents(ctx context.Context, in *ChangesetSp
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Changesets.ListEvents", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Changesets.ListEvents", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 type CachedDefsClient struct {
 	DefsClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedDefsClient) Get(ctx context.Context, in *DefsGetOp, opts ...grpc.CallOption) (*Def, error) {
-	var cachedResult Def
-	cached, err := s.Cache.Get(ctx, "Defs.Get", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult Def
+		cached, err := s.Cache.Get(ctx, "Defs.Get", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -568,20 +662,24 @@ func (s *CachedDefsClient) Get(ctx context.Context, in *DefsGetOp, opts ...grpc.
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Defs.Get", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Defs.Get", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedDefsClient) List(ctx context.Context, in *DefListOptions, opts ...grpc.CallOption) (*DefList, error) {
-	var cachedResult DefList
-	cached, err := s.Cache.Get(ctx, "Defs.List", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult DefList
+		cached, err := s.Cache.Get(ctx, "Defs.List", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -590,20 +688,24 @@ func (s *CachedDefsClient) List(ctx context.Context, in *DefListOptions, opts ..
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Defs.List", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Defs.List", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedDefsClient) ListRefs(ctx context.Context, in *DefsListRefsOp, opts ...grpc.CallOption) (*RefList, error) {
-	var cachedResult RefList
-	cached, err := s.Cache.Get(ctx, "Defs.ListRefs", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult RefList
+		cached, err := s.Cache.Get(ctx, "Defs.ListRefs", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -612,20 +714,24 @@ func (s *CachedDefsClient) ListRefs(ctx context.Context, in *DefsListRefsOp, opt
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Defs.ListRefs", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Defs.ListRefs", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedDefsClient) ListExamples(ctx context.Context, in *DefsListExamplesOp, opts ...grpc.CallOption) (*ExampleList, error) {
-	var cachedResult ExampleList
-	cached, err := s.Cache.Get(ctx, "Defs.ListExamples", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult ExampleList
+		cached, err := s.Cache.Get(ctx, "Defs.ListExamples", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -634,20 +740,24 @@ func (s *CachedDefsClient) ListExamples(ctx context.Context, in *DefsListExample
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Defs.ListExamples", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Defs.ListExamples", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedDefsClient) ListAuthors(ctx context.Context, in *DefsListAuthorsOp, opts ...grpc.CallOption) (*DefAuthorList, error) {
-	var cachedResult DefAuthorList
-	cached, err := s.Cache.Get(ctx, "Defs.ListAuthors", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult DefAuthorList
+		cached, err := s.Cache.Get(ctx, "Defs.ListAuthors", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -656,20 +766,24 @@ func (s *CachedDefsClient) ListAuthors(ctx context.Context, in *DefsListAuthorsO
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Defs.ListAuthors", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Defs.ListAuthors", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedDefsClient) ListClients(ctx context.Context, in *DefsListClientsOp, opts ...grpc.CallOption) (*DefClientList, error) {
-	var cachedResult DefClientList
-	cached, err := s.Cache.Get(ctx, "Defs.ListClients", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult DefClientList
+		cached, err := s.Cache.Get(ctx, "Defs.ListClients", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -678,25 +792,29 @@ func (s *CachedDefsClient) ListClients(ctx context.Context, in *DefsListClientsO
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Defs.ListClients", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Defs.ListClients", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 type CachedDeltasClient struct {
 	DeltasClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedDeltasClient) Get(ctx context.Context, in *DeltaSpec, opts ...grpc.CallOption) (*Delta, error) {
-	var cachedResult Delta
-	cached, err := s.Cache.Get(ctx, "Deltas.Get", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult Delta
+		cached, err := s.Cache.Get(ctx, "Deltas.Get", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -705,20 +823,24 @@ func (s *CachedDeltasClient) Get(ctx context.Context, in *DeltaSpec, opts ...grp
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Deltas.Get", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Deltas.Get", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedDeltasClient) ListUnits(ctx context.Context, in *DeltasListUnitsOp, opts ...grpc.CallOption) (*UnitDeltaList, error) {
-	var cachedResult UnitDeltaList
-	cached, err := s.Cache.Get(ctx, "Deltas.ListUnits", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult UnitDeltaList
+		cached, err := s.Cache.Get(ctx, "Deltas.ListUnits", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -727,20 +849,24 @@ func (s *CachedDeltasClient) ListUnits(ctx context.Context, in *DeltasListUnitsO
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Deltas.ListUnits", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Deltas.ListUnits", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedDeltasClient) ListDefs(ctx context.Context, in *DeltasListDefsOp, opts ...grpc.CallOption) (*DeltaDefs, error) {
-	var cachedResult DeltaDefs
-	cached, err := s.Cache.Get(ctx, "Deltas.ListDefs", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult DeltaDefs
+		cached, err := s.Cache.Get(ctx, "Deltas.ListDefs", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -749,20 +875,24 @@ func (s *CachedDeltasClient) ListDefs(ctx context.Context, in *DeltasListDefsOp,
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Deltas.ListDefs", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Deltas.ListDefs", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedDeltasClient) ListFiles(ctx context.Context, in *DeltasListFilesOp, opts ...grpc.CallOption) (*DeltaFiles, error) {
-	var cachedResult DeltaFiles
-	cached, err := s.Cache.Get(ctx, "Deltas.ListFiles", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult DeltaFiles
+		cached, err := s.Cache.Get(ctx, "Deltas.ListFiles", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -771,20 +901,24 @@ func (s *CachedDeltasClient) ListFiles(ctx context.Context, in *DeltasListFilesO
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Deltas.ListFiles", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Deltas.ListFiles", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedDeltasClient) ListAffectedAuthors(ctx context.Context, in *DeltasListAffectedAuthorsOp, opts ...grpc.CallOption) (*DeltaAffectedPersonList, error) {
-	var cachedResult DeltaAffectedPersonList
-	cached, err := s.Cache.Get(ctx, "Deltas.ListAffectedAuthors", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult DeltaAffectedPersonList
+		cached, err := s.Cache.Get(ctx, "Deltas.ListAffectedAuthors", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -793,20 +927,24 @@ func (s *CachedDeltasClient) ListAffectedAuthors(ctx context.Context, in *Deltas
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Deltas.ListAffectedAuthors", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Deltas.ListAffectedAuthors", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedDeltasClient) ListAffectedClients(ctx context.Context, in *DeltasListAffectedClientsOp, opts ...grpc.CallOption) (*DeltaAffectedPersonList, error) {
-	var cachedResult DeltaAffectedPersonList
-	cached, err := s.Cache.Get(ctx, "Deltas.ListAffectedClients", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult DeltaAffectedPersonList
+		cached, err := s.Cache.Get(ctx, "Deltas.ListAffectedClients", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -815,25 +953,29 @@ func (s *CachedDeltasClient) ListAffectedClients(ctx context.Context, in *Deltas
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Deltas.ListAffectedClients", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Deltas.ListAffectedClients", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 type CachedMarkdownClient struct {
 	MarkdownClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedMarkdownClient) Render(ctx context.Context, in *MarkdownRenderOp, opts ...grpc.CallOption) (*MarkdownData, error) {
-	var cachedResult MarkdownData
-	cached, err := s.Cache.Get(ctx, "Markdown.Render", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult MarkdownData
+		cached, err := s.Cache.Get(ctx, "Markdown.Render", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -842,25 +984,29 @@ func (s *CachedMarkdownClient) Render(ctx context.Context, in *MarkdownRenderOp,
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Markdown.Render", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Markdown.Render", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 type CachedMetaClient struct {
 	MetaClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedMetaClient) Status(ctx context.Context, in *pbtypes.Void, opts ...grpc.CallOption) (*ServerStatus, error) {
-	var cachedResult ServerStatus
-	cached, err := s.Cache.Get(ctx, "Meta.Status", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult ServerStatus
+		cached, err := s.Cache.Get(ctx, "Meta.Status", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -869,20 +1015,24 @@ func (s *CachedMetaClient) Status(ctx context.Context, in *pbtypes.Void, opts ..
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Meta.Status", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Meta.Status", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedMetaClient) Config(ctx context.Context, in *pbtypes.Void, opts ...grpc.CallOption) (*ServerConfig, error) {
-	var cachedResult ServerConfig
-	cached, err := s.Cache.Get(ctx, "Meta.Config", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult ServerConfig
+		cached, err := s.Cache.Get(ctx, "Meta.Config", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -891,25 +1041,29 @@ func (s *CachedMetaClient) Config(ctx context.Context, in *pbtypes.Void, opts ..
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Meta.Config", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Meta.Config", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 type CachedMirrorReposClient struct {
 	MirrorReposClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedMirrorReposClient) RefreshVCS(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes.Void, error) {
-	var cachedResult pbtypes.Void
-	cached, err := s.Cache.Get(ctx, "MirrorRepos.RefreshVCS", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult pbtypes.Void
+		cached, err := s.Cache.Get(ctx, "MirrorRepos.RefreshVCS", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -918,25 +1072,29 @@ func (s *CachedMirrorReposClient) RefreshVCS(ctx context.Context, in *RepoSpec, 
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "MirrorRepos.RefreshVCS", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "MirrorRepos.RefreshVCS", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 type CachedMirroredRepoSSHKeysClient struct {
 	MirroredRepoSSHKeysClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedMirroredRepoSSHKeysClient) Create(ctx context.Context, in *MirroredRepoSSHKeysCreateOp, opts ...grpc.CallOption) (*pbtypes.Void, error) {
-	var cachedResult pbtypes.Void
-	cached, err := s.Cache.Get(ctx, "MirroredRepoSSHKeys.Create", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult pbtypes.Void
+		cached, err := s.Cache.Get(ctx, "MirroredRepoSSHKeys.Create", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -945,20 +1103,24 @@ func (s *CachedMirroredRepoSSHKeysClient) Create(ctx context.Context, in *Mirror
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "MirroredRepoSSHKeys.Create", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "MirroredRepoSSHKeys.Create", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedMirroredRepoSSHKeysClient) Get(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*SSHPrivateKey, error) {
-	var cachedResult SSHPrivateKey
-	cached, err := s.Cache.Get(ctx, "MirroredRepoSSHKeys.Get", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult SSHPrivateKey
+		cached, err := s.Cache.Get(ctx, "MirroredRepoSSHKeys.Get", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -967,20 +1129,24 @@ func (s *CachedMirroredRepoSSHKeysClient) Get(ctx context.Context, in *RepoSpec,
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "MirroredRepoSSHKeys.Get", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "MirroredRepoSSHKeys.Get", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedMirroredRepoSSHKeysClient) Delete(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes.Void, error) {
-	var cachedResult pbtypes.Void
-	cached, err := s.Cache.Get(ctx, "MirroredRepoSSHKeys.Delete", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult pbtypes.Void
+		cached, err := s.Cache.Get(ctx, "MirroredRepoSSHKeys.Delete", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -989,25 +1155,29 @@ func (s *CachedMirroredRepoSSHKeysClient) Delete(ctx context.Context, in *RepoSp
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "MirroredRepoSSHKeys.Delete", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "MirroredRepoSSHKeys.Delete", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 type CachedOrgsClient struct {
 	OrgsClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedOrgsClient) Get(ctx context.Context, in *OrgSpec, opts ...grpc.CallOption) (*Org, error) {
-	var cachedResult Org
-	cached, err := s.Cache.Get(ctx, "Orgs.Get", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult Org
+		cached, err := s.Cache.Get(ctx, "Orgs.Get", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1016,20 +1186,24 @@ func (s *CachedOrgsClient) Get(ctx context.Context, in *OrgSpec, opts ...grpc.Ca
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Orgs.Get", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Orgs.Get", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedOrgsClient) List(ctx context.Context, in *OrgsListOp, opts ...grpc.CallOption) (*OrgList, error) {
-	var cachedResult OrgList
-	cached, err := s.Cache.Get(ctx, "Orgs.List", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult OrgList
+		cached, err := s.Cache.Get(ctx, "Orgs.List", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1038,20 +1212,24 @@ func (s *CachedOrgsClient) List(ctx context.Context, in *OrgsListOp, opts ...grp
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Orgs.List", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Orgs.List", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedOrgsClient) ListMembers(ctx context.Context, in *OrgsListMembersOp, opts ...grpc.CallOption) (*UserList, error) {
-	var cachedResult UserList
-	cached, err := s.Cache.Get(ctx, "Orgs.ListMembers", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult UserList
+		cached, err := s.Cache.Get(ctx, "Orgs.ListMembers", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1060,25 +1238,29 @@ func (s *CachedOrgsClient) ListMembers(ctx context.Context, in *OrgsListMembersO
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Orgs.ListMembers", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Orgs.ListMembers", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 type CachedPeopleClient struct {
 	PeopleClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedPeopleClient) Get(ctx context.Context, in *PersonSpec, opts ...grpc.CallOption) (*Person, error) {
-	var cachedResult Person
-	cached, err := s.Cache.Get(ctx, "People.Get", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult Person
+		cached, err := s.Cache.Get(ctx, "People.Get", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1087,25 +1269,29 @@ func (s *CachedPeopleClient) Get(ctx context.Context, in *PersonSpec, opts ...gr
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "People.Get", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "People.Get", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 type CachedRegisteredClientsClient struct {
 	RegisteredClientsClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedRegisteredClientsClient) Get(ctx context.Context, in *RegisteredClientSpec, opts ...grpc.CallOption) (*RegisteredClient, error) {
-	var cachedResult RegisteredClient
-	cached, err := s.Cache.Get(ctx, "RegisteredClients.Get", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult RegisteredClient
+		cached, err := s.Cache.Get(ctx, "RegisteredClients.Get", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1114,20 +1300,24 @@ func (s *CachedRegisteredClientsClient) Get(ctx context.Context, in *RegisteredC
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "RegisteredClients.Get", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "RegisteredClients.Get", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedRegisteredClientsClient) GetCurrent(ctx context.Context, in *pbtypes.Void, opts ...grpc.CallOption) (*RegisteredClient, error) {
-	var cachedResult RegisteredClient
-	cached, err := s.Cache.Get(ctx, "RegisteredClients.GetCurrent", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult RegisteredClient
+		cached, err := s.Cache.Get(ctx, "RegisteredClients.GetCurrent", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1136,20 +1326,24 @@ func (s *CachedRegisteredClientsClient) GetCurrent(ctx context.Context, in *pbty
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "RegisteredClients.GetCurrent", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "RegisteredClients.GetCurrent", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedRegisteredClientsClient) Create(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*RegisteredClient, error) {
-	var cachedResult RegisteredClient
-	cached, err := s.Cache.Get(ctx, "RegisteredClients.Create", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult RegisteredClient
+		cached, err := s.Cache.Get(ctx, "RegisteredClients.Create", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1158,20 +1352,24 @@ func (s *CachedRegisteredClientsClient) Create(ctx context.Context, in *Register
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "RegisteredClients.Create", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "RegisteredClients.Create", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedRegisteredClientsClient) Update(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*pbtypes.Void, error) {
-	var cachedResult pbtypes.Void
-	cached, err := s.Cache.Get(ctx, "RegisteredClients.Update", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult pbtypes.Void
+		cached, err := s.Cache.Get(ctx, "RegisteredClients.Update", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1180,20 +1378,24 @@ func (s *CachedRegisteredClientsClient) Update(ctx context.Context, in *Register
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "RegisteredClients.Update", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "RegisteredClients.Update", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedRegisteredClientsClient) Delete(ctx context.Context, in *RegisteredClientSpec, opts ...grpc.CallOption) (*pbtypes.Void, error) {
-	var cachedResult pbtypes.Void
-	cached, err := s.Cache.Get(ctx, "RegisteredClients.Delete", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult pbtypes.Void
+		cached, err := s.Cache.Get(ctx, "RegisteredClients.Delete", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1202,20 +1404,24 @@ func (s *CachedRegisteredClientsClient) Delete(ctx context.Context, in *Register
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "RegisteredClients.Delete", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "RegisteredClients.Delete", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedRegisteredClientsClient) List(ctx context.Context, in *RegisteredClientListOptions, opts ...grpc.CallOption) (*RegisteredClientList, error) {
-	var cachedResult RegisteredClientList
-	cached, err := s.Cache.Get(ctx, "RegisteredClients.List", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult RegisteredClientList
+		cached, err := s.Cache.Get(ctx, "RegisteredClients.List", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1224,25 +1430,29 @@ func (s *CachedRegisteredClientsClient) List(ctx context.Context, in *Registered
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "RegisteredClients.List", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "RegisteredClients.List", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 type CachedRepoBadgesClient struct {
 	RepoBadgesClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedRepoBadgesClient) ListBadges(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*BadgeList, error) {
-	var cachedResult BadgeList
-	cached, err := s.Cache.Get(ctx, "RepoBadges.ListBadges", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult BadgeList
+		cached, err := s.Cache.Get(ctx, "RepoBadges.ListBadges", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1251,20 +1461,24 @@ func (s *CachedRepoBadgesClient) ListBadges(ctx context.Context, in *RepoSpec, o
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "RepoBadges.ListBadges", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "RepoBadges.ListBadges", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedRepoBadgesClient) ListCounters(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*CounterList, error) {
-	var cachedResult CounterList
-	cached, err := s.Cache.Get(ctx, "RepoBadges.ListCounters", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult CounterList
+		cached, err := s.Cache.Get(ctx, "RepoBadges.ListCounters", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1273,20 +1487,24 @@ func (s *CachedRepoBadgesClient) ListCounters(ctx context.Context, in *RepoSpec,
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "RepoBadges.ListCounters", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "RepoBadges.ListCounters", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedRepoBadgesClient) RecordHit(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes.Void, error) {
-	var cachedResult pbtypes.Void
-	cached, err := s.Cache.Get(ctx, "RepoBadges.RecordHit", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult pbtypes.Void
+		cached, err := s.Cache.Get(ctx, "RepoBadges.RecordHit", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1295,20 +1513,24 @@ func (s *CachedRepoBadgesClient) RecordHit(ctx context.Context, in *RepoSpec, op
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "RepoBadges.RecordHit", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "RepoBadges.RecordHit", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedRepoBadgesClient) CountHits(ctx context.Context, in *RepoBadgesCountHitsOp, opts ...grpc.CallOption) (*RepoBadgesCountHitsResult, error) {
-	var cachedResult RepoBadgesCountHitsResult
-	cached, err := s.Cache.Get(ctx, "RepoBadges.CountHits", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult RepoBadgesCountHitsResult
+		cached, err := s.Cache.Get(ctx, "RepoBadges.CountHits", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1317,25 +1539,29 @@ func (s *CachedRepoBadgesClient) CountHits(ctx context.Context, in *RepoBadgesCo
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "RepoBadges.CountHits", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "RepoBadges.CountHits", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 type CachedRepoStatusesClient struct {
 	RepoStatusesClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedRepoStatusesClient) GetCombined(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*CombinedStatus, error) {
-	var cachedResult CombinedStatus
-	cached, err := s.Cache.Get(ctx, "RepoStatuses.GetCombined", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult CombinedStatus
+		cached, err := s.Cache.Get(ctx, "RepoStatuses.GetCombined", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1344,20 +1570,24 @@ func (s *CachedRepoStatusesClient) GetCombined(ctx context.Context, in *RepoRevS
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "RepoStatuses.GetCombined", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "RepoStatuses.GetCombined", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedRepoStatusesClient) Create(ctx context.Context, in *RepoStatusesCreateOp, opts ...grpc.CallOption) (*RepoStatus, error) {
-	var cachedResult RepoStatus
-	cached, err := s.Cache.Get(ctx, "RepoStatuses.Create", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult RepoStatus
+		cached, err := s.Cache.Get(ctx, "RepoStatuses.Create", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1366,25 +1596,29 @@ func (s *CachedRepoStatusesClient) Create(ctx context.Context, in *RepoStatusesC
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "RepoStatuses.Create", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "RepoStatuses.Create", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 type CachedRepoTreeClient struct {
 	RepoTreeClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedRepoTreeClient) Get(ctx context.Context, in *RepoTreeGetOp, opts ...grpc.CallOption) (*TreeEntry, error) {
-	var cachedResult TreeEntry
-	cached, err := s.Cache.Get(ctx, "RepoTree.Get", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult TreeEntry
+		cached, err := s.Cache.Get(ctx, "RepoTree.Get", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1393,20 +1627,24 @@ func (s *CachedRepoTreeClient) Get(ctx context.Context, in *RepoTreeGetOp, opts 
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "RepoTree.Get", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "RepoTree.Get", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedRepoTreeClient) Search(ctx context.Context, in *RepoTreeSearchOp, opts ...grpc.CallOption) (*VCSSearchResultList, error) {
-	var cachedResult VCSSearchResultList
-	cached, err := s.Cache.Get(ctx, "RepoTree.Search", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult VCSSearchResultList
+		cached, err := s.Cache.Get(ctx, "RepoTree.Search", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1415,25 +1653,29 @@ func (s *CachedRepoTreeClient) Search(ctx context.Context, in *RepoTreeSearchOp,
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "RepoTree.Search", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "RepoTree.Search", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 type CachedReposClient struct {
 	ReposClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedReposClient) Get(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*Repo, error) {
-	var cachedResult Repo
-	cached, err := s.Cache.Get(ctx, "Repos.Get", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult Repo
+		cached, err := s.Cache.Get(ctx, "Repos.Get", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1442,20 +1684,24 @@ func (s *CachedReposClient) Get(ctx context.Context, in *RepoSpec, opts ...grpc.
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Repos.Get", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Repos.Get", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedReposClient) List(ctx context.Context, in *RepoListOptions, opts ...grpc.CallOption) (*RepoList, error) {
-	var cachedResult RepoList
-	cached, err := s.Cache.Get(ctx, "Repos.List", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult RepoList
+		cached, err := s.Cache.Get(ctx, "Repos.List", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1464,20 +1710,24 @@ func (s *CachedReposClient) List(ctx context.Context, in *RepoListOptions, opts 
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Repos.List", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Repos.List", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedReposClient) Create(ctx context.Context, in *ReposCreateOp, opts ...grpc.CallOption) (*Repo, error) {
-	var cachedResult Repo
-	cached, err := s.Cache.Get(ctx, "Repos.Create", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult Repo
+		cached, err := s.Cache.Get(ctx, "Repos.Create", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1486,20 +1736,24 @@ func (s *CachedReposClient) Create(ctx context.Context, in *ReposCreateOp, opts 
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Repos.Create", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Repos.Create", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedReposClient) Delete(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes.Void, error) {
-	var cachedResult pbtypes.Void
-	cached, err := s.Cache.Get(ctx, "Repos.Delete", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult pbtypes.Void
+		cached, err := s.Cache.Get(ctx, "Repos.Delete", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1508,20 +1762,24 @@ func (s *CachedReposClient) Delete(ctx context.Context, in *RepoSpec, opts ...gr
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Repos.Delete", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Repos.Delete", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedReposClient) GetReadme(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*Readme, error) {
-	var cachedResult Readme
-	cached, err := s.Cache.Get(ctx, "Repos.GetReadme", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult Readme
+		cached, err := s.Cache.Get(ctx, "Repos.GetReadme", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1530,20 +1788,24 @@ func (s *CachedReposClient) GetReadme(ctx context.Context, in *RepoRevSpec, opts
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Repos.GetReadme", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Repos.GetReadme", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedReposClient) Enable(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes.Void, error) {
-	var cachedResult pbtypes.Void
-	cached, err := s.Cache.Get(ctx, "Repos.Enable", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult pbtypes.Void
+		cached, err := s.Cache.Get(ctx, "Repos.Enable", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1552,20 +1814,24 @@ func (s *CachedReposClient) Enable(ctx context.Context, in *RepoSpec, opts ...gr
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Repos.Enable", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Repos.Enable", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedReposClient) Disable(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes.Void, error) {
-	var cachedResult pbtypes.Void
-	cached, err := s.Cache.Get(ctx, "Repos.Disable", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult pbtypes.Void
+		cached, err := s.Cache.Get(ctx, "Repos.Disable", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1574,20 +1840,24 @@ func (s *CachedReposClient) Disable(ctx context.Context, in *RepoSpec, opts ...g
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Repos.Disable", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Repos.Disable", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedReposClient) GetConfig(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*RepoConfig, error) {
-	var cachedResult RepoConfig
-	cached, err := s.Cache.Get(ctx, "Repos.GetConfig", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult RepoConfig
+		cached, err := s.Cache.Get(ctx, "Repos.GetConfig", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1596,20 +1866,24 @@ func (s *CachedReposClient) GetConfig(ctx context.Context, in *RepoSpec, opts ..
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Repos.GetConfig", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Repos.GetConfig", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedReposClient) GetCommit(ctx context.Context, in *RepoRevSpec, opts ...grpc.CallOption) (*vcs.Commit, error) {
-	var cachedResult vcs.Commit
-	cached, err := s.Cache.Get(ctx, "Repos.GetCommit", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult vcs.Commit
+		cached, err := s.Cache.Get(ctx, "Repos.GetCommit", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1618,20 +1892,24 @@ func (s *CachedReposClient) GetCommit(ctx context.Context, in *RepoRevSpec, opts
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Repos.GetCommit", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Repos.GetCommit", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedReposClient) ListCommits(ctx context.Context, in *ReposListCommitsOp, opts ...grpc.CallOption) (*CommitList, error) {
-	var cachedResult CommitList
-	cached, err := s.Cache.Get(ctx, "Repos.ListCommits", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult CommitList
+		cached, err := s.Cache.Get(ctx, "Repos.ListCommits", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1640,20 +1918,24 @@ func (s *CachedReposClient) ListCommits(ctx context.Context, in *ReposListCommit
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Repos.ListCommits", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Repos.ListCommits", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedReposClient) ListBranches(ctx context.Context, in *ReposListBranchesOp, opts ...grpc.CallOption) (*BranchList, error) {
-	var cachedResult BranchList
-	cached, err := s.Cache.Get(ctx, "Repos.ListBranches", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult BranchList
+		cached, err := s.Cache.Get(ctx, "Repos.ListBranches", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1662,20 +1944,24 @@ func (s *CachedReposClient) ListBranches(ctx context.Context, in *ReposListBranc
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Repos.ListBranches", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Repos.ListBranches", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedReposClient) ListTags(ctx context.Context, in *ReposListTagsOp, opts ...grpc.CallOption) (*TagList, error) {
-	var cachedResult TagList
-	cached, err := s.Cache.Get(ctx, "Repos.ListTags", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult TagList
+		cached, err := s.Cache.Get(ctx, "Repos.ListTags", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1684,25 +1970,29 @@ func (s *CachedReposClient) ListTags(ctx context.Context, in *ReposListTagsOp, o
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Repos.ListTags", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Repos.ListTags", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 type CachedSearchClient struct {
 	SearchClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedSearchClient) Search(ctx context.Context, in *SearchOptions, opts ...grpc.CallOption) (*SearchResults, error) {
-	var cachedResult SearchResults
-	cached, err := s.Cache.Get(ctx, "Search.Search", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult SearchResults
+		cached, err := s.Cache.Get(ctx, "Search.Search", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1711,20 +2001,24 @@ func (s *CachedSearchClient) Search(ctx context.Context, in *SearchOptions, opts
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Search.Search", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Search.Search", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedSearchClient) Complete(ctx context.Context, in *RawQuery, opts ...grpc.CallOption) (*Completions, error) {
-	var cachedResult Completions
-	cached, err := s.Cache.Get(ctx, "Search.Complete", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult Completions
+		cached, err := s.Cache.Get(ctx, "Search.Complete", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1733,20 +2027,24 @@ func (s *CachedSearchClient) Complete(ctx context.Context, in *RawQuery, opts ..
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Search.Complete", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Search.Complete", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedSearchClient) Suggest(ctx context.Context, in *RawQuery, opts ...grpc.CallOption) (*SuggestionList, error) {
-	var cachedResult SuggestionList
-	cached, err := s.Cache.Get(ctx, "Search.Suggest", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult SuggestionList
+		cached, err := s.Cache.Get(ctx, "Search.Suggest", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1755,25 +2053,29 @@ func (s *CachedSearchClient) Suggest(ctx context.Context, in *RawQuery, opts ...
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Search.Suggest", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Search.Suggest", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 type CachedUnitsClient struct {
 	UnitsClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedUnitsClient) Get(ctx context.Context, in *UnitSpec, opts ...grpc.CallOption) (*unit.RepoSourceUnit, error) {
-	var cachedResult unit.RepoSourceUnit
-	cached, err := s.Cache.Get(ctx, "Units.Get", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult unit.RepoSourceUnit
+		cached, err := s.Cache.Get(ctx, "Units.Get", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1782,20 +2084,24 @@ func (s *CachedUnitsClient) Get(ctx context.Context, in *UnitSpec, opts ...grpc.
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Units.Get", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Units.Get", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedUnitsClient) List(ctx context.Context, in *UnitListOptions, opts ...grpc.CallOption) (*RepoSourceUnitList, error) {
-	var cachedResult RepoSourceUnitList
-	cached, err := s.Cache.Get(ctx, "Units.List", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult RepoSourceUnitList
+		cached, err := s.Cache.Get(ctx, "Units.List", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1804,25 +2110,29 @@ func (s *CachedUnitsClient) List(ctx context.Context, in *UnitListOptions, opts 
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Units.List", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Units.List", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 type CachedUsersClient struct {
 	UsersClient
-	Cache grpccache.Cache
+	Cache *grpccache.Cache
 }
 
 func (s *CachedUsersClient) Get(ctx context.Context, in *UserSpec, opts ...grpc.CallOption) (*User, error) {
-	var cachedResult User
-	cached, err := s.Cache.Get(ctx, "Users.Get", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult User
+		cached, err := s.Cache.Get(ctx, "Users.Get", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1831,20 +2141,24 @@ func (s *CachedUsersClient) Get(ctx context.Context, in *UserSpec, opts ...grpc.
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Users.Get", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Users.Get", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedUsersClient) ListEmails(ctx context.Context, in *UserSpec, opts ...grpc.CallOption) (*EmailAddrList, error) {
-	var cachedResult EmailAddrList
-	cached, err := s.Cache.Get(ctx, "Users.ListEmails", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult EmailAddrList
+		cached, err := s.Cache.Get(ctx, "Users.ListEmails", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1853,20 +2167,24 @@ func (s *CachedUsersClient) ListEmails(ctx context.Context, in *UserSpec, opts .
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Users.ListEmails", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Users.ListEmails", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
 
 func (s *CachedUsersClient) List(ctx context.Context, in *UsersListOptions, opts ...grpc.CallOption) (*UserList, error) {
-	var cachedResult UserList
-	cached, err := s.Cache.Get(ctx, "Users.List", in, &cachedResult)
-	if err != nil {
-		return nil, err
-	}
-	if cached {
-		return &cachedResult, nil
+	if s.Cache != nil {
+		var cachedResult UserList
+		cached, err := s.Cache.Get(ctx, "Users.List", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
 	}
 
 	var trailer metadata.MD
@@ -1875,8 +2193,10 @@ func (s *CachedUsersClient) List(ctx context.Context, in *UsersListOptions, opts
 	if err != nil {
 		return nil, err
 	}
-	if err := s.Cache.Store(ctx, "Users.List", in, result, trailer); err != nil {
-		return nil, err
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Users.List", in, result, trailer); err != nil {
+			return nil, err
+		}
 	}
 	return result, nil
 }
