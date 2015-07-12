@@ -2690,3 +2690,38 @@ service RegisteredClients {
 	// List enumerates API clients according to the options.
 	rpc List(RegisteredClientListOptions) returns (RegisteredClientList);
 }
+
+// WebRequest contains info about a web request for logging purposes
+message WebRequest {
+  // TODO(danny) make this final and document
+  string user_login = 1;
+  
+  // This has enough precision to store microseconds since the epoch
+  uint64 created_at_us = 2;
+  string domain = 3;
+  string protocol = 4;
+  string url_path = 5;
+  string referrer = 6;
+
+  fixed32 ipv4 = 7;
+  fixed64 ipv6_lsb = 8; // ipv6 is 128 bits; bigint is 64, so need 2 of them (least/most significant)
+  fixed64 ipv6_msb = 9;
+
+  string user_agent = 10;
+  string server = 11;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

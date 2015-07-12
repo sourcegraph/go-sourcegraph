@@ -190,6 +190,7 @@ It has these top-level messages:
 	RegisteredClientCredentials
 	RegisteredClientListOptions
 	RegisteredClientList
+	WebRequest
 */
 package sourcegraph
 
@@ -2785,6 +2786,27 @@ type RegisteredClientList struct {
 func (m *RegisteredClientList) Reset()         { *m = RegisteredClientList{} }
 func (m *RegisteredClientList) String() string { return proto.CompactTextString(m) }
 func (*RegisteredClientList) ProtoMessage()    {}
+
+// WebRequest contains info about a web request for logging purposes
+type WebRequest struct {
+	// TODO(danny) make this final and document
+	UserLogin string `protobuf:"bytes,1,opt,name=user_login,proto3" json:"user_login,omitempty"`
+	// This has enough precision to store microseconds since the epoch
+	CreatedAtUs uint64 `protobuf:"varint,2,opt,name=created_at_us,proto3" json:"created_at_us,omitempty"`
+	Domain      string `protobuf:"bytes,3,opt,name=domain,proto3" json:"domain,omitempty"`
+	Protocol    string `protobuf:"bytes,4,opt,name=protocol,proto3" json:"protocol,omitempty"`
+	UrlPath     string `protobuf:"bytes,5,opt,name=url_path,proto3" json:"url_path,omitempty"`
+	Referrer    string `protobuf:"bytes,6,opt,name=referrer,proto3" json:"referrer,omitempty"`
+	Ipv4        uint32 `protobuf:"fixed32,7,opt,name=ipv4,proto3" json:"ipv4,omitempty"`
+	Ipv6Lsb     uint64 `protobuf:"fixed64,8,opt,name=ipv6_lsb,proto3" json:"ipv6_lsb,omitempty"`
+	Ipv6Msb     uint64 `protobuf:"fixed64,9,opt,name=ipv6_msb,proto3" json:"ipv6_msb,omitempty"`
+	UserAgent   string `protobuf:"bytes,10,opt,name=user_agent,proto3" json:"user_agent,omitempty"`
+	Server      string `protobuf:"bytes,11,opt,name=server,proto3" json:"server,omitempty"`
+}
+
+func (m *WebRequest) Reset()         { *m = WebRequest{} }
+func (m *WebRequest) String() string { return proto.CompactTextString(m) }
+func (*WebRequest) ProtoMessage()    {}
 
 func init() {
 	proto.RegisterEnum("sourcegraph.RegisteredClientType", RegisteredClientType_name, RegisteredClientType_value)
