@@ -552,21 +552,41 @@ func (s *PeopleServer) Get(v0 context.Context, v1 *sourcegraph.PersonSpec) (*sou
 var _ sourcegraph.PeopleServer = (*PeopleServer)(nil)
 
 type AccountsClient struct {
-	Create_ func(ctx context.Context, in *sourcegraph.NewAccount) (*sourcegraph.UserSpec, error)
+	Create_               func(ctx context.Context, in *sourcegraph.NewAccount) (*sourcegraph.UserSpec, error)
+	RequestPasswordReset_ func(ctx context.Context, in *sourcegraph.UserSpec) (*sourcegraph.User, error)
+	ResetPassword_        func(ctx context.Context, in *sourcegraph.NewPassword) (*pbtypes.Void, error)
 }
 
 func (s *AccountsClient) Create(ctx context.Context, in *sourcegraph.NewAccount, opts ...grpc.CallOption) (*sourcegraph.UserSpec, error) {
 	return s.Create_(ctx, in)
 }
 
+func (s *AccountsClient) RequestPasswordReset(ctx context.Context, in *sourcegraph.UserSpec, opts ...grpc.CallOption) (*sourcegraph.User, error) {
+	return s.RequestPasswordReset_(ctx, in)
+}
+
+func (s *AccountsClient) ResetPassword(ctx context.Context, in *sourcegraph.NewPassword, opts ...grpc.CallOption) (*pbtypes.Void, error) {
+	return s.ResetPassword_(ctx, in)
+}
+
 var _ sourcegraph.AccountsClient = (*AccountsClient)(nil)
 
 type AccountsServer struct {
-	Create_ func(v0 context.Context, v1 *sourcegraph.NewAccount) (*sourcegraph.UserSpec, error)
+	Create_               func(v0 context.Context, v1 *sourcegraph.NewAccount) (*sourcegraph.UserSpec, error)
+	RequestPasswordReset_ func(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.User, error)
+	ResetPassword_        func(v0 context.Context, v1 *sourcegraph.NewPassword) (*pbtypes.Void, error)
 }
 
 func (s *AccountsServer) Create(v0 context.Context, v1 *sourcegraph.NewAccount) (*sourcegraph.UserSpec, error) {
 	return s.Create_(v0, v1)
+}
+
+func (s *AccountsServer) RequestPasswordReset(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.User, error) {
+	return s.RequestPasswordReset_(v0, v1)
+}
+
+func (s *AccountsServer) ResetPassword(v0 context.Context, v1 *sourcegraph.NewPassword) (*pbtypes.Void, error) {
+	return s.ResetPassword_(v0, v1)
 }
 
 var _ sourcegraph.AccountsServer = (*AccountsServer)(nil)

@@ -1360,6 +1360,34 @@ service Accounts {
 			post: "/accounts/create"
 		};
 	};
+
+  // RequestPasswordReset stores a password reset token in the database, to
+  // later verify the authenticity of a user using CheckResetToken
+	rpc RequestPasswordReset(UserSpec) returns (User) {
+		option (google.api.http) = {
+			post: "/accounts/request_password_reset"
+		};
+	};
+
+  // CheckResetToken verifies a password reset token is authentic and valid
+	rpc ResetPassword(NewPassword) returns (pbtypes.Void) {
+		option (google.api.http) = {
+			post: "/accounts/reset_password"
+		};
+	};
+}
+
+message PasswordResetToken {
+  // token is the hard to guess token that allows a user to set a new password.
+  string token = 1;
+}
+
+message NewPassword {
+  // password is the new password for the user who requested the password reset
+  // token.
+  string password = 1;
+
+  PasswordResetToken token = 2;
 }
 
 message NewAccount {
@@ -1369,8 +1397,8 @@ message NewAccount {
 	// Email is the primary email address for the new user account.
 	string email = 2;
 
-    // Password is the password for the new user account.
-    string password = 3;
+  // Password is the password for the new user account.
+  string password = 3;
 }
 
 // UsersService communicates with the users-related endpoints in the Sourcegraph

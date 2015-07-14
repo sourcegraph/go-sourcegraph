@@ -94,6 +94,8 @@ It has these top-level messages:
 	OrgsListOp
 	EmailAddrList
 	OrgList
+	PasswordResetToken
+	NewPassword
 	NewAccount
 	AuthorizationCodeRequest
 	AuthorizationCode
@@ -1478,6 +1480,26 @@ type OrgList struct {
 func (m *OrgList) Reset()         { *m = OrgList{} }
 func (m *OrgList) String() string { return proto.CompactTextString(m) }
 func (*OrgList) ProtoMessage()    {}
+
+type PasswordResetToken struct {
+	// token is the hard to guess token that allows a user to set a new password.
+	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+}
+
+func (m *PasswordResetToken) Reset()         { *m = PasswordResetToken{} }
+func (m *PasswordResetToken) String() string { return proto.CompactTextString(m) }
+func (*PasswordResetToken) ProtoMessage()    {}
+
+type NewPassword struct {
+	// password is the new password for the user who requested the password reset
+	// token.
+	Password string              `protobuf:"bytes,1,opt,name=password,proto3" json:"password,omitempty"`
+	Token    *PasswordResetToken `protobuf:"bytes,2,opt,name=token" json:"token,omitempty"`
+}
+
+func (m *NewPassword) Reset()         { *m = NewPassword{} }
+func (m *NewPassword) String() string { return proto.CompactTextString(m) }
+func (*NewPassword) ProtoMessage()    {}
 
 type NewAccount struct {
 	// Login is the desired login for the new user account.
@@ -4433,6 +4455,11 @@ var _People_serviceDesc = grpc.ServiceDesc{
 type AccountsClient interface {
 	// Create creates a new user account.
 	Create(ctx context.Context, in *NewAccount, opts ...grpc.CallOption) (*UserSpec, error)
+	// RequestPasswordReset stores a password reset token in the database, to
+	// later verify the authenticity of a user using CheckResetToken
+	RequestPasswordReset(ctx context.Context, in *UserSpec, opts ...grpc.CallOption) (*User, error)
+	// CheckResetToken verifies a password reset token is authentic and valid
+	ResetPassword(ctx context.Context, in *NewPassword, opts ...grpc.CallOption) (*pbtypes1.Void, error)
 }
 
 type accountsClient struct {
@@ -4452,11 +4479,34 @@ func (c *accountsClient) Create(ctx context.Context, in *NewAccount, opts ...grp
 	return out, nil
 }
 
+func (c *accountsClient) RequestPasswordReset(ctx context.Context, in *UserSpec, opts ...grpc.CallOption) (*User, error) {
+	out := new(User)
+	err := grpc.Invoke(ctx, "/sourcegraph.Accounts/RequestPasswordReset", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountsClient) ResetPassword(ctx context.Context, in *NewPassword, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
+	err := grpc.Invoke(ctx, "/sourcegraph.Accounts/ResetPassword", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Accounts service
 
 type AccountsServer interface {
 	// Create creates a new user account.
 	Create(context.Context, *NewAccount) (*UserSpec, error)
+	// RequestPasswordReset stores a password reset token in the database, to
+	// later verify the authenticity of a user using CheckResetToken
+	RequestPasswordReset(context.Context, *UserSpec) (*User, error)
+	// CheckResetToken verifies a password reset token is authentic and valid
+	ResetPassword(context.Context, *NewPassword) (*pbtypes1.Void, error)
 }
 
 func RegisterAccountsServer(s *grpc.Server, srv AccountsServer) {
@@ -4475,6 +4525,30 @@ func _Accounts_Create_Handler(srv interface{}, ctx context.Context, codec grpc.C
 	return out, nil
 }
 
+func _Accounts_RequestPasswordReset_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(UserSpec)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(AccountsServer).RequestPasswordReset(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Accounts_ResetPassword_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(NewPassword)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(AccountsServer).ResetPassword(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 var _Accounts_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sourcegraph.Accounts",
 	HandlerType: (*AccountsServer)(nil),
@@ -4482,6 +4556,14 @@ var _Accounts_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Create",
 			Handler:    _Accounts_Create_Handler,
+		},
+		{
+			MethodName: "RequestPasswordReset",
+			Handler:    _Accounts_RequestPasswordReset_Handler,
+		},
+		{
+			MethodName: "ResetPassword",
+			Handler:    _Accounts_ResetPassword_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
