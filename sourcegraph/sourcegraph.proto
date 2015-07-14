@@ -2560,6 +2560,10 @@ message ServerConfig {
 
 	// IDKey is the server's identity key (ID key).
 	string id_key = 7 [(gogoproto.customname) = "IDKey"];
+
+    // AuthRequired is whether or not authentication is required for most
+    // operations
+	bool auth_required = 8;
 }
 
 // A RegisteredClient is a registered API client.
