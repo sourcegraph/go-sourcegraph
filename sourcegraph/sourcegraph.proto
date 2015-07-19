@@ -1360,6 +1360,13 @@ service Accounts {
 			post: "/accounts/create"
 		};
 	};
+
+	// Update profile of existing account.
+	rpc Update(User) returns (pbtypes.Void) {
+		option (google.api.http) = {
+			post: "/accounts/update"
+		};
+	};
 }
 
 message NewAccount {

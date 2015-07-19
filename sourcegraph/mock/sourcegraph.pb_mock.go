@@ -553,20 +553,30 @@ var _ sourcegraph.PeopleServer = (*PeopleServer)(nil)
 
 type AccountsClient struct {
 	Create_ func(ctx context.Context, in *sourcegraph.NewAccount) (*sourcegraph.UserSpec, error)
+	Update_ func(ctx context.Context, in *sourcegraph.User) (*pbtypes.Void, error)
 }
 
 func (s *AccountsClient) Create(ctx context.Context, in *sourcegraph.NewAccount, opts ...grpc.CallOption) (*sourcegraph.UserSpec, error) {
 	return s.Create_(ctx, in)
 }
 
+func (s *AccountsClient) Update(ctx context.Context, in *sourcegraph.User, opts ...grpc.CallOption) (*pbtypes.Void, error) {
+	return s.Update_(ctx, in)
+}
+
 var _ sourcegraph.AccountsClient = (*AccountsClient)(nil)
 
 type AccountsServer struct {
 	Create_ func(v0 context.Context, v1 *sourcegraph.NewAccount) (*sourcegraph.UserSpec, error)
+	Update_ func(v0 context.Context, v1 *sourcegraph.User) (*pbtypes.Void, error)
 }
 
 func (s *AccountsServer) Create(v0 context.Context, v1 *sourcegraph.NewAccount) (*sourcegraph.UserSpec, error) {
 	return s.Create_(v0, v1)
+}
+
+func (s *AccountsServer) Update(v0 context.Context, v1 *sourcegraph.User) (*pbtypes.Void, error) {
+	return s.Update_(v0, v1)
 }
 
 var _ sourcegraph.AccountsServer = (*AccountsServer)(nil)

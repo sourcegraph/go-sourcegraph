@@ -4433,6 +4433,8 @@ var _People_serviceDesc = grpc.ServiceDesc{
 type AccountsClient interface {
 	// Create creates a new user account.
 	Create(ctx context.Context, in *NewAccount, opts ...grpc.CallOption) (*UserSpec, error)
+	// Update profile of existing account.
+	Update(ctx context.Context, in *User, opts ...grpc.CallOption) (*pbtypes1.Void, error)
 }
 
 type accountsClient struct {
@@ -4452,11 +4454,22 @@ func (c *accountsClient) Create(ctx context.Context, in *NewAccount, opts ...grp
 	return out, nil
 }
 
+func (c *accountsClient) Update(ctx context.Context, in *User, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
+	err := grpc.Invoke(ctx, "/sourcegraph.Accounts/Update", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Accounts service
 
 type AccountsServer interface {
 	// Create creates a new user account.
 	Create(context.Context, *NewAccount) (*UserSpec, error)
+	// Update profile of existing account.
+	Update(context.Context, *User) (*pbtypes1.Void, error)
 }
 
 func RegisterAccountsServer(s *grpc.Server, srv AccountsServer) {
@@ -4475,6 +4488,18 @@ func _Accounts_Create_Handler(srv interface{}, ctx context.Context, codec grpc.C
 	return out, nil
 }
 
+func _Accounts_Update_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(User)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(AccountsServer).Update(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 var _Accounts_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sourcegraph.Accounts",
 	HandlerType: (*AccountsServer)(nil),
@@ -4482,6 +4507,10 @@ var _Accounts_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Create",
 			Handler:    _Accounts_Create_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _Accounts_Update_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
