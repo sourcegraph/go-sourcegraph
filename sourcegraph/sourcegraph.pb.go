@@ -4460,6 +4460,8 @@ type AccountsClient interface {
 	RequestPasswordReset(ctx context.Context, in *UserSpec, opts ...grpc.CallOption) (*User, error)
 	// CheckResetToken verifies a password reset token is authentic and valid
 	ResetPassword(ctx context.Context, in *NewPassword, opts ...grpc.CallOption) (*pbtypes1.Void, error)
+	// Update profile of existing account.
+	Update(ctx context.Context, in *User, opts ...grpc.CallOption) (*pbtypes1.Void, error)
 }
 
 type accountsClient struct {
@@ -4497,6 +4499,15 @@ func (c *accountsClient) ResetPassword(ctx context.Context, in *NewPassword, opt
 	return out, nil
 }
 
+func (c *accountsClient) Update(ctx context.Context, in *User, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
+	err := grpc.Invoke(ctx, "/sourcegraph.Accounts/Update", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Accounts service
 
 type AccountsServer interface {
@@ -4507,6 +4518,8 @@ type AccountsServer interface {
 	RequestPasswordReset(context.Context, *UserSpec) (*User, error)
 	// CheckResetToken verifies a password reset token is authentic and valid
 	ResetPassword(context.Context, *NewPassword) (*pbtypes1.Void, error)
+	// Update profile of existing account.
+	Update(context.Context, *User) (*pbtypes1.Void, error)
 }
 
 func RegisterAccountsServer(s *grpc.Server, srv AccountsServer) {
@@ -4549,6 +4562,18 @@ func _Accounts_ResetPassword_Handler(srv interface{}, ctx context.Context, codec
 	return out, nil
 }
 
+func _Accounts_Update_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(User)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(AccountsServer).Update(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 var _Accounts_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sourcegraph.Accounts",
 	HandlerType: (*AccountsServer)(nil),
@@ -4564,6 +4589,10 @@ var _Accounts_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ResetPassword",
 			Handler:    _Accounts_ResetPassword_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _Accounts_Update_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},

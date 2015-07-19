@@ -1375,6 +1375,13 @@ service Accounts {
 			post: "/accounts/reset_password"
 		};
 	};
+
+	// Update profile of existing account.
+	rpc Update(User) returns (pbtypes.Void) {
+		option (google.api.http) = {
+			post: "/accounts/update"
+		};
+	};
 }
 
 message PasswordResetToken {
