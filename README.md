@@ -21,7 +21,7 @@ regenerate Go code after you change the `sourcegraph.proto` file.
 
 If you run into errors while compiling protobufs, try again with these older versions that are known to work:
 
--  `protoc` - version `3.0.0-alpha-2`.
+-  `protoc` - version `3.0.0-alpha-2` or `3.0.0-alpha-3`.
 -  `protoc-gen-gogo` - commit `0d32fa3409f705a45020a232768fb9b121f377e9`.
 
 _TODO: Make it work with latest, confirm if there are any issues._
