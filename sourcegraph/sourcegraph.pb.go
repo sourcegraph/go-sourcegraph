@@ -1139,7 +1139,8 @@ func (m *BuildsGetRepoBuildInfoOp) String() string { return proto.CompactTextStr
 func (*BuildsGetRepoBuildInfoOp) ProtoMessage()    {}
 
 type BuildList struct {
-	Builds []*Build `protobuf:"bytes,1,rep,name=builds" json:"builds,omitempty"`
+	Builds       []*Build `protobuf:"bytes,1,rep,name=builds" json:"builds,omitempty"`
+	ListResponse `protobuf:"bytes,2,opt,name=list_response,embedded=list_response" json:"list_response"`
 }
 
 func (m *BuildList) Reset()         { *m = BuildList{} }
