@@ -963,6 +963,7 @@ message BuildsGetRepoBuildInfoOp {
 
 message BuildList {
 	repeated Build builds = 1;
+	ListResponse list_response = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
 message BuildsCreateOp {
