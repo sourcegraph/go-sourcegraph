@@ -8,16 +8,11 @@
 
 ### Protocol buffers
 
-This repository uses the `sourcegraph/sourcegraph.proto`
-[protocol buffers](https://developers.google.com/protocol-buffers/)
-definition file to generate Go structs as well as
-[gRPC](http://grpc.io) clients and servers for various service
-interfaces.
+This repository uses the `sourcegraph/sourcegraph.proto` [protocol buffers](https://developers.google.com/protocol-buffers/) definition file to generate Go structs as well as [gRPC](http://grpc.io) clients and servers for various service interfaces.
 
 ### First-time installation of protobuf and other codegen tools
 
-You need to install and run the protobuf compiler before you can
-regenerate Go code after you change the `sourcegraph.proto` file.
+You need to install and run the protobuf compiler before you can regenerate Go code after you change the `sourcegraph.proto` file.
 
 If you run into errors while compiling protobufs, try again with these older versions that are known to work:
 
@@ -26,7 +21,7 @@ If you run into errors while compiling protobufs, try again with these older ver
 
 _TODO: Make it work with latest, confirm if there are any issues._
 
-1. **Install protoc**, the protobuf compiler. Find more details at the [protobuf README](https://github.com/google/protobuf)).
+1. **Install protoc**, the protobuf compiler. Find more details in the [protobuf README](https://github.com/google/protobuf).
 
    ```
    brew install --devel protobuf
@@ -43,13 +38,10 @@ _TODO: Make it work with latest, confirm if there are any issues._
 
    Then make sure the `protoc` binary is in your `$PATH`.
 
-2. **Install [gogo/protobuf](https://github.com/gogo/protobuf)**, on the `proto3` branch.
+2. **Install [gogo/protobuf](https://github.com/gogo/protobuf)**.
 
    ```
-   go get -u -a github.com/gogo/protobuf/{proto,protoc-gen-gogo,gogoproto}
-   cd $GOPATH/github.com/gogo/protobuf
-   git checkout proto3
-   go install ./...
+   go get -u github.com/gogo/protobuf/...
    ```
 
 3. **Install [grpc](https://github.com/grpc/grpc-go)**:
