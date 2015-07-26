@@ -1417,6 +1417,9 @@ type User struct {
 	HomepageURL string `protobuf:"bytes,9,opt,name=homepage_url,proto3" json:"homepage_url,omitempty"`
 	// Disabled is whether the user account is disabled.
 	Disabled bool `protobuf:"varint,10,opt,name=disabled,proto3" json:"disabled,omitempty"`
+	// Admin is whether the user is a site admin for the site named by
+	// the Domain field.
+	Admin bool `protobuf:"varint,12,opt,name=admin,proto3" json:"admin,omitempty"`
 	// RegisteredAt is the date that the user registered. If the user has not
 	// registered (i.e., we have processed their repos but they haven't signed into
 	// Sourcegraph), it is null.
