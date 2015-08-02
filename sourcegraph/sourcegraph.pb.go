@@ -447,7 +447,7 @@ type RepoConfig struct {
 	// LastAdminUID is the UID of the last repo admin user to modify
 	// this repo's settings (for mirrored repos only). When
 	// Sourcegraph needs to perform actions on mirrored GitHub repos
-	// that require OAuth authorization outside of an authorized HTTP
+	// that require OAuth authorization outside of an authorized API
 	// request (e.g., during builds or asynchronous operations), it
 	// consults the repo's LastAdminUID to determine whose identity it
 	// should assume to perform the operation.
@@ -3883,22 +3883,10 @@ type BuildsClient interface {
 	// DequeueNext returns the next queued build and marks it as
 	// having started (atomically). If there are no builds in the
 	// queue, a NotFound error is returned.
-	//
-	// TODO(sqs!nodb): implement this: The response may contain
-	// tickets that grant the necessary permissions to build and
-	// upload build data for the build's repository. Call
-	// auth.SignedTicketStrings on the response's HTTP response field
-	// to obtain the tickets.
 	DequeueNext(ctx context.Context, in *BuildsDequeueNextOp, opts ...grpc.CallOption) (*Build, error)
 	// DequeueNextTask returns the next queued build task and marks it
 	// as having started (atomically). If there are no build tasks in
 	// the queue, a NotFound error is returned.
-	//
-	// TODO(sqs!nodb): implement this: The response may contain
-	// tickets that grant the necessary permissions to build and
-	// upload build data for the build's repository. Call
-	// auth.SignedTicketStrings on the response's HTTP response field
-	// to obtain the tickets.
 	DequeueNextTask(ctx context.Context, in *BuildsDequeueNextTaskOp, opts ...grpc.CallOption) (*BuildTask, error)
 }
 
@@ -4050,22 +4038,10 @@ type BuildsServer interface {
 	// DequeueNext returns the next queued build and marks it as
 	// having started (atomically). If there are no builds in the
 	// queue, a NotFound error is returned.
-	//
-	// TODO(sqs!nodb): implement this: The response may contain
-	// tickets that grant the necessary permissions to build and
-	// upload build data for the build's repository. Call
-	// auth.SignedTicketStrings on the response's HTTP response field
-	// to obtain the tickets.
 	DequeueNext(context.Context, *BuildsDequeueNextOp) (*Build, error)
 	// DequeueNextTask returns the next queued build task and marks it
 	// as having started (atomically). If there are no build tasks in
 	// the queue, a NotFound error is returned.
-	//
-	// TODO(sqs!nodb): implement this: The response may contain
-	// tickets that grant the necessary permissions to build and
-	// upload build data for the build's repository. Call
-	// auth.SignedTicketStrings on the response's HTTP response field
-	// to obtain the tickets.
 	DequeueNextTask(context.Context, *BuildsDequeueNextTaskOp) (*BuildTask, error)
 }
 

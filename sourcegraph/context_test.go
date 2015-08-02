@@ -49,7 +49,6 @@ func TestPerRPCCredentials(t *testing.T) {
 
 			ctx := context.Background()
 			ctx = WithGRPCEndpoint(ctx, &url.URL{Host: l.Addr().String()})
-			ctx = WithHTTPEndpoint(ctx, &url.URL{Scheme: "http", Host: l.Addr().String()})
 			ctx = WithCredentials(ctx, oauth2.StaticTokenSource(&oauth2.Token{TokenType: "x", AccessToken: key}))
 			ctx = metadata.NewContext(ctx, metadata.MD{"want-access-token": "x " + key})
 			c := NewClientFromContext(ctx)
