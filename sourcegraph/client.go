@@ -25,14 +25,12 @@ const (
 )
 
 // A Client communicates with the Sourcegraph API. All communication
-// is done using gRPC over HTTP/2 except for BuildData (which uses
-// HTTP/1).
+// is done using gRPC over HTTP/2.
 type Client struct {
 	// Services used to communicate with different parts of the Sourcegraph API.
 	Accounts            AccountsClient
 	Auth                AuthClient
 	Builds              BuildsClient
-	BuildData           BuildDataService
 	Defs                DefsClient
 	Deltas              DeltasClient
 	Markdown            MarkdownClient
@@ -69,8 +67,7 @@ type Client struct {
 var Cache *grpccache.Cache
 
 // NewClient returns a Sourcegraph API client. The gRPC conn is used
-// for all services except for BuildData (which uses the
-// httpClient). If httpClient is nil, http.DefaultClient is used.
+// for all services. If httpClient is nil, http.DefaultClient is used.
 func NewClient(httpClient *http.Client, conn *grpc.ClientConn) *Client {
 	c := new(Client)
 
@@ -83,7 +80,6 @@ func NewClient(httpClient *http.Client, conn *grpc.ClientConn) *Client {
 	c.httpClient = httpClient
 	c.BaseURL = &url.URL{Scheme: "https", Host: "sourcegraph.com", Path: "/api/"}
 	c.UserAgent = userAgent
-	c.BuildData = &buildDataService{c}
 
 	// gRPC (HTTP/2)
 	c.Conn = conn

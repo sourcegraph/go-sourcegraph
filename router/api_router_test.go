@@ -154,24 +154,6 @@ func TestMatch(t *testing.T) {
 			wantVars:      map[string]string{"Repo": "repohost.com/foo", "Rev": "mycommitid", "UnitType": "t", "Unit": "u"},
 		},
 
-		// Repo build data
-		{
-			path:          "/repos/repohost.com/foo/.build-data",
-			wantRouteName: RepoBuildDataEntry,
-			wantVars:      map[string]string{"Repo": "repohost.com/foo", "Path": "."},
-		},
-		{
-			path:          "/repos/repohost.com/foo@mycommitid/.build-data/",
-			wantRouteName: RepoBuildDataEntry,
-			wantVars:      map[string]string{"Repo": "repohost.com/foo", "Rev": "mycommitid", "Path": "."},
-			wantPath:      "/repos/repohost.com/foo@mycommitid/.build-data",
-		},
-		{
-			path:          "/repos/repohost.com/foo@mycommitid/.build-data/my/file",
-			wantRouteName: RepoBuildDataEntry,
-			wantVars:      map[string]string{"Repo": "repohost.com/foo", "Rev": "mycommitid", "Path": "my/file"},
-		},
-
 		// Defs
 		{
 			path:          "/repos/repohost.com/foo@mycommitid/.defs/.t/.def/p",

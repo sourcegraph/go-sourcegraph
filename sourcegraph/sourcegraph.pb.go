@@ -936,10 +936,9 @@ func (*Build) ProtoMessage()    {}
 
 // BuildConfig configures a repository build.
 type BuildConfig struct {
-	// Import is whether to import the build data into the database when the build is
-	// complete. The data must be imported for Sourcegraph's web app or API to use it,
-	// except that unimported build data is available through the BuildData service.
-	// (TODO(sqs): BuildData isn't yet implemented.)
+	// Import is whether to import the build data into the database
+	// when the build is complete. The data must be imported for
+	// Sourcegraph's web app or API to use it.
 	Import bool `protobuf:"varint,1,opt,name=import,proto3" json:"import,omitempty"`
 	// Queue is whether this build should be enqueued. If enqueued, any worker may
 	// begin running this build. If not enqueued, it is up to the client to run the
