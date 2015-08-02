@@ -720,34 +720,20 @@ message SSHPrivateKey {
 // A build is composed of many tasks. The worker that is responsible for a build or
 // task determines whether a task failure causes the whole build to fail. (Keep
 // reading to see how we determine who is responsible for a build or task.) There
-// is no single kind of worker; currently there are 3 things that could be
+// is no single kind of worker; currently there are 2 things that could be
 // considered workers because they build builds or perform tasks: the builders on
-// Sourcegraph.com, the task workers that run import tasks, and anyone who runs
-// `src push` locally.
+// Sourcegraph.com, and anyone who runs `src push` locally.
 //
 // Each task has logs associated with it, and each task can be associated with a
 // single source unit (or not).
 //
-// Both builds and tasks have a Queue bool field. If a process creates a build or
-// task that has Queue=true, that means that it relinquishes responsibility for it;
-// some other queue workers (on the server, for example) will dequeue and complete
-// it. If Queue=false, then the process that created it is responsible for
-// completing it. The only exception to this is that after a certain timeout (on
-// the order of 45 minutes), started but unfinished builds are marked as failed.
-//
-// A build and its tasks may be queued (or not queued) independently. A build may
-// have Queue=true and its tasks may all have Queue=false; this occurs when a build
-// is enqueued by a user and subsequently dequeued by a builder, which creates and
-// performs the tasks as a single process. Or a build may have Queue=false and it
-// may have a task with Queue=true; this occurs when someone builds a project
-// locally but wants the server to import the data (which only the server, having
-// direct DB access, can do).
-//
-// It probably wouldn't make sense to create a queued build and immediately create
-// a queued task, since then those would be run independently (and potentially out
-// of order) by two workers. But it could make sense to create a queued build, and
-// then for the builder to do some work (such as analyzing a project) and then
-// create a queued task in the same build to import the build data it produced.
+// Builds have a Queue bool field. If a process creates a build that
+// has Queue=true, that means that it relinquishes responsibility for
+// it; some other queue workers (on the server, for example) will
+// dequeue and complete it. If Queue=false, then the process that
+// created it is responsible for completing it. The only exception to
+// this is that after a certain timeout (on the order of 45 minutes),
+// started but unfinished builds are marked as failed.
 //
 // Builds and tasks are simple "build"ing blocks (no pun intended) with simple
 // behavior. As we encounter new requirements for the build system, they may
@@ -897,17 +883,6 @@ message BuildTask {
 	// failed).
 	pbtypes.Timestamp ended_at = 11;
 
-	// Queue is whether this task should be performed by queue task remote workers on
-	// the central server. If true, then it will be performed remotely. If false, it
-	// should be performed locally by the process that created this task.
-	//
-	// For example, import tasks are queued because they are performed by the remote
-	// server, not the local "src" process running on the builders.
-	//
-	// See the documentation for Build for more discussion about queued builds and
-	// tasks (and how they relate).
-	bool queue = 12;
-
 	// Success is whether this task's execution succeeded.
 	bool success = 13;
 
@@ -1017,9 +992,6 @@ message BuildsGetTaskLogOp {
 }
 
 message BuildsDequeueNextOp {
-}
-
-message BuildsDequeueNextTaskOp {
 }
 
 // EmailAddr is an email address associated with a user.
@@ -1287,15 +1259,6 @@ service Builds {
 	rpc DequeueNext(BuildsDequeueNextOp) returns (Build) {
 		option (google.api.http) = {
 			get: "/builds/dequeue_next"
-		};
-	};
-
-	// DequeueNextTask returns the next queued build task and marks it
-	// as having started (atomically). If there are no build tasks in
-	// the queue, a NotFound error is returned.
-	rpc DequeueNextTask(BuildsDequeueNextTaskOp) returns (BuildTask) {
-		option (google.api.http) = {
-			get: "/builds/dequeue_next_task"
 		};
 	};
 }
