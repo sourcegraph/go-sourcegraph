@@ -75,7 +75,6 @@ It has these top-level messages:
 	BuildsGetLogOp
 	BuildsGetTaskLogOp
 	BuildsDequeueNextOp
-	BuildsDequeueNextTaskOp
 	EmailAddr
 	LogEntries
 	Org
@@ -447,7 +446,7 @@ type RepoConfig struct {
 	// LastAdminUID is the UID of the last repo admin user to modify
 	// this repo's settings (for mirrored repos only). When
 	// Sourcegraph needs to perform actions on mirrored GitHub repos
-	// that require OAuth authorization outside of an authorized HTTP
+	// that require OAuth authorization outside of an authorized API
 	// request (e.g., during builds or asynchronous operations), it
 	// consults the repo's LastAdminUID to determine whose identity it
 	// should assume to perform the operation.
@@ -873,34 +872,20 @@ func (*SSHPrivateKey) ProtoMessage()    {}
 // A build is composed of many tasks. The worker that is responsible for a build or
 // task determines whether a task failure causes the whole build to fail. (Keep
 // reading to see how we determine who is responsible for a build or task.) There
-// is no single kind of worker; currently there are 3 things that could be
+// is no single kind of worker; currently there are 2 things that could be
 // considered workers because they build builds or perform tasks: the builders on
-// Sourcegraph.com, the task workers that run import tasks, and anyone who runs
-// `src push` locally.
+// Sourcegraph.com, and anyone who runs `src push` locally.
 //
 // Each task has logs associated with it, and each task can be associated with a
 // single source unit (or not).
 //
-// Both builds and tasks have a Queue bool field. If a process creates a build or
-// task that has Queue=true, that means that it relinquishes responsibility for it;
-// some other queue workers (on the server, for example) will dequeue and complete
-// it. If Queue=false, then the process that created it is responsible for
-// completing it. The only exception to this is that after a certain timeout (on
-// the order of 45 minutes), started but unfinished builds are marked as failed.
-//
-// A build and its tasks may be queued (or not queued) independently. A build may
-// have Queue=true and its tasks may all have Queue=false; this occurs when a build
-// is enqueued by a user and subsequently dequeued by a builder, which creates and
-// performs the tasks as a single process. Or a build may have Queue=false and it
-// may have a task with Queue=true; this occurs when someone builds a project
-// locally but wants the server to import the data (which only the server, having
-// direct DB access, can do).
-//
-// It probably wouldn't make sense to create a queued build and immediately create
-// a queued task, since then those would be run independently (and potentially out
-// of order) by two workers. But it could make sense to create a queued build, and
-// then for the builder to do some work (such as analyzing a project) and then
-// create a queued task in the same build to import the build data it produced.
+// Builds have a Queue bool field. If a process creates a build that
+// has Queue=true, that means that it relinquishes responsibility for
+// it; some other queue workers (on the server, for example) will
+// dequeue and complete it. If Queue=false, then the process that
+// created it is responsible for completing it. The only exception to
+// this is that after a certain timeout (on the order of 45 minutes),
+// started but unfinished builds are marked as failed.
 //
 // Builds and tasks are simple "build"ing blocks (no pun intended) with simple
 // behavior. As we encounter new requirements for the build system, they may
@@ -936,10 +921,9 @@ func (*Build) ProtoMessage()    {}
 
 // BuildConfig configures a repository build.
 type BuildConfig struct {
-	// Import is whether to import the build data into the database when the build is
-	// complete. The data must be imported for Sourcegraph's web app or API to use it,
-	// except that unimported build data is available through the BuildData service.
-	// (TODO(sqs): BuildData isn't yet implemented.)
+	// Import is whether to import the build data into the database
+	// when the build is complete. The data must be imported for
+	// Sourcegraph's web app or API to use it.
 	Import bool `protobuf:"varint,1,opt,name=import,proto3" json:"import,omitempty"`
 	// Queue is whether this build should be enqueued. If enqueued, any worker may
 	// begin running this build. If not enqueued, it is up to the client to run the
@@ -1058,16 +1042,6 @@ type BuildTask struct {
 	// EndedAt is when this task's execution ended (whether because it succeeded or
 	// failed).
 	EndedAt *pbtypes.Timestamp `protobuf:"bytes,11,opt,name=ended_at" json:"ended_at,omitempty"`
-	// Queue is whether this task should be performed by queue task remote workers on
-	// the central server. If true, then it will be performed remotely. If false, it
-	// should be performed locally by the process that created this task.
-	//
-	// For example, import tasks are queued because they are performed by the remote
-	// server, not the local "src" process running on the builders.
-	//
-	// See the documentation for Build for more discussion about queued builds and
-	// tasks (and how they relate).
-	Queue bool `protobuf:"varint,12,opt,name=queue,proto3" json:"queue,omitempty"`
 	// Success is whether this task's execution succeeded.
 	Success bool `protobuf:"varint,13,opt,name=success,proto3" json:"success,omitempty"`
 	// Failure is whether this task's execution failed.
@@ -1248,13 +1222,6 @@ type BuildsDequeueNextOp struct {
 func (m *BuildsDequeueNextOp) Reset()         { *m = BuildsDequeueNextOp{} }
 func (m *BuildsDequeueNextOp) String() string { return proto.CompactTextString(m) }
 func (*BuildsDequeueNextOp) ProtoMessage()    {}
-
-type BuildsDequeueNextTaskOp struct {
-}
-
-func (m *BuildsDequeueNextTaskOp) Reset()         { *m = BuildsDequeueNextTaskOp{} }
-func (m *BuildsDequeueNextTaskOp) String() string { return proto.CompactTextString(m) }
-func (*BuildsDequeueNextTaskOp) ProtoMessage()    {}
 
 // EmailAddr is an email address associated with a user.
 type EmailAddr struct {
@@ -3884,23 +3851,7 @@ type BuildsClient interface {
 	// DequeueNext returns the next queued build and marks it as
 	// having started (atomically). If there are no builds in the
 	// queue, a NotFound error is returned.
-	//
-	// TODO(sqs!nodb): implement this: The response may contain
-	// tickets that grant the necessary permissions to build and
-	// upload build data for the build's repository. Call
-	// auth.SignedTicketStrings on the response's HTTP response field
-	// to obtain the tickets.
 	DequeueNext(ctx context.Context, in *BuildsDequeueNextOp, opts ...grpc.CallOption) (*Build, error)
-	// DequeueNextTask returns the next queued build task and marks it
-	// as having started (atomically). If there are no build tasks in
-	// the queue, a NotFound error is returned.
-	//
-	// TODO(sqs!nodb): implement this: The response may contain
-	// tickets that grant the necessary permissions to build and
-	// upload build data for the build's repository. Call
-	// auth.SignedTicketStrings on the response's HTTP response field
-	// to obtain the tickets.
-	DequeueNextTask(ctx context.Context, in *BuildsDequeueNextTaskOp, opts ...grpc.CallOption) (*BuildTask, error)
 }
 
 type buildsClient struct {
@@ -4010,15 +3961,6 @@ func (c *buildsClient) DequeueNext(ctx context.Context, in *BuildsDequeueNextOp,
 	return out, nil
 }
 
-func (c *buildsClient) DequeueNextTask(ctx context.Context, in *BuildsDequeueNextTaskOp, opts ...grpc.CallOption) (*BuildTask, error) {
-	out := new(BuildTask)
-	err := grpc.Invoke(ctx, "/sourcegraph.Builds/DequeueNextTask", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // Server API for Builds service
 
 type BuildsServer interface {
@@ -4051,23 +3993,7 @@ type BuildsServer interface {
 	// DequeueNext returns the next queued build and marks it as
 	// having started (atomically). If there are no builds in the
 	// queue, a NotFound error is returned.
-	//
-	// TODO(sqs!nodb): implement this: The response may contain
-	// tickets that grant the necessary permissions to build and
-	// upload build data for the build's repository. Call
-	// auth.SignedTicketStrings on the response's HTTP response field
-	// to obtain the tickets.
 	DequeueNext(context.Context, *BuildsDequeueNextOp) (*Build, error)
-	// DequeueNextTask returns the next queued build task and marks it
-	// as having started (atomically). If there are no build tasks in
-	// the queue, a NotFound error is returned.
-	//
-	// TODO(sqs!nodb): implement this: The response may contain
-	// tickets that grant the necessary permissions to build and
-	// upload build data for the build's repository. Call
-	// auth.SignedTicketStrings on the response's HTTP response field
-	// to obtain the tickets.
-	DequeueNextTask(context.Context, *BuildsDequeueNextTaskOp) (*BuildTask, error)
 }
 
 func RegisterBuildsServer(s *grpc.Server, srv BuildsServer) {
@@ -4206,18 +4132,6 @@ func _Builds_DequeueNext_Handler(srv interface{}, ctx context.Context, codec grp
 	return out, nil
 }
 
-func _Builds_DequeueNextTask_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(BuildsDequeueNextTaskOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
-		return nil, err
-	}
-	out, err := srv.(BuildsServer).DequeueNextTask(ctx, in)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 var _Builds_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sourcegraph.Builds",
 	HandlerType: (*BuildsServer)(nil),
@@ -4265,10 +4179,6 @@ var _Builds_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DequeueNext",
 			Handler:    _Builds_DequeueNext_Handler,
-		},
-		{
-			MethodName: "DequeueNextTask",
-			Handler:    _Builds_DequeueNextTask_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},

@@ -417,17 +417,6 @@ func (s *CachedBuildsServer) DequeueNext(ctx context.Context, in *BuildsDequeueN
 	return result, err
 }
 
-func (s *CachedBuildsServer) DequeueNextTask(ctx context.Context, in *BuildsDequeueNextTaskOp) (*BuildTask, error) {
-	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
-	result, err := s.BuildsServer.DequeueNextTask(ctx, in)
-	if !cc.IsZero() {
-		if err := grpccache.Internal_SetCacheControlTrailer(ctx, *cc); err != nil {
-			return nil, err
-		}
-	}
-	return result, err
-}
-
 type CachedBuildsClient struct {
 	BuildsClient
 	Cache *grpccache.Cache
@@ -713,32 +702,6 @@ func (s *CachedBuildsClient) DequeueNext(ctx context.Context, in *BuildsDequeueN
 	}
 	if s.Cache != nil {
 		if err := s.Cache.Store(ctx, "Builds.DequeueNext", in, result, trailer); err != nil {
-			return nil, err
-		}
-	}
-	return result, nil
-}
-
-func (s *CachedBuildsClient) DequeueNextTask(ctx context.Context, in *BuildsDequeueNextTaskOp, opts ...grpc.CallOption) (*BuildTask, error) {
-	if s.Cache != nil {
-		var cachedResult BuildTask
-		cached, err := s.Cache.Get(ctx, "Builds.DequeueNextTask", in, &cachedResult)
-		if err != nil {
-			return nil, err
-		}
-		if cached {
-			return &cachedResult, nil
-		}
-	}
-
-	var trailer metadata.MD
-
-	result, err := s.BuildsClient.DequeueNextTask(ctx, in, grpc.Trailer(&trailer))
-	if err != nil {
-		return nil, err
-	}
-	if s.Cache != nil {
-		if err := s.Cache.Store(ctx, "Builds.DequeueNextTask", in, result, trailer); err != nil {
 			return nil, err
 		}
 	}

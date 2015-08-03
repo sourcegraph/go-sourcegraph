@@ -1,7 +1,6 @@
 package sourcegraph
 
 import (
-	"net/http"
 	"net/url"
 	"time"
 
@@ -37,25 +36,7 @@ func GRPCEndpoint(ctx context.Context) *url.URL {
 	return url
 }
 
-// WithHTTPEndpoint returns a copy of parent whose clients (obtained
-// using FromContext) communicate with the given HTTP API endpoint
-// URL.
-func WithHTTPEndpoint(parent context.Context, url *url.URL) context.Context {
-	return context.WithValue(parent, httpEndpointKey, url)
-}
-
-// HTTPEndpoint returns the context's HTTP API endpoint URL that was
-// previously configured using WithHTTPEndpoint.
-func HTTPEndpoint(ctx context.Context) *url.URL {
-	url, _ := ctx.Value(httpEndpointKey).(*url.URL)
-	if url == nil {
-		panic("no HTTP API endpoint URL set in context")
-	}
-	return url
-}
-
-// Credentials authenticate gRPC and HTTP requests made by an API
-// client.
+// Credentials authenticate gRPC requests made by an API client.
 type Credentials interface {
 	oauth2.TokenSource
 }
@@ -101,12 +82,10 @@ func clientMetadataFromContext(ctx context.Context) map[string]string {
 
 var maxDialTimeout = 3 * time.Second
 
-// NewClientFromContext returns a Sourcegraph API client configured
-// using the context (e.g., authenticated using the context's
-// credentials).
+// NewClientFromContext returns a Sourcegraph API client that
+// communicates with the Sourcegraph gRPC endpoint in ctx (i.e.,
+// GRPCEndpoint(ctx)).
 var NewClientFromContext = func(ctx context.Context) *Client {
-	transport := keepAliveTransport
-
 	opts := []grpc.DialOption{
 		grpc.WithCodec(GRPCCodec),
 	}
@@ -115,14 +94,6 @@ var NewClientFromContext = func(ctx context.Context) *Client {
 	if grpcEndpoint.Scheme == "https" {
 		opts = append(opts, grpc.WithTransportCredentials(credentials.NewClientTLSFromCert(nil, "")))
 	}
-
-	cred := CredentialsFromContext(ctx)
-
-	// oauth2.NewClient retrieves the underlying transport from
-	// its passed-in context, so we need to create a dummy context
-	// using that transport.
-	ctxWithTransport := context.WithValue(ctx, oauth2.HTTPClient, &http.Client{Transport: transport})
-	transport = oauth2.NewClient(ctxWithTransport, cred).Transport
 
 	// Use contextCredentials instead of directly using the cred
 	// so that we can use different credentials for the same
@@ -143,8 +114,7 @@ var NewClientFromContext = func(ctx context.Context) *Client {
 	if err != nil {
 		panic(err)
 	}
-	c := NewClient(&http.Client{Transport: transport}, conn)
-	c.BaseURL = HTTPEndpoint(ctx)
+	c := NewClient(conn)
 	return c
 }
 

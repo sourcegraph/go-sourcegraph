@@ -373,7 +373,6 @@ type BuildsClient struct {
 	GetLog_           func(ctx context.Context, in *sourcegraph.BuildsGetLogOp) (*sourcegraph.LogEntries, error)
 	GetTaskLog_       func(ctx context.Context, in *sourcegraph.BuildsGetTaskLogOp) (*sourcegraph.LogEntries, error)
 	DequeueNext_      func(ctx context.Context, in *sourcegraph.BuildsDequeueNextOp) (*sourcegraph.Build, error)
-	DequeueNextTask_  func(ctx context.Context, in *sourcegraph.BuildsDequeueNextTaskOp) (*sourcegraph.BuildTask, error)
 }
 
 func (s *BuildsClient) Get(ctx context.Context, in *sourcegraph.BuildSpec, opts ...grpc.CallOption) (*sourcegraph.Build, error) {
@@ -420,10 +419,6 @@ func (s *BuildsClient) DequeueNext(ctx context.Context, in *sourcegraph.BuildsDe
 	return s.DequeueNext_(ctx, in)
 }
 
-func (s *BuildsClient) DequeueNextTask(ctx context.Context, in *sourcegraph.BuildsDequeueNextTaskOp, opts ...grpc.CallOption) (*sourcegraph.BuildTask, error) {
-	return s.DequeueNextTask_(ctx, in)
-}
-
 var _ sourcegraph.BuildsClient = (*BuildsClient)(nil)
 
 type BuildsServer struct {
@@ -438,7 +433,6 @@ type BuildsServer struct {
 	GetLog_           func(v0 context.Context, v1 *sourcegraph.BuildsGetLogOp) (*sourcegraph.LogEntries, error)
 	GetTaskLog_       func(v0 context.Context, v1 *sourcegraph.BuildsGetTaskLogOp) (*sourcegraph.LogEntries, error)
 	DequeueNext_      func(v0 context.Context, v1 *sourcegraph.BuildsDequeueNextOp) (*sourcegraph.Build, error)
-	DequeueNextTask_  func(v0 context.Context, v1 *sourcegraph.BuildsDequeueNextTaskOp) (*sourcegraph.BuildTask, error)
 }
 
 func (s *BuildsServer) Get(v0 context.Context, v1 *sourcegraph.BuildSpec) (*sourcegraph.Build, error) {
@@ -483,10 +477,6 @@ func (s *BuildsServer) GetTaskLog(v0 context.Context, v1 *sourcegraph.BuildsGetT
 
 func (s *BuildsServer) DequeueNext(v0 context.Context, v1 *sourcegraph.BuildsDequeueNextOp) (*sourcegraph.Build, error) {
 	return s.DequeueNext_(v0, v1)
-}
-
-func (s *BuildsServer) DequeueNextTask(v0 context.Context, v1 *sourcegraph.BuildsDequeueNextTaskOp) (*sourcegraph.BuildTask, error) {
-	return s.DequeueNextTask_(v0, v1)
 }
 
 var _ sourcegraph.BuildsServer = (*BuildsServer)(nil)
