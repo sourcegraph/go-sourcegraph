@@ -2,6 +2,7 @@ package spec
 
 import (
 	"bytes"
+	"strings"
 	"regexp"
 )
 
@@ -53,6 +54,10 @@ func ParseRepo(spec string) (repo string, err error) {
 		repo = m[1]
 		return
 	}
+	// TODO(pararth): This is hacky. Change all calls to this function to pass only valid URIs
+	if !strings.HasPrefix(spec, "src:///") && !strings.HasPrefix(spec, "src://") {
+		return ParseRepo("src:///" + spec)
+	}
 	return "", InvalidError{"RepoSpec", spec, nil}
 }
 
@@ -72,6 +77,10 @@ func ParseRepoRev(spec string) (repo, rev, commitID string, err error) {
 			commitID = m[3]
 		}
 		return
+	}
+	// TODO(pararth): This is hacky. Change all calls to this function to pass only valid URIs
+	if !strings.HasPrefix(spec, "src:///") && !strings.HasPrefix(spec, "src://") {
+		return ParseRepoRev("src:///" + spec)
 	}
 	return "", "", "", InvalidError{"RepoRevSpec", spec, nil}
 }
