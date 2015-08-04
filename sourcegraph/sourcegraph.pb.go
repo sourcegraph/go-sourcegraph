@@ -501,8 +501,7 @@ type Repo struct {
 	// Fork is whether this repository is a fork.
 	Fork bool `protobuf:"varint,12,opt,name=fork,proto3" json:"fork,omitempty"`
 	// Mirror indicates whether this repo's canonical location is on
-	// another server. Mirror repos track their upstream and are not
-	// eligible for discovery on this server.
+	// another server. Mirror repos track their upstream.
 	Mirror bool `protobuf:"varint,13,opt,name=mirror,proto3" json:"mirror,omitempty"`
 	// Private is whether this repository is private.
 	Private bool `protobuf:"varint,14,opt,name=private,proto3" json:"private,omitempty"`
@@ -691,9 +690,7 @@ type ReposCreateOp struct {
 	// Mirror is a boolean value indicating whether the newly created
 	// repository should be a mirror. Mirror repositories are
 	// periodically updated to track their upstream (which is
-	// specified using the CloneURL field of this message). Also,
-	// mirror repositories are not eligible for discovery (the
-	// discovery meta tags are not included on their HTML pages).
+	// specified using the CloneURL field of this message).
 	Mirror bool `protobuf:"varint,4,opt,name=mirror,proto3" json:"mirror,omitempty"`
 }
 
