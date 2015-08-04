@@ -210,12 +210,15 @@ message RepoConfig {
 
 // Repo represents a source code repository.
 message Repo {
-	// URI is a normalized identifier for this repository based on its primary clone
-	// URL. E.g., "github.com/user/repo".
+	// URI is a normalized identifier for this repository based on its primary clone URL.
+	// E.g., "src:///my/local/repo", "src://src.abc.com/user/repo" or "src://github.com/user/repo".
 	string uri = 1 [(gogoproto.customname) = "URI"];
 
 	// Origin is populated for repos fetched via federation or
 	// discovery. It is the hostname of the host that owns the repo.
+	// DEPRECATED: This field should no longer be used since the new repo
+	// URI scheme encodes the hostname for that repo.
+	// TODO(pararth): remove this field completely.
 	string origin = 21;
 
 	// Name is the base name (the final path component) of the repository, typically
