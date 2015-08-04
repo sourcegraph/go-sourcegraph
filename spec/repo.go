@@ -8,8 +8,13 @@ import (
 
 const (
 	// RepoPattern is the regexp pattern that matches RepoSpec strings
-	// ("src:///my/local/repo" or "src://domain.com/path/to/repo").
+	// eg. "src:///my/local/repo" or "src://domain.com/path/to/repo".
 	RepoPattern = `(?P<repo>(?:src:/{2,3})(?:[^/.@][^/@]*/)*(?:[^/.@][^/@]*))`
+
+	// RepoURLPattern is the regexp pattern that matches repo URL paths that
+	// may or may not be valid repo URIs. eg. "my/local/repo" or "domain.com/path/to/repo".
+	// These paths must be converted to valid RepoSpec URIs (see routevar.FixRepoVars).
+	RepoURLPattern = `(?P<repo>(?:src:/{2,3})?(?:[^/.@][^/@]*/)*(?:[^/.@][^/@]*))`
 
 	// RepoRevPattern is the regexp pattern that matches RepoRevSpec
 	// strings (which encode a repository path, optional revision, and

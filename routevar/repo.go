@@ -11,11 +11,22 @@ import (
 
 var (
 	// Repo captures RepoSpec strings in URL routes.
-	Repo = `{Repo:` + NamedToNonCapturingGroups(spec.RepoPattern) + `}`
+	Repo = `{Repo:` + NamedToNonCapturingGroups(spec.RepoURLPattern) + `}`
 
 	// RepoRev captures RepoRevSpec strings in URL routes.
 	RepoRev = Repo + `{ResolvedRev:(?:@` + NamedToNonCapturingGroups(spec.ResolvedRevPattern) + `)?}`
 )
+
+// FixRepoVars is a mux.PostMatchFunc that cleans and normalizes
+// the route vars pertaining to a Repo.
+func FixRepoVars(req *http.Request, match *mux.RouteMatch, r *mux.Route) {
+	if _, present := match.Vars["Repo"]; present {
+		repoSpec := match.Vars["Repo"]
+		if !strings.HasPrefix(repoSpec, "src:///") && !strings.HasPrefix(repoSpec, "src://") {
+			match.Vars["Repo"] = "src:///" + repoSpec
+		}
+	}
+}
 
 // FixRepoRevVars is a mux.PostMatchFunc that cleans and normalizes
 // the route vars pertaining to a RepoRev.
