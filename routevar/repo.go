@@ -28,9 +28,20 @@ func FixRepoVars(req *http.Request, match *mux.RouteMatch, r *mux.Route) {
 	}
 }
 
+// PrepareRepoRouteVars is a mux.BuildVarsFunc that converts from a
+// RepoSpec's route vars to components used to generate routes.
+func PrepareRepoRouteVars(vars map[string]string) map[string]string {
+	if vars["Repo"] != "" {
+		vars["Repo"] = strings.TrimPrefix(vars["Repo"], "src:///")
+		vars["Repo"] = strings.TrimPrefix(vars["Repo"], "src://")
+	}
+	return vars
+}
+
 // FixRepoRevVars is a mux.PostMatchFunc that cleans and normalizes
 // the route vars pertaining to a RepoRev.
 func FixRepoRevVars(req *http.Request, match *mux.RouteMatch, r *mux.Route) {
+	FixRepoVars(req, match, r)
 	if _, present := match.Vars["ResolvedRev"]; present {
 		match.Vars["ResolvedRev"] = strings.TrimPrefix(match.Vars["ResolvedRev"], "@")
 	}
@@ -40,6 +51,7 @@ func FixRepoRevVars(req *http.Request, match *mux.RouteMatch, r *mux.Route) {
 // PrepareRepoRevRouteVars is a mux.BuildVarsFunc that converts from a
 // RepoRevSpec's route vars to components used to generate routes.
 func PrepareRepoRevRouteVars(vars map[string]string) map[string]string {
+	vars = PrepareRepoRouteVars(vars)
 	vars = PrepareResolvedRevRouteVars(vars)
 	if vars["ResolvedRev"] != "" {
 		vars["ResolvedRev"] = "@" + vars["ResolvedRev"]
