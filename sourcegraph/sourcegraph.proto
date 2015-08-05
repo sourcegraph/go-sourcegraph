@@ -262,8 +262,7 @@ message Repo {
 	bool fork = 12;
 
 	// Mirror indicates whether this repo's canonical location is on
-	// another server. Mirror repos track their upstream and are not
-	// eligible for discovery on this server.
+	// another server. Mirror repos track their upstream.
 	bool mirror = 13;
 
 	// Private is whether this repository is private.
@@ -568,9 +567,7 @@ message ReposCreateOp {
 	// Mirror is a boolean value indicating whether the newly created
 	// repository should be a mirror. Mirror repositories are
 	// periodically updated to track their upstream (which is
-	// specified using the CloneURL field of this message). Also,
-	// mirror repositories are not eligible for discovery (the
-	// discovery meta tags are not included on their HTML pages).
+	// specified using the CloneURL field of this message).
 	bool mirror = 4;
 }
 
