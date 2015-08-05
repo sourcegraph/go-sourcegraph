@@ -9,7 +9,7 @@ import (
 )
 
 // IsGitHubRepo returns true iff this repository is hosted on GitHub.
-func (r *Repo) IsGitHubRepo() bool { return strings.HasPrefix(r.URI, "github.com/") }
+func (r *Repo) IsGitHubRepo() bool { return strings.HasPrefix(r.URI, "src://github.com/") }
 
 // Returns the repository's canonical clone URL
 func (r *Repo) CloneURL() *url.URL {
@@ -30,7 +30,7 @@ func (r *Repo) CloneURL() *url.URL {
 // a GitHub repo. Otherwise it returns the empty string.
 func (r *Repo) GitHubHTMLURL() string {
 	if r.IsGitHubRepo() {
-		return (&url.URL{Scheme: "https", Host: "github.com", Path: "/" + strings.TrimPrefix(r.URI, "github.com/")}).String()
+		return (&url.URL{Scheme: "https", Host: "github.com", Path: "/" + strings.TrimPrefix(r.URI, "src://github.com/")}).String()
 	}
 	return ""
 }
