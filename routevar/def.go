@@ -22,6 +22,7 @@ var Def = `.{UnitType}/{rawUnit:.*}.def{Path:(?:(?:/(?:[^/.][^/]*/)*(?:[^/.][^/]
 // rawUnit route variable matched by Def. See the docs for Def for
 // more information.
 func FixDefUnitVars(req *http.Request, match *mux.RouteMatch, r *mux.Route) {
+	FixRepoVars(req, match, r)
 	match.Vars["Path"] = strings.TrimPrefix(match.Vars["Path"], "/")
 	if path := match.Vars["Path"]; path == "" {
 		match.Vars["Path"] = "."
@@ -41,6 +42,7 @@ func FixDefUnitVars(req *http.Request, match *mux.RouteMatch, r *mux.Route) {
 // route variable to the dummy "rawUnit" route variable that actually appears in
 // the route regexp pattern.
 func PrepareDefRouteVars(vars map[string]string) map[string]string {
+	vars = PrepareRepoRouteVars(vars)
 	if path := vars["Path"]; path == "." {
 		vars["Path"] = ""
 	} else if path != "" {

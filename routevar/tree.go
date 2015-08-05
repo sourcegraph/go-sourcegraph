@@ -14,6 +14,7 @@ var TreeEntryPath = `{Path:(?:/.*)*}`
 // FixTreeEntryVars is a mux.PostMatchFunc that cleans and normalizes
 // the path to a tree entry.
 func FixTreeEntryVars(req *http.Request, match *mux.RouteMatch, r *mux.Route) {
+	FixRepoVars(req, match, r)
 	path := filepath.Clean(strings.TrimPrefix(match.Vars["Path"], "/"))
 	if path == "" || path == "." {
 		match.Vars["Path"] = "."
@@ -26,6 +27,7 @@ func FixTreeEntryVars(req *http.Request, match *mux.RouteMatch, r *mux.Route) {
 // a cleaned and normalized Path to a Path that we use to generate
 // tree entry URLs.
 func PrepareTreeEntryRouteVars(vars map[string]string) map[string]string {
+	vars = PrepareRepoRouteVars(vars)
 	if path := vars["Path"]; path == "." {
 		vars["Path"] = ""
 	} else {

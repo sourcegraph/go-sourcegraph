@@ -2,7 +2,6 @@ package spec
 
 import (
 	"bytes"
-	"strings"
 	"regexp"
 )
 
