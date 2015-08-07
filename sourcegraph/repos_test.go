@@ -10,11 +10,11 @@ func TestRepo_GitHubHTMLURL(t *testing.T) {
 		want string
 	}{
 		{
-			repo: &Repo{URI: "github.com/o/r"},
+			repo: &Repo{URI: "src://github.com/o/r"},
 			want: "https://github.com/o/r",
 		},
 		{
-			repo: &Repo{URI: "foo.com/x/y"},
+			repo: &Repo{URI: "src://foo.com/x/y"},
 			want: "",
 		},
 	}

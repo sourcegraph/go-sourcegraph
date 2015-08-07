@@ -14,8 +14,8 @@ const (
 )
 
 var (
-	baseRev = RepoRevSpec{RepoSpec: RepoSpec{URI: "base.com/repo"}, Rev: "baserev", CommitID: baseCommit}
-	headRev = RepoRevSpec{RepoSpec: RepoSpec{URI: "head.com/repo"}, Rev: "headrev", CommitID: headCommit}
+	baseRev = RepoRevSpec{RepoSpec: RepoSpec{URI: "src://base.com/repo"}, Rev: "baserev", CommitID: baseCommit}
+	headRev = RepoRevSpec{RepoSpec: RepoSpec{URI: "src://head.com/repo"}, Rev: "headrev", CommitID: headCommit}
 )
 
 func TestDeltas(t *testing.T) {
@@ -25,11 +25,11 @@ func TestDeltas(t *testing.T) {
 	}{
 		{
 			spec: DeltaSpec{
-				Base: RepoRevSpec{RepoSpec: RepoSpec{URI: "samerepo"}, Rev: "baserev", CommitID: baseCommit},
-				Head: RepoRevSpec{RepoSpec: RepoSpec{URI: "samerepo"}, Rev: "headrev", CommitID: headCommit},
+				Base: RepoRevSpec{RepoSpec: RepoSpec{URI: "src:///samerepo"}, Rev: "baserev", CommitID: baseCommit},
+				Head: RepoRevSpec{RepoSpec: RepoSpec{URI: "src:///samerepo"}, Rev: "headrev", CommitID: headCommit},
 			},
 			wantRouteVars: map[string]string{
-				"Repo":                 "samerepo",
+				"Repo":                 "src:///samerepo",
 				"Rev":                  baseRev.Rev,
 				"CommitID":             baseCommit,
 				"DeltaHeadResolvedRev": "headrev===" + headCommit,
@@ -41,7 +41,7 @@ func TestDeltas(t *testing.T) {
 				Head: headRev,
 			},
 			wantRouteVars: map[string]string{
-				"Repo":                 "base.com/repo",
+				"Repo":                 "src://base.com/repo",
 				"Rev":                  baseRev.Rev,
 				"CommitID":             baseCommit,
 				"DeltaHeadResolvedRev": encodeCrossRepoRevSpecForDeltaHeadResolvedRev(headRev),
