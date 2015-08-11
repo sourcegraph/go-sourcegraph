@@ -824,6 +824,11 @@ type ChangesetUpdateOp struct {
 	Merged bool `protobuf:"varint,7,opt,name=merged,proto3" json:"merged,omitempty"`
 	// Author is the user that initiated this event.
 	Author UserSpec `protobuf:"bytes,8,opt" json:"Author"`
+	// Head is used internally to update the head commit ID of this changeset
+	// when a user commits new data. These commits are tracked on speial refs in the
+	// repo, making the changeset data (diffs) available after the branch is deleted
+	// or merged.
+	Head string `protobuf:"bytes,9,opt,name=head,proto3" json:"head,omitempty"`
 }
 
 func (m *ChangesetUpdateOp) Reset()         { *m = ChangesetUpdateOp{} }

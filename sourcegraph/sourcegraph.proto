@@ -657,6 +657,12 @@ message ChangesetUpdateOp {
 
 	// Author is the user that initiated this event.
 	UserSpec Author = 8 [(gogoproto.nullable) = false];
+
+	// Head is used internally to update the head commit ID of this changeset
+	// when a user commits new data. These commits are tracked on speial refs in the
+	// repo, making the changeset data (diffs) available after the branch is deleted
+	// or merged.
+	string head = 9;
 }
 
 message RepoListTagsOptions {
