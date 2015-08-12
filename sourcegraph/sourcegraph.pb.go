@@ -191,6 +191,7 @@ It has these top-level messages:
 	RegisteredClientCredentials
 	RegisteredClientListOptions
 	RegisteredClientList
+	MetricsSnapshot
 */
 package sourcegraph
 
@@ -248,6 +249,26 @@ var RegisteredClientType_value = map[string]int32{
 
 func (x RegisteredClientType) String() string {
 	return proto.EnumName(RegisteredClientType_name, int32(x))
+}
+
+// TelemetryType is the format MetricsSnapshot.TelemetryData is encoded in
+type TelemetryType int32
+
+const (
+	// PrometheusDelimited0dot0dot4 indicates the metrics can be decoded using
+	// Prometheus 0.0.4 delimited protobuf format
+	TelemetryType_PrometheusDelimited0dot0dot4 TelemetryType = 0
+)
+
+var TelemetryType_name = map[int32]string{
+	0: "PrometheusDelimited0dot0dot4",
+}
+var TelemetryType_value = map[string]int32{
+	"PrometheusDelimited0dot0dot4": 0,
+}
+
+func (x TelemetryType) String() string {
+	return proto.EnumName(TelemetryType_name, int32(x))
 }
 
 type Badge struct {
@@ -2779,8 +2800,21 @@ func (m *RegisteredClientList) Reset()         { *m = RegisteredClientList{} }
 func (m *RegisteredClientList) String() string { return proto.CompactTextString(m) }
 func (*RegisteredClientList) ProtoMessage()    {}
 
+// MetricsSnapshots encodes
+type MetricsSnapshot struct {
+	// Type is the encoding of TelemetryData
+	Type TelemetryType `protobuf:"varint,1,opt,name=type,proto3,enum=sourcegraph.TelemetryType" json:"type,omitempty"`
+	// TelemetryData is the encoded metrics
+	TelemetryData []byte `protobuf:"bytes,2,opt,name=telemetry_data,proto3" json:"telemetry_data,omitempty"`
+}
+
+func (m *MetricsSnapshot) Reset()         { *m = MetricsSnapshot{} }
+func (m *MetricsSnapshot) String() string { return proto.CompactTextString(m) }
+func (*MetricsSnapshot) ProtoMessage()    {}
+
 func init() {
 	proto.RegisterEnum("sourcegraph.RegisteredClientType", RegisteredClientType_name, RegisteredClientType_value)
+	proto.RegisterEnum("sourcegraph.TelemetryType", TelemetryType_name, TelemetryType_value)
 }
 
 // Client API for RepoBadges service
@@ -5834,6 +5868,65 @@ var _RegisteredClients_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "List",
 			Handler:    _RegisteredClients_List_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for GraphUplink service
+
+type GraphUplinkClient interface {
+	// Push sends the latest metrics to the upstream instance
+	Push(ctx context.Context, in *MetricsSnapshot, opts ...grpc.CallOption) (*pbtypes1.Void, error)
+}
+
+type graphUplinkClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewGraphUplinkClient(cc *grpc.ClientConn) GraphUplinkClient {
+	return &graphUplinkClient{cc}
+}
+
+func (c *graphUplinkClient) Push(ctx context.Context, in *MetricsSnapshot, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
+	err := grpc.Invoke(ctx, "/sourcegraph.GraphUplink/Push", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for GraphUplink service
+
+type GraphUplinkServer interface {
+	// Push sends the latest metrics to the upstream instance
+	Push(context.Context, *MetricsSnapshot) (*pbtypes1.Void, error)
+}
+
+func RegisterGraphUplinkServer(s *grpc.Server, srv GraphUplinkServer) {
+	s.RegisterService(&_GraphUplink_serviceDesc, srv)
+}
+
+func _GraphUplink_Push_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(MetricsSnapshot)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(GraphUplinkServer).Push(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _GraphUplink_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.GraphUplink",
+	HandlerType: (*GraphUplinkServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Push",
+			Handler:    _GraphUplink_Push_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
