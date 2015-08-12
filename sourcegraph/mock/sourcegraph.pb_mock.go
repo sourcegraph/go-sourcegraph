@@ -1030,3 +1030,23 @@ func (s *RegisteredClientsServer) List(v0 context.Context, v1 *sourcegraph.Regis
 }
 
 var _ sourcegraph.RegisteredClientsServer = (*RegisteredClientsServer)(nil)
+
+type GraphUplinkClient struct {
+	Push_ func(ctx context.Context, in *sourcegraph.MetricsSnapshot) (*pbtypes.Void, error)
+}
+
+func (s *GraphUplinkClient) Push(ctx context.Context, in *sourcegraph.MetricsSnapshot, opts ...grpc.CallOption) (*pbtypes.Void, error) {
+	return s.Push_(ctx, in)
+}
+
+var _ sourcegraph.GraphUplinkClient = (*GraphUplinkClient)(nil)
+
+type GraphUplinkServer struct {
+	Push_ func(v0 context.Context, v1 *sourcegraph.MetricsSnapshot) (*pbtypes.Void, error)
+}
+
+func (s *GraphUplinkServer) Push(v0 context.Context, v1 *sourcegraph.MetricsSnapshot) (*pbtypes.Void, error) {
+	return s.Push_(v0, v1)
+}
+
+var _ sourcegraph.GraphUplinkServer = (*GraphUplinkServer)(nil)
