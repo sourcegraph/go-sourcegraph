@@ -8,7 +8,7 @@ import (
 const (
 	// RepoPattern is the regexp pattern that matches RepoSpec strings
 	// ("repo" or "domain.com/repo" or "domain.com/path/to/repo").
-	RepoPattern = `(?P<repo>(?:[^/.@][^/@]*/)*(?:[^/.@][^/@]*))`
+	RepoPattern = `(?P<repo>(?:src:/{2,3})?(?:[^/.@][^/@]*/)*(?:[^/.@][^/@]*))`
 
 	// RepoRevPattern is the regexp pattern that matches RepoRevSpec
 	// strings (which encode a repository path, optional revision, and
