@@ -2650,9 +2650,9 @@ message RegisteredClientList {
 
 // RegisteredClients manages registered API clients.
 //
-// The server may check authorization for methods that retrieve or
-// fetch API client records (e.g., only allowing authenticated calls
-// with a client's own credentials to get or modify it).
+// The server may check authorization for methods that retrieve or fetch API
+// client records. To update or delete a client, the actor's ClientID must match
+// the ID of the client.
 //
 // Like the RegisteredClient message type, it's called
 // RegisteredClients instead of Clients to avoid a name conflict with
