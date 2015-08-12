@@ -13,15 +13,15 @@ const commitID = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
 func TestRepo(t *testing.T) {
 	r := mux.NewRouter()
-	r.Path("/" + Repo)
+	r.Path("/" + Repo).PostMatchFunc(FixRepoVars).BuildVarsFunc(PrepareRepoRouteVars)
 
 	tests := []struct {
 		path        string
 		wantNoMatch bool
 		wantVars    map[string]string
 	}{
-		{path: "/foo", wantVars: map[string]string{"Repo": "foo"}},
-		{path: "/foo.com/bar", wantVars: map[string]string{"Repo": "foo.com/bar"}},
+		{path: "/foo", wantVars: map[string]string{"Repo": "src:///foo"}},
+		{path: "/foo.com/bar", wantVars: map[string]string{"Repo": "src:///foo.com/bar"}},
 
 		{path: "/", wantNoMatch: true},
 		{path: "/.foo", wantNoMatch: true},
@@ -59,12 +59,12 @@ func TestRepoRev(t *testing.T) {
 		wantNoMatch bool
 		wantVars    map[string]string
 	}{
-		{path: "/foo", wantVars: map[string]string{"Repo": "foo"}},
-		{path: "/foo@v", wantVars: map[string]string{"Repo": "foo", "Rev": "v"}},
-		{path: "/foo@v===" + commitID, wantVars: map[string]string{"Repo": "foo", "Rev": "v", "CommitID": commitID}},
-		{path: "/foo.com/bar", wantVars: map[string]string{"Repo": "foo.com/bar"}},
-		{path: "/foo.com/bar@v", wantVars: map[string]string{"Repo": "foo.com/bar", "Rev": "v"}},
-		{path: "/foo.com/bar@v===" + commitID, wantVars: map[string]string{"Repo": "foo.com/bar", "Rev": "v", "CommitID": commitID}},
+		{path: "/foo", wantVars: map[string]string{"Repo": "src:///foo"}},
+		{path: "/foo@v", wantVars: map[string]string{"Repo": "src:///foo", "Rev": "v"}},
+		{path: "/foo@v===" + commitID, wantVars: map[string]string{"Repo": "src:///foo", "Rev": "v", "CommitID": commitID}},
+		{path: "/foo.com/bar", wantVars: map[string]string{"Repo": "src:///foo.com/bar"}},
+		{path: "/foo.com/bar@v", wantVars: map[string]string{"Repo": "src:///foo.com/bar", "Rev": "v"}},
+		{path: "/foo.com/bar@v===" + commitID, wantVars: map[string]string{"Repo": "src:///foo.com/bar", "Rev": "v", "CommitID": commitID}},
 
 		{path: "/", wantNoMatch: true},
 		{path: "/.foo", wantNoMatch: true},

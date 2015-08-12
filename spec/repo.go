@@ -7,8 +7,12 @@ import (
 
 const (
 	// RepoPattern is the regexp pattern that matches RepoSpec strings
+	// ("src:///repo" or "src://domain.com/repo" or "src://domain.com/path/to/repo").
+	RepoPattern = `(?P<repo>(?:src:/{2,3})(?:[^/.@][^/@]*/)*(?:[^/.@][^/@]*))`
+
+	// RepoURLPattern is the regexp pattern that matches repo URL paths
 	// ("repo" or "domain.com/repo" or "domain.com/path/to/repo").
-	RepoPattern = `(?P<repo>(?:src:/{2,3})?(?:[^/.@][^/@]*/)*(?:[^/.@][^/@]*))`
+	RepoURLPattern = `(?P<repo>(?:[^/.@][^/@]*/)*(?:[^/.@][^/@]*))`
 
 	// RepoRevPattern is the regexp pattern that matches RepoRevSpec
 	// strings (which encode a repository path, optional revision, and
@@ -42,6 +46,7 @@ const (
 
 var (
 	repoPattern        = regexp.MustCompile("^" + RepoPattern + "$")
+	repoURLPattern        = regexp.MustCompile("^" + RepoURLPattern + "$")
 	repoRevPattern     = regexp.MustCompile("^" + RepoRevPattern + "$")
 	resolvedRevPattern = regexp.MustCompile("^" + ResolvedRevPattern + "$")
 )

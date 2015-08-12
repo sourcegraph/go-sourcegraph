@@ -11,11 +11,11 @@ var repoTestPatterns = []struct {
 	input     string
 	wantMatch bool
 }{
-	{"foo", true},
-	{"foo/bar", true},
-	{"foo.com/bar", true},
-	{"foo.com/bar.baz", true},
-	{"fo_o.com/bar", true},
+	{"src:///foo", true},
+	{"src:///foo/bar", true},
+	{"src://foo.com/bar", true},
+	{"src://foo.com/bar.baz", true},
+	{"src://fo_o.com/bar", true},
 
 	{"", false},
 	{"./foo", false},
@@ -84,23 +84,23 @@ func TestRepoRevPattern(t *testing.T) {
 		// Only include cases here that should not be shared with
 		// TestRepoRevPattern.
 
-		{"foo@v", true, "foo", "v", ""},
-		{"foo/bar@v", true, "foo/bar", "v", ""},
-		{"foo@my/branch/name", true, "foo", "my/branch/name", ""},
-		{"foo@xx===" + commitID, true, "foo", "xx", commitID},
-		{"foo@bar~10", true, "foo", "bar~10", ""},
-		{"foo@bar^10", true, "foo", "bar^10", ""},
+		{"src:///foo@v", true, "src:///foo", "v", ""},
+		{"src:///foo/bar@v", true, "src:///foo/bar", "v", ""},
+		{"src:///foo@my/branch/name", true, "src:///foo", "my/branch/name", ""},
+		{"src:///foo@xx===" + commitID, true, "src:///foo", "xx", commitID},
+		{"src:///foo@bar~10", true, "src:///foo", "bar~10", ""},
+		{"src:///foo@bar^10", true, "src:///foo", "bar^10", ""},
 
 		// Possibly undesired matches (since a component starts with a
 		// "."), but unlikely to be problematic.
-		{"foo@.bar", true, "foo", ".bar", ""},
-		{"foo@.my/branch/name", true, "foo", ".my/branch/name", ""},
+		{"src:///foo@.bar", true, "src:///foo", ".bar", ""},
+		{"src:///foo@.my/branch/name", true, "src:///foo", ".my/branch/name", ""},
 
-		{input: "foo@===" + commitID, wantMatch: false},
-		{input: "foo@xx===aa", wantMatch: false},
-		{input: "foo@xx===", wantMatch: false},
-		{input: "foo@my/.branch/name", wantMatch: false},
-		{input: "foo@my/branch/.name", wantMatch: false},
+		{input: "src:///foo@===" + commitID, wantMatch: false},
+		{input: "src:///foo@xx===aa", wantMatch: false},
+		{input: "src:///foo@xx===", wantMatch: false},
+		{input: "src:///foo@my/.branch/name", wantMatch: false},
+		{input: "src:///foo@my/branch/.name", wantMatch: false},
 	}
 
 	for _, rttest := range repoTestPatterns {
