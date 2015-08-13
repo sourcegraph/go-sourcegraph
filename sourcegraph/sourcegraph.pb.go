@@ -468,9 +468,6 @@ type Repo struct {
 	// URI is a normalized identifier for this repository based on its primary clone
 	// URL. E.g., "github.com/user/repo".
 	URI string `protobuf:"bytes,1,opt,name=uri,proto3" json:"uri,omitempty"`
-	// Origin is populated for repos fetched via federation or
-	// discovery. It is the hostname of the host that owns the repo.
-	Origin string `protobuf:"bytes,21,opt,name=origin,proto3" json:"origin,omitempty"`
 	// Name is the base name (the final path component) of the repository, typically
 	// the name of the directory that the repository would be cloned into. (For
 	// example, for git://example.com/foo.git, the name is "foo".)
