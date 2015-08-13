@@ -190,6 +190,8 @@ func (t *PBToken) Token() Token {
 		return *t.FileToken
 	case t.UserToken != nil:
 		return *t.UserToken
+	case t.UnitToken != nil:
+		return *t.UnitToken
 	default:
 		// empty
 		return Term("")
@@ -211,6 +213,8 @@ func PBTokenWrap(t Token) PBToken {
 		pb.FileToken = &t
 	case UserToken:
 		pb.UserToken = &t
+	case UnitToken:
+		pb.UnitToken = &t
 	case *RepoToken:
 		pb.RepoToken = t
 	case *RevToken:
@@ -219,6 +223,8 @@ func PBTokenWrap(t Token) PBToken {
 		pb.FileToken = t
 	case *UserToken:
 		pb.UserToken = t
+	case *UnitToken:
+		pb.UnitToken = t
 	default:
 		// empty
 	}
