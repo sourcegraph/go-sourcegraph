@@ -2703,9 +2703,10 @@ type ServerConfig struct {
 	IsFederationRoot bool `protobuf:"varint,6,opt,name=is_federation_root,proto3" json:"is_federation_root,omitempty"`
 	// IDKey is the server's identity key (ID key).
 	IDKey string `protobuf:"bytes,7,opt,name=id_key,proto3" json:"id_key,omitempty"`
-	// AuthRequired is whether or not authentication is required for most
-	// operations
-	AuthRequired bool `protobuf:"varint,8,opt,name=auth_required,proto3" json:"auth_required,omitempty"`
+	// AllowAnonymousReaders is whether anonymous (unauthenticated)
+	// users may perform "read" operations, such as viewing
+	// repositories.
+	AllowAnonymousReaders bool `protobuf:"varint,9,opt,name=allow_anonymous_readers,proto3" json:"allow_anonymous_readers,omitempty"`
 }
 
 func (m *ServerConfig) Reset()         { *m = ServerConfig{} }

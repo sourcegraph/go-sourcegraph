@@ -2548,9 +2548,10 @@ message ServerConfig {
 	// IDKey is the server's identity key (ID key).
 	string id_key = 7 [(gogoproto.customname) = "IDKey"];
 
-    // AuthRequired is whether or not authentication is required for most
-    // operations
-	bool auth_required = 8;
+    // AllowAnonymousReaders is whether anonymous (unauthenticated)
+    // users may perform "read" operations, such as viewing
+    // repositories.
+	bool allow_anonymous_readers = 9;
 }
 
 // A RegisteredClient is a registered API client.
