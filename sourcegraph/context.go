@@ -80,7 +80,7 @@ func clientMetadataFromContext(ctx context.Context) map[string]string {
 	return cred
 }
 
-var maxDialTimeout = 3 * time.Second
+var maxDialTimeout = 10 * time.Second
 
 // NewClientFromContext returns a Sourcegraph API client that
 // communicates with the Sourcegraph gRPC endpoint in ctx (i.e.,
