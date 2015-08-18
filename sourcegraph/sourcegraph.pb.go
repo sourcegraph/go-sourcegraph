@@ -1011,6 +1011,8 @@ type ChangesetListOp struct {
 	Repo        string `protobuf:"bytes,1,opt,name=repo,proto3" json:"repo,omitempty"`
 	Open        bool   `protobuf:"varint,2,opt,name=open,proto3" json:"open,omitempty"`
 	Closed      bool   `protobuf:"varint,3,opt,name=closed,proto3" json:"closed,omitempty"`
+	Head        string `protobuf:"bytes,4,opt,name=head,proto3" json:"head,omitempty"`
+	Base        string `protobuf:"bytes,5,opt,name=base,proto3" json:"base,omitempty"`
 	ListOptions `protobuf:"bytes,11,opt,name=list_options,embedded=list_options" json:"list_options"`
 }
 
