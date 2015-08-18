@@ -824,10 +824,24 @@ message BuildListOptions {
 	ListOptions list_options = 11 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
+// ChangesetListOp holds the update options to be passed to a Changeset Update
+// operation.
 message ChangesetListOp {
 	string repo = 1;
+
+	// Open, when true, will only return open changesets.
 	bool open = 2;
+
+	// Closed, when true, will only return closed changeset.
 	bool closed = 3;
+
+	// Head, if set, will restrict the returned list to only changesets
+	// that have this branch as head.
+	string head = 4;
+
+	// Base, when set, will restrict the list to changesets that have this
+	// branch as a base.
+	string base = 5;
 	ListOptions list_options = 11 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
