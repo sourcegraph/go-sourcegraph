@@ -1,6 +1,8 @@
 package sourcegraph
 
 import (
+	"crypto/tls"
+	"net"
 	"net/url"
 	"time"
 
@@ -92,7 +94,11 @@ var NewClientFromContext = func(ctx context.Context) *Client {
 
 	grpcEndpoint := GRPCEndpoint(ctx)
 	if grpcEndpoint.Scheme == "https" {
-		opts = append(opts, grpc.WithTransportCredentials(credentials.NewClientTLSFromCert(nil, "")))
+		creds := credentials.NewClientTLSFromCert(nil, "")
+		if host, _, _ := net.SplitHostPort(grpcEndpoint.Host); host == "localhost" {
+			creds = credentials.NewTLS(&tls.Config{InsecureSkipVerify: true})
+		}
+		opts = append(opts, grpc.WithTransportCredentials(creds))
 	}
 
 	// Use contextCredentials instead of directly using the cred
