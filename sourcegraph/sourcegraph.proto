@@ -519,6 +519,10 @@ service Repos {
 	rpc ListCommits(ReposListCommitsOp) returns (CommitList);
 	rpc ListBranches(ReposListBranchesOp) returns (BranchList);
 	rpc ListTags(ReposListTagsOp) returns (TagList);
+
+	// ListCommitters returns the list of authors who have contributed
+	// to the main branch of the repo.
+	rpc ListCommitters(ReposListCommittersOp) returns (CommitterList);
 }
 
 service Changesets {
@@ -606,6 +610,21 @@ message BranchList {
 message ReposListTagsOp {
 	RepoSpec repo = 1 [(gogoproto.nullable) = false];
 	RepoListTagsOptions opt = 2;
+}
+
+message ReposListCommittersOp {
+	RepoSpec repo = 1 [(gogoproto.nullable) = false];
+	RepoListCommittersOptions opt = 2;
+}
+
+message RepoListCommittersOptions {
+	string revision = 3;
+	ListOptions list_options = 4 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+message CommitterList {
+	repeated vcs.Committer committers = 1;
+	ListResponse list_response = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
 message ChangesetCreateOp {
