@@ -2605,6 +2605,17 @@ func (s *CachedReposServer) ListTags(ctx context.Context, in *ReposListTagsOp) (
 	return result, err
 }
 
+func (s *CachedReposServer) ListCommitters(ctx context.Context, in *ReposListCommittersOp) (*CommitterList, error) {
+	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
+	result, err := s.ReposServer.ListCommitters(ctx, in)
+	if !cc.IsZero() {
+		if err := grpccache.Internal_SetCacheControlTrailer(ctx, *cc); err != nil {
+			return nil, err
+		}
+	}
+	return result, err
+}
+
 type CachedReposClient struct {
 	ReposClient
 	Cache *grpccache.Cache
@@ -2916,6 +2927,32 @@ func (s *CachedReposClient) ListTags(ctx context.Context, in *ReposListTagsOp, o
 	}
 	if s.Cache != nil {
 		if err := s.Cache.Store(ctx, "Repos.ListTags", in, result, trailer); err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
+}
+
+func (s *CachedReposClient) ListCommitters(ctx context.Context, in *ReposListCommittersOp, opts ...grpc.CallOption) (*CommitterList, error) {
+	if s.Cache != nil {
+		var cachedResult CommitterList
+		cached, err := s.Cache.Get(ctx, "Repos.ListCommitters", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
+	}
+
+	var trailer metadata.MD
+
+	result, err := s.ReposClient.ListCommitters(ctx, in, grpc.Trailer(&trailer))
+	if err != nil {
+		return nil, err
+	}
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Repos.ListCommitters", in, result, trailer); err != nil {
 			return nil, err
 		}
 	}

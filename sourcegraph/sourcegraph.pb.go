@@ -41,6 +41,9 @@ It has these top-level messages:
 	RepoListBranchesOptions
 	BranchList
 	ReposListTagsOp
+	ReposListCommittersOp
+	RepoListCommittersOptions
+	CommitterList
 	ChangesetCreateOp
 	ChangesetCreateReviewOp
 	ChangesetListReviewsOp
@@ -786,6 +789,33 @@ type ReposListTagsOp struct {
 func (m *ReposListTagsOp) Reset()         { *m = ReposListTagsOp{} }
 func (m *ReposListTagsOp) String() string { return proto.CompactTextString(m) }
 func (*ReposListTagsOp) ProtoMessage()    {}
+
+type ReposListCommittersOp struct {
+	Repo RepoSpec                   `protobuf:"bytes,1,opt,name=repo" json:"repo"`
+	Opt  *RepoListCommittersOptions `protobuf:"bytes,2,opt,name=opt" json:"opt,omitempty"`
+}
+
+func (m *ReposListCommittersOp) Reset()         { *m = ReposListCommittersOp{} }
+func (m *ReposListCommittersOp) String() string { return proto.CompactTextString(m) }
+func (*ReposListCommittersOp) ProtoMessage()    {}
+
+type RepoListCommittersOptions struct {
+	Rev         string `protobuf:"bytes,1,opt,name=rev,proto3" json:"rev,omitempty"`
+	ListOptions `protobuf:"bytes,2,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *RepoListCommittersOptions) Reset()         { *m = RepoListCommittersOptions{} }
+func (m *RepoListCommittersOptions) String() string { return proto.CompactTextString(m) }
+func (*RepoListCommittersOptions) ProtoMessage()    {}
+
+type CommitterList struct {
+	Committers   []*vcs.Committer `protobuf:"bytes,1,rep,name=committers" json:"committers,omitempty"`
+	ListResponse `protobuf:"bytes,2,opt,name=list_response,embedded=list_response" json:"list_response"`
+}
+
+func (m *CommitterList) Reset()         { *m = CommitterList{} }
+func (m *CommitterList) String() string { return proto.CompactTextString(m) }
+func (*CommitterList) ProtoMessage()    {}
 
 type ChangesetCreateOp struct {
 	Repo      RepoSpec   `protobuf:"bytes,1,opt,name=repo" json:"repo"`
@@ -3095,6 +3125,9 @@ type ReposClient interface {
 	ListCommits(ctx context.Context, in *ReposListCommitsOp, opts ...grpc.CallOption) (*CommitList, error)
 	ListBranches(ctx context.Context, in *ReposListBranchesOp, opts ...grpc.CallOption) (*BranchList, error)
 	ListTags(ctx context.Context, in *ReposListTagsOp, opts ...grpc.CallOption) (*TagList, error)
+	// ListCommitters returns the list of authors who have contributed
+	// to the main branch of the repo.
+	ListCommitters(ctx context.Context, in *ReposListCommittersOp, opts ...grpc.CallOption) (*CommitterList, error)
 }
 
 type reposClient struct {
@@ -3213,6 +3246,15 @@ func (c *reposClient) ListTags(ctx context.Context, in *ReposListTagsOp, opts ..
 	return out, nil
 }
 
+func (c *reposClient) ListCommitters(ctx context.Context, in *ReposListCommittersOp, opts ...grpc.CallOption) (*CommitterList, error) {
+	out := new(CommitterList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Repos/ListCommitters", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Repos service
 
 type ReposServer interface {
@@ -3244,6 +3286,9 @@ type ReposServer interface {
 	ListCommits(context.Context, *ReposListCommitsOp) (*CommitList, error)
 	ListBranches(context.Context, *ReposListBranchesOp) (*BranchList, error)
 	ListTags(context.Context, *ReposListTagsOp) (*TagList, error)
+	// ListCommitters returns the list of authors who have contributed
+	// to the main branch of the repo.
+	ListCommitters(context.Context, *ReposListCommittersOp) (*CommitterList, error)
 }
 
 func RegisterReposServer(s *grpc.Server, srv ReposServer) {
@@ -3394,6 +3439,18 @@ func _Repos_ListTags_Handler(srv interface{}, ctx context.Context, codec grpc.Co
 	return out, nil
 }
 
+func _Repos_ListCommitters_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(ReposListCommittersOp)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(ReposServer).ListCommitters(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 var _Repos_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sourcegraph.Repos",
 	HandlerType: (*ReposServer)(nil),
@@ -3445,6 +3502,10 @@ var _Repos_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListTags",
 			Handler:    _Repos_ListTags_Handler,
+		},
+		{
+			MethodName: "ListCommitters",
+			Handler:    _Repos_ListCommitters_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
