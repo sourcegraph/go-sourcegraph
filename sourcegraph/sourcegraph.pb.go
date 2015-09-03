@@ -48,6 +48,8 @@ It has these top-level messages:
 	ChangesetUpdateOp
 	RepoListTagsOptions
 	TagList
+	MirrorReposRefreshVCSOp
+	VCSCredentials
 	MirroredRepoSSHKeysCreateOp
 	SSHPrivateKey
 	Build
@@ -713,6 +715,8 @@ type ReposCreateOp struct {
 	// periodically updated to track their upstream (which is
 	// specified using the CloneURL field of this message).
 	Mirror bool `protobuf:"varint,4,opt,name=mirror,proto3" json:"mirror,omitempty"`
+	// Private is whether this repository is private.
+	Private bool `protobuf:"varint,5,opt,name=private,proto3" json:"private,omitempty"`
 }
 
 func (m *ReposCreateOp) Reset()         { *m = ReposCreateOp{} }
@@ -864,6 +868,25 @@ type TagList struct {
 func (m *TagList) Reset()         { *m = TagList{} }
 func (m *TagList) String() string { return proto.CompactTextString(m) }
 func (*TagList) ProtoMessage()    {}
+
+type MirrorReposRefreshVCSOp struct {
+	Repo        RepoSpec        `protobuf:"bytes,1,opt,name=repo" json:"repo"`
+	Credentials *VCSCredentials `protobuf:"bytes,2,opt,name=credentials" json:"credentials,omitempty"`
+}
+
+func (m *MirrorReposRefreshVCSOp) Reset()         { *m = MirrorReposRefreshVCSOp{} }
+func (m *MirrorReposRefreshVCSOp) String() string { return proto.CompactTextString(m) }
+func (*MirrorReposRefreshVCSOp) ProtoMessage()    {}
+
+// VCSCredentials for authentication during communication with VCS remotes.
+type VCSCredentials struct {
+	// Pass is the password provided to the VCS.
+	Pass string `protobuf:"bytes,1,opt,name=pass,proto3" json:"pass"`
+}
+
+func (m *VCSCredentials) Reset()         { *m = VCSCredentials{} }
+func (m *VCSCredentials) String() string { return proto.CompactTextString(m) }
+func (*VCSCredentials) ProtoMessage()    {}
 
 type MirroredRepoSSHKeysCreateOp struct {
 	Repo RepoSpec      `protobuf:"bytes,1,opt,name=repo" json:"repo"`
@@ -3693,7 +3716,7 @@ var _Changesets_serviceDesc = grpc.ServiceDesc{
 
 type MirrorReposClient interface {
 	// Refresh fetches the newest VCS data from the repo's origin.
-	RefreshVCS(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error)
+	RefreshVCS(ctx context.Context, in *MirrorReposRefreshVCSOp, opts ...grpc.CallOption) (*pbtypes1.Void, error)
 }
 
 type mirrorReposClient struct {
@@ -3704,7 +3727,7 @@ func NewMirrorReposClient(cc *grpc.ClientConn) MirrorReposClient {
 	return &mirrorReposClient{cc}
 }
 
-func (c *mirrorReposClient) RefreshVCS(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+func (c *mirrorReposClient) RefreshVCS(ctx context.Context, in *MirrorReposRefreshVCSOp, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
 	out := new(pbtypes1.Void)
 	err := grpc.Invoke(ctx, "/sourcegraph.MirrorRepos/RefreshVCS", in, out, c.cc, opts...)
 	if err != nil {
@@ -3717,7 +3740,7 @@ func (c *mirrorReposClient) RefreshVCS(ctx context.Context, in *RepoSpec, opts .
 
 type MirrorReposServer interface {
 	// Refresh fetches the newest VCS data from the repo's origin.
-	RefreshVCS(context.Context, *RepoSpec) (*pbtypes1.Void, error)
+	RefreshVCS(context.Context, *MirrorReposRefreshVCSOp) (*pbtypes1.Void, error)
 }
 
 func RegisterMirrorReposServer(s *grpc.Server, srv MirrorReposServer) {
@@ -3725,7 +3748,7 @@ func RegisterMirrorReposServer(s *grpc.Server, srv MirrorReposServer) {
 }
 
 func _MirrorRepos_RefreshVCS_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(RepoSpec)
+	in := new(MirrorReposRefreshVCSOp)
 	if err := codec.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}

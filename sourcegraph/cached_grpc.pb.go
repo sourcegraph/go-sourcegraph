@@ -1603,7 +1603,7 @@ func (s *CachedMetaClient) Config(ctx context.Context, in *pbtypes.Void, opts ..
 
 type CachedMirrorReposServer struct{ MirrorReposServer }
 
-func (s *CachedMirrorReposServer) RefreshVCS(ctx context.Context, in *RepoSpec) (*pbtypes.Void, error) {
+func (s *CachedMirrorReposServer) RefreshVCS(ctx context.Context, in *MirrorReposRefreshVCSOp) (*pbtypes.Void, error) {
 	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
 	result, err := s.MirrorReposServer.RefreshVCS(ctx, in)
 	if !cc.IsZero() {
@@ -1619,7 +1619,7 @@ type CachedMirrorReposClient struct {
 	Cache *grpccache.Cache
 }
 
-func (s *CachedMirrorReposClient) RefreshVCS(ctx context.Context, in *RepoSpec, opts ...grpc.CallOption) (*pbtypes.Void, error) {
+func (s *CachedMirrorReposClient) RefreshVCS(ctx context.Context, in *MirrorReposRefreshVCSOp, opts ...grpc.CallOption) (*pbtypes.Void, error) {
 	if s.Cache != nil {
 		var cachedResult pbtypes.Void
 		cached, err := s.Cache.Get(ctx, "MirrorRepos.RefreshVCS", in, &cachedResult)
