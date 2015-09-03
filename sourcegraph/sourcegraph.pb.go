@@ -209,6 +209,7 @@ import unit "sourcegraph.com/sourcegraph/srclib/unit"
 import vcsclient "sourcegraph.com/sourcegraph/vcsstore/vcsclient"
 import pbtypes "sourcegraph.com/sqs/pbtypes"
 import pbtypes1 "sourcegraph.com/sqs/pbtypes"
+import pbtypes2 "sourcegraph.com/sqs/pbtypes"
 
 // discarding unused import google_api1 "google/api/annotations.pb"
 
@@ -1681,7 +1682,7 @@ func (*Completions) ProtoMessage()    {}
 // Def is a code def returned by the Sourcegraph API.
 type Def struct {
 	graph.Def  `protobuf:"bytes,1,opt,name=def,embedded=def" json:""`
-	DocHTML    string                  `protobuf:"bytes,2,opt,name=doc_html,proto3" json:"doc_html,omitempty"`
+	DocHTML    *pbtypes2.HTML          `protobuf:"bytes,2,opt,name=doc_html" json:"doc_html,omitempty"`
 	FmtStrings *graph.DefFormatStrings `protobuf:"bytes,3,opt,name=fmt_strings" json:"fmt_strings,omitempty"`
 }
 

@@ -10,6 +10,7 @@ import "sourcegraph.com/sourcegraph/srclib/unit/unit.proto";
 import "sourcegraph.com/sourcegraph/vcsstore/vcsclient/vcsclient.proto";
 import "sourcegraph.com/sqs/pbtypes/timestamp.proto";
 import "sourcegraph.com/sqs/pbtypes/void.proto";
+import "sourcegraph.com/sqs/pbtypes/html.proto";
 import "google/api/annotations.proto";
 
 option (gogoproto.goproto_getters_all) = false;
@@ -1568,7 +1569,7 @@ message Completions {
 // Def is a code def returned by the Sourcegraph API.
 message Def {
 	graph.Def def = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true, (gogoproto.jsontag) = ""];
-	string doc_html = 2 [(gogoproto.customname) = "DocHTML"];
+	pbtypes.HTML doc_html = 2 [(gogoproto.customname) = "DocHTML"];
 	graph.DefFormatStrings fmt_strings = 3;
 }
 
