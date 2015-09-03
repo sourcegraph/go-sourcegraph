@@ -618,8 +618,8 @@ message ReposListCommittersOp {
 }
 
 message RepoListCommittersOptions {
-	string revision = 3;
-	ListOptions list_options = 4 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+	string rev = 1;
+	ListOptions list_options = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
 message CommitterList {

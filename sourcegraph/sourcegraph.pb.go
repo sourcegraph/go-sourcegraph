@@ -800,8 +800,8 @@ func (m *ReposListCommittersOp) String() string { return proto.CompactTextString
 func (*ReposListCommittersOp) ProtoMessage()    {}
 
 type RepoListCommittersOptions struct {
-	Revision    string `protobuf:"bytes,3,opt,name=revision,proto3" json:"revision,omitempty"`
-	ListOptions `protobuf:"bytes,4,opt,name=list_options,embedded=list_options" json:"list_options"`
+	Rev         string `protobuf:"bytes,1,opt,name=rev,proto3" json:"rev,omitempty"`
+	ListOptions `protobuf:"bytes,2,opt,name=list_options,embedded=list_options" json:"list_options"`
 }
 
 func (m *RepoListCommittersOptions) Reset()         { *m = RepoListCommittersOptions{} }
