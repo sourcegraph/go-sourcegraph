@@ -232,6 +232,28 @@ var _ grpc.ClientConn
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 
+type DiscussionListOrder int32
+
+const (
+	// List discussions in reverse chronological order
+	DiscussionListOrder_Date DiscussionListOrder = 0
+	// List discussion such that highly rated items are in front
+	DiscussionListOrder_Top DiscussionListOrder = 1
+)
+
+var DiscussionListOrder_name = map[int32]string{
+	0: "Date",
+	1: "Top",
+}
+var DiscussionListOrder_value = map[string]int32{
+	"Date": 0,
+	"Top":  1,
+}
+
+func (x DiscussionListOrder) String() string {
+	return proto.EnumName(DiscussionListOrder_name, int32(x))
+}
+
 // RegisteredClientType is the set of kinds of clients.
 type RegisteredClientType int32
 
@@ -946,7 +968,9 @@ func (m *DiscussionSpec) String() string { return proto.CompactTextString(m) }
 func (*DiscussionSpec) ProtoMessage()    {}
 
 type DiscussionListOp struct {
-	DefKey graph.DefKey `protobuf:"bytes,1,opt,name=def_key" json:"def_key"`
+	DefKey      graph.DefKey        `protobuf:"bytes,1,opt,name=def_key" json:"def_key"`
+	Order       DiscussionListOrder `protobuf:"varint,2,opt,name=order,proto3,enum=sourcegraph.DiscussionListOrder" json:"order,omitempty"`
+	ListOptions `protobuf:"bytes,3,opt,name=list_options,embedded=list_options" json:"list_options"`
 }
 
 func (m *DiscussionListOp) Reset()         { *m = DiscussionListOp{} }
@@ -2953,6 +2977,7 @@ func (m *MetricsSnapshot) String() string { return proto.CompactTextString(m) }
 func (*MetricsSnapshot) ProtoMessage()    {}
 
 func init() {
+	proto.RegisterEnum("sourcegraph.DiscussionListOrder", DiscussionListOrder_name, DiscussionListOrder_value)
 	proto.RegisterEnum("sourcegraph.RegisteredClientType", RegisteredClientType_name, RegisteredClientType_value)
 	proto.RegisterEnum("sourcegraph.TelemetryType", TelemetryType_name, TelemetryType_value)
 }

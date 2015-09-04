@@ -753,8 +753,18 @@ message DiscussionSpec {
 	int64 id = 2 [(gogoproto.customname) = "ID"];
 }
 
+enum DiscussionListOrder {
+	// List discussions in reverse chronological order
+	Date = 0;
+
+	// List discussion such that highly rated items are in front
+	Top = 1;
+}
+
 message DiscussionListOp {
 	graph.DefKey def_key = 1 [(gogoproto.nullable) = false];
+	DiscussionListOrder order = 2;
+	ListOptions list_options = 3 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
 message DiscussionCommentCreateOp {
