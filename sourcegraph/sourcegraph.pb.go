@@ -14,6 +14,8 @@ It has these top-level messages:
 	Counter
 	ListOptions
 	ListResponse
+	Discussion
+	DiscussionComment
 	Changeset
 	ChangesetReview
 	ChangesetEvent
@@ -49,6 +51,10 @@ It has these top-level messages:
 	ChangesetListReviewsOp
 	ChangesetSpec
 	ChangesetUpdateOp
+	DiscussionSpec
+	DiscussionListOp
+	DiscussionCommentCreateOp
+	DiscussionRatingUpdateOp
 	RepoListTagsOptions
 	TagList
 	MirrorReposRefreshVCSOp
@@ -75,6 +81,7 @@ It has these top-level messages:
 	ChangesetReviewList
 	ChangesetList
 	ChangesetEventList
+	DiscussionList
 	BuildsCreateTasksOp
 	BuildsUpdateTaskOp
 	BuildsGetLogOp
@@ -227,6 +234,28 @@ var _ grpc.ClientConn
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 
+type DiscussionListOrder int32
+
+const (
+	// List discussions in reverse chronological order
+	DiscussionListOrder_Date DiscussionListOrder = 0
+	// List discussion such that highly rated items are in front
+	DiscussionListOrder_Top DiscussionListOrder = 1
+)
+
+var DiscussionListOrder_name = map[int32]string{
+	0: "Date",
+	1: "Top",
+}
+var DiscussionListOrder_value = map[string]int32{
+	"Date": 0,
+	"Top":  1,
+}
+
+func (x DiscussionListOrder) String() string {
+	return proto.EnumName(DiscussionListOrder_name, int32(x))
+}
+
 // RegisteredClientType is the set of kinds of clients.
 type RegisteredClientType int32
 
@@ -338,6 +367,56 @@ type ListResponse struct {
 func (m *ListResponse) Reset()         { *m = ListResponse{} }
 func (m *ListResponse) String() string { return proto.CompactTextString(m) }
 func (*ListResponse) ProtoMessage()    {}
+
+// Discussion stores information about a discussion
+type Discussion struct {
+	// ID is the unique identifier for this discussion, relative to the repository
+	// that contains it.
+	ID int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Title holds a summary about this discussion.
+	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	// Description holds the description for this discussion.
+	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	// Author is the user that initiated this discussion.
+	Author UserSpec `protobuf:"bytes,4,opt,name=author" json:"author"`
+	// DefKey is the unit the discussion is about. Note that a DefKey
+	// contains a commit component, but we track Discussions across
+	// commits. So all lookups normalize out the commit component, but the
+	// commit component records the commit at the time the Discussion was
+	// created.
+	DefKey graph.DefKey `protobuf:"bytes,5,opt,name=def_key" json:"def_key"`
+	// Ratings contains a list of users who have "starred" the discussion
+	Ratings []*UserSpec `protobuf:"bytes,6,rep,name=ratings" json:"ratings,omitempty"`
+	// Comments contains comments by users in the discussion
+	Comments []*DiscussionComment `protobuf:"bytes,7,rep,name=comments" json:"comments,omitempty"`
+	// CreatedAt holds the creation time of this changeset.
+	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,8,opt,name=created_at" json:"created_at,omitempty"`
+}
+
+func (m *Discussion) Reset()         { *m = Discussion{} }
+func (m *Discussion) String() string { return proto.CompactTextString(m) }
+func (*Discussion) ProtoMessage()    {}
+
+// DiscussionComment contains information about a single comment by a user.
+type DiscussionComment struct {
+	// ID holds the unique identifier (with reference to the Discussion) of the
+	// comment.
+	ID int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Body holds the text description of the comment.
+	Body string `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
+	// Author is the spec of the user that submitted this comment.
+	Author UserSpec `protobuf:"bytes,3,opt,name=author" json:"author"`
+	// DefKey is the unit the discussion is about. Note this will be the
+	// same as the Discussion's DefKey, except the commit component will
+	// be the commit the user submitted on.
+	DefKey graph.DefKey `protobuf:"bytes,5,opt,name=def_key" json:"def_key"`
+	// CreatedAt is the date at which this comment was submitted.
+	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,6,opt,name=created_at" json:"created_at,omitempty"`
+}
+
+func (m *DiscussionComment) Reset()         { *m = DiscussionComment{} }
+func (m *DiscussionComment) String() string { return proto.CompactTextString(m) }
+func (*DiscussionComment) ProtoMessage()    {}
 
 // Changeset stores information about a changeset.
 type Changeset struct {
@@ -883,6 +962,43 @@ func (m *ChangesetUpdateOp) Reset()         { *m = ChangesetUpdateOp{} }
 func (m *ChangesetUpdateOp) String() string { return proto.CompactTextString(m) }
 func (*ChangesetUpdateOp) ProtoMessage()    {}
 
+type DiscussionSpec struct {
+	Repo RepoSpec `protobuf:"bytes,1,opt,name=repo" json:"repo"`
+	ID   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (m *DiscussionSpec) Reset()         { *m = DiscussionSpec{} }
+func (m *DiscussionSpec) String() string { return proto.CompactTextString(m) }
+func (*DiscussionSpec) ProtoMessage()    {}
+
+type DiscussionListOp struct {
+	DefKey      graph.DefKey        `protobuf:"bytes,1,opt,name=def_key" json:"def_key"`
+	Order       DiscussionListOrder `protobuf:"varint,2,opt,name=order,proto3,enum=sourcegraph.DiscussionListOrder" json:"order,omitempty"`
+	ListOptions `protobuf:"bytes,3,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *DiscussionListOp) Reset()         { *m = DiscussionListOp{} }
+func (m *DiscussionListOp) String() string { return proto.CompactTextString(m) }
+func (*DiscussionListOp) ProtoMessage()    {}
+
+type DiscussionCommentCreateOp struct {
+	DiscussionID int64              `protobuf:"varint,1,opt,name=discussion_id,proto3" json:"discussion_id,omitempty"`
+	Comment      *DiscussionComment `protobuf:"bytes,2,opt,name=comment" json:"comment,omitempty"`
+}
+
+func (m *DiscussionCommentCreateOp) Reset()         { *m = DiscussionCommentCreateOp{} }
+func (m *DiscussionCommentCreateOp) String() string { return proto.CompactTextString(m) }
+func (*DiscussionCommentCreateOp) ProtoMessage()    {}
+
+type DiscussionRatingUpdateOp struct {
+	DiscussionID int64     `protobuf:"varint,1,opt,name=discussion_id,proto3" json:"discussion_id,omitempty"`
+	User         *UserSpec `protobuf:"bytes,2,opt,name=user" json:"user,omitempty"`
+}
+
+func (m *DiscussionRatingUpdateOp) Reset()         { *m = DiscussionRatingUpdateOp{} }
+func (m *DiscussionRatingUpdateOp) String() string { return proto.CompactTextString(m) }
+func (*DiscussionRatingUpdateOp) ProtoMessage()    {}
+
 type RepoListTagsOptions struct {
 	ListOptions `protobuf:"bytes,3,opt,name=list_options,embedded=list_options" json:"list_options"`
 }
@@ -1259,6 +1375,14 @@ type ChangesetEventList struct {
 func (m *ChangesetEventList) Reset()         { *m = ChangesetEventList{} }
 func (m *ChangesetEventList) String() string { return proto.CompactTextString(m) }
 func (*ChangesetEventList) ProtoMessage()    {}
+
+type DiscussionList struct {
+	Discussions []*Discussion `protobuf:"bytes,1,rep,name=discussions" json:"discussions,omitempty"`
+}
+
+func (m *DiscussionList) Reset()         { *m = DiscussionList{} }
+func (m *DiscussionList) String() string { return proto.CompactTextString(m) }
+func (*DiscussionList) ProtoMessage()    {}
 
 type BuildsCreateTasksOp struct {
 	Build BuildSpec    `protobuf:"bytes,1,opt,name=build" json:"build"`
@@ -2876,6 +3000,7 @@ func (m *MetricsSnapshot) String() string { return proto.CompactTextString(m) }
 func (*MetricsSnapshot) ProtoMessage()    {}
 
 func init() {
+	proto.RegisterEnum("sourcegraph.DiscussionListOrder", DiscussionListOrder_name, DiscussionListOrder_value)
 	proto.RegisterEnum("sourcegraph.RegisteredClientType", RegisteredClientType_name, RegisteredClientType_value)
 	proto.RegisterEnum("sourcegraph.TelemetryType", TelemetryType_name, TelemetryType_value)
 }
@@ -3769,6 +3894,185 @@ var _Changesets_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListEvents",
 			Handler:    _Changesets_ListEvents_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for Discussions service
+
+type DiscussionsClient interface {
+	// Create creates a new Discussion and returns it, populating its
+	// fields, such as ID and CreatedAt.
+	Create(ctx context.Context, in *Discussion, opts ...grpc.CallOption) (*Discussion, error)
+	// Get returns the Discussion by RepoSpec and ID.
+	Get(ctx context.Context, in *DiscussionSpec, opts ...grpc.CallOption) (*Discussion, error)
+	// List lists changesets for a DefKey
+	List(ctx context.Context, in *DiscussionListOp, opts ...grpc.CallOption) (*DiscussionList, error)
+	// CreateComment creates a new DiscussionComment and returns it,
+	// populating its fields, such as ID and CreatedAt.
+	CreateComment(ctx context.Context, in *DiscussionCommentCreateOp, opts ...grpc.CallOption) (*DiscussionComment, error)
+	// UpdateRating either adds or removes a star by a User
+	UpdateRating(ctx context.Context, in *DiscussionRatingUpdateOp, opts ...grpc.CallOption) (*pbtypes1.Void, error)
+}
+
+type discussionsClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewDiscussionsClient(cc *grpc.ClientConn) DiscussionsClient {
+	return &discussionsClient{cc}
+}
+
+func (c *discussionsClient) Create(ctx context.Context, in *Discussion, opts ...grpc.CallOption) (*Discussion, error) {
+	out := new(Discussion)
+	err := grpc.Invoke(ctx, "/sourcegraph.Discussions/Create", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *discussionsClient) Get(ctx context.Context, in *DiscussionSpec, opts ...grpc.CallOption) (*Discussion, error) {
+	out := new(Discussion)
+	err := grpc.Invoke(ctx, "/sourcegraph.Discussions/Get", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *discussionsClient) List(ctx context.Context, in *DiscussionListOp, opts ...grpc.CallOption) (*DiscussionList, error) {
+	out := new(DiscussionList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Discussions/List", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *discussionsClient) CreateComment(ctx context.Context, in *DiscussionCommentCreateOp, opts ...grpc.CallOption) (*DiscussionComment, error) {
+	out := new(DiscussionComment)
+	err := grpc.Invoke(ctx, "/sourcegraph.Discussions/CreateComment", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *discussionsClient) UpdateRating(ctx context.Context, in *DiscussionRatingUpdateOp, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
+	err := grpc.Invoke(ctx, "/sourcegraph.Discussions/UpdateRating", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for Discussions service
+
+type DiscussionsServer interface {
+	// Create creates a new Discussion and returns it, populating its
+	// fields, such as ID and CreatedAt.
+	Create(context.Context, *Discussion) (*Discussion, error)
+	// Get returns the Discussion by RepoSpec and ID.
+	Get(context.Context, *DiscussionSpec) (*Discussion, error)
+	// List lists changesets for a DefKey
+	List(context.Context, *DiscussionListOp) (*DiscussionList, error)
+	// CreateComment creates a new DiscussionComment and returns it,
+	// populating its fields, such as ID and CreatedAt.
+	CreateComment(context.Context, *DiscussionCommentCreateOp) (*DiscussionComment, error)
+	// UpdateRating either adds or removes a star by a User
+	UpdateRating(context.Context, *DiscussionRatingUpdateOp) (*pbtypes1.Void, error)
+}
+
+func RegisterDiscussionsServer(s *grpc.Server, srv DiscussionsServer) {
+	s.RegisterService(&_Discussions_serviceDesc, srv)
+}
+
+func _Discussions_Create_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(Discussion)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(DiscussionsServer).Create(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Discussions_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(DiscussionSpec)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(DiscussionsServer).Get(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Discussions_List_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(DiscussionListOp)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(DiscussionsServer).List(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Discussions_CreateComment_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(DiscussionCommentCreateOp)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(DiscussionsServer).CreateComment(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Discussions_UpdateRating_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(DiscussionRatingUpdateOp)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(DiscussionsServer).UpdateRating(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _Discussions_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.Discussions",
+	HandlerType: (*DiscussionsServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Create",
+			Handler:    _Discussions_Create_Handler,
+		},
+		{
+			MethodName: "Get",
+			Handler:    _Discussions_Get_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _Discussions_List_Handler,
+		},
+		{
+			MethodName: "CreateComment",
+			Handler:    _Discussions_CreateComment_Handler,
+		},
+		{
+			MethodName: "UpdateRating",
+			Handler:    _Discussions_UpdateRating_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
