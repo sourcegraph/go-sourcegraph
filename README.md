@@ -65,7 +65,7 @@ _TODO: Make it work with latest, confirm if there are any issues._
 6. **Install `grpccache-gen`**:
 
    ```
-   go get -u sourcegraph.com/sqs/grpccache/grpccache-gen
+   go get -u sourcegraph.com/sourcegraph/grpccache/grpccache-gen
    ```
 
 ### Regenerating Go code after changing `sourcegraph.proto`
