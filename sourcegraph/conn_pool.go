@@ -58,3 +58,18 @@ func pooledGRPCDial(target string, opts ...grpc.DialOption) (*grpc.ClientConn, e
 
 	return conn, nil
 }
+
+// removeConnFromPool deletes the ClientConnection to the specified target
+// from the connection pool.
+func removeConnFromPool(target string) {
+	// Make sure we are the only goroutine dealing with this target.
+	targetMu := lockTargetMutex(target)
+	defer targetMu.Unlock()
+
+	connsMu.Lock()
+	defer connsMu.Unlock()
+
+	if conns != nil {
+		conns[target] = nil
+	}
+}
