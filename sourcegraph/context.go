@@ -124,6 +124,15 @@ var NewClientFromContext = func(ctx context.Context) *Client {
 	return c
 }
 
+// RemovePooledGRPCConn removes the pooled grpc.ClientConnection to the gRPC endpoint
+// in the context. The result of calling this function  is that the pooled connection for
+// this endpoint will be reset, so the subsequent call to NewClientFromContext() would have
+// to dial a new gRPC connection to this endpoint.
+var RemovePooledGRPCConn = func(ctx context.Context) {
+	grpcEndpoint := GRPCEndpoint(ctx)
+	removeConnFromPool(grpcEndpoint.Host)
+}
+
 type contextCredentials struct{}
 
 func (contextCredentials) GetRequestMetadata(ctx context.Context) (map[string]string, error) {
