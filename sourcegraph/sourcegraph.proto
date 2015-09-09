@@ -571,6 +571,9 @@ message ReposCreateOp {
 	// periodically updated to track their upstream (which is
 	// specified using the CloneURL field of this message).
 	bool mirror = 4;
+
+	// Private is whether this repository is private.
+	bool private = 5;
 }
 
 message ReposListCommitsOp {
@@ -685,11 +688,22 @@ message TagList {
 	ListResponse list_response = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
+message MirrorReposRefreshVCSOp {
+	RepoSpec repo = 1 [(gogoproto.nullable) = false];
+	VCSCredentials credentials = 2;
+}
+
+// VCSCredentials for authentication during communication with VCS remotes.
+message VCSCredentials {
+	// Pass is the password provided to the VCS.
+	string pass = 1 [(gogoproto.nullable) = false];
+}
+
 // MirrorRepos handles operations related to maintaining mirrors on
 // Sourcegraph of repositories hosted elsewhere.
 service MirrorRepos {
 	// Refresh fetches the newest VCS data from the repo's origin.
-	rpc RefreshVCS(RepoSpec) returns (pbtypes.Void) {
+	rpc RefreshVCS(MirrorReposRefreshVCSOp) returns (pbtypes.Void) {
 		option (google.api.http) = {
 			put: "/mirror_repos"
 		};

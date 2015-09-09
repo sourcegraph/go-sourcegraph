@@ -312,20 +312,20 @@ func (s *ChangesetsServer) ListEvents(v0 context.Context, v1 *sourcegraph.Change
 var _ sourcegraph.ChangesetsServer = (*ChangesetsServer)(nil)
 
 type MirrorReposClient struct {
-	RefreshVCS_ func(ctx context.Context, in *sourcegraph.RepoSpec) (*pbtypes.Void, error)
+	RefreshVCS_ func(ctx context.Context, in *sourcegraph.MirrorReposRefreshVCSOp) (*pbtypes.Void, error)
 }
 
-func (s *MirrorReposClient) RefreshVCS(ctx context.Context, in *sourcegraph.RepoSpec, opts ...grpc.CallOption) (*pbtypes.Void, error) {
+func (s *MirrorReposClient) RefreshVCS(ctx context.Context, in *sourcegraph.MirrorReposRefreshVCSOp, opts ...grpc.CallOption) (*pbtypes.Void, error) {
 	return s.RefreshVCS_(ctx, in)
 }
 
 var _ sourcegraph.MirrorReposClient = (*MirrorReposClient)(nil)
 
 type MirrorReposServer struct {
-	RefreshVCS_ func(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error)
+	RefreshVCS_ func(v0 context.Context, v1 *sourcegraph.MirrorReposRefreshVCSOp) (*pbtypes.Void, error)
 }
 
-func (s *MirrorReposServer) RefreshVCS(v0 context.Context, v1 *sourcegraph.RepoSpec) (*pbtypes.Void, error) {
+func (s *MirrorReposServer) RefreshVCS(v0 context.Context, v1 *sourcegraph.MirrorReposRefreshVCSOp) (*pbtypes.Void, error) {
 	return s.RefreshVCS_(v0, v1)
 }
 
