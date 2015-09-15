@@ -1,4 +1,4 @@
-// +build ignore
+// +build generate
 
 // Command goreplace replaces all instances of "from" string with "to" string in specified files.
 // Like basic string replacement functionality of sed, but works on OS X, Linux and Windows.
@@ -40,7 +40,7 @@ func processFile(path, from, to string) error {
 
 	b = bytes.Replace(b, []byte(from), []byte(to), -1)
 
-	err = ioutil.WriteFile(path, b, 0x0644)
+	err = ioutil.WriteFile(path, b, 0644)
 	if err != nil {
 		return err
 	}
