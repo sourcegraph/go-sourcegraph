@@ -974,9 +974,10 @@ func (m *DiscussionSpec) String() string { return proto.CompactTextString(m) }
 func (*DiscussionSpec) ProtoMessage()    {}
 
 type DiscussionListOp struct {
-	DefKey      graph.DefKey        `protobuf:"bytes,1,opt,name=def_key" json:"def_key"`
-	Order       DiscussionListOrder `protobuf:"varint,2,opt,name=order,proto3,enum=sourcegraph.DiscussionListOrder" json:"order,omitempty"`
-	ListOptions `protobuf:"bytes,3,opt,name=list_options,embedded=list_options" json:"list_options"`
+	Repo        RepoSpec            `protobuf:"bytes,1,opt,name=repo" json:"repo"`
+	DefKey      graph.DefKey        `protobuf:"bytes,2,opt,name=def_key" json:"def_key"`
+	Order       DiscussionListOrder `protobuf:"varint,3,opt,name=order,proto3,enum=sourcegraph.DiscussionListOrder" json:"order,omitempty"`
+	ListOptions `protobuf:"bytes,4,opt,name=list_options,embedded=list_options" json:"list_options"`
 }
 
 func (m *DiscussionListOp) Reset()         { *m = DiscussionListOp{} }

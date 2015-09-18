@@ -765,9 +765,10 @@ enum DiscussionListOrder {
 }
 
 message DiscussionListOp {
-	graph.DefKey def_key = 1 [(gogoproto.nullable) = false];
-	DiscussionListOrder order = 2;
-	ListOptions list_options = 3 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+	RepoSpec repo = 1 [(gogoproto.nullable) = false];
+	graph.DefKey def_key = 2 [(gogoproto.nullable) = false];
+	DiscussionListOrder order = 3;
+	ListOptions list_options = 4 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
 message DiscussionCommentCreateOp {
