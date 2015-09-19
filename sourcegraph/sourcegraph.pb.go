@@ -169,6 +169,8 @@ It has these top-level messages:
 	RepoTreeSearchResult
 	RepoTreeGetOp
 	RepoTreeSearchOp
+	RepoTreeListOp
+	RepoTreeListResult
 	VCSSearchResultList
 	SearchOptions
 	SearchResults
@@ -2472,6 +2474,22 @@ type RepoTreeSearchOp struct {
 func (m *RepoTreeSearchOp) Reset()         { *m = RepoTreeSearchOp{} }
 func (m *RepoTreeSearchOp) String() string { return proto.CompactTextString(m) }
 func (*RepoTreeSearchOp) ProtoMessage()    {}
+
+type RepoTreeListOp struct {
+	Rev RepoRevSpec `protobuf:"bytes,1,opt,name=rev" json:"rev"`
+}
+
+func (m *RepoTreeListOp) Reset()         { *m = RepoTreeListOp{} }
+func (m *RepoTreeListOp) String() string { return proto.CompactTextString(m) }
+func (*RepoTreeListOp) ProtoMessage()    {}
+
+type RepoTreeListResult struct {
+	Files []string `protobuf:"bytes,1,rep,name=files" json:"files,omitempty"`
+}
+
+func (m *RepoTreeListResult) Reset()         { *m = RepoTreeListResult{} }
+func (m *RepoTreeListResult) String() string { return proto.CompactTextString(m) }
+func (*RepoTreeListResult) ProtoMessage()    {}
 
 type VCSSearchResultList struct {
 	SearchResults []*vcs.SearchResult `protobuf:"bytes,1,rep,name=search_results" json:"search_results,omitempty"`
@@ -5679,6 +5697,9 @@ var _Markdown_serviceDesc = grpc.ServiceDesc{
 type RepoTreeClient interface {
 	Get(ctx context.Context, in *RepoTreeGetOp, opts ...grpc.CallOption) (*TreeEntry, error)
 	Search(ctx context.Context, in *RepoTreeSearchOp, opts ...grpc.CallOption) (*VCSSearchResultList, error)
+	// List returns a list of all the files in the repo tree at
+	// the given revision.
+	List(ctx context.Context, in *RepoTreeListOp, opts ...grpc.CallOption) (*RepoTreeListResult, error)
 }
 
 type repoTreeClient struct {
@@ -5707,11 +5728,23 @@ func (c *repoTreeClient) Search(ctx context.Context, in *RepoTreeSearchOp, opts 
 	return out, nil
 }
 
+func (c *repoTreeClient) List(ctx context.Context, in *RepoTreeListOp, opts ...grpc.CallOption) (*RepoTreeListResult, error) {
+	out := new(RepoTreeListResult)
+	err := grpc.Invoke(ctx, "/sourcegraph.RepoTree/List", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for RepoTree service
 
 type RepoTreeServer interface {
 	Get(context.Context, *RepoTreeGetOp) (*TreeEntry, error)
 	Search(context.Context, *RepoTreeSearchOp) (*VCSSearchResultList, error)
+	// List returns a list of all the files in the repo tree at
+	// the given revision.
+	List(context.Context, *RepoTreeListOp) (*RepoTreeListResult, error)
 }
 
 func RegisterRepoTreeServer(s *grpc.Server, srv RepoTreeServer) {
@@ -5742,6 +5775,18 @@ func _RepoTree_Search_Handler(srv interface{}, ctx context.Context, codec grpc.C
 	return out, nil
 }
 
+func _RepoTree_List_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(RepoTreeListOp)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RepoTreeServer).List(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 var _RepoTree_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sourcegraph.RepoTree",
 	HandlerType: (*RepoTreeServer)(nil),
@@ -5753,6 +5798,10 @@ var _RepoTree_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Search",
 			Handler:    _RepoTree_Search_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _RepoTree_List_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},

@@ -904,6 +904,7 @@ var _ sourcegraph.MarkdownServer = (*MarkdownServer)(nil)
 type RepoTreeClient struct {
 	Get_    func(ctx context.Context, in *sourcegraph.RepoTreeGetOp) (*sourcegraph.TreeEntry, error)
 	Search_ func(ctx context.Context, in *sourcegraph.RepoTreeSearchOp) (*sourcegraph.VCSSearchResultList, error)
+	List_   func(ctx context.Context, in *sourcegraph.RepoTreeListOp) (*sourcegraph.RepoTreeListResult, error)
 }
 
 func (s *RepoTreeClient) Get(ctx context.Context, in *sourcegraph.RepoTreeGetOp, opts ...grpc.CallOption) (*sourcegraph.TreeEntry, error) {
@@ -914,11 +915,16 @@ func (s *RepoTreeClient) Search(ctx context.Context, in *sourcegraph.RepoTreeSea
 	return s.Search_(ctx, in)
 }
 
+func (s *RepoTreeClient) List(ctx context.Context, in *sourcegraph.RepoTreeListOp, opts ...grpc.CallOption) (*sourcegraph.RepoTreeListResult, error) {
+	return s.List_(ctx, in)
+}
+
 var _ sourcegraph.RepoTreeClient = (*RepoTreeClient)(nil)
 
 type RepoTreeServer struct {
 	Get_    func(v0 context.Context, v1 *sourcegraph.RepoTreeGetOp) (*sourcegraph.TreeEntry, error)
 	Search_ func(v0 context.Context, v1 *sourcegraph.RepoTreeSearchOp) (*sourcegraph.VCSSearchResultList, error)
+	List_   func(v0 context.Context, v1 *sourcegraph.RepoTreeListOp) (*sourcegraph.RepoTreeListResult, error)
 }
 
 func (s *RepoTreeServer) Get(v0 context.Context, v1 *sourcegraph.RepoTreeGetOp) (*sourcegraph.TreeEntry, error) {
@@ -927,6 +933,10 @@ func (s *RepoTreeServer) Get(v0 context.Context, v1 *sourcegraph.RepoTreeGetOp) 
 
 func (s *RepoTreeServer) Search(v0 context.Context, v1 *sourcegraph.RepoTreeSearchOp) (*sourcegraph.VCSSearchResultList, error) {
 	return s.Search_(v0, v1)
+}
+
+func (s *RepoTreeServer) List(v0 context.Context, v1 *sourcegraph.RepoTreeListOp) (*sourcegraph.RepoTreeListResult, error) {
+	return s.List_(v0, v1)
 }
 
 var _ sourcegraph.RepoTreeServer = (*RepoTreeServer)(nil)

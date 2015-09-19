@@ -2169,6 +2169,14 @@ message RepoTreeSearchOp {
 	RepoTreeSearchOptions opt = 2;
 }
 
+message RepoTreeListOp {
+	RepoRevSpec rev = 1 [(gogoproto.nullable) = false];
+}
+
+message RepoTreeListResult {
+	repeated string files = 1;
+}
+
 message VCSSearchResultList {
 	repeated vcs.SearchResult search_results = 1;
 }
@@ -2456,6 +2464,14 @@ service RepoTree {
 	rpc Search(RepoTreeSearchOp) returns (VCSSearchResultList) {
 		option (google.api.http) = {
 			post: "/repo_tree/search"
+		};
+	};
+
+	// List returns a list of all the files in the repo tree at
+	// the given revision.
+	rpc List(RepoTreeListOp) returns (RepoTreeListResult) {
+		option (google.api.http) = {
+			post: "/repo_tree/list"
 		};
 	};
 }

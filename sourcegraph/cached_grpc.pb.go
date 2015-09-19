@@ -2606,6 +2606,17 @@ func (s *CachedRepoTreeServer) Search(ctx context.Context, in *RepoTreeSearchOp)
 	return result, err
 }
 
+func (s *CachedRepoTreeServer) List(ctx context.Context, in *RepoTreeListOp) (*RepoTreeListResult, error) {
+	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
+	result, err := s.RepoTreeServer.List(ctx, in)
+	if !cc.IsZero() {
+		if err := grpccache.Internal_SetCacheControlTrailer(ctx, *cc); err != nil {
+			return nil, err
+		}
+	}
+	return result, err
+}
+
 type CachedRepoTreeClient struct {
 	RepoTreeClient
 	Cache *grpccache.Cache
@@ -2657,6 +2668,32 @@ func (s *CachedRepoTreeClient) Search(ctx context.Context, in *RepoTreeSearchOp,
 	}
 	if s.Cache != nil {
 		if err := s.Cache.Store(ctx, "RepoTree.Search", in, result, trailer); err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
+}
+
+func (s *CachedRepoTreeClient) List(ctx context.Context, in *RepoTreeListOp, opts ...grpc.CallOption) (*RepoTreeListResult, error) {
+	if s.Cache != nil {
+		var cachedResult RepoTreeListResult
+		cached, err := s.Cache.Get(ctx, "RepoTree.List", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
+	}
+
+	var trailer metadata.MD
+
+	result, err := s.RepoTreeClient.List(ctx, in, grpc.Trailer(&trailer))
+	if err != nil {
+		return nil, err
+	}
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "RepoTree.List", in, result, trailer); err != nil {
 			return nil, err
 		}
 	}
