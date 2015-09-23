@@ -2141,7 +2141,7 @@ func (s *CachedRegisteredClientsServer) GetCurrent(ctx context.Context, in *pbty
 	return result, err
 }
 
-func (s *CachedRegisteredClientsServer) Create(ctx context.Context, in *RegisteredClientsCreateOp) (*RegisteredClient, error) {
+func (s *CachedRegisteredClientsServer) Create(ctx context.Context, in *RegisteredClient) (*RegisteredClient, error) {
 	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
 	result, err := s.RegisteredClientsServer.Create(ctx, in)
 	if !cc.IsZero() {
@@ -2177,6 +2177,39 @@ func (s *CachedRegisteredClientsServer) Delete(ctx context.Context, in *Register
 func (s *CachedRegisteredClientsServer) List(ctx context.Context, in *RegisteredClientListOptions) (*RegisteredClientList, error) {
 	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
 	result, err := s.RegisteredClientsServer.List(ctx, in)
+	if !cc.IsZero() {
+		if err := grpccache.Internal_SetCacheControlTrailer(ctx, *cc); err != nil {
+			return nil, err
+		}
+	}
+	return result, err
+}
+
+func (s *CachedRegisteredClientsServer) GetUserPermissions(ctx context.Context, in *UserPermissionsOptions) (*UserPermissions, error) {
+	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
+	result, err := s.RegisteredClientsServer.GetUserPermissions(ctx, in)
+	if !cc.IsZero() {
+		if err := grpccache.Internal_SetCacheControlTrailer(ctx, *cc); err != nil {
+			return nil, err
+		}
+	}
+	return result, err
+}
+
+func (s *CachedRegisteredClientsServer) SetUserPermissions(ctx context.Context, in *UserPermissions) (*pbtypes.Void, error) {
+	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
+	result, err := s.RegisteredClientsServer.SetUserPermissions(ctx, in)
+	if !cc.IsZero() {
+		if err := grpccache.Internal_SetCacheControlTrailer(ctx, *cc); err != nil {
+			return nil, err
+		}
+	}
+	return result, err
+}
+
+func (s *CachedRegisteredClientsServer) ListUserPermissions(ctx context.Context, in *RegisteredClientSpec) (*UserPermissionsList, error) {
+	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
+	result, err := s.RegisteredClientsServer.ListUserPermissions(ctx, in)
 	if !cc.IsZero() {
 		if err := grpccache.Internal_SetCacheControlTrailer(ctx, *cc); err != nil {
 			return nil, err
@@ -2242,7 +2275,7 @@ func (s *CachedRegisteredClientsClient) GetCurrent(ctx context.Context, in *pbty
 	return result, nil
 }
 
-func (s *CachedRegisteredClientsClient) Create(ctx context.Context, in *RegisteredClientsCreateOp, opts ...grpc.CallOption) (*RegisteredClient, error) {
+func (s *CachedRegisteredClientsClient) Create(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*RegisteredClient, error) {
 	if s.Cache != nil {
 		var cachedResult RegisteredClient
 		cached, err := s.Cache.Get(ctx, "RegisteredClients.Create", in, &cachedResult)
@@ -2340,6 +2373,84 @@ func (s *CachedRegisteredClientsClient) List(ctx context.Context, in *Registered
 	}
 	if s.Cache != nil {
 		if err := s.Cache.Store(ctx, "RegisteredClients.List", in, result, trailer); err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
+}
+
+func (s *CachedRegisteredClientsClient) GetUserPermissions(ctx context.Context, in *UserPermissionsOptions, opts ...grpc.CallOption) (*UserPermissions, error) {
+	if s.Cache != nil {
+		var cachedResult UserPermissions
+		cached, err := s.Cache.Get(ctx, "RegisteredClients.GetUserPermissions", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
+	}
+
+	var trailer metadata.MD
+
+	result, err := s.RegisteredClientsClient.GetUserPermissions(ctx, in, grpc.Trailer(&trailer))
+	if err != nil {
+		return nil, err
+	}
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "RegisteredClients.GetUserPermissions", in, result, trailer); err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
+}
+
+func (s *CachedRegisteredClientsClient) SetUserPermissions(ctx context.Context, in *UserPermissions, opts ...grpc.CallOption) (*pbtypes.Void, error) {
+	if s.Cache != nil {
+		var cachedResult pbtypes.Void
+		cached, err := s.Cache.Get(ctx, "RegisteredClients.SetUserPermissions", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
+	}
+
+	var trailer metadata.MD
+
+	result, err := s.RegisteredClientsClient.SetUserPermissions(ctx, in, grpc.Trailer(&trailer))
+	if err != nil {
+		return nil, err
+	}
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "RegisteredClients.SetUserPermissions", in, result, trailer); err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
+}
+
+func (s *CachedRegisteredClientsClient) ListUserPermissions(ctx context.Context, in *RegisteredClientSpec, opts ...grpc.CallOption) (*UserPermissionsList, error) {
+	if s.Cache != nil {
+		var cachedResult UserPermissionsList
+		cached, err := s.Cache.Get(ctx, "RegisteredClients.ListUserPermissions", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
+	}
+
+	var trailer metadata.MD
+
+	result, err := s.RegisteredClientsClient.ListUserPermissions(ctx, in, grpc.Trailer(&trailer))
+	if err != nil {
+		return nil, err
+	}
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "RegisteredClients.ListUserPermissions", in, result, trailer); err != nil {
 			return nil, err
 		}
 	}
@@ -3422,28 +3533,6 @@ func (s *CachedUsersServer) List(ctx context.Context, in *UsersListOptions) (*Us
 	return result, err
 }
 
-func (s *CachedUsersServer) CheckWhitelist(ctx context.Context, in *UserWhitelistOptions) (*pbtypes.Void, error) {
-	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
-	result, err := s.UsersServer.CheckWhitelist(ctx, in)
-	if !cc.IsZero() {
-		if err := grpccache.Internal_SetCacheControlTrailer(ctx, *cc); err != nil {
-			return nil, err
-		}
-	}
-	return result, err
-}
-
-func (s *CachedUsersServer) AddToWhitelist(ctx context.Context, in *UserWhitelistOptions) (*pbtypes.Void, error) {
-	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
-	result, err := s.UsersServer.AddToWhitelist(ctx, in)
-	if !cc.IsZero() {
-		if err := grpccache.Internal_SetCacheControlTrailer(ctx, *cc); err != nil {
-			return nil, err
-		}
-	}
-	return result, err
-}
-
 type CachedUsersClient struct {
 	UsersClient
 	Cache *grpccache.Cache
@@ -3521,58 +3610,6 @@ func (s *CachedUsersClient) List(ctx context.Context, in *UsersListOptions, opts
 	}
 	if s.Cache != nil {
 		if err := s.Cache.Store(ctx, "Users.List", in, result, trailer); err != nil {
-			return nil, err
-		}
-	}
-	return result, nil
-}
-
-func (s *CachedUsersClient) CheckWhitelist(ctx context.Context, in *UserWhitelistOptions, opts ...grpc.CallOption) (*pbtypes.Void, error) {
-	if s.Cache != nil {
-		var cachedResult pbtypes.Void
-		cached, err := s.Cache.Get(ctx, "Users.CheckWhitelist", in, &cachedResult)
-		if err != nil {
-			return nil, err
-		}
-		if cached {
-			return &cachedResult, nil
-		}
-	}
-
-	var trailer metadata.MD
-
-	result, err := s.UsersClient.CheckWhitelist(ctx, in, grpc.Trailer(&trailer))
-	if err != nil {
-		return nil, err
-	}
-	if s.Cache != nil {
-		if err := s.Cache.Store(ctx, "Users.CheckWhitelist", in, result, trailer); err != nil {
-			return nil, err
-		}
-	}
-	return result, nil
-}
-
-func (s *CachedUsersClient) AddToWhitelist(ctx context.Context, in *UserWhitelistOptions, opts ...grpc.CallOption) (*pbtypes.Void, error) {
-	if s.Cache != nil {
-		var cachedResult pbtypes.Void
-		cached, err := s.Cache.Get(ctx, "Users.AddToWhitelist", in, &cachedResult)
-		if err != nil {
-			return nil, err
-		}
-		if cached {
-			return &cachedResult, nil
-		}
-	}
-
-	var trailer metadata.MD
-
-	result, err := s.UsersClient.AddToWhitelist(ctx, in, grpc.Trailer(&trailer))
-	if err != nil {
-		return nil, err
-	}
-	if s.Cache != nil {
-		if err := s.Cache.Store(ctx, "Users.AddToWhitelist", in, result, trailer); err != nil {
 			return nil, err
 		}
 	}

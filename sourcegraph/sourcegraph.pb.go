@@ -108,7 +108,6 @@ It has these top-level messages:
 	PasswordResetToken
 	NewPassword
 	NewAccount
-	UserWhitelistOptions
 	AuthorizationCodeRequest
 	AuthorizationCode
 	LoginCredentials
@@ -206,7 +205,9 @@ It has these top-level messages:
 	RegisteredClientCredentials
 	RegisteredClientListOptions
 	RegisteredClientList
-	RegisteredClientsCreateOp
+	UserPermissions
+	UserPermissionsList
+	UserPermissionsOptions
 	MetricsSnapshot
 */
 package sourcegraph
@@ -1694,21 +1695,6 @@ func (m *NewAccount) Reset()         { *m = NewAccount{} }
 func (m *NewAccount) String() string { return proto.CompactTextString(m) }
 func (*NewAccount) ProtoMessage()    {}
 
-type UserWhitelistOptions struct {
-	// UID is a user's UID.
-	UID int32 `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
-	// ClientID is the ID of the client whose whitelist is to
-	// be fetched and/or modified.
-	ClientID string `protobuf:"bytes,2,opt,name=client_id,proto3" json:"client_id,omitempty"`
-	// Admin is true if the user should be considered an admin on
-	// the client.
-	Admin bool `protobuf:"varint,3,opt,name=admin,proto3" json:"admin,omitempty"`
-}
-
-func (m *UserWhitelistOptions) Reset()         { *m = UserWhitelistOptions{} }
-func (m *UserWhitelistOptions) String() string { return proto.CompactTextString(m) }
-func (*UserWhitelistOptions) ProtoMessage()    {}
-
 // AuthorizationCodeRequest: see
 // https://tools.ietf.org/html/rfc6749#section-4.1.1.
 type AuthorizationCodeRequest struct {
@@ -3023,15 +3009,41 @@ func (m *RegisteredClientList) Reset()         { *m = RegisteredClientList{} }
 func (m *RegisteredClientList) String() string { return proto.CompactTextString(m) }
 func (*RegisteredClientList) ProtoMessage()    {}
 
-type RegisteredClientsCreateOp struct {
-	Client *RegisteredClient `protobuf:"bytes,1,opt,name=client" json:"client,omitempty"`
-	// UID is the ID of the user registering the client
-	UID int32 `protobuf:"varint,2,opt,name=uid,proto3" json:"uid,omitempty"`
+type UserPermissions struct {
+	// UID is a user's UID.
+	UID int32 `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// ClientID is the ID of the client whose whitelist is to
+	// be fetched and/or modified.
+	ClientID string `protobuf:"bytes,2,opt,name=client_id,proto3" json:"client_id,omitempty"`
+	// Read is true if the user has read permissions on the client.
+	Read bool `protobuf:"varint,3,opt,name=read,proto3" json:"read,omitempty"`
+	// Write is true if the user has write permissions on the client.
+	Write bool `protobuf:"varint,4,opt,name=write,proto3" json:"write,omitempty"`
+	// Admin is true if the user should be considered an admin on
+	// the client.
+	Admin bool `protobuf:"varint,5,opt,name=admin,proto3" json:"admin,omitempty"`
 }
 
-func (m *RegisteredClientsCreateOp) Reset()         { *m = RegisteredClientsCreateOp{} }
-func (m *RegisteredClientsCreateOp) String() string { return proto.CompactTextString(m) }
-func (*RegisteredClientsCreateOp) ProtoMessage()    {}
+func (m *UserPermissions) Reset()         { *m = UserPermissions{} }
+func (m *UserPermissions) String() string { return proto.CompactTextString(m) }
+func (*UserPermissions) ProtoMessage()    {}
+
+type UserPermissionsList struct {
+	UserPermissions []*UserPermissions `protobuf:"bytes,1,rep,name=user_permissions" json:"user_permissions,omitempty"`
+}
+
+func (m *UserPermissionsList) Reset()         { *m = UserPermissionsList{} }
+func (m *UserPermissionsList) String() string { return proto.CompactTextString(m) }
+func (*UserPermissionsList) ProtoMessage()    {}
+
+type UserPermissionsOptions struct {
+	ClientSpec *RegisteredClientSpec `protobuf:"bytes,1,opt,name=client_spec" json:"client_spec,omitempty"`
+	UID        int32                 `protobuf:"varint,2,opt,name=uid,proto3" json:"uid,omitempty"`
+}
+
+func (m *UserPermissionsOptions) Reset()         { *m = UserPermissionsOptions{} }
+func (m *UserPermissionsOptions) String() string { return proto.CompactTextString(m) }
+func (*UserPermissionsOptions) ProtoMessage()    {}
 
 // MetricsSnapshots encodes
 type MetricsSnapshot struct {
@@ -4996,12 +5008,6 @@ type UsersClient interface {
 	ListEmails(ctx context.Context, in *UserSpec, opts ...grpc.CallOption) (*EmailAddrList, error)
 	// List users.
 	List(ctx context.Context, in *UsersListOptions, opts ...grpc.CallOption) (*UserList, error)
-	// Check if user is on the client's whitelist.
-	// If UserWhitelistOptions.Admin is set to true, this
-	// will check if the user is an admin on that client.
-	CheckWhitelist(ctx context.Context, in *UserWhitelistOptions, opts ...grpc.CallOption) (*pbtypes1.Void, error)
-	// Add user to client-specific whitelist.
-	AddToWhitelist(ctx context.Context, in *UserWhitelistOptions, opts ...grpc.CallOption) (*pbtypes1.Void, error)
 }
 
 type usersClient struct {
@@ -5039,24 +5045,6 @@ func (c *usersClient) List(ctx context.Context, in *UsersListOptions, opts ...gr
 	return out, nil
 }
 
-func (c *usersClient) CheckWhitelist(ctx context.Context, in *UserWhitelistOptions, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
-	out := new(pbtypes1.Void)
-	err := grpc.Invoke(ctx, "/sourcegraph.Users/CheckWhitelist", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *usersClient) AddToWhitelist(ctx context.Context, in *UserWhitelistOptions, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
-	out := new(pbtypes1.Void)
-	err := grpc.Invoke(ctx, "/sourcegraph.Users/AddToWhitelist", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // Server API for Users service
 
 type UsersServer interface {
@@ -5066,12 +5054,6 @@ type UsersServer interface {
 	ListEmails(context.Context, *UserSpec) (*EmailAddrList, error)
 	// List users.
 	List(context.Context, *UsersListOptions) (*UserList, error)
-	// Check if user is on the client's whitelist.
-	// If UserWhitelistOptions.Admin is set to true, this
-	// will check if the user is an admin on that client.
-	CheckWhitelist(context.Context, *UserWhitelistOptions) (*pbtypes1.Void, error)
-	// Add user to client-specific whitelist.
-	AddToWhitelist(context.Context, *UserWhitelistOptions) (*pbtypes1.Void, error)
 }
 
 func RegisterUsersServer(s *grpc.Server, srv UsersServer) {
@@ -5114,30 +5096,6 @@ func _Users_List_Handler(srv interface{}, ctx context.Context, codec grpc.Codec,
 	return out, nil
 }
 
-func _Users_CheckWhitelist_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(UserWhitelistOptions)
-	if err := codec.Unmarshal(buf, in); err != nil {
-		return nil, err
-	}
-	out, err := srv.(UsersServer).CheckWhitelist(ctx, in)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func _Users_AddToWhitelist_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(UserWhitelistOptions)
-	if err := codec.Unmarshal(buf, in); err != nil {
-		return nil, err
-	}
-	out, err := srv.(UsersServer).AddToWhitelist(ctx, in)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 var _Users_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sourcegraph.Users",
 	HandlerType: (*UsersServer)(nil),
@@ -5153,14 +5111,6 @@ var _Users_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "List",
 			Handler:    _Users_List_Handler,
-		},
-		{
-			MethodName: "CheckWhitelist",
-			Handler:    _Users_CheckWhitelist_Handler,
-		},
-		{
-			MethodName: "AddToWhitelist",
-			Handler:    _Users_AddToWhitelist_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
@@ -6204,10 +6154,8 @@ type RegisteredClientsClient interface {
 	// GetCurrent is equivalent to a call to Get with the client ID of
 	// the currently authenticated client.
 	GetCurrent(ctx context.Context, in *pbtypes1.Void, opts ...grpc.CallOption) (*RegisteredClient, error)
-	// Create registers an API client. If RegisteredClientsCreateOp.UID
-	// is non-zero, that user will be assigned admin privileges on
-	// the client.
-	Create(ctx context.Context, in *RegisteredClientsCreateOp, opts ...grpc.CallOption) (*RegisteredClient, error)
+	// Create registers an API client.
+	Create(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*RegisteredClient, error)
 	// Update modifies an API client's record. The RegisteredClient
 	// arg's ID must be set (to specify which client to update). Its
 	// Secret field is ignored (the secret may not be updated after
@@ -6218,6 +6166,12 @@ type RegisteredClientsClient interface {
 	Delete(ctx context.Context, in *RegisteredClientSpec, opts ...grpc.CallOption) (*pbtypes1.Void, error)
 	// List enumerates API clients according to the options.
 	List(ctx context.Context, in *RegisteredClientListOptions, opts ...grpc.CallOption) (*RegisteredClientList, error)
+	// Get the permissions of the user on the specified client.
+	GetUserPermissions(ctx context.Context, in *UserPermissionsOptions, opts ...grpc.CallOption) (*UserPermissions, error)
+	// Set the permissions of the user on the specified client.
+	SetUserPermissions(ctx context.Context, in *UserPermissions, opts ...grpc.CallOption) (*pbtypes1.Void, error)
+	// List the permissions of all users that are registered on this client.
+	ListUserPermissions(ctx context.Context, in *RegisteredClientSpec, opts ...grpc.CallOption) (*UserPermissionsList, error)
 }
 
 type registeredClientsClient struct {
@@ -6246,7 +6200,7 @@ func (c *registeredClientsClient) GetCurrent(ctx context.Context, in *pbtypes1.V
 	return out, nil
 }
 
-func (c *registeredClientsClient) Create(ctx context.Context, in *RegisteredClientsCreateOp, opts ...grpc.CallOption) (*RegisteredClient, error) {
+func (c *registeredClientsClient) Create(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*RegisteredClient, error) {
 	out := new(RegisteredClient)
 	err := grpc.Invoke(ctx, "/sourcegraph.RegisteredClients/Create", in, out, c.cc, opts...)
 	if err != nil {
@@ -6282,6 +6236,33 @@ func (c *registeredClientsClient) List(ctx context.Context, in *RegisteredClient
 	return out, nil
 }
 
+func (c *registeredClientsClient) GetUserPermissions(ctx context.Context, in *UserPermissionsOptions, opts ...grpc.CallOption) (*UserPermissions, error) {
+	out := new(UserPermissions)
+	err := grpc.Invoke(ctx, "/sourcegraph.RegisteredClients/GetUserPermissions", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *registeredClientsClient) SetUserPermissions(ctx context.Context, in *UserPermissions, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
+	err := grpc.Invoke(ctx, "/sourcegraph.RegisteredClients/SetUserPermissions", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *registeredClientsClient) ListUserPermissions(ctx context.Context, in *RegisteredClientSpec, opts ...grpc.CallOption) (*UserPermissionsList, error) {
+	out := new(UserPermissionsList)
+	err := grpc.Invoke(ctx, "/sourcegraph.RegisteredClients/ListUserPermissions", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for RegisteredClients service
 
 type RegisteredClientsServer interface {
@@ -6290,10 +6271,8 @@ type RegisteredClientsServer interface {
 	// GetCurrent is equivalent to a call to Get with the client ID of
 	// the currently authenticated client.
 	GetCurrent(context.Context, *pbtypes1.Void) (*RegisteredClient, error)
-	// Create registers an API client. If RegisteredClientsCreateOp.UID
-	// is non-zero, that user will be assigned admin privileges on
-	// the client.
-	Create(context.Context, *RegisteredClientsCreateOp) (*RegisteredClient, error)
+	// Create registers an API client.
+	Create(context.Context, *RegisteredClient) (*RegisteredClient, error)
 	// Update modifies an API client's record. The RegisteredClient
 	// arg's ID must be set (to specify which client to update). Its
 	// Secret field is ignored (the secret may not be updated after
@@ -6304,6 +6283,12 @@ type RegisteredClientsServer interface {
 	Delete(context.Context, *RegisteredClientSpec) (*pbtypes1.Void, error)
 	// List enumerates API clients according to the options.
 	List(context.Context, *RegisteredClientListOptions) (*RegisteredClientList, error)
+	// Get the permissions of the user on the specified client.
+	GetUserPermissions(context.Context, *UserPermissionsOptions) (*UserPermissions, error)
+	// Set the permissions of the user on the specified client.
+	SetUserPermissions(context.Context, *UserPermissions) (*pbtypes1.Void, error)
+	// List the permissions of all users that are registered on this client.
+	ListUserPermissions(context.Context, *RegisteredClientSpec) (*UserPermissionsList, error)
 }
 
 func RegisterRegisteredClientsServer(s *grpc.Server, srv RegisteredClientsServer) {
@@ -6335,7 +6320,7 @@ func _RegisteredClients_GetCurrent_Handler(srv interface{}, ctx context.Context,
 }
 
 func _RegisteredClients_Create_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(RegisteredClientsCreateOp)
+	in := new(RegisteredClient)
 	if err := codec.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}
@@ -6382,6 +6367,42 @@ func _RegisteredClients_List_Handler(srv interface{}, ctx context.Context, codec
 	return out, nil
 }
 
+func _RegisteredClients_GetUserPermissions_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(UserPermissionsOptions)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RegisteredClientsServer).GetUserPermissions(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _RegisteredClients_SetUserPermissions_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(UserPermissions)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RegisteredClientsServer).SetUserPermissions(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _RegisteredClients_ListUserPermissions_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(RegisteredClientSpec)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(RegisteredClientsServer).ListUserPermissions(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 var _RegisteredClients_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sourcegraph.RegisteredClients",
 	HandlerType: (*RegisteredClientsServer)(nil),
@@ -6409,6 +6430,18 @@ var _RegisteredClients_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "List",
 			Handler:    _RegisteredClients_List_Handler,
+		},
+		{
+			MethodName: "GetUserPermissions",
+			Handler:    _RegisteredClients_GetUserPermissions_Handler,
+		},
+		{
+			MethodName: "SetUserPermissions",
+			Handler:    _RegisteredClients_SetUserPermissions_Handler,
+		},
+		{
+			MethodName: "ListUserPermissions",
+			Handler:    _RegisteredClients_ListUserPermissions_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
