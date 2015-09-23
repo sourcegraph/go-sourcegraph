@@ -1512,6 +1512,19 @@ message NewAccount {
   string password = 3;
 }
 
+message UserWhitelistOptions {
+	// UID is a user's UID.
+	int32 uid = 1 [(gogoproto.customname) = "UID"];
+
+	// ClientID is the ID of the client whose whitelist is to
+	// be fetched and/or modified.
+	string client_id = 2 [(gogoproto.customname) = "ClientID"];
+
+	// Admin is true if the user should be considered an admin on
+	// the client.
+	bool admin = 3;
+}
+
 // UsersService communicates with the users-related endpoints in the Sourcegraph
 // API.
 service Users {
@@ -1533,6 +1546,22 @@ service Users {
 	rpc List(UsersListOptions) returns (UserList) {
 		option (google.api.http) = {
 			get: "/users/list"
+		};
+	};
+
+	// Check if user is on the client's whitelist.
+	// If UserWhitelistOptions.Admin is set to true, this
+	// will check if the user is an admin on that client.
+	rpc CheckWhitelist(UserWhitelistOptions) returns (pbtypes.Void) {
+		option (google.api.http) = {
+			get: "/users/whitelist"
+		};
+	};
+
+	// Add user to client-specific whitelist.
+	rpc AddToWhitelist(UserWhitelistOptions) returns (pbtypes.Void) {
+		option (google.api.http) = {
+			post: "/users/whitelist"
 		};
 	};
 }

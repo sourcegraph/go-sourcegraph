@@ -662,9 +662,11 @@ func (s *AccountsServer) Update(v0 context.Context, v1 *sourcegraph.User) (*pbty
 var _ sourcegraph.AccountsServer = (*AccountsServer)(nil)
 
 type UsersClient struct {
-	Get_        func(ctx context.Context, in *sourcegraph.UserSpec) (*sourcegraph.User, error)
-	ListEmails_ func(ctx context.Context, in *sourcegraph.UserSpec) (*sourcegraph.EmailAddrList, error)
-	List_       func(ctx context.Context, in *sourcegraph.UsersListOptions) (*sourcegraph.UserList, error)
+	Get_            func(ctx context.Context, in *sourcegraph.UserSpec) (*sourcegraph.User, error)
+	ListEmails_     func(ctx context.Context, in *sourcegraph.UserSpec) (*sourcegraph.EmailAddrList, error)
+	List_           func(ctx context.Context, in *sourcegraph.UsersListOptions) (*sourcegraph.UserList, error)
+	CheckWhitelist_ func(ctx context.Context, in *sourcegraph.UserWhitelistOptions) (*pbtypes.Void, error)
+	AddToWhitelist_ func(ctx context.Context, in *sourcegraph.UserWhitelistOptions) (*pbtypes.Void, error)
 }
 
 func (s *UsersClient) Get(ctx context.Context, in *sourcegraph.UserSpec, opts ...grpc.CallOption) (*sourcegraph.User, error) {
@@ -679,12 +681,22 @@ func (s *UsersClient) List(ctx context.Context, in *sourcegraph.UsersListOptions
 	return s.List_(ctx, in)
 }
 
+func (s *UsersClient) CheckWhitelist(ctx context.Context, in *sourcegraph.UserWhitelistOptions, opts ...grpc.CallOption) (*pbtypes.Void, error) {
+	return s.CheckWhitelist_(ctx, in)
+}
+
+func (s *UsersClient) AddToWhitelist(ctx context.Context, in *sourcegraph.UserWhitelistOptions, opts ...grpc.CallOption) (*pbtypes.Void, error) {
+	return s.AddToWhitelist_(ctx, in)
+}
+
 var _ sourcegraph.UsersClient = (*UsersClient)(nil)
 
 type UsersServer struct {
-	Get_        func(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.User, error)
-	ListEmails_ func(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.EmailAddrList, error)
-	List_       func(v0 context.Context, v1 *sourcegraph.UsersListOptions) (*sourcegraph.UserList, error)
+	Get_            func(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.User, error)
+	ListEmails_     func(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.EmailAddrList, error)
+	List_           func(v0 context.Context, v1 *sourcegraph.UsersListOptions) (*sourcegraph.UserList, error)
+	CheckWhitelist_ func(v0 context.Context, v1 *sourcegraph.UserWhitelistOptions) (*pbtypes.Void, error)
+	AddToWhitelist_ func(v0 context.Context, v1 *sourcegraph.UserWhitelistOptions) (*pbtypes.Void, error)
 }
 
 func (s *UsersServer) Get(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.User, error) {
@@ -697,6 +709,14 @@ func (s *UsersServer) ListEmails(v0 context.Context, v1 *sourcegraph.UserSpec) (
 
 func (s *UsersServer) List(v0 context.Context, v1 *sourcegraph.UsersListOptions) (*sourcegraph.UserList, error) {
 	return s.List_(v0, v1)
+}
+
+func (s *UsersServer) CheckWhitelist(v0 context.Context, v1 *sourcegraph.UserWhitelistOptions) (*pbtypes.Void, error) {
+	return s.CheckWhitelist_(v0, v1)
+}
+
+func (s *UsersServer) AddToWhitelist(v0 context.Context, v1 *sourcegraph.UserWhitelistOptions) (*pbtypes.Void, error) {
+	return s.AddToWhitelist_(v0, v1)
 }
 
 var _ sourcegraph.UsersServer = (*UsersServer)(nil)

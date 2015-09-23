@@ -108,6 +108,7 @@ It has these top-level messages:
 	PasswordResetToken
 	NewPassword
 	NewAccount
+	UserWhitelistOptions
 	AuthorizationCodeRequest
 	AuthorizationCode
 	LoginCredentials
@@ -1691,6 +1692,21 @@ type NewAccount struct {
 func (m *NewAccount) Reset()         { *m = NewAccount{} }
 func (m *NewAccount) String() string { return proto.CompactTextString(m) }
 func (*NewAccount) ProtoMessage()    {}
+
+type UserWhitelistOptions struct {
+	// UID is a user's UID.
+	UID int32 `protobuf:"varint,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// ClientID is the ID of the client whose whitelist is to
+	// be fetched and/or modified.
+	ClientID string `protobuf:"bytes,2,opt,name=client_id,proto3" json:"client_id,omitempty"`
+	// Admin is true if the user should be considered an admin on
+	// the client.
+	Admin bool `protobuf:"varint,3,opt,name=admin,proto3" json:"admin,omitempty"`
+}
+
+func (m *UserWhitelistOptions) Reset()         { *m = UserWhitelistOptions{} }
+func (m *UserWhitelistOptions) String() string { return proto.CompactTextString(m) }
+func (*UserWhitelistOptions) ProtoMessage()    {}
 
 // AuthorizationCodeRequest: see
 // https://tools.ietf.org/html/rfc6749#section-4.1.1.
@@ -4969,6 +4985,12 @@ type UsersClient interface {
 	ListEmails(ctx context.Context, in *UserSpec, opts ...grpc.CallOption) (*EmailAddrList, error)
 	// List users.
 	List(ctx context.Context, in *UsersListOptions, opts ...grpc.CallOption) (*UserList, error)
+	// Check if user is on the client's whitelist.
+	// If UserWhitelistOptions.Admin is set to true, this
+	// will check if the user is an admin on that client.
+	CheckWhitelist(ctx context.Context, in *UserWhitelistOptions, opts ...grpc.CallOption) (*pbtypes1.Void, error)
+	// Add user to client-specific whitelist.
+	AddToWhitelist(ctx context.Context, in *UserWhitelistOptions, opts ...grpc.CallOption) (*pbtypes1.Void, error)
 }
 
 type usersClient struct {
@@ -5006,6 +5028,24 @@ func (c *usersClient) List(ctx context.Context, in *UsersListOptions, opts ...gr
 	return out, nil
 }
 
+func (c *usersClient) CheckWhitelist(ctx context.Context, in *UserWhitelistOptions, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
+	err := grpc.Invoke(ctx, "/sourcegraph.Users/CheckWhitelist", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) AddToWhitelist(ctx context.Context, in *UserWhitelistOptions, opts ...grpc.CallOption) (*pbtypes1.Void, error) {
+	out := new(pbtypes1.Void)
+	err := grpc.Invoke(ctx, "/sourcegraph.Users/AddToWhitelist", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Users service
 
 type UsersServer interface {
@@ -5015,6 +5055,12 @@ type UsersServer interface {
 	ListEmails(context.Context, *UserSpec) (*EmailAddrList, error)
 	// List users.
 	List(context.Context, *UsersListOptions) (*UserList, error)
+	// Check if user is on the client's whitelist.
+	// If UserWhitelistOptions.Admin is set to true, this
+	// will check if the user is an admin on that client.
+	CheckWhitelist(context.Context, *UserWhitelistOptions) (*pbtypes1.Void, error)
+	// Add user to client-specific whitelist.
+	AddToWhitelist(context.Context, *UserWhitelistOptions) (*pbtypes1.Void, error)
 }
 
 func RegisterUsersServer(s *grpc.Server, srv UsersServer) {
@@ -5057,6 +5103,30 @@ func _Users_List_Handler(srv interface{}, ctx context.Context, codec grpc.Codec,
 	return out, nil
 }
 
+func _Users_CheckWhitelist_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(UserWhitelistOptions)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(UsersServer).CheckWhitelist(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Users_AddToWhitelist_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(UserWhitelistOptions)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(UsersServer).AddToWhitelist(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 var _Users_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sourcegraph.Users",
 	HandlerType: (*UsersServer)(nil),
@@ -5072,6 +5142,14 @@ var _Users_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "List",
 			Handler:    _Users_List_Handler,
+		},
+		{
+			MethodName: "CheckWhitelist",
+			Handler:    _Users_CheckWhitelist_Handler,
+		},
+		{
+			MethodName: "AddToWhitelist",
+			Handler:    _Users_AddToWhitelist_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
