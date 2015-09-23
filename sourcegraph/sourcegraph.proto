@@ -2846,6 +2846,13 @@ message RegisteredClientList {
 	ListResponse list_response = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
+message RegisteredClientsCreateOp {
+	RegisteredClient client = 1;
+
+	// UID is the ID of the user registering the client
+	int32 uid = 2 [(gogoproto.customname) = "UID"];
+}
+
 // RegisteredClients manages registered API clients.
 //
 // The server may check authorization for methods that retrieve or
@@ -2863,8 +2870,10 @@ service RegisteredClients {
 	// the currently authenticated client.
 	rpc GetCurrent(pbtypes.Void) returns (RegisteredClient);
 
-	// Create registers an API client.
-	rpc Create(RegisteredClient) returns (RegisteredClient);
+	// Create registers an API client. If RegisteredClientsCreateOp.UID
+	// is non-zero, that user will be assigned admin privileges on
+	// the client.
+	rpc Create(RegisteredClientsCreateOp) returns (RegisteredClient);
 
 	// Update modifies an API client's record. The RegisteredClient
 	// arg's ID must be set (to specify which client to update). Its

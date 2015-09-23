@@ -206,6 +206,7 @@ It has these top-level messages:
 	RegisteredClientCredentials
 	RegisteredClientListOptions
 	RegisteredClientList
+	RegisteredClientsCreateOp
 	MetricsSnapshot
 */
 package sourcegraph
@@ -3021,6 +3022,16 @@ type RegisteredClientList struct {
 func (m *RegisteredClientList) Reset()         { *m = RegisteredClientList{} }
 func (m *RegisteredClientList) String() string { return proto.CompactTextString(m) }
 func (*RegisteredClientList) ProtoMessage()    {}
+
+type RegisteredClientsCreateOp struct {
+	Client *RegisteredClient `protobuf:"bytes,1,opt,name=client" json:"client,omitempty"`
+	// UID is the ID of the user registering the client
+	UID int32 `protobuf:"varint,2,opt,name=uid,proto3" json:"uid,omitempty"`
+}
+
+func (m *RegisteredClientsCreateOp) Reset()         { *m = RegisteredClientsCreateOp{} }
+func (m *RegisteredClientsCreateOp) String() string { return proto.CompactTextString(m) }
+func (*RegisteredClientsCreateOp) ProtoMessage()    {}
 
 // MetricsSnapshots encodes
 type MetricsSnapshot struct {
@@ -6193,8 +6204,10 @@ type RegisteredClientsClient interface {
 	// GetCurrent is equivalent to a call to Get with the client ID of
 	// the currently authenticated client.
 	GetCurrent(ctx context.Context, in *pbtypes1.Void, opts ...grpc.CallOption) (*RegisteredClient, error)
-	// Create registers an API client.
-	Create(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*RegisteredClient, error)
+	// Create registers an API client. If RegisteredClientsCreateOp.UID
+	// is non-zero, that user will be assigned admin privileges on
+	// the client.
+	Create(ctx context.Context, in *RegisteredClientsCreateOp, opts ...grpc.CallOption) (*RegisteredClient, error)
 	// Update modifies an API client's record. The RegisteredClient
 	// arg's ID must be set (to specify which client to update). Its
 	// Secret field is ignored (the secret may not be updated after
@@ -6233,7 +6246,7 @@ func (c *registeredClientsClient) GetCurrent(ctx context.Context, in *pbtypes1.V
 	return out, nil
 }
 
-func (c *registeredClientsClient) Create(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*RegisteredClient, error) {
+func (c *registeredClientsClient) Create(ctx context.Context, in *RegisteredClientsCreateOp, opts ...grpc.CallOption) (*RegisteredClient, error) {
 	out := new(RegisteredClient)
 	err := grpc.Invoke(ctx, "/sourcegraph.RegisteredClients/Create", in, out, c.cc, opts...)
 	if err != nil {
@@ -6277,8 +6290,10 @@ type RegisteredClientsServer interface {
 	// GetCurrent is equivalent to a call to Get with the client ID of
 	// the currently authenticated client.
 	GetCurrent(context.Context, *pbtypes1.Void) (*RegisteredClient, error)
-	// Create registers an API client.
-	Create(context.Context, *RegisteredClient) (*RegisteredClient, error)
+	// Create registers an API client. If RegisteredClientsCreateOp.UID
+	// is non-zero, that user will be assigned admin privileges on
+	// the client.
+	Create(context.Context, *RegisteredClientsCreateOp) (*RegisteredClient, error)
 	// Update modifies an API client's record. The RegisteredClient
 	// arg's ID must be set (to specify which client to update). Its
 	// Secret field is ignored (the secret may not be updated after
@@ -6320,7 +6335,7 @@ func _RegisteredClients_GetCurrent_Handler(srv interface{}, ctx context.Context,
 }
 
 func _RegisteredClients_Create_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
-	in := new(RegisteredClient)
+	in := new(RegisteredClientsCreateOp)
 	if err := codec.Unmarshal(buf, in); err != nil {
 		return nil, err
 	}

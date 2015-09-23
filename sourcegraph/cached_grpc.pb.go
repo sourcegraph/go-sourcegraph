@@ -2141,7 +2141,7 @@ func (s *CachedRegisteredClientsServer) GetCurrent(ctx context.Context, in *pbty
 	return result, err
 }
 
-func (s *CachedRegisteredClientsServer) Create(ctx context.Context, in *RegisteredClient) (*RegisteredClient, error) {
+func (s *CachedRegisteredClientsServer) Create(ctx context.Context, in *RegisteredClientsCreateOp) (*RegisteredClient, error) {
 	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
 	result, err := s.RegisteredClientsServer.Create(ctx, in)
 	if !cc.IsZero() {
@@ -2242,7 +2242,7 @@ func (s *CachedRegisteredClientsClient) GetCurrent(ctx context.Context, in *pbty
 	return result, nil
 }
 
-func (s *CachedRegisteredClientsClient) Create(ctx context.Context, in *RegisteredClient, opts ...grpc.CallOption) (*RegisteredClient, error) {
+func (s *CachedRegisteredClientsClient) Create(ctx context.Context, in *RegisteredClientsCreateOp, opts ...grpc.CallOption) (*RegisteredClient, error) {
 	if s.Cache != nil {
 		var cachedResult RegisteredClient
 		cached, err := s.Cache.Get(ctx, "RegisteredClients.Create", in, &cachedResult)
