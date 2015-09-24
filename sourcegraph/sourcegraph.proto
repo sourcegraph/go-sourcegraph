@@ -2817,6 +2817,35 @@ message RegisteredClientList {
 	ListResponse list_response = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
+message UserPermissions {
+	// UID is a user's UID.
+	int32 uid = 1 [(gogoproto.customname) = "UID"];
+
+	// ClientID is the ID of the client whose whitelist is to
+	// be fetched and/or modified.
+	string client_id = 2 [(gogoproto.customname) = "ClientID"];
+
+	// Read is true if the user has read permissions on the client.
+	bool read = 3;
+
+	// Write is true if the user has write permissions on the client.
+	bool write = 4;
+
+	// Admin is true if the user should be considered an admin on
+	// the client.
+	bool admin = 5;
+}
+
+message UserPermissionsList {
+	repeated UserPermissions user_permissions = 1 [(gogoproto.customname) = "UserPermissions"];
+}
+
+message UserPermissionsOptions {
+	RegisteredClientSpec client_spec = 1 [(gogoproto.customname) = "ClientSpec"];
+
+	int32 uid = 2 [(gogoproto.customname) = "UID"];
+}
+
 // RegisteredClients manages registered API clients.
 //
 // The server may check authorization for methods that retrieve or
@@ -2849,6 +2878,15 @@ service RegisteredClients {
 
 	// List enumerates API clients according to the options.
 	rpc List(RegisteredClientListOptions) returns (RegisteredClientList);
+
+	// Get the permissions of the user on the specified client.
+	rpc GetUserPermissions(UserPermissionsOptions) returns (UserPermissions);
+
+	// Set the permissions of the user on the specified client.
+	rpc SetUserPermissions(UserPermissions) returns (pbtypes.Void);
+
+	// List the permissions of all users that are registered on this client.
+	rpc ListUserPermissions(RegisteredClientSpec) returns (UserPermissionsList);
 }
 
 // TelemetryType is the format MetricsSnapshot.TelemetryData is encoded in
