@@ -1847,6 +1847,7 @@ message DefsGetOp {
 
 message DefList {
 	repeated Def defs = 1;
+	ListResponse list_response = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
 message DefsListRefsOp {

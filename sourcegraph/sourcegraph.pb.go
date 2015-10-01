@@ -2021,7 +2021,8 @@ func (m *DefsGetOp) String() string { return proto.CompactTextString(m) }
 func (*DefsGetOp) ProtoMessage()    {}
 
 type DefList struct {
-	Defs []*Def `protobuf:"bytes,1,rep,name=defs" json:"defs,omitempty"`
+	Defs         []*Def `protobuf:"bytes,1,rep,name=defs" json:"defs,omitempty"`
+	ListResponse `protobuf:"bytes,2,opt,name=list_response,embedded=list_response" json:"list_response"`
 }
 
 func (m *DefList) Reset()         { *m = DefList{} }
