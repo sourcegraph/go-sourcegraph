@@ -367,6 +367,8 @@ func (*ListOptions) ProtoMessage()    {}
 type ListResponse struct {
 	// HasMore is true if there are more entries available after the returned page.
 	HasMore bool `protobuf:"varint,1,opt,name=has_more,proto3" json:"has_more,omitempty" url:",omitempty"`
+	// Total is the total number of results in the list.
+	Total int32 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty" url:",omitempty"`
 }
 
 func (m *ListResponse) Reset()         { *m = ListResponse{} }

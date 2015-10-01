@@ -58,6 +58,9 @@ message ListOptions {
 message ListResponse {
 	// HasMore is true if there are more entries available after the returned page.
 	bool has_more = 1 [(gogoproto.moretags) = "url:\",omitempty\""];
+
+	// Total is the total number of results in the list.
+	int32 total = 2 [(gogoproto.moretags) = "url:\",omitempty\""];
 }
 
 // Discussion stores information about a discussion
