@@ -3059,7 +3059,7 @@ func (m *MetricsSnapshot) Reset()         { *m = MetricsSnapshot{} }
 func (m *MetricsSnapshot) String() string { return proto.CompactTextString(m) }
 func (*MetricsSnapshot) ProtoMessage()    {}
 
-// UserEvent encodes any user initiated event on the local instance
+// UserEvent encodes any user initiated event on the local instance.
 type UserEvent struct {
 	Type     string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
 	UID      int32  `protobuf:"varint,2,opt,name=uid,proto3" json:"uid,omitempty"`
@@ -3067,7 +3067,7 @@ type UserEvent struct {
 	Service  string `protobuf:"bytes,4,opt,name=service,proto3" json:"service,omitempty"`
 	Method   string `protobuf:"bytes,5,opt,name=method,proto3" json:"method,omitempty"`
 	Result   string `protobuf:"bytes,6,opt,name=result,proto3" json:"result,omitempty"`
-	// CreatedAt holds the creation time of this changeset.
+	// CreatedAt holds the time when this event was logged.
 	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,7,opt,name=created_at" json:"created_at,omitempty"`
 }
 

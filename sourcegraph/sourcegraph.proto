@@ -2905,7 +2905,7 @@ message MetricsSnapshot {
 	bytes telemetry_data = 2;
 }
 
-// UserEvent encodes any user initiated event on the local instance
+// UserEvent encodes any user initiated event on the local instance.
 message UserEvent {
 	string type = 1;
 
@@ -2919,7 +2919,7 @@ message UserEvent {
 
 	string result = 6;
 
-	// CreatedAt holds the creation time of this changeset.
+	// CreatedAt holds the time when this event was logged.
 	pbtypes.Timestamp created_at = 7;
 }
 
