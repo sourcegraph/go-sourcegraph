@@ -2500,6 +2500,7 @@ func (*RepoTreeListResult) ProtoMessage()    {}
 
 type VCSSearchResultList struct {
 	SearchResults []*vcs.SearchResult `protobuf:"bytes,1,rep,name=search_results" json:"search_results,omitempty"`
+	ListResponse  `protobuf:"bytes,2,opt,name=list_response,embedded=list_response" json:"list_response"`
 }
 
 func (m *VCSSearchResultList) Reset()         { *m = VCSSearchResultList{} }

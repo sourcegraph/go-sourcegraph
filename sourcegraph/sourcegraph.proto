@@ -2184,6 +2184,7 @@ message RepoTreeListResult {
 
 message VCSSearchResultList {
 	repeated vcs.SearchResult search_results = 1;
+	ListResponse list_response = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
 message SearchOptions {
