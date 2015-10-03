@@ -2187,6 +2187,17 @@ message VCSSearchResultList {
 	ListResponse list_response = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
+message TokenSearchOptions {
+	string query = 1 [(gogoproto.moretags) = "url:\"q\" schema:\"q\""];
+	ListOptions list_options = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+message TextSearchOptions {
+	string query = 1 [(gogoproto.moretags) = "url:\"q\" schema:\"q\""];
+	ListOptions list_options = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+}
+
+// Deprecated.
 message SearchOptions {
 	string query = 1 [(gogoproto.moretags) = "url:\"q\" schema:\"q\""];
 	bool defs = 2;
@@ -2196,6 +2207,7 @@ message SearchOptions {
 	ListOptions list_options = 6 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
+// Deprecated.
 message SearchResults {
 	repeated Def defs = 1;
 	repeated Person people = 2;
@@ -2486,9 +2498,25 @@ service RepoTree {
 // API.
 service Search {
 	// Search searches the full index.
+  // This method is deprecated (use one of the more specific
+  // search methods below)
 	rpc Search(SearchOptions) returns (SearchResults) {
 		option (google.api.http) = {
 			post: "/search"
+		};
+	};
+
+	// SearchTokens searches the index of tokens.
+	rpc SearchTokens(TokenSearchOptions) returns (DefList) {
+		option (google.api.http) = {
+			post: "/search/tokens"
+		};
+	};
+
+	// SearchText searches the content of files in the repo tree.
+	rpc SearchText(TextSearchOptions) returns (VCSSearchResultList) {
+		option (google.api.http) = {
+			post: "/search/text"
 		};
 	};
 
