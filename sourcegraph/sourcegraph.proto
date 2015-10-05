@@ -2498,8 +2498,7 @@ service RepoTree {
 // API.
 service Search {
 	// Search searches the full index.
-	// This method is deprecated (use one of the more specific
-	// search methods below)
+	// Deprecated: use one of the more specific search methods below.
 	rpc Search(SearchOptions) returns (SearchResults) {
 		option (google.api.http) = {
 			post: "/search"

@@ -5877,8 +5877,7 @@ var _RepoTree_serviceDesc = grpc.ServiceDesc{
 
 type SearchClient interface {
 	// Search searches the full index.
-	// This method is deprecated (use one of the more specific
-	// search methods below)
+	// Deprecated: use one of the more specific search methods below.
 	Search(ctx context.Context, in *SearchOptions, opts ...grpc.CallOption) (*SearchResults, error)
 	// SearchTokens searches the index of tokens.
 	SearchTokens(ctx context.Context, in *TokenSearchOptions, opts ...grpc.CallOption) (*DefList, error)
@@ -5949,8 +5948,7 @@ func (c *searchClient) Suggest(ctx context.Context, in *RawQuery, opts ...grpc.C
 
 type SearchServer interface {
 	// Search searches the full index.
-	// This method is deprecated (use one of the more specific
-	// search methods below)
+	// Deprecated: use one of the more specific search methods below.
 	Search(context.Context, *SearchOptions) (*SearchResults, error)
 	// SearchTokens searches the index of tokens.
 	SearchTokens(context.Context, *TokenSearchOptions) (*DefList, error)
