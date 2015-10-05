@@ -3069,6 +3069,7 @@ type UserEvent struct {
 	Result   string `protobuf:"bytes,6,opt,name=result,proto3" json:"result,omitempty"`
 	// CreatedAt holds the time when this event was logged.
 	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,7,opt,name=created_at" json:"created_at,omitempty"`
+	Message   string             `protobuf:"bytes,8,opt,name=message,proto3" json:"message,omitempty"`
 }
 
 func (m *UserEvent) Reset()         { *m = UserEvent{} }

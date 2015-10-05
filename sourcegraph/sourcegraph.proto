@@ -2921,6 +2921,8 @@ message UserEvent {
 
 	// CreatedAt holds the time when this event was logged.
 	pbtypes.Timestamp created_at = 7;
+
+	string message = 8;
 }
 
 message UserEventList {
