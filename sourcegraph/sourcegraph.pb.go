@@ -173,6 +173,8 @@ It has these top-level messages:
 	RepoTreeListOp
 	RepoTreeListResult
 	VCSSearchResultList
+	TokenSearchOptions
+	TextSearchOptions
 	SearchOptions
 	SearchResults
 	SuggestionList
@@ -370,6 +372,8 @@ func (*ListOptions) ProtoMessage()    {}
 type ListResponse struct {
 	// HasMore is true if there are more entries available after the returned page.
 	HasMore bool `protobuf:"varint,1,opt,name=has_more,proto3" json:"has_more,omitempty" url:",omitempty"`
+	// Total is the total number of results in the list.
+	Total int32 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty" url:",omitempty"`
 }
 
 func (m *ListResponse) Reset()         { *m = ListResponse{} }
@@ -2037,7 +2041,8 @@ func (m *DefsGetOp) String() string { return proto.CompactTextString(m) }
 func (*DefsGetOp) ProtoMessage()    {}
 
 type DefList struct {
-	Defs []*Def `protobuf:"bytes,1,rep,name=defs" json:"defs,omitempty"`
+	Defs         []*Def `protobuf:"bytes,1,rep,name=defs" json:"defs,omitempty"`
+	ListResponse `protobuf:"bytes,2,opt,name=list_response,embedded=list_response" json:"list_response"`
 }
 
 func (m *DefList) Reset()         { *m = DefList{} }
@@ -2515,12 +2520,32 @@ func (*RepoTreeListResult) ProtoMessage()    {}
 
 type VCSSearchResultList struct {
 	SearchResults []*vcs.SearchResult `protobuf:"bytes,1,rep,name=search_results" json:"search_results,omitempty"`
+	ListResponse  `protobuf:"bytes,2,opt,name=list_response,embedded=list_response" json:"list_response"`
 }
 
 func (m *VCSSearchResultList) Reset()         { *m = VCSSearchResultList{} }
 func (m *VCSSearchResultList) String() string { return proto.CompactTextString(m) }
 func (*VCSSearchResultList) ProtoMessage()    {}
 
+type TokenSearchOptions struct {
+	Query       string `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty" url:"q" schema:"q"`
+	ListOptions `protobuf:"bytes,2,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *TokenSearchOptions) Reset()         { *m = TokenSearchOptions{} }
+func (m *TokenSearchOptions) String() string { return proto.CompactTextString(m) }
+func (*TokenSearchOptions) ProtoMessage()    {}
+
+type TextSearchOptions struct {
+	Query       string `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty" url:"q" schema:"q"`
+	ListOptions `protobuf:"bytes,2,opt,name=list_options,embedded=list_options" json:"list_options"`
+}
+
+func (m *TextSearchOptions) Reset()         { *m = TextSearchOptions{} }
+func (m *TextSearchOptions) String() string { return proto.CompactTextString(m) }
+func (*TextSearchOptions) ProtoMessage()    {}
+
+// Deprecated.
 type SearchOptions struct {
 	Query       string `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty" url:"q" schema:"q"`
 	Defs        bool   `protobuf:"varint,2,opt,name=defs,proto3" json:"defs,omitempty"`
@@ -2534,6 +2559,7 @@ func (m *SearchOptions) Reset()         { *m = SearchOptions{} }
 func (m *SearchOptions) String() string { return proto.CompactTextString(m) }
 func (*SearchOptions) ProtoMessage()    {}
 
+// Deprecated.
 type SearchResults struct {
 	Defs   []*Def                  `protobuf:"bytes,1,rep,name=defs" json:"defs,omitempty"`
 	People []*Person               `protobuf:"bytes,2,rep,name=people" json:"people,omitempty"`
@@ -5923,7 +5949,12 @@ var _RepoTree_serviceDesc = grpc.ServiceDesc{
 
 type SearchClient interface {
 	// Search searches the full index.
+	// Deprecated: use one of the more specific search methods below.
 	Search(ctx context.Context, in *SearchOptions, opts ...grpc.CallOption) (*SearchResults, error)
+	// SearchTokens searches the index of tokens.
+	SearchTokens(ctx context.Context, in *TokenSearchOptions, opts ...grpc.CallOption) (*DefList, error)
+	// SearchText searches the content of files in the repo tree.
+	SearchText(ctx context.Context, in *TextSearchOptions, opts ...grpc.CallOption) (*VCSSearchResultList, error)
 	// Complete completes the token at the RawQuery's InsertionPoint.
 	Complete(ctx context.Context, in *RawQuery, opts ...grpc.CallOption) (*Completions, error)
 	// Suggest suggests queries given an existing query. It can be called with an empty
@@ -5943,6 +5974,24 @@ func NewSearchClient(cc *grpc.ClientConn) SearchClient {
 func (c *searchClient) Search(ctx context.Context, in *SearchOptions, opts ...grpc.CallOption) (*SearchResults, error) {
 	out := new(SearchResults)
 	err := grpc.Invoke(ctx, "/sourcegraph.Search/Search", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *searchClient) SearchTokens(ctx context.Context, in *TokenSearchOptions, opts ...grpc.CallOption) (*DefList, error) {
+	out := new(DefList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Search/SearchTokens", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *searchClient) SearchText(ctx context.Context, in *TextSearchOptions, opts ...grpc.CallOption) (*VCSSearchResultList, error) {
+	out := new(VCSSearchResultList)
+	err := grpc.Invoke(ctx, "/sourcegraph.Search/SearchText", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -5971,7 +6020,12 @@ func (c *searchClient) Suggest(ctx context.Context, in *RawQuery, opts ...grpc.C
 
 type SearchServer interface {
 	// Search searches the full index.
+	// Deprecated: use one of the more specific search methods below.
 	Search(context.Context, *SearchOptions) (*SearchResults, error)
+	// SearchTokens searches the index of tokens.
+	SearchTokens(context.Context, *TokenSearchOptions) (*DefList, error)
+	// SearchText searches the content of files in the repo tree.
+	SearchText(context.Context, *TextSearchOptions) (*VCSSearchResultList, error)
 	// Complete completes the token at the RawQuery's InsertionPoint.
 	Complete(context.Context, *RawQuery) (*Completions, error)
 	// Suggest suggests queries given an existing query. It can be called with an empty
@@ -5990,6 +6044,30 @@ func _Search_Search_Handler(srv interface{}, ctx context.Context, codec grpc.Cod
 		return nil, err
 	}
 	out, err := srv.(SearchServer).Search(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Search_SearchTokens_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(TokenSearchOptions)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(SearchServer).SearchTokens(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Search_SearchText_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(TextSearchOptions)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(SearchServer).SearchText(ctx, in)
 	if err != nil {
 		return nil, err
 	}
@@ -6027,6 +6105,14 @@ var _Search_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Search",
 			Handler:    _Search_Search_Handler,
+		},
+		{
+			MethodName: "SearchTokens",
+			Handler:    _Search_SearchTokens_Handler,
+		},
+		{
+			MethodName: "SearchText",
+			Handler:    _Search_SearchText_Handler,
 		},
 		{
 			MethodName: "Complete",
