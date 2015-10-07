@@ -2528,8 +2528,9 @@ func (m *VCSSearchResultList) String() string { return proto.CompactTextString(m
 func (*VCSSearchResultList) ProtoMessage()    {}
 
 type TokenSearchOptions struct {
-	Query       string `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty" url:"q" schema:"q"`
-	ListOptions `protobuf:"bytes,2,opt,name=list_options,embedded=list_options" json:"list_options"`
+	Query       string      `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty" url:"q" schema:"q"`
+	RepoRev     RepoRevSpec `protobuf:"bytes,2,opt,name=repo_rev" json:"repo_rev"`
+	ListOptions `protobuf:"bytes,3,opt,name=list_options,embedded=list_options" json:"list_options"`
 }
 
 func (m *TokenSearchOptions) Reset()         { *m = TokenSearchOptions{} }
@@ -2537,8 +2538,9 @@ func (m *TokenSearchOptions) String() string { return proto.CompactTextString(m)
 func (*TokenSearchOptions) ProtoMessage()    {}
 
 type TextSearchOptions struct {
-	Query       string `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty" url:"q" schema:"q"`
-	ListOptions `protobuf:"bytes,2,opt,name=list_options,embedded=list_options" json:"list_options"`
+	Query       string      `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty" url:"q" schema:"q"`
+	RepoRev     RepoRevSpec `protobuf:"bytes,2,opt,name=repo_rev" json:"repo_rev"`
+	ListOptions `protobuf:"bytes,3,opt,name=list_options,embedded=list_options" json:"list_options"`
 }
 
 func (m *TextSearchOptions) Reset()         { *m = TextSearchOptions{} }
