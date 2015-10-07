@@ -2205,12 +2205,14 @@ message VCSSearchResultList {
 
 message TokenSearchOptions {
 	string query = 1 [(gogoproto.moretags) = "url:\"q\" schema:\"q\""];
-	ListOptions list_options = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+	RepoRevSpec repo_rev = 2 [(gogoproto.nullable) = false];
+	ListOptions list_options = 3 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
 message TextSearchOptions {
 	string query = 1 [(gogoproto.moretags) = "url:\"q\" schema:\"q\""];
-	ListOptions list_options = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+	RepoRevSpec repo_rev = 2 [(gogoproto.nullable) = false];
+	ListOptions list_options = 3 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
 }
 
 // Deprecated.
