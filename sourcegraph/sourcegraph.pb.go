@@ -3124,6 +3124,10 @@ type UserEvent struct {
 	// CreatedAt holds the time when this event was logged.
 	CreatedAt *pbtypes.Timestamp `protobuf:"bytes,7,opt,name=created_at" json:"created_at,omitempty"`
 	Message   string             `protobuf:"bytes,8,opt,name=message,proto3" json:"message,omitempty"`
+	// Version holds the release version of the Sourcegraph binary.
+	Version string `protobuf:"bytes,9,opt,name=version,proto3" json:"version,omitempty"`
+	// URL holds the http request url.
+	URL string `protobuf:"bytes,10,opt,name=url,proto3" json:"url,omitempty"`
 }
 
 func (m *UserEvent) Reset()         { *m = UserEvent{} }
