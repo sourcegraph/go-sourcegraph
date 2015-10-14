@@ -36,6 +36,12 @@ It has these top-level messages:
 	RepoStatus
 	RepoStatusesCreateOp
 	RepoList
+	StorageError
+	StorageName
+	StorageReadOp
+	StorageRead
+	StorageWriteOp
+	StorageWrite
 	ReposCreateOp
 	ReposUpdateOp
 	ReposListCommitsOp
@@ -316,6 +322,33 @@ var TelemetryType_value = map[string]int32{
 
 func (x TelemetryType) String() string {
 	return proto.EnumName(TelemetryType_name, int32(x))
+}
+
+// Code represents the type of error for programatic handling.
+type StorageError_Code int32
+
+const (
+	// NOT_EXIST is the error used when attempting to read/write to an object
+	// that does not exist.
+	//
+	// In the case of JSON objects, it is only returned when attempting to read
+	// from an object that does not exist.
+	StorageError_NOT_EXIST StorageError_Code = 0
+	// EOF is the error used when the end of the file has been reached.
+	StorageError_EOF StorageError_Code = 2
+)
+
+var StorageError_Code_name = map[int32]string{
+	0: "NOT_EXIST",
+	2: "EOF",
+}
+var StorageError_Code_value = map[string]int32{
+	"NOT_EXIST": 0,
+	"EOF":       2,
+}
+
+func (x StorageError_Code) String() string {
+	return proto.EnumName(StorageError_Code_name, int32(x))
 }
 
 type Badge struct {
@@ -804,6 +837,125 @@ type RepoList struct {
 func (m *RepoList) Reset()         { *m = RepoList{} }
 func (m *RepoList) String() string { return proto.CompactTextString(m) }
 func (*RepoList) ProtoMessage()    {}
+
+// StorageError represents an error when interacting with the Storage service.
+type StorageError struct {
+	// code is the error code. If no error code is specified then programatic
+	// handling of the error is not advised. The user should be informed of the
+	// error message instead.
+	Code StorageError_Code `protobuf:"varint,1,opt,name=code,proto3,enum=sourcegraph.StorageError_Code" json:"code,omitempty"`
+	// message is the human-readable error message.
+	Message string `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+}
+
+func (m *StorageError) Reset()         { *m = StorageError{} }
+func (m *StorageError) String() string { return proto.CompactTextString(m) }
+func (*StorageError) ProtoMessage()    {}
+
+// StorageName is a storage object's name.
+type StorageName struct {
+	// namespace is the application namespace or sub-namespace. This is used to
+	// determine which apps use the most storage, restrict app data to certain
+	// users, etc. It should be in the form of "my-app-name" or
+	// "my-app-name/subspace" and works like a directory in a filesystem.
+	Namespace string `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace"`
+	// name is the name of the object (file or JSON), which must be unique against
+	// every other object in the namespace.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name"`
+}
+
+func (m *StorageName) Reset()         { *m = StorageName{} }
+func (m *StorageName) String() string { return proto.CompactTextString(m) }
+func (*StorageName) ProtoMessage()    {}
+
+// StorageReadOp is the parameters for reading from a file.
+type StorageReadOp struct {
+	Name StorageName `protobuf:"bytes,1,opt,name=name" json:"name"`
+	// offset is the offset in bytes in which to perform the read operation from
+	// the start or end of the file, depending on offset_end. If no offset is
+	// specified, read operations always occur at the start of the file (they do
+	// not retain state).
+	Offset int64 `protobuf:"varint,3,opt,name=offset,proto3" json:"offset"`
+	// offset_end causes the offset to act relative to the end of the file, if
+	// set (i.e. offset == -100 would mean to read starting 100 bytes from the end
+	// of the file).
+	OffsetEnd bool `protobuf:"varint,4,opt,name=offset_end,proto3" json:"offset_end"`
+	// count is the number of bytes desired to be read. There is no guarantee that
+	// this many will be read, however. Instead you should check the size of the
+	// data returned.
+	Count int64 `protobuf:"varint,5,opt,name=count,proto3" json:"count"`
+}
+
+func (m *StorageReadOp) Reset()         { *m = StorageReadOp{} }
+func (m *StorageReadOp) String() string { return proto.CompactTextString(m) }
+func (*StorageReadOp) ProtoMessage()    {}
+
+// StorageRead is the result from reading a file or JSON object.
+type StorageRead struct {
+	// error is the error that occurred during reading, if any. In the case of a
+	// EOF error, it may be accompanied by data (i.e. EOF and some data).
+	//
+	// In the case of JSON objects, the error will never be EOF.
+	Error StorageError `protobuf:"bytes,1,opt,name=error" json:"error"`
+	// data is the data that was read from the file. There is no guarantee that
+	// the requested number of bytes to read will actually be read, so if you
+	// desire more than what is returned here then you should perform a read
+	// again.
+	//
+	// In the case of JSON objects, the entire object will always be returned or
+	// there will be an error.
+	Data []byte `protobuf:"bytes,2,opt,name=data,proto3" json:"data"`
+}
+
+func (m *StorageRead) Reset()         { *m = StorageRead{} }
+func (m *StorageRead) String() string { return proto.CompactTextString(m) }
+func (*StorageRead) ProtoMessage()    {}
+
+// StorageWriteOp is the parameters for writing to a file or JSON object.
+type StorageWriteOp struct {
+	Name StorageName `protobuf:"bytes,1,opt,name=name" json:"name"`
+	// offset is the offset in bytes in which to perform the write operation from
+	// the start or end of the file, depending on offset_end.
+	//
+	// In the case of JSON objects, this field is ignored.
+	Offset int64 `protobuf:"varint,3,opt,name=offset,proto3" json:"offset"`
+	// offset_end causes the offset to act relative to the end of the file, if
+	// set (i.e. offset == -100 would mean to write starting 100 bytes from the
+	// end of the file).
+	//
+	// In the case of JSON objects, this field is ignored.
+	OffsetEnd bool `protobuf:"varint,4,opt,name=offset_end,proto3" json:"offset_end"`
+	// data is the data to be written. There is no guarantee all of the data will
+	// be written, however. Instead you should check the number of bytes written
+	// by looking at the StorageWrite.wrote field and attempt writing whatever
+	// bytes were not during that write operation.
+	//
+	// In the case of JSON objects, the entire object will always be written or an
+	// error will be returned.
+	Data []byte `protobuf:"bytes,2,opt,name=data,proto3" json:"data"`
+}
+
+func (m *StorageWriteOp) Reset()         { *m = StorageWriteOp{} }
+func (m *StorageWriteOp) String() string { return proto.CompactTextString(m) }
+func (*StorageWriteOp) ProtoMessage()    {}
+
+// StorageWrite is the result from writing to a file.
+type StorageWrite struct {
+	// error is the error that occurred during writing, if any.
+	Error StorageError `protobuf:"bytes,1,opt,name=error" json:"error"`
+	// wrote is the number of bytes written to the file. If the number of bytes
+	// written (as reported by this field) is not the same number of bytes you
+	// tried to write, then you should attempt subsequent writes to finish writing
+	// the data assuming there was no error.
+	//
+	// In the case of JSON objects, the entire object will always be written or an
+	// error will be present.
+	Wrote []byte `protobuf:"bytes,2,opt,name=wrote,proto3" json:"wrote"`
+}
+
+func (m *StorageWrite) Reset()         { *m = StorageWrite{} }
+func (m *StorageWrite) String() string { return proto.CompactTextString(m) }
+func (*StorageWrite) ProtoMessage()    {}
 
 type ReposCreateOp struct {
 	// URI is the desired URI of the new repository.
@@ -3489,6 +3641,7 @@ func init() {
 	proto.RegisterEnum("sourcegraph.DiscussionListOrder", DiscussionListOrder_name, DiscussionListOrder_value)
 	proto.RegisterEnum("sourcegraph.RegisteredClientType", RegisteredClientType_name, RegisteredClientType_value)
 	proto.RegisterEnum("sourcegraph.TelemetryType", TelemetryType_name, TelemetryType_value)
+	proto.RegisterEnum("sourcegraph.StorageError_Code", StorageError_Code_name, StorageError_Code_value)
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -4174,6 +4327,214 @@ var _Repos_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCommitters",
 			Handler:    _Repos_ListCommitters_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for Storage service
+
+type StorageClient interface {
+	// Create creates a new file with the given name.
+	Create(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error)
+	// Delete deletes the named file.
+	Delete(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error)
+	// Read reads from an existing file.
+	Read(ctx context.Context, in *StorageReadOp, opts ...grpc.CallOption) (*StorageRead, error)
+	// Write writes to an existing file.
+	Write(ctx context.Context, in *StorageWriteOp, opts ...grpc.CallOption) (*StorageWrite, error)
+	// JSONWrite writes a small JSON object into storage. If an error string is
+	// returned, the write operation did not succeed and should be attempted again
+	// in the future.
+	JSONWrite(ctx context.Context, in *StorageWriteOp, opts ...grpc.CallOption) (*StorageWrite, error)
+	// JSONRead reads a small JSON object from storage.
+	JSONRead(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageRead, error)
+}
+
+type storageClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewStorageClient(cc *grpc.ClientConn) StorageClient {
+	return &storageClient{cc}
+}
+
+func (c *storageClient) Create(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error) {
+	out := new(StorageError)
+	err := grpc.Invoke(ctx, "/sourcegraph.Storage/Create", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageClient) Delete(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error) {
+	out := new(StorageError)
+	err := grpc.Invoke(ctx, "/sourcegraph.Storage/Delete", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageClient) Read(ctx context.Context, in *StorageReadOp, opts ...grpc.CallOption) (*StorageRead, error) {
+	out := new(StorageRead)
+	err := grpc.Invoke(ctx, "/sourcegraph.Storage/Read", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageClient) Write(ctx context.Context, in *StorageWriteOp, opts ...grpc.CallOption) (*StorageWrite, error) {
+	out := new(StorageWrite)
+	err := grpc.Invoke(ctx, "/sourcegraph.Storage/Write", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageClient) JSONWrite(ctx context.Context, in *StorageWriteOp, opts ...grpc.CallOption) (*StorageWrite, error) {
+	out := new(StorageWrite)
+	err := grpc.Invoke(ctx, "/sourcegraph.Storage/JSONWrite", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageClient) JSONRead(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageRead, error) {
+	out := new(StorageRead)
+	err := grpc.Invoke(ctx, "/sourcegraph.Storage/JSONRead", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for Storage service
+
+type StorageServer interface {
+	// Create creates a new file with the given name.
+	Create(context.Context, *StorageName) (*StorageError, error)
+	// Delete deletes the named file.
+	Delete(context.Context, *StorageName) (*StorageError, error)
+	// Read reads from an existing file.
+	Read(context.Context, *StorageReadOp) (*StorageRead, error)
+	// Write writes to an existing file.
+	Write(context.Context, *StorageWriteOp) (*StorageWrite, error)
+	// JSONWrite writes a small JSON object into storage. If an error string is
+	// returned, the write operation did not succeed and should be attempted again
+	// in the future.
+	JSONWrite(context.Context, *StorageWriteOp) (*StorageWrite, error)
+	// JSONRead reads a small JSON object from storage.
+	JSONRead(context.Context, *StorageName) (*StorageRead, error)
+}
+
+func RegisterStorageServer(s *grpc.Server, srv StorageServer) {
+	s.RegisterService(&_Storage_serviceDesc, srv)
+}
+
+func _Storage_Create_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(StorageName)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(StorageServer).Create(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Storage_Delete_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(StorageName)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(StorageServer).Delete(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Storage_Read_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(StorageReadOp)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(StorageServer).Read(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Storage_Write_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(StorageWriteOp)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(StorageServer).Write(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Storage_JSONWrite_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(StorageWriteOp)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(StorageServer).JSONWrite(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Storage_JSONRead_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(StorageName)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(StorageServer).JSONRead(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _Storage_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.Storage",
+	HandlerType: (*StorageServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Create",
+			Handler:    _Storage_Create_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _Storage_Delete_Handler,
+		},
+		{
+			MethodName: "Read",
+			Handler:    _Storage_Read_Handler,
+		},
+		{
+			MethodName: "Write",
+			Handler:    _Storage_Write_Handler,
+		},
+		{
+			MethodName: "JSONWrite",
+			Handler:    _Storage_JSONWrite_Handler,
+		},
+		{
+			MethodName: "JSONRead",
+			Handler:    _Storage_JSONRead_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
