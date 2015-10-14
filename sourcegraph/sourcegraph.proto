@@ -588,6 +588,173 @@ service Repos {
 	rpc ListCommitters(ReposListCommittersOp) returns (CommitterList);
 }
 
+// StorageError represents an error when interacting with the Storage service.
+message StorageError {
+	// Code represents the type of error for programatic handling.
+	enum Code {
+		// NOT_EXIST is the error used when attempting to read/write to an object
+		// that does not exist.
+		//
+		// In the case of JSON objects, it is only returned when attempting to read
+		// from an object that does not exist.
+		NOT_EXIST = 0;
+
+		// EOF is the error used when the end of the file has been reached.
+		EOF = 2;
+	}
+
+	// code is the error code. If no error code is specified then programatic
+	// handling of the error is not advised. The user should be informed of the
+	// error message instead.
+	Code code = 1;
+
+	// message is the human-readable error message.
+	string message = 2;
+}
+
+// StorageName is a storage object's name.
+message StorageName {
+	// namespace is the application namespace or sub-namespace. This is used to
+	// determine which apps use the most storage, restrict app data to certain
+	// users, etc. It should be in the form of "my-app-name" or
+	// "my-app-name/subspace" and works like a directory in a filesystem.
+	string namespace = 1 [(gogoproto.nullable) = false];
+
+	// name is the name of the object (file or JSON), which must be unique against
+	// every other object in the namespace.
+	string name = 2 [(gogoproto.nullable) = false];
+}
+
+// StorageReadOp is the parameters for reading from a file.
+message StorageReadOp {
+	StorageName name = 1 [(gogoproto.nullable) = false];
+
+	// offset is the offset in bytes in which to perform the read operation from
+	// the start or end of the file, depending on offset_end. If no offset is
+	// specified, read operations always occur at the start of the file (they do
+	// not retain state).
+	int64 offset = 3 [(gogoproto.nullable) = false];
+
+	// offset_end causes the offset to act relative to the end of the file, if
+	// set (i.e. offset == -100 would mean to read starting 100 bytes from the end
+	// of the file).
+	bool offset_end = 4 [(gogoproto.nullable) = false];
+
+	// count is the number of bytes desired to be read. There is no guarantee that
+	// this many will be read, however. Instead you should check the size of the
+	// data returned.
+	int64 count = 5 [(gogoproto.nullable) = false];
+}
+
+// StorageRead is the result from reading a file or JSON object.
+message StorageRead {
+	// error is the error that occurred during reading, if any. In the case of a
+	// EOF error, it may be accompanied by data (i.e. EOF and some data).
+	//
+	// In the case of JSON objects, the error will never be EOF.
+	StorageError error = 1 [(gogoproto.nullable) = false];
+
+	// data is the data that was read from the file. There is no guarantee that
+	// the requested number of bytes to read will actually be read, so if you
+	// desire more than what is returned here then you should perform a read
+	// again.
+	//
+	// In the case of JSON objects, the entire object will always be returned or
+	// there will be an error.
+	bytes data = 2 [(gogoproto.nullable) = false];
+}
+
+// StorageWriteOp is the parameters for writing to a file or JSON object.
+message StorageWriteOp {
+	StorageName name = 1 [(gogoproto.nullable) = false];
+
+	// offset is the offset in bytes in which to perform the write operation from
+	// the start or end of the file, depending on offset_end.
+	//
+	// In the case of JSON objects, this field is ignored.
+	int64 offset = 3 [(gogoproto.nullable) = false];
+
+	// offset_end causes the offset to act relative to the end of the file, if
+	// set (i.e. offset == -100 would mean to write starting 100 bytes from the
+	// end of the file).
+	//
+	// In the case of JSON objects, this field is ignored.
+	bool offset_end = 4 [(gogoproto.nullable) = false];
+
+	// data is the data to be written. There is no guarantee all of the data will
+	// be written, however. Instead you should check the number of bytes written
+	// by looking at the StorageWrite.wrote field and attempt writing whatever
+	// bytes were not during that write operation.
+	//
+	// In the case of JSON objects, the entire object will always be written or an
+	// error will be returned.
+	bytes data = 2 [(gogoproto.nullable) = false];
+}
+
+// StorageWrite is the result from writing to a file.
+message StorageWrite {
+	// error is the error that occurred during writing, if any.
+	StorageError error = 1 [(gogoproto.nullable) = false];
+
+	// wrote is the number of bytes written to the file. If the number of bytes
+	// written (as reported by this field) is not the same number of bytes you
+	// tried to write, then you should attempt subsequent writes to finish writing
+	// the data assuming there was no error.
+	//
+	// In the case of JSON objects, the entire object will always be written or an
+	// error will be present.
+	bytes wrote = 2 [(gogoproto.nullable) = false];
+}
+
+// Storage provides applications with storage mechanisms. It provides both a
+// filesystem-alike API for creating/deleting/reading/writing files as well as
+// a simple key/value storage system for small JSON objects.
+service Storage {
+	// Create creates a new file with the given name.
+	rpc Create(StorageName) returns (StorageError) {
+		option (google.api.http) = {
+			post: "/storage/create"
+		};
+	}
+
+	// Delete deletes the named file.
+	rpc Delete(StorageName) returns (StorageError) {
+		option (google.api.http) = {
+			post: "/storage/delete"
+		};
+	}
+
+	// Read reads from an existing file.
+	rpc Read(StorageReadOp) returns (StorageRead) {
+		option (google.api.http) = {
+			get: "/storage/read"
+		};
+	}
+
+	// Write writes to an existing file.
+	rpc Write(StorageWriteOp) returns (StorageWrite) {
+		option (google.api.http) = {
+			post: "/storage/write"
+		};
+	}
+
+	// JSONWrite writes a small JSON object into storage. If an error string is
+	// returned, the write operation did not succeed and should be attempted again
+	// in the future.
+	rpc JSONWrite(StorageWriteOp) returns (StorageWrite) {
+		option (google.api.http) = {
+			post: "/storage/json"
+		};
+	}
+
+	// JSONRead reads a small JSON object from storage.
+	rpc JSONRead(StorageName) returns (StorageRead) {
+		option (google.api.http) = {
+			get: "/storage/json"
+		};
+	}
+}
+
 service Changesets {
 	// Create creates a new Changeset and returns it, populating
 	// its fields, such as ID and CreatedAt.
