@@ -243,19 +243,25 @@ var _ sourcegraph.ReposServer = (*ReposServer)(nil)
 
 type StorageClient struct {
 	Create_    func(ctx context.Context, in *sourcegraph.StorageName) (*sourcegraph.StorageError, error)
-	Delete_    func(ctx context.Context, in *sourcegraph.StorageName) (*sourcegraph.StorageError, error)
+	Remove_    func(ctx context.Context, in *sourcegraph.StorageName) (*sourcegraph.StorageError, error)
+	RemoveAll_ func(ctx context.Context, in *sourcegraph.StorageName) (*sourcegraph.StorageError, error)
 	Read_      func(ctx context.Context, in *sourcegraph.StorageReadOp) (*sourcegraph.StorageRead, error)
 	Write_     func(ctx context.Context, in *sourcegraph.StorageWriteOp) (*sourcegraph.StorageWrite, error)
-	JSONWrite_ func(ctx context.Context, in *sourcegraph.StorageWriteOp) (*sourcegraph.StorageWrite, error)
-	JSONRead_  func(ctx context.Context, in *sourcegraph.StorageName) (*sourcegraph.StorageRead, error)
+	Stat_      func(ctx context.Context, in *sourcegraph.StorageName) (*sourcegraph.StorageStat, error)
+	ReadDir_   func(ctx context.Context, in *sourcegraph.StorageName) (*sourcegraph.StorageReadDir, error)
+	Close_     func(ctx context.Context, in *sourcegraph.StorageName) (*sourcegraph.StorageError, error)
 }
 
 func (s *StorageClient) Create(ctx context.Context, in *sourcegraph.StorageName, opts ...grpc.CallOption) (*sourcegraph.StorageError, error) {
 	return s.Create_(ctx, in)
 }
 
-func (s *StorageClient) Delete(ctx context.Context, in *sourcegraph.StorageName, opts ...grpc.CallOption) (*sourcegraph.StorageError, error) {
-	return s.Delete_(ctx, in)
+func (s *StorageClient) Remove(ctx context.Context, in *sourcegraph.StorageName, opts ...grpc.CallOption) (*sourcegraph.StorageError, error) {
+	return s.Remove_(ctx, in)
+}
+
+func (s *StorageClient) RemoveAll(ctx context.Context, in *sourcegraph.StorageName, opts ...grpc.CallOption) (*sourcegraph.StorageError, error) {
+	return s.RemoveAll_(ctx, in)
 }
 
 func (s *StorageClient) Read(ctx context.Context, in *sourcegraph.StorageReadOp, opts ...grpc.CallOption) (*sourcegraph.StorageRead, error) {
@@ -266,31 +272,41 @@ func (s *StorageClient) Write(ctx context.Context, in *sourcegraph.StorageWriteO
 	return s.Write_(ctx, in)
 }
 
-func (s *StorageClient) JSONWrite(ctx context.Context, in *sourcegraph.StorageWriteOp, opts ...grpc.CallOption) (*sourcegraph.StorageWrite, error) {
-	return s.JSONWrite_(ctx, in)
+func (s *StorageClient) Stat(ctx context.Context, in *sourcegraph.StorageName, opts ...grpc.CallOption) (*sourcegraph.StorageStat, error) {
+	return s.Stat_(ctx, in)
 }
 
-func (s *StorageClient) JSONRead(ctx context.Context, in *sourcegraph.StorageName, opts ...grpc.CallOption) (*sourcegraph.StorageRead, error) {
-	return s.JSONRead_(ctx, in)
+func (s *StorageClient) ReadDir(ctx context.Context, in *sourcegraph.StorageName, opts ...grpc.CallOption) (*sourcegraph.StorageReadDir, error) {
+	return s.ReadDir_(ctx, in)
+}
+
+func (s *StorageClient) Close(ctx context.Context, in *sourcegraph.StorageName, opts ...grpc.CallOption) (*sourcegraph.StorageError, error) {
+	return s.Close_(ctx, in)
 }
 
 var _ sourcegraph.StorageClient = (*StorageClient)(nil)
 
 type StorageServer struct {
 	Create_    func(v0 context.Context, v1 *sourcegraph.StorageName) (*sourcegraph.StorageError, error)
-	Delete_    func(v0 context.Context, v1 *sourcegraph.StorageName) (*sourcegraph.StorageError, error)
+	Remove_    func(v0 context.Context, v1 *sourcegraph.StorageName) (*sourcegraph.StorageError, error)
+	RemoveAll_ func(v0 context.Context, v1 *sourcegraph.StorageName) (*sourcegraph.StorageError, error)
 	Read_      func(v0 context.Context, v1 *sourcegraph.StorageReadOp) (*sourcegraph.StorageRead, error)
 	Write_     func(v0 context.Context, v1 *sourcegraph.StorageWriteOp) (*sourcegraph.StorageWrite, error)
-	JSONWrite_ func(v0 context.Context, v1 *sourcegraph.StorageWriteOp) (*sourcegraph.StorageWrite, error)
-	JSONRead_  func(v0 context.Context, v1 *sourcegraph.StorageName) (*sourcegraph.StorageRead, error)
+	Stat_      func(v0 context.Context, v1 *sourcegraph.StorageName) (*sourcegraph.StorageStat, error)
+	ReadDir_   func(v0 context.Context, v1 *sourcegraph.StorageName) (*sourcegraph.StorageReadDir, error)
+	Close_     func(v0 context.Context, v1 *sourcegraph.StorageName) (*sourcegraph.StorageError, error)
 }
 
 func (s *StorageServer) Create(v0 context.Context, v1 *sourcegraph.StorageName) (*sourcegraph.StorageError, error) {
 	return s.Create_(v0, v1)
 }
 
-func (s *StorageServer) Delete(v0 context.Context, v1 *sourcegraph.StorageName) (*sourcegraph.StorageError, error) {
-	return s.Delete_(v0, v1)
+func (s *StorageServer) Remove(v0 context.Context, v1 *sourcegraph.StorageName) (*sourcegraph.StorageError, error) {
+	return s.Remove_(v0, v1)
+}
+
+func (s *StorageServer) RemoveAll(v0 context.Context, v1 *sourcegraph.StorageName) (*sourcegraph.StorageError, error) {
+	return s.RemoveAll_(v0, v1)
 }
 
 func (s *StorageServer) Read(v0 context.Context, v1 *sourcegraph.StorageReadOp) (*sourcegraph.StorageRead, error) {
@@ -301,12 +317,16 @@ func (s *StorageServer) Write(v0 context.Context, v1 *sourcegraph.StorageWriteOp
 	return s.Write_(v0, v1)
 }
 
-func (s *StorageServer) JSONWrite(v0 context.Context, v1 *sourcegraph.StorageWriteOp) (*sourcegraph.StorageWrite, error) {
-	return s.JSONWrite_(v0, v1)
+func (s *StorageServer) Stat(v0 context.Context, v1 *sourcegraph.StorageName) (*sourcegraph.StorageStat, error) {
+	return s.Stat_(v0, v1)
 }
 
-func (s *StorageServer) JSONRead(v0 context.Context, v1 *sourcegraph.StorageName) (*sourcegraph.StorageRead, error) {
-	return s.JSONRead_(v0, v1)
+func (s *StorageServer) ReadDir(v0 context.Context, v1 *sourcegraph.StorageName) (*sourcegraph.StorageReadDir, error) {
+	return s.ReadDir_(v0, v1)
+}
+
+func (s *StorageServer) Close(v0 context.Context, v1 *sourcegraph.StorageName) (*sourcegraph.StorageError, error) {
+	return s.Close_(v0, v1)
 }
 
 var _ sourcegraph.StorageServer = (*StorageServer)(nil)

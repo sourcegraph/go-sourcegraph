@@ -3578,9 +3578,20 @@ func (s *CachedStorageServer) Create(ctx context.Context, in *StorageName) (*Sto
 	return result, err
 }
 
-func (s *CachedStorageServer) Delete(ctx context.Context, in *StorageName) (*StorageError, error) {
+func (s *CachedStorageServer) Remove(ctx context.Context, in *StorageName) (*StorageError, error) {
 	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
-	result, err := s.StorageServer.Delete(ctx, in)
+	result, err := s.StorageServer.Remove(ctx, in)
+	if !cc.IsZero() {
+		if err := grpccache.Internal_SetCacheControlTrailer(ctx, *cc); err != nil {
+			return nil, err
+		}
+	}
+	return result, err
+}
+
+func (s *CachedStorageServer) RemoveAll(ctx context.Context, in *StorageName) (*StorageError, error) {
+	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
+	result, err := s.StorageServer.RemoveAll(ctx, in)
 	if !cc.IsZero() {
 		if err := grpccache.Internal_SetCacheControlTrailer(ctx, *cc); err != nil {
 			return nil, err
@@ -3611,9 +3622,9 @@ func (s *CachedStorageServer) Write(ctx context.Context, in *StorageWriteOp) (*S
 	return result, err
 }
 
-func (s *CachedStorageServer) JSONWrite(ctx context.Context, in *StorageWriteOp) (*StorageWrite, error) {
+func (s *CachedStorageServer) Stat(ctx context.Context, in *StorageName) (*StorageStat, error) {
 	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
-	result, err := s.StorageServer.JSONWrite(ctx, in)
+	result, err := s.StorageServer.Stat(ctx, in)
 	if !cc.IsZero() {
 		if err := grpccache.Internal_SetCacheControlTrailer(ctx, *cc); err != nil {
 			return nil, err
@@ -3622,9 +3633,20 @@ func (s *CachedStorageServer) JSONWrite(ctx context.Context, in *StorageWriteOp)
 	return result, err
 }
 
-func (s *CachedStorageServer) JSONRead(ctx context.Context, in *StorageName) (*StorageRead, error) {
+func (s *CachedStorageServer) ReadDir(ctx context.Context, in *StorageName) (*StorageReadDir, error) {
 	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
-	result, err := s.StorageServer.JSONRead(ctx, in)
+	result, err := s.StorageServer.ReadDir(ctx, in)
+	if !cc.IsZero() {
+		if err := grpccache.Internal_SetCacheControlTrailer(ctx, *cc); err != nil {
+			return nil, err
+		}
+	}
+	return result, err
+}
+
+func (s *CachedStorageServer) Close(ctx context.Context, in *StorageName) (*StorageError, error) {
+	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
+	result, err := s.StorageServer.Close(ctx, in)
 	if !cc.IsZero() {
 		if err := grpccache.Internal_SetCacheControlTrailer(ctx, *cc); err != nil {
 			return nil, err
@@ -3664,10 +3686,10 @@ func (s *CachedStorageClient) Create(ctx context.Context, in *StorageName, opts 
 	return result, nil
 }
 
-func (s *CachedStorageClient) Delete(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error) {
+func (s *CachedStorageClient) Remove(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error) {
 	if s.Cache != nil {
 		var cachedResult StorageError
-		cached, err := s.Cache.Get(ctx, "Storage.Delete", in, &cachedResult)
+		cached, err := s.Cache.Get(ctx, "Storage.Remove", in, &cachedResult)
 		if err != nil {
 			return nil, err
 		}
@@ -3678,12 +3700,38 @@ func (s *CachedStorageClient) Delete(ctx context.Context, in *StorageName, opts 
 
 	var trailer metadata.MD
 
-	result, err := s.StorageClient.Delete(ctx, in, grpc.Trailer(&trailer))
+	result, err := s.StorageClient.Remove(ctx, in, grpc.Trailer(&trailer))
 	if err != nil {
 		return nil, err
 	}
 	if s.Cache != nil {
-		if err := s.Cache.Store(ctx, "Storage.Delete", in, result, trailer); err != nil {
+		if err := s.Cache.Store(ctx, "Storage.Remove", in, result, trailer); err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
+}
+
+func (s *CachedStorageClient) RemoveAll(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error) {
+	if s.Cache != nil {
+		var cachedResult StorageError
+		cached, err := s.Cache.Get(ctx, "Storage.RemoveAll", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
+	}
+
+	var trailer metadata.MD
+
+	result, err := s.StorageClient.RemoveAll(ctx, in, grpc.Trailer(&trailer))
+	if err != nil {
+		return nil, err
+	}
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Storage.RemoveAll", in, result, trailer); err != nil {
 			return nil, err
 		}
 	}
@@ -3742,10 +3790,10 @@ func (s *CachedStorageClient) Write(ctx context.Context, in *StorageWriteOp, opt
 	return result, nil
 }
 
-func (s *CachedStorageClient) JSONWrite(ctx context.Context, in *StorageWriteOp, opts ...grpc.CallOption) (*StorageWrite, error) {
+func (s *CachedStorageClient) Stat(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageStat, error) {
 	if s.Cache != nil {
-		var cachedResult StorageWrite
-		cached, err := s.Cache.Get(ctx, "Storage.JSONWrite", in, &cachedResult)
+		var cachedResult StorageStat
+		cached, err := s.Cache.Get(ctx, "Storage.Stat", in, &cachedResult)
 		if err != nil {
 			return nil, err
 		}
@@ -3756,22 +3804,22 @@ func (s *CachedStorageClient) JSONWrite(ctx context.Context, in *StorageWriteOp,
 
 	var trailer metadata.MD
 
-	result, err := s.StorageClient.JSONWrite(ctx, in, grpc.Trailer(&trailer))
+	result, err := s.StorageClient.Stat(ctx, in, grpc.Trailer(&trailer))
 	if err != nil {
 		return nil, err
 	}
 	if s.Cache != nil {
-		if err := s.Cache.Store(ctx, "Storage.JSONWrite", in, result, trailer); err != nil {
+		if err := s.Cache.Store(ctx, "Storage.Stat", in, result, trailer); err != nil {
 			return nil, err
 		}
 	}
 	return result, nil
 }
 
-func (s *CachedStorageClient) JSONRead(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageRead, error) {
+func (s *CachedStorageClient) ReadDir(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageReadDir, error) {
 	if s.Cache != nil {
-		var cachedResult StorageRead
-		cached, err := s.Cache.Get(ctx, "Storage.JSONRead", in, &cachedResult)
+		var cachedResult StorageReadDir
+		cached, err := s.Cache.Get(ctx, "Storage.ReadDir", in, &cachedResult)
 		if err != nil {
 			return nil, err
 		}
@@ -3782,12 +3830,38 @@ func (s *CachedStorageClient) JSONRead(ctx context.Context, in *StorageName, opt
 
 	var trailer metadata.MD
 
-	result, err := s.StorageClient.JSONRead(ctx, in, grpc.Trailer(&trailer))
+	result, err := s.StorageClient.ReadDir(ctx, in, grpc.Trailer(&trailer))
 	if err != nil {
 		return nil, err
 	}
 	if s.Cache != nil {
-		if err := s.Cache.Store(ctx, "Storage.JSONRead", in, result, trailer); err != nil {
+		if err := s.Cache.Store(ctx, "Storage.ReadDir", in, result, trailer); err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
+}
+
+func (s *CachedStorageClient) Close(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error) {
+	if s.Cache != nil {
+		var cachedResult StorageError
+		cached, err := s.Cache.Get(ctx, "Storage.Close", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
+	}
+
+	var trailer metadata.MD
+
+	result, err := s.StorageClient.Close(ctx, in, grpc.Trailer(&trailer))
+	if err != nil {
+		return nil, err
+	}
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Storage.Close", in, result, trailer); err != nil {
 			return nil, err
 		}
 	}

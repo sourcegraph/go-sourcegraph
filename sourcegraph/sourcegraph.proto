@@ -592,15 +592,20 @@ service Repos {
 message StorageError {
 	// Code represents the type of error for programatic handling.
 	enum Code {
+		// EOF is the error returned by Read when no more input is available.
+		// Functions should return EOF only to signal a graceful end of input. If
+		// the EOF occurs unexpectedly in a structured data stream, the appropriate
+		// error is either UNEXPECTED_EOF or some other error message giving more
+		// detail.
+		EOF = 0;
+
 		// NOT_EXIST is the error used when attempting to read/write to an object
 		// that does not exist.
-		//
-		// In the case of JSON objects, it is only returned when attempting to read
-		// from an object that does not exist.
-		NOT_EXIST = 0;
+		NOT_EXIST = 1;
 
-		// EOF is the error used when the end of the file has been reached.
-		EOF = 2;
+		// PERMISSION is the error used when permission to access the given file is
+		// not granted to you.
+		PERMISSION = 2;
 	}
 
 	// code is the error code. If no error code is specified then programatic
@@ -614,15 +619,17 @@ message StorageError {
 
 // StorageName is a storage object's name.
 message StorageName {
-	// namespace is the application namespace or sub-namespace. This is used to
-	// determine which apps use the most storage, restrict app data to certain
-	// users, etc. It should be in the form of "my-app-name" or
-	// "my-app-name/subspace" and works like a directory in a filesystem.
-	string namespace = 1 [(gogoproto.nullable) = false];
+	// app_name is the name of the application whose data you are trying to
+	// read/write, applications may read and write to eachother's data assuming
+	// the admin has not restricted such access.
+	string app_name = 1 [(gogoproto.nullable) = false];
 
-	// name is the name of the object (file or JSON), which must be unique against
-	// every other object in the namespace.
-	string name = 2 [(gogoproto.nullable) = false];
+	// If specified storage is considered local to the given repository. Otherwise
+	// it is considered "global" (i.e. shared across all repositories).
+	RepoSpec repo = 2;
+
+	// name is the name of the file.
+	string name = 3 [(gogoproto.nullable) = false];
 }
 
 // StorageReadOp is the parameters for reading from a file.
@@ -646,69 +653,86 @@ message StorageReadOp {
 	int64 count = 5 [(gogoproto.nullable) = false];
 }
 
-// StorageRead is the result from reading a file or JSON object.
+// StorageRead is the result from reading a file.
 message StorageRead {
 	// error is the error that occurred during reading, if any. In the case of a
 	// EOF error, it may be accompanied by data (i.e. EOF and some data).
-	//
-	// In the case of JSON objects, the error will never be EOF.
 	StorageError error = 1 [(gogoproto.nullable) = false];
 
 	// data is the data that was read from the file. There is no guarantee that
 	// the requested number of bytes to read will actually be read, so if you
 	// desire more than what is returned here then you should perform a read
 	// again.
-	//
-	// In the case of JSON objects, the entire object will always be returned or
-	// there will be an error.
 	bytes data = 2 [(gogoproto.nullable) = false];
 }
 
-// StorageWriteOp is the parameters for writing to a file or JSON object.
+// StorageWriteOp is the parameters for writing to a file.
 message StorageWriteOp {
 	StorageName name = 1 [(gogoproto.nullable) = false];
 
 	// offset is the offset in bytes in which to perform the write operation from
 	// the start or end of the file, depending on offset_end.
-	//
-	// In the case of JSON objects, this field is ignored.
 	int64 offset = 3 [(gogoproto.nullable) = false];
 
 	// offset_end causes the offset to act relative to the end of the file, if
 	// set (i.e. offset == -100 would mean to write starting 100 bytes from the
 	// end of the file).
-	//
-	// In the case of JSON objects, this field is ignored.
 	bool offset_end = 4 [(gogoproto.nullable) = false];
 
 	// data is the data to be written. There is no guarantee all of the data will
 	// be written, however. Instead you should check the number of bytes written
 	// by looking at the StorageWrite.wrote field and attempt writing whatever
 	// bytes were not during that write operation.
-	//
-	// In the case of JSON objects, the entire object will always be written or an
-	// error will be returned.
 	bytes data = 2 [(gogoproto.nullable) = false];
 }
 
 // StorageWrite is the result from writing to a file.
 message StorageWrite {
 	// error is the error that occurred during writing, if any.
-	StorageError error = 1 [(gogoproto.nullable) = false];
+	StorageError error = 1;
 
 	// wrote is the number of bytes written to the file. If the number of bytes
 	// written (as reported by this field) is not the same number of bytes you
 	// tried to write, then you should attempt subsequent writes to finish writing
 	// the data assuming there was no error.
-	//
-	// In the case of JSON objects, the entire object will always be written or an
-	// error will be present.
-	bytes wrote = 2 [(gogoproto.nullable) = false];
+	int64 wrote = 2 [(gogoproto.nullable) = false];
 }
 
-// Storage provides applications with storage mechanisms. It provides both a
-// filesystem-alike API for creating/deleting/reading/writing files as well as
-// a simple key/value storage system for small JSON objects.
+// StorageFileInfo lists information about a file.
+message StorageFileInfo {
+	// name is the base name of the file.
+	string name = 1 [(gogoproto.nullable) = false];
+
+	// size is the length in bytes of the file, or zero.
+	int64 size = 2 [(gogoproto.nullable) = false];
+
+	// mod_time is the file modification time.
+	pbtypes.Timestamp mod_time = 3 [(gogoproto.nullable) = false];
+
+	// is_dir tells if the file is a directory.
+	bool is_dir = 4 [(gogoproto.nullable) = false];;
+}
+
+// StorageStat is the result from statting a file.
+message StorageStat {
+	// error is the error that occurred during reading, if any.
+	StorageError error = 1;
+
+	// info is the information for the file.
+	StorageFileInfo info = 2 [(gogoproto.nullable) = false];
+}
+
+// StorageReadDir is the result from reading a directories contents.
+message StorageReadDir {
+	// error is the error that occurred during reading, if any.
+	StorageError error = 1;
+
+	// info is the information for each file in the directory.
+	repeated StorageFileInfo info = 2 [(gogoproto.nullable) = false];
+}
+
+// Storage provides applications with storage mechanisms. It provides a
+// filesystem-alike API for creating/deleting/reading/writing files.
 service Storage {
 	// Create creates a new file with the given name.
 	rpc Create(StorageName) returns (StorageError) {
@@ -717,10 +741,17 @@ service Storage {
 		};
 	}
 
-	// Delete deletes the named file.
-	rpc Delete(StorageName) returns (StorageError) {
+	// Remove deletes the named file or directory.
+	rpc Remove(StorageName) returns (StorageError) {
 		option (google.api.http) = {
-			post: "/storage/delete"
+			post: "/storage/remove"
+		};
+	}
+
+	// RemoveAll deletes the named file or directory recursively.
+	rpc RemoveAll(StorageName) returns (StorageError) {
+		option (google.api.http) = {
+			post: "/storage/removeall"
 		};
 	}
 
@@ -738,19 +769,25 @@ service Storage {
 		};
 	}
 
-	// JSONWrite writes a small JSON object into storage. If an error string is
-	// returned, the write operation did not succeed and should be attempted again
-	// in the future.
-	rpc JSONWrite(StorageWriteOp) returns (StorageWrite) {
+	// Stat stats an existing file.
+	rpc Stat(StorageName) returns (StorageStat) {
 		option (google.api.http) = {
-			post: "/storage/json"
+			get: "/storage/stat"
 		};
 	}
 
-	// JSONRead reads a small JSON object from storage.
-	rpc JSONRead(StorageName) returns (StorageRead) {
+	// ReadDir reads a directories contents.
+	rpc ReadDir(StorageName) returns (StorageReadDir) {
 		option (google.api.http) = {
-			get: "/storage/json"
+			get: "/storage/readdir"
+		};
+	}
+
+	// Close closes the named file or directory. You should always call Close once
+	// finished performing actions on a file.
+	rpc Close(StorageName) returns (StorageError) {
+		option (google.api.http) = {
+			post: "/storage/close"
 		};
 	}
 }
