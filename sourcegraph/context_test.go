@@ -22,7 +22,7 @@ import (
 )
 
 func TestPerRPCCredentials(t *testing.T) {
-	l, err := net.Listen("tcp", ":0")
+	l, err := net.Listen("tcp", "localhost:0")
 	if err != nil {
 		t.Fatal(err)
 	}
