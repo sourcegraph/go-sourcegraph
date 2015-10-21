@@ -20,17 +20,12 @@ If you run into errors while compiling protobufs, try again with these versions 
 -  `protoc-gen-gogo` - commit `github.com/gogo/protobuf@200875106f3bf0eb01eb297dae30b250a25ffc84`.
 -  `grpc-go` - commit `google.golang.org/grpc@f7d1653e300d6ad9f019bce7a5f5ab3b4821f637`.
 
-1. **Install protoc**, the protobuf compiler. Find more details in the [protobuf README](https://github.com/google/protobuf).
-
-   ```
-   brew install --devel protobuf
-   ```
-
-   or if you are trying a specific version, you can manually install by running:
+1. **Install protoc**, the protobuf compiler. Find more details in the [protobuf README](https://github.com/google/protobuf/tree/v3.0.0-beta-1#c-installation---unix).
 
    ```
    git clone https://github.com/google/protobuf.git
    cd protobuf
+   git checkout v3.0.0-beta-1
    ./autogen.sh
    ./configure --enable-static && make && sudo make install
    ```
