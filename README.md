@@ -22,15 +22,7 @@ If you run into errors while compiling protobufs, try again with these versions 
 
 1. **Install protoc**, the protobuf compiler. Find more details in the [protobuf README](https://github.com/google/protobuf/tree/v3.0.0-beta-1#c-installation---unix).
 
-   ```
-   git clone https://github.com/google/protobuf.git
-   cd protobuf
-   git checkout v3.0.0-beta-1
-   ./autogen.sh
-   ./configure --enable-static && make && sudo make install
-   ```
-
-   Then make sure the `protoc` binary is in your `$PATH`.
+   Make sure the `protoc` binary is in your `$PATH`.
 
 2. **Install [gogo/protobuf](https://github.com/gogo/protobuf)**.
 
