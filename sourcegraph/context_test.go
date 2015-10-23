@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/url"
 	"os/exec"
+	"reflect"
 	"testing"
 	"time"
 
@@ -86,7 +87,7 @@ type testMetaServer struct {
 
 func (s *testMetaServer) Status(ctx context.Context, _ *pbtypes.Void) (*ServerStatus, error) {
 	md, _ := metadata.FromContext(ctx)
-	if want, got := md["want-access-token"], md["authorization"]; len(got) == 0 || len(want) == 0 || got[0] != want[0] {
+	if want, got := md["want-access-token"], md["authorization"]; !reflect.DeepEqual(got, want) {
 		return nil, grpc.Errorf(codes.Unknown, "got access-token %q, want %q", got, want)
 	}
 	return &ServerStatus{}, nil
