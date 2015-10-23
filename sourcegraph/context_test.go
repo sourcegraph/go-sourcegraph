@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/url"
 	"os/exec"
+	"reflect"
 	"testing"
 	"time"
 
@@ -50,7 +51,7 @@ func TestPerRPCCredentials(t *testing.T) {
 			ctx := context.Background()
 			ctx = WithGRPCEndpoint(ctx, &url.URL{Host: l.Addr().String()})
 			ctx = WithCredentials(ctx, oauth2.StaticTokenSource(&oauth2.Token{TokenType: "x", AccessToken: key}))
-			ctx = metadata.NewContext(ctx, metadata.MD{"want-access-token": "x " + key})
+			ctx = metadata.NewContext(ctx, metadata.MD{"want-access-token": []string{"x " + key}})
 			c := NewClientFromContext(ctx)
 			if _, err := c.Meta.Status(ctx, &pbtypes.Void{}); err != nil {
 				t.Fatal(err)
@@ -86,7 +87,7 @@ type testMetaServer struct {
 
 func (s *testMetaServer) Status(ctx context.Context, _ *pbtypes.Void) (*ServerStatus, error) {
 	md, _ := metadata.FromContext(ctx)
-	if want, got := md["want-access-token"], md["authorization"]; got != want {
+	if want, got := md["want-access-token"], md["authorization"]; !reflect.DeepEqual(got, want) {
 		return nil, grpc.Errorf(codes.Unknown, "got access-token %q, want %q", got, want)
 	}
 	return &ServerStatus{}, nil

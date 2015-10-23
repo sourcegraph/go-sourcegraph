@@ -100,7 +100,7 @@ func TestPBToken_Token(t *testing.T) {
 		{PBTokenWrap(Term("")), Term("")},
 	}
 	for _, test := range tests {
-		tok := test.pb.Token()
+		tok := test.pb.GetQueryToken()
 		if !reflect.DeepEqual(tok, test.want) {
 			t.Errorf("got %#v, want %#v", tok, test.want)
 		}

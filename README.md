@@ -14,29 +14,15 @@ This repository uses the `sourcegraph/sourcegraph.proto` [protocol buffers](http
 
 You need to install and run the protobuf compiler before you can regenerate Go code after you change the `sourcegraph.proto` file.
 
-If you run into errors while compiling protobufs, try again with these older versions that are known to work:
+If you run into errors while compiling protobufs, try again with these versions that are known to work:
 
--  `protoc` - version `3.0.0-alpha-2` or `3.0.0-alpha-3`.
--  `protoc-gen-gogo` - commit `0d32fa3409f705a45020a232768fb9b121f377e9`.
+-  `protoc` - version `github.com/google/protobuf@v3.0.0-beta-1`.
+-  `protoc-gen-gogo` - commit `github.com/gogo/protobuf@200875106f3bf0eb01eb297dae30b250a25ffc84`.
+-  `grpc-go` - commit `google.golang.org/grpc@f7d1653e300d6ad9f019bce7a5f5ab3b4821f637`.
 
-_TODO: Make it work with latest, confirm if there are any issues._
+1. **Install protoc**, the protobuf compiler. Find more details in the [protobuf README](https://github.com/google/protobuf/tree/v3.0.0-beta-1#c-installation---unix).
 
-1. **Install protoc**, the protobuf compiler. Find more details in the [protobuf README](https://github.com/google/protobuf).
-
-   ```
-   brew install --devel protobuf
-   ```
-
-   or if you are trying a specific version, you can manually install by running:
-
-   ```
-   git clone https://github.com/google/protobuf.git
-   cd protobuf
-   ./autogen.sh
-   ./configure --enable-static && make && sudo make install
-   ```
-
-   Then make sure the `protoc` binary is in your `$PATH`.
+   Make sure the `protoc` binary is in your `$PATH`.
 
 2. **Install [gogo/protobuf](https://github.com/gogo/protobuf)**.
 
@@ -65,7 +51,7 @@ _TODO: Make it work with latest, confirm if there are any issues._
 6. **Install `grpccache-gen`**:
 
    ```
-   go get -u sourcegraph.com/sqs/grpccache/grpccache-gen
+   go get -u sourcegraph.com/sourcegraph/grpccache/grpccache-gen
    ```
 
 ### Regenerating Go code after changing `sourcegraph.proto`
