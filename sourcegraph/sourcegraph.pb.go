@@ -865,12 +865,12 @@ type StorageName struct {
 	// app_name is the name of the application whose data you are trying to
 	// read/write, applications may read and write to eachother's data assuming
 	// the admin has not restricted such access.
-	AppName string `protobuf:"bytes,1,opt,name=app_name,proto3" json:"app_name"`
+	AppName string `protobuf:"bytes,1,opt,name=app_name,proto3" json:"app_name,omitempty"`
 	// If specified storage is considered local to the given repository. Otherwise
 	// it is considered "global" (i.e. shared across all repositories).
 	Repo *RepoSpec `protobuf:"bytes,2,opt,name=repo" json:"repo,omitempty"`
 	// name is the name of the file.
-	Name string `protobuf:"bytes,3,opt,name=name,proto3" json:"name"`
+	Name string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 }
 
 func (m *StorageName) Reset()         { *m = StorageName{} }
@@ -884,15 +884,15 @@ type StorageReadOp struct {
 	// the start or end of the file, depending on offset_end. If no offset is
 	// specified, read operations always occur at the start of the file (they do
 	// not retain state).
-	Offset int64 `protobuf:"varint,3,opt,name=offset,proto3" json:"offset"`
+	Offset int64 `protobuf:"varint,3,opt,name=offset,proto3" json:"offset,omitempty"`
 	// offset_end causes the offset to act relative to the end of the file, if
 	// set (i.e. offset == -100 would mean to read starting 100 bytes from the end
 	// of the file).
-	OffsetEnd bool `protobuf:"varint,4,opt,name=offset_end,proto3" json:"offset_end"`
+	OffsetEnd bool `protobuf:"varint,4,opt,name=offset_end,proto3" json:"offset_end,omitempty"`
 	// count is the number of bytes desired to be read. There is no guarantee that
 	// this many will be read, however. Instead you should check the size of the
 	// data returned.
-	Count int64 `protobuf:"varint,5,opt,name=count,proto3" json:"count"`
+	Count int64 `protobuf:"varint,5,opt,name=count,proto3" json:"count,omitempty"`
 }
 
 func (m *StorageReadOp) Reset()         { *m = StorageReadOp{} }
@@ -908,7 +908,7 @@ type StorageRead struct {
 	// the requested number of bytes to read will actually be read, so if you
 	// desire more than what is returned here then you should perform a read
 	// again.
-	Data []byte `protobuf:"bytes,2,opt,name=data,proto3" json:"data"`
+	Data []byte `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
 }
 
 func (m *StorageRead) Reset()         { *m = StorageRead{} }
@@ -920,16 +920,16 @@ type StorageWriteOp struct {
 	Name StorageName `protobuf:"bytes,1,opt,name=name" json:"name"`
 	// offset is the offset in bytes in which to perform the write operation from
 	// the start or end of the file, depending on offset_end.
-	Offset int64 `protobuf:"varint,3,opt,name=offset,proto3" json:"offset"`
+	Offset int64 `protobuf:"varint,3,opt,name=offset,proto3" json:"offset,omitempty"`
 	// offset_end causes the offset to act relative to the end of the file, if
 	// set (i.e. offset == -100 would mean to write starting 100 bytes from the
 	// end of the file).
-	OffsetEnd bool `protobuf:"varint,4,opt,name=offset_end,proto3" json:"offset_end"`
+	OffsetEnd bool `protobuf:"varint,4,opt,name=offset_end,proto3" json:"offset_end,omitempty"`
 	// data is the data to be written. There is no guarantee all of the data will
 	// be written, however. Instead you should check the number of bytes written
 	// by looking at the StorageWrite.wrote field and attempt writing whatever
 	// bytes were not during that write operation.
-	Data []byte `protobuf:"bytes,2,opt,name=data,proto3" json:"data"`
+	Data []byte `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
 }
 
 func (m *StorageWriteOp) Reset()         { *m = StorageWriteOp{} }
@@ -944,7 +944,7 @@ type StorageWrite struct {
 	// written (as reported by this field) is not the same number of bytes you
 	// tried to write, then you should attempt subsequent writes to finish writing
 	// the data assuming there was no error.
-	Wrote int64 `protobuf:"varint,2,opt,name=wrote,proto3" json:"wrote"`
+	Wrote int64 `protobuf:"varint,2,opt,name=wrote,proto3" json:"wrote,omitempty"`
 }
 
 func (m *StorageWrite) Reset()         { *m = StorageWrite{} }
@@ -954,13 +954,13 @@ func (*StorageWrite) ProtoMessage()    {}
 // StorageFileInfo lists information about a file.
 type StorageFileInfo struct {
 	// name is the base name of the file.
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name"`
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// size is the length in bytes of the file, or zero.
-	Size int64 `protobuf:"varint,2,opt,name=size,proto3" json:"size"`
+	Size_ int64 `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
 	// mod_time is the file modification time.
 	ModTime pbtypes.Timestamp `protobuf:"bytes,3,opt,name=mod_time" json:"mod_time"`
 	// is_dir tells if the file is a directory.
-	IsDir bool `protobuf:"varint,4,opt,name=is_dir,proto3" json:"is_dir"`
+	IsDir bool `protobuf:"varint,4,opt,name=is_dir,proto3" json:"is_dir,omitempty"`
 }
 
 func (m *StorageFileInfo) Reset()         { *m = StorageFileInfo{} }
@@ -4484,9 +4484,9 @@ func RegisterStorageServer(s *grpc.Server, srv StorageServer) {
 	s.RegisterService(&_Storage_serviceDesc, srv)
 }
 
-func _Storage_Create_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Storage_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
 	in := new(StorageName)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := dec(in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(StorageServer).Create(ctx, in)
@@ -4496,9 +4496,9 @@ func _Storage_Create_Handler(srv interface{}, ctx context.Context, codec grpc.Co
 	return out, nil
 }
 
-func _Storage_Remove_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Storage_Remove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
 	in := new(StorageName)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := dec(in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(StorageServer).Remove(ctx, in)
@@ -4508,9 +4508,9 @@ func _Storage_Remove_Handler(srv interface{}, ctx context.Context, codec grpc.Co
 	return out, nil
 }
 
-func _Storage_RemoveAll_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Storage_RemoveAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
 	in := new(StorageName)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := dec(in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(StorageServer).RemoveAll(ctx, in)
@@ -4520,9 +4520,9 @@ func _Storage_RemoveAll_Handler(srv interface{}, ctx context.Context, codec grpc
 	return out, nil
 }
 
-func _Storage_Read_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Storage_Read_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
 	in := new(StorageReadOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := dec(in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(StorageServer).Read(ctx, in)
@@ -4532,9 +4532,9 @@ func _Storage_Read_Handler(srv interface{}, ctx context.Context, codec grpc.Code
 	return out, nil
 }
 
-func _Storage_Write_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Storage_Write_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
 	in := new(StorageWriteOp)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := dec(in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(StorageServer).Write(ctx, in)
@@ -4544,9 +4544,9 @@ func _Storage_Write_Handler(srv interface{}, ctx context.Context, codec grpc.Cod
 	return out, nil
 }
 
-func _Storage_Stat_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Storage_Stat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
 	in := new(StorageName)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := dec(in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(StorageServer).Stat(ctx, in)
@@ -4556,9 +4556,9 @@ func _Storage_Stat_Handler(srv interface{}, ctx context.Context, codec grpc.Code
 	return out, nil
 }
 
-func _Storage_ReadDir_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Storage_ReadDir_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
 	in := new(StorageName)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := dec(in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(StorageServer).ReadDir(ctx, in)
@@ -4568,9 +4568,9 @@ func _Storage_ReadDir_Handler(srv interface{}, ctx context.Context, codec grpc.C
 	return out, nil
 }
 
-func _Storage_Close_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _Storage_Close_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
 	in := new(StorageName)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := dec(in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(StorageServer).Close(ctx, in)
