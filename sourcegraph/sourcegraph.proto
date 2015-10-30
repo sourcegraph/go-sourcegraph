@@ -741,7 +741,7 @@ service Storage {
 		};
 	}
 
-	// Remove deletes the named file or directory.
+	// Remove deletes the named file.
 	rpc Remove(StorageName) returns (StorageError) {
 		option (google.api.http) = {
 			post: "/storage/remove"
