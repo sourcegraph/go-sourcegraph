@@ -331,29 +331,35 @@ func (x TelemetryType) String() string {
 type StorageError_Code int32
 
 const (
+	// NONE is the error code used when programatic handling of the error is not
+	// advised. It can be assumed that the operation failed, and that a human
+	// readable message is also provided.
+	StorageError_NONE StorageError_Code = 0
 	// EOF is the error returned by Read when no more input is available.
 	// Functions should return EOF only to signal a graceful end of input. If
 	// the EOF occurs unexpectedly in a structured data stream, the appropriate
 	// error is either UNEXPECTED_EOF or some other error message giving more
 	// detail.
-	StorageError_EOF StorageError_Code = 0
+	StorageError_EOF StorageError_Code = 1
 	// NOT_EXIST is the error used when attempting to read/write to an object
 	// that does not exist.
-	StorageError_NOT_EXIST StorageError_Code = 1
+	StorageError_NOT_EXIST StorageError_Code = 2
 	// PERMISSION is the error used when permission to access the given file is
 	// not granted to you.
-	StorageError_PERMISSION StorageError_Code = 2
+	StorageError_PERMISSION StorageError_Code = 3
 )
 
 var StorageError_Code_name = map[int32]string{
-	0: "EOF",
-	1: "NOT_EXIST",
-	2: "PERMISSION",
+	0: "NONE",
+	1: "EOF",
+	2: "NOT_EXIST",
+	3: "PERMISSION",
 }
 var StorageError_Code_value = map[string]int32{
-	"EOF":        0,
-	"NOT_EXIST":  1,
-	"PERMISSION": 2,
+	"NONE":       0,
+	"EOF":        1,
+	"NOT_EXIST":  2,
+	"PERMISSION": 3,
 }
 
 func (x StorageError_Code) String() string {
@@ -4372,7 +4378,7 @@ var _Repos_serviceDesc = grpc.ServiceDesc{
 type StorageClient interface {
 	// Create creates a new file with the given name.
 	Create(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error)
-	// Remove deletes the named file or directory.
+	// Remove deletes the named file.
 	Remove(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error)
 	// RemoveAll deletes the named file or directory recursively.
 	RemoveAll(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error)
@@ -4474,7 +4480,7 @@ func (c *storageClient) Close(ctx context.Context, in *StorageName, opts ...grpc
 type StorageServer interface {
 	// Create creates a new file with the given name.
 	Create(context.Context, *StorageName) (*StorageError, error)
-	// Remove deletes the named file or directory.
+	// Remove deletes the named file.
 	Remove(context.Context, *StorageName) (*StorageError, error)
 	// RemoveAll deletes the named file or directory recursively.
 	RemoveAll(context.Context, *StorageName) (*StorageError, error)
