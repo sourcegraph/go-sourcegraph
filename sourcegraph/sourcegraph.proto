@@ -814,7 +814,7 @@ service Changesets {
 	rpc Merge(ChangesetMergeOp) returns (ChangesetEvent);
 
 	// UpdateAffected updates all changesets which may be affected
-	// by a new commit to a repository and returns the list of update
+	// by new commits to a branch and returns the list of update
 	// events for all affected changesets.
 	rpc UpdateAffected(ChangesetUpdateAffectedOp) returns (ChangesetEventList);
 
@@ -1020,10 +1020,10 @@ message ChangesetUpdateAffectedOp {
 	// Branch is the name of the branch which was pushed to.
 	string branch = 2;
 
-	// Last is the SHA1 of the previous commit on the branch.
+	// Last is the SHA1 of the last commit on the branch.
 	string last = 3;
 
-	// Commit is the SHA1 of the newly pushed commit on the branch.
+	// Commit is the SHA1 of the tip of the newly pushed commits on the branch.
 	string commit = 4;
 }
 

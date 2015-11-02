@@ -1224,9 +1224,9 @@ type ChangesetUpdateAffectedOp struct {
 	Repo RepoSpec `protobuf:"bytes,1,opt,name=repo" json:"repo"`
 	// Branch is the name of the branch which was pushed to.
 	Branch string `protobuf:"bytes,2,opt,name=branch,proto3" json:"branch,omitempty"`
-	// Last is the SHA1 of the previous commit on the branch.
+	// Last is the SHA1 of the last commit on the branch.
 	Last string `protobuf:"bytes,3,opt,name=last,proto3" json:"last,omitempty"`
-	// Commit is the SHA1 of the newly pushed commit on the branch.
+	// Commit is the SHA1 of the tip of the newly pushed commits on the branch.
 	Commit string `protobuf:"bytes,4,opt,name=commit,proto3" json:"commit,omitempty"`
 }
 
@@ -4700,7 +4700,7 @@ type ChangesetsClient interface {
 	// If no merge occurred, it returns nil.
 	Merge(ctx context.Context, in *ChangesetMergeOp, opts ...grpc.CallOption) (*ChangesetEvent, error)
 	// UpdateAffected updates all changesets which may be affected
-	// by a new commit to a repository and returns the list of update
+	// by new commits to a branch and returns the list of update
 	// events for all affected changesets.
 	UpdateAffected(ctx context.Context, in *ChangesetUpdateAffectedOp, opts ...grpc.CallOption) (*ChangesetEventList, error)
 	// CreateReview creates a new Review and returns it, populating
@@ -4819,7 +4819,7 @@ type ChangesetsServer interface {
 	// If no merge occurred, it returns nil.
 	Merge(context.Context, *ChangesetMergeOp) (*ChangesetEvent, error)
 	// UpdateAffected updates all changesets which may be affected
-	// by a new commit to a repository and returns the list of update
+	// by new commits to a branch and returns the list of update
 	// events for all affected changesets.
 	UpdateAffected(context.Context, *ChangesetUpdateAffectedOp) (*ChangesetEventList, error)
 	// CreateReview creates a new Review and returns it, populating
