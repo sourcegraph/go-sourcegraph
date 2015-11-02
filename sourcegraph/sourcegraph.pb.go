@@ -888,9 +888,9 @@ func (*StorageName) ProtoMessage()    {}
 type StorageReadOp struct {
 	Name StorageName `protobuf:"bytes,1,opt,name=name" json:"name"`
 	// offset is the offset in bytes in which to perform the read operation from
-	// the start or end of the file, depending on offset_end. If no offset is
-	// specified, read operations always occur at the start of the file (they do
-	// not retain state).
+	// the start or end of the file, depending on offset_end. You must retain the
+	// offset state yourself, or else reading will always occur at the start of
+	// the file.
 	Offset int64 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
 	// offset_end causes the offset to act relative to the end of the file, if
 	// set (i.e. offset == -100 would mean to read starting 100 bytes from the end
