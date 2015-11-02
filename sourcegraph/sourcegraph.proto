@@ -643,8 +643,7 @@ message StorageReadOp {
 
 	// offset is the offset in bytes in which to perform the read operation from
 	// the start or end of the file, depending on offset_end. You must retain the
-	// offset state yourself, or else reading will always occur at the start of
-	// the file.
+	// offset state yourself.
 	int64 offset = 2;
 
 	// offset_end causes the offset to act relative to the end of the file, if
