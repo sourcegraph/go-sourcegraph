@@ -331,35 +331,35 @@ func (x TelemetryType) String() string {
 type StorageError_Code int32
 
 const (
-	// NONE is the error code used when programatic handling of the error is not
+	// None is the error code used when programatic handling of the error is not
 	// advised. It can be assumed that the operation failed, and that a human
 	// readable message is also provided.
-	StorageError_NONE StorageError_Code = 0
+	StorageError_None StorageError_Code = 0
 	// EOF is the error returned by Read when no more input is available.
 	// Functions should return EOF only to signal a graceful end of input. If
 	// the EOF occurs unexpectedly in a structured data stream, the appropriate
 	// error is either UNEXPECTED_EOF or some other error message giving more
 	// detail.
 	StorageError_EOF StorageError_Code = 1
-	// NOT_EXIST is the error used when attempting to read/write to an object
+	// NotExist is the error used when attempting to read/write to an object
 	// that does not exist.
-	StorageError_NOT_EXIST StorageError_Code = 2
-	// PERMISSION is the error used when permission to access the given file is
+	StorageError_NotExist StorageError_Code = 2
+	// Permission is the error used when permission to access the given file is
 	// not granted to you.
-	StorageError_PERMISSION StorageError_Code = 3
+	StorageError_Permission StorageError_Code = 3
 )
 
 var StorageError_Code_name = map[int32]string{
-	0: "NONE",
+	0: "None",
 	1: "EOF",
-	2: "NOT_EXIST",
-	3: "PERMISSION",
+	2: "NotExist",
+	3: "Permission",
 }
 var StorageError_Code_value = map[string]int32{
-	"NONE":       0,
+	"None":       0,
 	"EOF":        1,
-	"NOT_EXIST":  2,
-	"PERMISSION": 3,
+	"NotExist":   2,
+	"Permission": 3,
 }
 
 func (x StorageError_Code) String() string {
