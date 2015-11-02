@@ -624,8 +624,8 @@ message StorageError {
 
 // StorageName is a storage object's name.
 message StorageName {
-	// app_name is the name of the application whose data you are trying to
-	// read/write, applications may read and write to eachother's data assuming
+	// AppName is the name of the application whose data you are trying to
+	// read/write, applications may read and write to eachothers data assuming
 	// the admin has not restricted such access.
 	string app_name = 1;
 
