@@ -745,13 +745,6 @@ service Storage {
 		};
 	}
 
-	// Remove deletes the named file.
-	rpc Remove(StorageName) returns (StorageError) {
-		option (google.api.http) = {
-			post: "/storage/remove"
-		};
-	}
-
 	// RemoveAll deletes the named file or directory recursively.
 	rpc RemoveAll(StorageName) returns (StorageError) {
 		option (google.api.http) = {

@@ -4377,8 +4377,6 @@ var _Repos_serviceDesc = grpc.ServiceDesc{
 type StorageClient interface {
 	// Create creates a new file with the given name.
 	Create(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error)
-	// Remove deletes the named file.
-	Remove(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error)
 	// RemoveAll deletes the named file or directory recursively.
 	RemoveAll(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error)
 	// Read reads from an existing file.
@@ -4405,15 +4403,6 @@ func NewStorageClient(cc *grpc.ClientConn) StorageClient {
 func (c *storageClient) Create(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error) {
 	out := new(StorageError)
 	err := grpc.Invoke(ctx, "/sourcegraph.Storage/Create", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *storageClient) Remove(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error) {
-	out := new(StorageError)
-	err := grpc.Invoke(ctx, "/sourcegraph.Storage/Remove", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -4479,8 +4468,6 @@ func (c *storageClient) Close(ctx context.Context, in *StorageName, opts ...grpc
 type StorageServer interface {
 	// Create creates a new file with the given name.
 	Create(context.Context, *StorageName) (*StorageError, error)
-	// Remove deletes the named file.
-	Remove(context.Context, *StorageName) (*StorageError, error)
 	// RemoveAll deletes the named file or directory recursively.
 	RemoveAll(context.Context, *StorageName) (*StorageError, error)
 	// Read reads from an existing file.
@@ -4506,18 +4493,6 @@ func _Storage_Create_Handler(srv interface{}, ctx context.Context, dec func(inte
 		return nil, err
 	}
 	out, err := srv.(StorageServer).Create(ctx, in)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func _Storage_Remove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
-	in := new(StorageName)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	out, err := srv.(StorageServer).Remove(ctx, in)
 	if err != nil {
 		return nil, err
 	}
@@ -4603,10 +4578,6 @@ var _Storage_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Create",
 			Handler:    _Storage_Create_Handler,
-		},
-		{
-			MethodName: "Remove",
-			Handler:    _Storage_Remove_Handler,
 		},
 		{
 			MethodName: "RemoveAll",
