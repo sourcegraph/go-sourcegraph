@@ -855,11 +855,11 @@ func (*RepoList) ProtoMessage()    {}
 
 // StorageError represents an error when interacting with the Storage service.
 type StorageError struct {
-	// code is the error code. If no error code is specified then programatic
+	// Code is the error code. If no error code is specified then programatic
 	// handling of the error is not advised. The user should be informed of the
 	// error message instead.
 	Code StorageError_Code `protobuf:"varint,1,opt,name=code,proto3,enum=sourcegraph.StorageError_Code" json:"code,omitempty"`
-	// message is the human-readable error message.
+	// Message is the human-readable error message.
 	Message string `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
 }
 
@@ -873,10 +873,11 @@ type StorageName struct {
 	// read/write, applications may read and write to each other's data assuming
 	// the admin has not restricted such access.
 	AppName string `protobuf:"bytes,1,opt,name=app_name,proto3" json:"app_name,omitempty"`
-	// If specified storage is considered local to the given repository. Otherwise
-	// it is considered "global" (i.e. shared across all repositories).
+	// Repo is the repository URI. If specified storage is considered local to the
+	// repository. Otherwise it is considered "global" (i.e. shared across all
+	// repositories).
 	Repo string `protobuf:"bytes,2,opt,name=repo,proto3" json:"repo,omitempty"`
-	// name is the name of the file.
+	// Name is the name of the file.
 	Name string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 }
 
@@ -887,15 +888,15 @@ func (*StorageName) ProtoMessage()    {}
 // StorageReadOp is the parameters for reading from a file.
 type StorageReadOp struct {
 	Name StorageName `protobuf:"bytes,1,opt,name=name" json:"name"`
-	// offset is the offset in bytes in which to perform the read operation from
+	// Offset is the offset in bytes in which to perform the read operation from
 	// the start or end of the file, depending on offset_end. You must retain the
 	// offset state yourself.
 	Offset int64 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
-	// offset_end causes the offset to act relative to the end of the file, if
+	// OffsetEnd causes the offset to act relative to the end of the file, if
 	// set (i.e. offset == -100 would mean to read starting 100 bytes from the end
 	// of the file).
 	OffsetEnd bool `protobuf:"varint,3,opt,name=offset_end,proto3" json:"offset_end,omitempty"`
-	// count is the number of bytes desired to be read. There is no guarantee that
+	// Count is the number of bytes desired to be read. There is no guarantee that
 	// this many will be read, however. Instead you should check the size of the
 	// data returned.
 	Count int64 `protobuf:"varint,4,opt,name=count,proto3" json:"count,omitempty"`
@@ -907,10 +908,10 @@ func (*StorageReadOp) ProtoMessage()    {}
 
 // StorageRead is the result from reading a file.
 type StorageRead struct {
-	// error is the error that occurred during reading, if any. In the case of a
+	// Error is the error that occurred during reading, if any. In the case of a
 	// EOF error, it may be accompanied by data (i.e. EOF and some data).
 	Error *StorageError `protobuf:"bytes,1,opt,name=error" json:"error,omitempty"`
-	// data is the data that was read from the file. There is no guarantee that
+	// Data is the data that was read from the file. There is no guarantee that
 	// the requested number of bytes to read will actually be read, so if you
 	// desire more than what is returned here then you should perform a read
 	// again.
@@ -924,14 +925,14 @@ func (*StorageRead) ProtoMessage()    {}
 // StorageWriteOp is the parameters for writing to a file.
 type StorageWriteOp struct {
 	Name StorageName `protobuf:"bytes,1,opt,name=name" json:"name"`
-	// offset is the offset in bytes in which to perform the write operation from
+	// Offset is the offset in bytes in which to perform the write operation from
 	// the start or end of the file, depending on offset_end.
 	Offset int64 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
-	// offset_end causes the offset to act relative to the end of the file, if
+	// OffsetEnd causes the offset to act relative to the end of the file, if
 	// set (i.e. offset == -100 would mean to write starting 100 bytes from the
 	// end of the file).
 	OffsetEnd bool `protobuf:"varint,3,opt,name=offset_end,proto3" json:"offset_end,omitempty"`
-	// data is the data to be written. There is no guarantee all of the data will
+	// Data is the data to be written. There is no guarantee all of the data will
 	// be written, however. Instead you should check the number of bytes written
 	// by looking at the StorageWrite.wrote field and attempt writing whatever
 	// bytes were not during that write operation.
@@ -944,9 +945,9 @@ func (*StorageWriteOp) ProtoMessage()    {}
 
 // StorageWrite is the result from writing to a file.
 type StorageWrite struct {
-	// error is the error that occurred during writing, if any.
+	// Error is the error that occurred during writing, if any.
 	Error *StorageError `protobuf:"bytes,1,opt,name=error" json:"error,omitempty"`
-	// wrote is the number of bytes written to the file. If the number of bytes
+	// Wrote is the number of bytes written to the file. If the number of bytes
 	// written (as reported by this field) is not the same number of bytes you
 	// tried to write, then you should attempt subsequent writes to finish writing
 	// the data assuming there was no error.
@@ -959,13 +960,13 @@ func (*StorageWrite) ProtoMessage()    {}
 
 // StorageFileInfo lists information about a file.
 type StorageFileInfo struct {
-	// name is the base name of the file.
+	// Name is the base name of the file.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// size is the length in bytes of the file, or zero.
+	// Size is the length in bytes of the file, or zero.
 	Size_ int64 `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
-	// mod_time is the file modification time.
+	// ModTime is the file modification time.
 	ModTime pbtypes.Timestamp `protobuf:"bytes,3,opt,name=mod_time" json:"mod_time"`
-	// is_dir tells if the file is a directory.
+	// IsDir tells if the file is a directory.
 	IsDir bool `protobuf:"varint,4,opt,name=is_dir,proto3" json:"is_dir,omitempty"`
 }
 
@@ -975,9 +976,9 @@ func (*StorageFileInfo) ProtoMessage()    {}
 
 // StorageStat is the result from statting a file.
 type StorageStat struct {
-	// error is the error that occurred during reading, if any.
+	// Error is the error that occurred during reading, if any.
 	Error *StorageError `protobuf:"bytes,1,opt,name=error" json:"error,omitempty"`
-	// info is the information for the file.
+	// Info is the information for the file.
 	Info StorageFileInfo `protobuf:"bytes,2,opt,name=info" json:"info"`
 }
 
@@ -987,9 +988,9 @@ func (*StorageStat) ProtoMessage()    {}
 
 // StorageReadDir is the result from reading a directories contents.
 type StorageReadDir struct {
-	// error is the error that occurred during reading, if any.
+	// Error is the error that occurred during reading, if any.
 	Error *StorageError `protobuf:"bytes,1,opt,name=error" json:"error,omitempty"`
-	// info is the information for each file in the directory.
+	// Info is the information for each file in the directory.
 	Info []StorageFileInfo `protobuf:"bytes,2,rep,name=info" json:"info"`
 }
 
