@@ -870,7 +870,7 @@ func (*StorageError) ProtoMessage()    {}
 // StorageName is a storage object's name.
 type StorageName struct {
 	// AppName is the name of the application whose data you are trying to
-	// read/write, applications may read and write to eachothers data assuming
+	// read/write, applications may read and write to each other's data assuming
 	// the admin has not restricted such access.
 	AppName string `protobuf:"bytes,1,opt,name=app_name,proto3" json:"app_name,omitempty"`
 	// If specified storage is considered local to the given repository. Otherwise
