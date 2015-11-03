@@ -36,6 +36,15 @@ It has these top-level messages:
 	RepoStatus
 	RepoStatusesCreateOp
 	RepoList
+	StorageError
+	StorageName
+	StorageReadOp
+	StorageRead
+	StorageWriteOp
+	StorageWrite
+	StorageFileInfo
+	StorageStat
+	StorageReadDir
 	ReposCreateOp
 	ReposUpdateOp
 	ReposListCommitsOp
@@ -316,6 +325,45 @@ var TelemetryType_value = map[string]int32{
 
 func (x TelemetryType) String() string {
 	return proto.EnumName(TelemetryType_name, int32(x))
+}
+
+// Code represents the type of error for programatic handling.
+type StorageError_Code int32
+
+const (
+	// None is the error code used when programatic handling of the error is not
+	// advised. It can be assumed that the operation failed, and that a human
+	// readable message is also provided.
+	StorageError_None StorageError_Code = 0
+	// EOF is the error returned by Read when no more input is available.
+	// Functions should return EOF only to signal a graceful end of input. If
+	// the EOF occurs unexpectedly in a structured data stream, the appropriate
+	// error is either UNEXPECTED_EOF or some other error message giving more
+	// detail.
+	StorageError_EOF StorageError_Code = 1
+	// NotExist is the error used when attempting to read/write to an object
+	// that does not exist.
+	StorageError_NotExist StorageError_Code = 2
+	// Permission is the error used when permission to access the given file is
+	// not granted to you.
+	StorageError_Permission StorageError_Code = 3
+)
+
+var StorageError_Code_name = map[int32]string{
+	0: "None",
+	1: "EOF",
+	2: "NotExist",
+	3: "Permission",
+}
+var StorageError_Code_value = map[string]int32{
+	"None":       0,
+	"EOF":        1,
+	"NotExist":   2,
+	"Permission": 3,
+}
+
+func (x StorageError_Code) String() string {
+	return proto.EnumName(StorageError_Code_name, int32(x))
 }
 
 type Badge struct {
@@ -804,6 +852,151 @@ type RepoList struct {
 func (m *RepoList) Reset()         { *m = RepoList{} }
 func (m *RepoList) String() string { return proto.CompactTextString(m) }
 func (*RepoList) ProtoMessage()    {}
+
+// StorageError represents an error when interacting with the Storage service.
+type StorageError struct {
+	// Code is the error code. If no error code is specified then programatic
+	// handling of the error is not advised. The user should be informed of the
+	// error message instead.
+	Code StorageError_Code `protobuf:"varint,1,opt,name=code,proto3,enum=sourcegraph.StorageError_Code" json:"code,omitempty"`
+	// Message is the human-readable error message.
+	Message string `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+}
+
+func (m *StorageError) Reset()         { *m = StorageError{} }
+func (m *StorageError) String() string { return proto.CompactTextString(m) }
+func (*StorageError) ProtoMessage()    {}
+
+// StorageName is a storage object's name.
+type StorageName struct {
+	// AppName is the name of the application whose data you are trying to
+	// read/write, applications may read and write to each other's data assuming
+	// the admin has not restricted such access.
+	AppName string `protobuf:"bytes,1,opt,name=app_name,proto3" json:"app_name,omitempty"`
+	// Repo is the repository URI. If specified storage is considered local to the
+	// repository. Otherwise it is considered "global" (i.e. shared across all
+	// repositories).
+	Repo string `protobuf:"bytes,2,opt,name=repo,proto3" json:"repo,omitempty"`
+	// Name is the name of the file.
+	Name string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+}
+
+func (m *StorageName) Reset()         { *m = StorageName{} }
+func (m *StorageName) String() string { return proto.CompactTextString(m) }
+func (*StorageName) ProtoMessage()    {}
+
+// StorageReadOp is the parameters for reading from a file.
+type StorageReadOp struct {
+	Name StorageName `protobuf:"bytes,1,opt,name=name" json:"name"`
+	// Offset is the offset in bytes in which to perform the read operation from
+	// the start or end of the file, depending on offset_end. You must retain the
+	// offset state yourself.
+	Offset int64 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+	// OffsetEnd causes the offset to act relative to the end of the file, if
+	// set (i.e. offset == -100 would mean to read starting 100 bytes from the end
+	// of the file).
+	OffsetEnd bool `protobuf:"varint,3,opt,name=offset_end,proto3" json:"offset_end,omitempty"`
+	// Count is the number of bytes desired to be read. There is no guarantee that
+	// this many will be read, however. Instead you should check the size of the
+	// data returned.
+	Count int64 `protobuf:"varint,4,opt,name=count,proto3" json:"count,omitempty"`
+}
+
+func (m *StorageReadOp) Reset()         { *m = StorageReadOp{} }
+func (m *StorageReadOp) String() string { return proto.CompactTextString(m) }
+func (*StorageReadOp) ProtoMessage()    {}
+
+// StorageRead is the result from reading a file.
+type StorageRead struct {
+	// Error is the error that occurred during reading, if any. In the case of a
+	// EOF error, it may be accompanied by data (i.e. EOF and some data).
+	Error *StorageError `protobuf:"bytes,1,opt,name=error" json:"error,omitempty"`
+	// Data is the data that was read from the file. There is no guarantee that
+	// the requested number of bytes to read will actually be read, so if you
+	// desire more than what is returned here then you should perform a read
+	// again.
+	Data []byte `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+}
+
+func (m *StorageRead) Reset()         { *m = StorageRead{} }
+func (m *StorageRead) String() string { return proto.CompactTextString(m) }
+func (*StorageRead) ProtoMessage()    {}
+
+// StorageWriteOp is the parameters for writing to a file.
+type StorageWriteOp struct {
+	Name StorageName `protobuf:"bytes,1,opt,name=name" json:"name"`
+	// Offset is the offset in bytes in which to perform the write operation from
+	// the start or end of the file, depending on offset_end.
+	Offset int64 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+	// OffsetEnd causes the offset to act relative to the end of the file, if
+	// set (i.e. offset == -100 would mean to write starting 100 bytes from the
+	// end of the file).
+	OffsetEnd bool `protobuf:"varint,3,opt,name=offset_end,proto3" json:"offset_end,omitempty"`
+	// Data is the data to be written. There is no guarantee all of the data will
+	// be written, however. Instead you should check the number of bytes written
+	// by looking at the StorageWrite.wrote field and attempt writing whatever
+	// bytes were not during that write operation.
+	Data []byte `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+}
+
+func (m *StorageWriteOp) Reset()         { *m = StorageWriteOp{} }
+func (m *StorageWriteOp) String() string { return proto.CompactTextString(m) }
+func (*StorageWriteOp) ProtoMessage()    {}
+
+// StorageWrite is the result from writing to a file.
+type StorageWrite struct {
+	// Error is the error that occurred during writing, if any.
+	Error *StorageError `protobuf:"bytes,1,opt,name=error" json:"error,omitempty"`
+	// Wrote is the number of bytes written to the file. If the number of bytes
+	// written (as reported by this field) is not the same number of bytes you
+	// tried to write, then you should attempt subsequent writes to finish writing
+	// the data assuming there was no error.
+	Wrote int64 `protobuf:"varint,2,opt,name=wrote,proto3" json:"wrote,omitempty"`
+}
+
+func (m *StorageWrite) Reset()         { *m = StorageWrite{} }
+func (m *StorageWrite) String() string { return proto.CompactTextString(m) }
+func (*StorageWrite) ProtoMessage()    {}
+
+// StorageFileInfo lists information about a file.
+type StorageFileInfo struct {
+	// Name is the base name of the file.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Size is the length in bytes of the file, or zero.
+	Size_ int64 `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+	// ModTime is the file modification time.
+	ModTime pbtypes.Timestamp `protobuf:"bytes,3,opt,name=mod_time" json:"mod_time"`
+	// IsDir tells if the file is a directory.
+	IsDir bool `protobuf:"varint,4,opt,name=is_dir,proto3" json:"is_dir,omitempty"`
+}
+
+func (m *StorageFileInfo) Reset()         { *m = StorageFileInfo{} }
+func (m *StorageFileInfo) String() string { return proto.CompactTextString(m) }
+func (*StorageFileInfo) ProtoMessage()    {}
+
+// StorageStat is the result from statting a file.
+type StorageStat struct {
+	// Error is the error that occurred during reading, if any.
+	Error *StorageError `protobuf:"bytes,1,opt,name=error" json:"error,omitempty"`
+	// Info is the information for the file.
+	Info StorageFileInfo `protobuf:"bytes,2,opt,name=info" json:"info"`
+}
+
+func (m *StorageStat) Reset()         { *m = StorageStat{} }
+func (m *StorageStat) String() string { return proto.CompactTextString(m) }
+func (*StorageStat) ProtoMessage()    {}
+
+// StorageReadDir is the result from reading a directories contents.
+type StorageReadDir struct {
+	// Error is the error that occurred during reading, if any.
+	Error *StorageError `protobuf:"bytes,1,opt,name=error" json:"error,omitempty"`
+	// Info is the information for each file in the directory.
+	Info []StorageFileInfo `protobuf:"bytes,2,rep,name=info" json:"info"`
+}
+
+func (m *StorageReadDir) Reset()         { *m = StorageReadDir{} }
+func (m *StorageReadDir) String() string { return proto.CompactTextString(m) }
+func (*StorageReadDir) ProtoMessage()    {}
 
 type ReposCreateOp struct {
 	// URI is the desired URI of the new repository.
@@ -3489,6 +3682,7 @@ func init() {
 	proto.RegisterEnum("sourcegraph.DiscussionListOrder", DiscussionListOrder_name, DiscussionListOrder_value)
 	proto.RegisterEnum("sourcegraph.RegisteredClientType", RegisteredClientType_name, RegisteredClientType_value)
 	proto.RegisterEnum("sourcegraph.TelemetryType", TelemetryType_name, TelemetryType_value)
+	proto.RegisterEnum("sourcegraph.StorageError_Code", StorageError_Code_name, StorageError_Code_value)
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -4174,6 +4368,247 @@ var _Repos_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCommitters",
 			Handler:    _Repos_ListCommitters_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{},
+}
+
+// Client API for Storage service
+
+type StorageClient interface {
+	// Create creates a new file with the given name. Once you are finished with
+	// the file you must call Close.
+	Create(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error)
+	// RemoveAll deletes the named file or directory recursively.
+	RemoveAll(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error)
+	// Read reads from an existing file. The file is implicitly opened by Read
+	// and a call to Close must be made once you are finished with it.
+	Read(ctx context.Context, in *StorageReadOp, opts ...grpc.CallOption) (*StorageRead, error)
+	// Write writes to an existing file. The file is implicitly opened by Write
+	// and a call to Close must be made once you are finished with it.
+	Write(ctx context.Context, in *StorageWriteOp, opts ...grpc.CallOption) (*StorageWrite, error)
+	// Stat stats an existing file.
+	Stat(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageStat, error)
+	// ReadDir reads a directories contents.
+	ReadDir(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageReadDir, error)
+	// Close closes the named file or directory. You must always call Close once
+	// finished performing actions on a file.
+	Close(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error)
+}
+
+type storageClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewStorageClient(cc *grpc.ClientConn) StorageClient {
+	return &storageClient{cc}
+}
+
+func (c *storageClient) Create(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error) {
+	out := new(StorageError)
+	err := grpc.Invoke(ctx, "/sourcegraph.Storage/Create", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageClient) RemoveAll(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error) {
+	out := new(StorageError)
+	err := grpc.Invoke(ctx, "/sourcegraph.Storage/RemoveAll", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageClient) Read(ctx context.Context, in *StorageReadOp, opts ...grpc.CallOption) (*StorageRead, error) {
+	out := new(StorageRead)
+	err := grpc.Invoke(ctx, "/sourcegraph.Storage/Read", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageClient) Write(ctx context.Context, in *StorageWriteOp, opts ...grpc.CallOption) (*StorageWrite, error) {
+	out := new(StorageWrite)
+	err := grpc.Invoke(ctx, "/sourcegraph.Storage/Write", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageClient) Stat(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageStat, error) {
+	out := new(StorageStat)
+	err := grpc.Invoke(ctx, "/sourcegraph.Storage/Stat", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageClient) ReadDir(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageReadDir, error) {
+	out := new(StorageReadDir)
+	err := grpc.Invoke(ctx, "/sourcegraph.Storage/ReadDir", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageClient) Close(ctx context.Context, in *StorageName, opts ...grpc.CallOption) (*StorageError, error) {
+	out := new(StorageError)
+	err := grpc.Invoke(ctx, "/sourcegraph.Storage/Close", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for Storage service
+
+type StorageServer interface {
+	// Create creates a new file with the given name. Once you are finished with
+	// the file you must call Close.
+	Create(context.Context, *StorageName) (*StorageError, error)
+	// RemoveAll deletes the named file or directory recursively.
+	RemoveAll(context.Context, *StorageName) (*StorageError, error)
+	// Read reads from an existing file. The file is implicitly opened by Read
+	// and a call to Close must be made once you are finished with it.
+	Read(context.Context, *StorageReadOp) (*StorageRead, error)
+	// Write writes to an existing file. The file is implicitly opened by Write
+	// and a call to Close must be made once you are finished with it.
+	Write(context.Context, *StorageWriteOp) (*StorageWrite, error)
+	// Stat stats an existing file.
+	Stat(context.Context, *StorageName) (*StorageStat, error)
+	// ReadDir reads a directories contents.
+	ReadDir(context.Context, *StorageName) (*StorageReadDir, error)
+	// Close closes the named file or directory. You must always call Close once
+	// finished performing actions on a file.
+	Close(context.Context, *StorageName) (*StorageError, error)
+}
+
+func RegisterStorageServer(s *grpc.Server, srv StorageServer) {
+	s.RegisterService(&_Storage_serviceDesc, srv)
+}
+
+func _Storage_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
+	in := new(StorageName)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(StorageServer).Create(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Storage_RemoveAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
+	in := new(StorageName)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(StorageServer).RemoveAll(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Storage_Read_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
+	in := new(StorageReadOp)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(StorageServer).Read(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Storage_Write_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
+	in := new(StorageWriteOp)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(StorageServer).Write(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Storage_Stat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
+	in := new(StorageName)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(StorageServer).Stat(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Storage_ReadDir_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
+	in := new(StorageName)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(StorageServer).ReadDir(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Storage_Close_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
+	in := new(StorageName)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(StorageServer).Close(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+var _Storage_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "sourcegraph.Storage",
+	HandlerType: (*StorageServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Create",
+			Handler:    _Storage_Create_Handler,
+		},
+		{
+			MethodName: "RemoveAll",
+			Handler:    _Storage_RemoveAll_Handler,
+		},
+		{
+			MethodName: "Read",
+			Handler:    _Storage_Read_Handler,
+		},
+		{
+			MethodName: "Write",
+			Handler:    _Storage_Write_Handler,
+		},
+		{
+			MethodName: "Stat",
+			Handler:    _Storage_Stat_Handler,
+		},
+		{
+			MethodName: "ReadDir",
+			Handler:    _Storage_ReadDir_Handler,
+		},
+		{
+			MethodName: "Close",
+			Handler:    _Storage_Close_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
