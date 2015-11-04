@@ -808,6 +808,8 @@ service Changesets {
 	// update event. If no update occurred, it returns nil.
 	rpc Update(ChangesetUpdateOp) returns (ChangesetEvent);
 
+	// Merge merges the head branch of a changeset into its base branch and
+	// pushes the resulting merged base.
 	rpc Merge(ChangesetMergeOp) returns (pbtypes.Void);
 
 	// CreateReview creates a new Review and returns it, populating
