@@ -4645,6 +4645,8 @@ type ChangesetsClient interface {
 	// UpdateChangeset updates a changeset's fields and returns the
 	// update event. If no update occurred, it returns nil.
 	Update(ctx context.Context, in *ChangesetUpdateOp, opts ...grpc.CallOption) (*ChangesetEvent, error)
+	// Merge merges the head branch of a changeset into its base branch and
+	// pushes the resulting merged base.
 	Merge(ctx context.Context, in *ChangesetMergeOp, opts ...grpc.CallOption) (*pbtypes1.Void, error)
 	// CreateReview creates a new Review and returns it, populating
 	// its fields, such as ID and CreatedAt.
@@ -4748,6 +4750,8 @@ type ChangesetsServer interface {
 	// UpdateChangeset updates a changeset's fields and returns the
 	// update event. If no update occurred, it returns nil.
 	Update(context.Context, *ChangesetUpdateOp) (*ChangesetEvent, error)
+	// Merge merges the head branch of a changeset into its base branch and
+	// pushes the resulting merged base.
 	Merge(context.Context, *ChangesetMergeOp) (*pbtypes1.Void, error)
 	// CreateReview creates a new Review and returns it, populating
 	// its fields, such as ID and CreatedAt.
