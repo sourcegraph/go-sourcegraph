@@ -1835,6 +1835,13 @@ service Auth {
 			get: "/auth/identify"
 		};
 	};
+
+	// GetOwnPermissions returns the permissions of the currently authenticated user.
+	rpc GetOwnPermissions(pbtypes.Void) returns (UserPermissions) {
+		option (google.api.http) = {
+			get: "/auth/get_own_permissions"
+		};
+	};
 }
 
 // SSHPublicKey that users to authenticate with for SSH git access.

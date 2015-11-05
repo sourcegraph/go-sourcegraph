@@ -211,6 +211,17 @@ func (s *CachedAuthServer) Identify(ctx context.Context, in *pbtypes.Void) (*Aut
 	return result, err
 }
 
+func (s *CachedAuthServer) GetOwnPermissions(ctx context.Context, in *pbtypes.Void) (*UserPermissions, error) {
+	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
+	result, err := s.AuthServer.GetOwnPermissions(ctx, in)
+	if !cc.IsZero() {
+		if err := grpccache.Internal_SetCacheControlTrailer(ctx, *cc); err != nil {
+			return nil, err
+		}
+	}
+	return result, err
+}
+
 type CachedAuthClient struct {
 	AuthClient
 	Cache *grpccache.Cache
@@ -288,6 +299,32 @@ func (s *CachedAuthClient) Identify(ctx context.Context, in *pbtypes.Void, opts 
 	}
 	if s.Cache != nil {
 		if err := s.Cache.Store(ctx, "Auth.Identify", in, result, trailer); err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
+}
+
+func (s *CachedAuthClient) GetOwnPermissions(ctx context.Context, in *pbtypes.Void, opts ...grpc.CallOption) (*UserPermissions, error) {
+	if s.Cache != nil {
+		var cachedResult UserPermissions
+		cached, err := s.Cache.Get(ctx, "Auth.GetOwnPermissions", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
+	}
+
+	var trailer metadata.MD
+
+	result, err := s.AuthClient.GetOwnPermissions(ctx, in, grpc.Trailer(&trailer))
+	if err != nil {
+		return nil, err
+	}
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Auth.GetOwnPermissions", in, result, trailer); err != nil {
 			return nil, err
 		}
 	}
