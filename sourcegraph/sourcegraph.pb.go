@@ -6204,6 +6204,8 @@ type AuthClient interface {
 	// Identify describes the currently authenticated user and/or
 	// client (if any). It is akin to "whoami".
 	Identify(ctx context.Context, in *pbtypes1.Void, opts ...grpc.CallOption) (*AuthInfo, error)
+	// GetOwnPermissions returns the permissions of the currently authenticated user.
+	GetOwnPermissions(ctx context.Context, in *pbtypes1.Void, opts ...grpc.CallOption) (*UserPermissions, error)
 }
 
 type authClient struct {
@@ -6241,6 +6243,15 @@ func (c *authClient) Identify(ctx context.Context, in *pbtypes1.Void, opts ...gr
 	return out, nil
 }
 
+func (c *authClient) GetOwnPermissions(ctx context.Context, in *pbtypes1.Void, opts ...grpc.CallOption) (*UserPermissions, error) {
+	out := new(UserPermissions)
+	err := grpc.Invoke(ctx, "/sourcegraph.Auth/GetOwnPermissions", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Auth service
 
 type AuthServer interface {
@@ -6266,6 +6277,8 @@ type AuthServer interface {
 	// Identify describes the currently authenticated user and/or
 	// client (if any). It is akin to "whoami".
 	Identify(context.Context, *pbtypes1.Void) (*AuthInfo, error)
+	// GetOwnPermissions returns the permissions of the currently authenticated user.
+	GetOwnPermissions(context.Context, *pbtypes1.Void) (*UserPermissions, error)
 }
 
 func RegisterAuthServer(s *grpc.Server, srv AuthServer) {
@@ -6308,6 +6321,18 @@ func _Auth_Identify_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return out, nil
 }
 
+func _Auth_GetOwnPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
+	in := new(pbtypes1.Void)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(AuthServer).GetOwnPermissions(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 var _Auth_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "sourcegraph.Auth",
 	HandlerType: (*AuthServer)(nil),
@@ -6323,6 +6348,10 @@ var _Auth_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Identify",
 			Handler:    _Auth_Identify_Handler,
+		},
+		{
+			MethodName: "GetOwnPermissions",
+			Handler:    _Auth_GetOwnPermissions_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
