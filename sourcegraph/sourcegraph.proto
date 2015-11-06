@@ -1778,6 +1778,13 @@ service Users {
 		};
 	};
 
+	// GetWithEmail fetches a user by their primary email.
+	rpc GetWithEmail(EmailAddr) returns (User) {
+		option (google.api.http) = {
+			get: "/users/by_email"
+		};
+	};
+
 	// ListEmails returns a list of a user's email addresses.
 	rpc ListEmails(UserSpec) returns (EmailAddrList) {
 		option (google.api.http) = {

@@ -4161,6 +4161,17 @@ func (s *CachedUsersServer) Get(ctx context.Context, in *UserSpec) (*User, error
 	return result, err
 }
 
+func (s *CachedUsersServer) GetWithEmail(ctx context.Context, in *EmailAddr) (*User, error) {
+	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
+	result, err := s.UsersServer.GetWithEmail(ctx, in)
+	if !cc.IsZero() {
+		if err := grpccache.Internal_SetCacheControlTrailer(ctx, *cc); err != nil {
+			return nil, err
+		}
+	}
+	return result, err
+}
+
 func (s *CachedUsersServer) ListEmails(ctx context.Context, in *UserSpec) (*EmailAddrList, error) {
 	ctx, cc := grpccache.Internal_WithCacheControl(ctx)
 	result, err := s.UsersServer.ListEmails(ctx, in)
@@ -4208,6 +4219,32 @@ func (s *CachedUsersClient) Get(ctx context.Context, in *UserSpec, opts ...grpc.
 	}
 	if s.Cache != nil {
 		if err := s.Cache.Store(ctx, "Users.Get", in, result, trailer); err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
+}
+
+func (s *CachedUsersClient) GetWithEmail(ctx context.Context, in *EmailAddr, opts ...grpc.CallOption) (*User, error) {
+	if s.Cache != nil {
+		var cachedResult User
+		cached, err := s.Cache.Get(ctx, "Users.GetWithEmail", in, &cachedResult)
+		if err != nil {
+			return nil, err
+		}
+		if cached {
+			return &cachedResult, nil
+		}
+	}
+
+	var trailer metadata.MD
+
+	result, err := s.UsersClient.GetWithEmail(ctx, in, grpc.Trailer(&trailer))
+	if err != nil {
+		return nil, err
+	}
+	if s.Cache != nil {
+		if err := s.Cache.Store(ctx, "Users.GetWithEmail", in, result, trailer); err != nil {
 			return nil, err
 		}
 	}

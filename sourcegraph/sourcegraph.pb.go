@@ -5994,6 +5994,8 @@ var _Accounts_serviceDesc = grpc.ServiceDesc{
 type UsersClient interface {
 	// Get fetches a user.
 	Get(ctx context.Context, in *UserSpec, opts ...grpc.CallOption) (*User, error)
+	// GetWithEmail fetches a user by their primary email.
+	GetWithEmail(ctx context.Context, in *EmailAddr, opts ...grpc.CallOption) (*User, error)
 	// ListEmails returns a list of a user's email addresses.
 	ListEmails(ctx context.Context, in *UserSpec, opts ...grpc.CallOption) (*EmailAddrList, error)
 	// List users.
@@ -6011,6 +6013,15 @@ func NewUsersClient(cc *grpc.ClientConn) UsersClient {
 func (c *usersClient) Get(ctx context.Context, in *UserSpec, opts ...grpc.CallOption) (*User, error) {
 	out := new(User)
 	err := grpc.Invoke(ctx, "/sourcegraph.Users/Get", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) GetWithEmail(ctx context.Context, in *EmailAddr, opts ...grpc.CallOption) (*User, error) {
+	out := new(User)
+	err := grpc.Invoke(ctx, "/sourcegraph.Users/GetWithEmail", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -6040,6 +6051,8 @@ func (c *usersClient) List(ctx context.Context, in *UsersListOptions, opts ...gr
 type UsersServer interface {
 	// Get fetches a user.
 	Get(context.Context, *UserSpec) (*User, error)
+	// GetWithEmail fetches a user by their primary email.
+	GetWithEmail(context.Context, *EmailAddr) (*User, error)
 	// ListEmails returns a list of a user's email addresses.
 	ListEmails(context.Context, *UserSpec) (*EmailAddrList, error)
 	// List users.
@@ -6056,6 +6069,18 @@ func _Users_Get_Handler(srv interface{}, ctx context.Context, dec func(interface
 		return nil, err
 	}
 	out, err := srv.(UsersServer).Get(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _Users_GetWithEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
+	in := new(EmailAddr)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(UsersServer).GetWithEmail(ctx, in)
 	if err != nil {
 		return nil, err
 	}
@@ -6093,6 +6118,10 @@ var _Users_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Get",
 			Handler:    _Users_Get_Handler,
+		},
+		{
+			MethodName: "GetWithEmail",
+			Handler:    _Users_GetWithEmail_Handler,
 		},
 		{
 			MethodName: "ListEmails",

@@ -762,13 +762,18 @@ func (s *AccountsServer) Update(v0 context.Context, v1 *sourcegraph.User) (*pbty
 var _ sourcegraph.AccountsServer = (*AccountsServer)(nil)
 
 type UsersClient struct {
-	Get_        func(ctx context.Context, in *sourcegraph.UserSpec) (*sourcegraph.User, error)
-	ListEmails_ func(ctx context.Context, in *sourcegraph.UserSpec) (*sourcegraph.EmailAddrList, error)
-	List_       func(ctx context.Context, in *sourcegraph.UsersListOptions) (*sourcegraph.UserList, error)
+	Get_          func(ctx context.Context, in *sourcegraph.UserSpec) (*sourcegraph.User, error)
+	GetWithEmail_ func(ctx context.Context, in *sourcegraph.EmailAddr) (*sourcegraph.User, error)
+	ListEmails_   func(ctx context.Context, in *sourcegraph.UserSpec) (*sourcegraph.EmailAddrList, error)
+	List_         func(ctx context.Context, in *sourcegraph.UsersListOptions) (*sourcegraph.UserList, error)
 }
 
 func (s *UsersClient) Get(ctx context.Context, in *sourcegraph.UserSpec, opts ...grpc.CallOption) (*sourcegraph.User, error) {
 	return s.Get_(ctx, in)
+}
+
+func (s *UsersClient) GetWithEmail(ctx context.Context, in *sourcegraph.EmailAddr, opts ...grpc.CallOption) (*sourcegraph.User, error) {
+	return s.GetWithEmail_(ctx, in)
 }
 
 func (s *UsersClient) ListEmails(ctx context.Context, in *sourcegraph.UserSpec, opts ...grpc.CallOption) (*sourcegraph.EmailAddrList, error) {
@@ -782,13 +787,18 @@ func (s *UsersClient) List(ctx context.Context, in *sourcegraph.UsersListOptions
 var _ sourcegraph.UsersClient = (*UsersClient)(nil)
 
 type UsersServer struct {
-	Get_        func(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.User, error)
-	ListEmails_ func(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.EmailAddrList, error)
-	List_       func(v0 context.Context, v1 *sourcegraph.UsersListOptions) (*sourcegraph.UserList, error)
+	Get_          func(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.User, error)
+	GetWithEmail_ func(v0 context.Context, v1 *sourcegraph.EmailAddr) (*sourcegraph.User, error)
+	ListEmails_   func(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.EmailAddrList, error)
+	List_         func(v0 context.Context, v1 *sourcegraph.UsersListOptions) (*sourcegraph.UserList, error)
 }
 
 func (s *UsersServer) Get(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.User, error) {
 	return s.Get_(v0, v1)
+}
+
+func (s *UsersServer) GetWithEmail(v0 context.Context, v1 *sourcegraph.EmailAddr) (*sourcegraph.User, error) {
+	return s.GetWithEmail_(v0, v1)
 }
 
 func (s *UsersServer) ListEmails(v0 context.Context, v1 *sourcegraph.UserSpec) (*sourcegraph.EmailAddrList, error) {
