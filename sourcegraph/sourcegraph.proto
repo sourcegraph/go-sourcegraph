@@ -1845,6 +1845,14 @@ service Auth {
 			get: "/auth/identify"
 		};
 	};
+
+	// GetPermissions returns the currently authenticated user's
+	// authorization levels on the client.
+	rpc GetPermissions(pbtypes.Void) returns (UserPermissions) {
+		option (google.api.http) = {
+			get: "/auth/verify"
+		};
+	};
 }
 
 // SSHPublicKey that users to authenticate with for SSH git access.

@@ -855,6 +855,7 @@ type AuthClient struct {
 	GetAuthorizationCode_ func(ctx context.Context, in *sourcegraph.AuthorizationCodeRequest) (*sourcegraph.AuthorizationCode, error)
 	GetAccessToken_       func(ctx context.Context, in *sourcegraph.AccessTokenRequest) (*sourcegraph.AccessTokenResponse, error)
 	Identify_             func(ctx context.Context, in *pbtypes.Void) (*sourcegraph.AuthInfo, error)
+	GetPermissions_       func(ctx context.Context, in *pbtypes.Void) (*sourcegraph.UserPermissions, error)
 }
 
 func (s *AuthClient) GetAuthorizationCode(ctx context.Context, in *sourcegraph.AuthorizationCodeRequest, opts ...grpc.CallOption) (*sourcegraph.AuthorizationCode, error) {
@@ -869,12 +870,17 @@ func (s *AuthClient) Identify(ctx context.Context, in *pbtypes.Void, opts ...grp
 	return s.Identify_(ctx, in)
 }
 
+func (s *AuthClient) GetPermissions(ctx context.Context, in *pbtypes.Void, opts ...grpc.CallOption) (*sourcegraph.UserPermissions, error) {
+	return s.GetPermissions_(ctx, in)
+}
+
 var _ sourcegraph.AuthClient = (*AuthClient)(nil)
 
 type AuthServer struct {
 	GetAuthorizationCode_ func(v0 context.Context, v1 *sourcegraph.AuthorizationCodeRequest) (*sourcegraph.AuthorizationCode, error)
 	GetAccessToken_       func(v0 context.Context, v1 *sourcegraph.AccessTokenRequest) (*sourcegraph.AccessTokenResponse, error)
 	Identify_             func(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.AuthInfo, error)
+	GetPermissions_       func(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.UserPermissions, error)
 }
 
 func (s *AuthServer) GetAuthorizationCode(v0 context.Context, v1 *sourcegraph.AuthorizationCodeRequest) (*sourcegraph.AuthorizationCode, error) {
@@ -887,6 +893,10 @@ func (s *AuthServer) GetAccessToken(v0 context.Context, v1 *sourcegraph.AccessTo
 
 func (s *AuthServer) Identify(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.AuthInfo, error) {
 	return s.Identify_(v0, v1)
+}
+
+func (s *AuthServer) GetPermissions(v0 context.Context, v1 *pbtypes.Void) (*sourcegraph.UserPermissions, error) {
+	return s.GetPermissions_(v0, v1)
 }
 
 var _ sourcegraph.AuthServer = (*AuthServer)(nil)
