@@ -3043,6 +3043,10 @@ message ServerConfig {
 	// users may perform "read" operations, such as viewing
 	// repositories.
 	bool allow_anonymous_readers = 9;
+
+	// AuthSource is which mode of authentication is set up on the
+	// server (local|oauth|ldap).
+	string auth_source = 10;
 }
 
 // A RegisteredClient is a registered API client.

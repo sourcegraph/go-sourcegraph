@@ -3530,6 +3530,9 @@ type ServerConfig struct {
 	// users may perform "read" operations, such as viewing
 	// repositories.
 	AllowAnonymousReaders bool `protobuf:"varint,9,opt,name=allow_anonymous_readers,proto3" json:"allow_anonymous_readers,omitempty"`
+	// AuthSource is which mode of authentication is set up on the
+	// server (local|oauth|ldap).
+	AuthSource string `protobuf:"bytes,10,opt,name=auth_source,proto3" json:"auth_source,omitempty"`
 }
 
 func (m *ServerConfig) Reset()         { *m = ServerConfig{} }
