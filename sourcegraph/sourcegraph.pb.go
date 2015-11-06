@@ -1941,6 +1941,8 @@ type NewAccount struct {
 	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	// Password is the password for the new user account.
 	Password string `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+	// UID is the desired UID for the new user account.
+	UID int32 `protobuf:"varint,4,opt,name=uid,proto3" json:"uid,omitempty"`
 }
 
 func (m *NewAccount) Reset()         { *m = NewAccount{} }

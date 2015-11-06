@@ -1766,6 +1766,9 @@ message NewAccount {
 
 	// Password is the password for the new user account.
 	string password = 3;
+
+	// UID is the desired UID for the new user account.
+	int32 uid = 4 [(gogoproto.customname) = "UID"];
 }
 
 // UsersService communicates with the users-related endpoints in the Sourcegraph
