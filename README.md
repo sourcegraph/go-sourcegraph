@@ -61,5 +61,3 @@ If you run into errors while compiling protobufs, try again with these versions 
    ```
    go generate ./...
    ```
-
-   You can ignore warnings about "No syntax specified for the proto file." These are caused by old protobuf definition files that don't explicitly specify the new proto3 syntax, but they are harmless.
