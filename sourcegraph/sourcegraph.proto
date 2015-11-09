@@ -1851,7 +1851,7 @@ service Auth {
 	// authorization levels on the client.
 	rpc GetPermissions(pbtypes.Void) returns (UserPermissions) {
 		option (google.api.http) = {
-			get: "/auth/verify"
+			get: "/auth/get_permissions"
 		};
 	};
 }
