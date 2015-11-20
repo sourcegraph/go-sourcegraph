@@ -1,4 +1,4 @@
-# go-sourcegraph [![Build Status](https://travis-ci.org/sourcegraph/go-sourcegraph.png?branch=master)](https://travis-ci.org/sourcegraph/go-sourcegraph)
+# go-sourcegraph (deprecated)
 
 [Sourcegraph](https://sourcegraph.com) API client library for [Go](http://golang.org).
 
